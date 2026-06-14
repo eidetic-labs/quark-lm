@@ -206,6 +206,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Coverage-floor heldout</td><td><code>{state.transformerCoverageFloorHeldout}</code></td></tr>
     <tr><td>Coverage-floor history</td><td><code>{state.transformerCoverageFloorHistory}</code></td></tr>
     <tr><td>Coverage-floor status</td><td><code>{state.transformerCoverageFloorStatus}</code></td></tr>
+    <tr><td>Latest coverage-anchor run</td><td><code>{state.transformerLatestCoverageAnchorRun}</code></td></tr>
+    <tr><td>Coverage-anchor mode</td><td><code>{state.transformerCoverageAnchorMode}</code></td></tr>
+    <tr><td>Coverage-anchor unit test</td><td><code>{state.transformerCoverageAnchorUnitTest}</code></td></tr>
+    <tr><td>Coverage-anchor QA</td><td><code>{state.transformerCoverageAnchorQa}</code></td></tr>
+    <tr><td>Coverage-anchor heldout</td><td><code>{state.transformerCoverageAnchorHeldout}</code></td></tr>
+    <tr><td>Coverage-anchor history</td><td><code>{state.transformerCoverageAnchorHistory}</code></td></tr>
+    <tr><td>Coverage-anchor status</td><td><code>{state.transformerCoverageAnchorStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -643,13 +650,23 @@ v0.42 promoted checkpoint.
   (`qa` `0.25`, `heldout` `0.25`, `admissions` `0.1429`, minimum profile
   `0.0714`). This accepts the self-improvement gate repair while still
   rejecting the trained model behavior.
+- `runs/transformer-answer-v0.61-fullstack-context-coverage-anchor-smoke-dim4-context80/`
+  adds a covered-target anchor to context replay: replay branches whose own
+  target is already top-1 receive extra target-vs-replay-target/hard-wrong
+  pressure. The focused transformer test verifies that the anchor protects a
+  covered branch better than identical replay training without the anchor. The
+  full-stack screen completed `50/50` direct steps and restored from step `0`
+  under the v0.60 coverage floor, but trained snapshots over-anchored the
+  already-covered wrong `"i"` token: QA/heldout predicted diversity fell to
+  `1/8`, target-token coverage to `0.125`, and average target rank above `21`.
+  This rejects global covered-target anchoring as implemented.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should make the objective preserve target-token coverage under training
-before sharpening exact target selection. The repair must improve
-prompt-conditioned branch diversity instead of only making more prompt text
-visible, balancing branch targets, raising hidden distance, lowering branch
-loss, or relying on restore to undo coverage regression.
+but it should preserve target-token coverage in a target-balanced or
+profile-aware way before sharpening exact target selection. The repair must
+improve prompt-conditioned branch diversity instead of only making more prompt
+text visible, balancing branch targets, raising hidden distance, lowering
+branch loss, or letting one covered token become a global attractor.
 
 The v0.42 self-improvement run passed:
 

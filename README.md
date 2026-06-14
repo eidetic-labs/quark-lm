@@ -505,6 +505,20 @@ Current transformer answer-lesson run:
   regressed. This accepts the gate repair while rejecting the model behavior;
   the next repair should make the objective preserve coverage rather than only
   relying on restore.
+- v0.61 moves the preservation attempt into training with
+  `branch-balanced-context-coverage-anchor-unlikelihood`: replay branches whose
+  target is already top-1 get an additional covered-target anchor against the
+  replay target set and hard wrong tokens. The focused transformer test proves
+  the anchor protects a covered branch better than the same replay training
+  without the anchor. The full-stack screen
+  `runs/transformer-answer-v0.61-fullstack-context-coverage-anchor-smoke-dim4-context80/`
+  completed `50/50` direct steps, wrote `7` JSONL rows, and restored step `0`
+  under the v0.60 coverage floor. Training snapshots collapsed harder to the
+  already-covered wrong `"i"` branch token: QA/heldout predicted diversity fell
+  to `1/8`, target-token coverage fell to `0.125`, and average target rank
+  regressed above `21`. This rejects global covered-target anchoring as
+  implemented; the next repair should preserve coverage per target bucket
+  without letting one covered token dominate every branch context.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

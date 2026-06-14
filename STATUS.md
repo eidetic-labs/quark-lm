@@ -274,6 +274,21 @@ accepts the self-improvement gate repair but rejects the trained model
 behavior; the next repair should make the objective preserve target-token
 coverage under training.
 
+`runs/transformer-answer-v0.61-fullstack-context-coverage-anchor-smoke-dim4-context80/`
+moves coverage preservation into the objective with
+`branch-balanced-context-coverage-anchor-unlikelihood`: replay branches whose
+target is already the top-1 prediction receive an additional covered-target
+anchor against the replay target set and hard wrong tokens. The focused tests
+pass, including a regression where the anchor protects a covered branch better
+than identical replay training without the anchor. The full-stack screen still
+rejects the mechanism: it completed `50/50` direct steps, wrote `7`
+direct-answer JSONL rows, and restored step `0` under the v0.60 coverage
+floor. Training snapshots over-anchored the already-covered wrong `"i"` token:
+QA/heldout predicted diversity fell to `1/8`, target-token coverage fell to
+`0.125`, and average target rank regressed above `21`. The next repair should
+make preservation target-balanced or profile-aware, so an anchor can protect
+baseline coverage without turning one covered token into a global attractor.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

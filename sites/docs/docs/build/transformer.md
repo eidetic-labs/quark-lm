@@ -152,6 +152,10 @@ each sampled replay branch context to own its own target within the replay
 target set. Use
 `--direct-answer-mode branch-balanced-context-replay-coverage-unlikelihood` for
 the same objective with target-balanced sampled branch and replay batches.
+Use `--direct-answer-mode branch-context-coverage-anchor-unlikelihood` to add a
+covered-target anchor for replay branches whose own target is already top-1.
+Use `--direct-answer-mode branch-balanced-context-coverage-anchor-unlikelihood`
+for the same objective with target-balanced sampled branch and replay batches.
 Best branch snapshot scoring first enforces a profile-wise target-token
 coverage floor against the baseline snapshot. Eligible snapshots then use
 target-rank/top-k evidence before generic wrong-token diversity, so restore
@@ -967,6 +971,34 @@ Latest full-stack coverage-floor branch restore smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | gate repair accepted; trained model behavior rejected because coverage still collapses during training |
+
+Latest full-stack covered-target anchor branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.61-fullstack-context-coverage-anchor-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-coverage-anchor-unlikelihood` |
+| Scoring guard | profile-wise target-token coverage floor before rank/top-k scoring |
+| Anchor pressure | covered replay branches add target-vs-replay-target/hard-wrong CE |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Positive target CE | `0.0` |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including anchored-vs-unanchored covered branch regression |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | snapshots collapsed harder to covered wrong `"i"`; QA/heldout predicted diversity fell to `1/8`, target-token coverage to `0.125`, and average target rank above `21` |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | rejected; global covered-target anchoring over-protects one covered token instead of preserving coverage diversity |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
