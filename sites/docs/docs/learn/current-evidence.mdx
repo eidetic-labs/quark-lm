@@ -80,6 +80,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-diversity training run</td><td><code>{state.transformerLatestBranchDiversityTrainRun}</code></td></tr>
     <tr><td>Branch-diversity training mode</td><td><code>{state.transformerBranchDiversityTrainMode}</code></td></tr>
     <tr><td>Branch-diversity training status</td><td><code>{state.transformerBranchDiversityTrainStatus}</code></td></tr>
+    <tr><td>Latest branch-diversity freeze-bias run</td><td><code>{state.transformerLatestBranchDiversityFreezeRun}</code></td></tr>
+    <tr><td>Branch-diversity freeze-bias mode</td><td><code>{state.transformerBranchDiversityFreezeMode}</code></td></tr>
+    <tr><td>Branch-diversity freeze-bias status</td><td><code>{state.transformerBranchDiversityFreezeStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -303,6 +306,13 @@ v0.42 promoted checkpoint.
   target still failed across all `9` multi-target profiles. QA moved from all
   `"x"` to all `"b"` predictions, with target-token coverage `0.0 -> 0.125`
   and `predicted_unique` still `1/8`.
+- `runs/transformer-answer-v0.43-branch-diversity-freezebias-smoke-dim4-context80/`
+  added `--direct-answer-freeze-output-bias`, which excludes the transformer
+  output bias from direct-answer updates. The required branch-context gate
+  passed and `50/50` direct steps ran with the output bias frozen. Loss moved
+  `3.6149 -> 3.5016`, but the diversity target still failed across all `9`
+  multi-target profiles. QA moved from all `"x"` to all `"w"` predictions,
+  final target-token coverage was `0.0`, and `predicted_unique` stayed `1/8`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

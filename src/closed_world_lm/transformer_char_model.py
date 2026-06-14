@@ -1411,6 +1411,11 @@ def flatten_scalars(item: Any) -> list[Scalar]:
     return scalars
 
 
+def exclude_scalars(params: list[Scalar], excluded: Any) -> list[Scalar]:
+    excluded_ids = {id(value) for value in flatten_scalars(excluded)}
+    return [param for param in params if id(param) not in excluded_ids]
+
+
 def matrix_to_floats(values: list[list[Scalar]]) -> list[list[float]]:
     return [[value.data for value in row] for row in values]
 
@@ -1729,6 +1734,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-branch-batch-size", type=int, default=4)
     answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
     answer_parser.add_argument("--direct-answer-train-top-layer-only", action="store_true")
+    answer_parser.add_argument(
+        "--direct-answer-freeze-output-bias",
+        action="store_true",
+        help=(
+            "Exclude the transformer output bias from direct-answer updates so "
+            "branch screens cannot improve loss by moving one global token bias."
+        ),
+    )
     answer_parser.add_argument(
         "--direct-answer-require-branch-context-gate",
         action="store_true",
@@ -4176,6 +4189,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if args.direct_answer_train_top_layer_only
             else model.parameters()
         )
+        if args.direct_answer_freeze_output_bias:
+            direct_params = exclude_scalars(direct_params, model.bout)
         for direct_step in range(1, direct_steps_to_run + 1):
             if direct_pool_index == len(direct_pool_order):
                 direct_rng.shuffle(direct_pool_order)
@@ -5092,6 +5107,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_branch_batch_size": args.direct_answer_branch_batch_size,
             "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
             "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
+            "direct_answer_freeze_output_bias": args.direct_answer_freeze_output_bias,
             "direct_answer_require_branch_context_gate": (
                 args.direct_answer_require_branch_context_gate
             ),

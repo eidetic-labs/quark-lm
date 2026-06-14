@@ -208,6 +208,15 @@ Current transformer answer-lesson run:
   `"x"` predictions to all `"b"` predictions, with target-token coverage
   `0.0 -> 0.125` and `predicted_unique` still `1/8`, so it is rejected
   training-mode evidence rather than a promotion candidate.
+- Direct-answer training can now freeze the transformer output bias with
+  `--direct-answer-freeze-output-bias`, preventing a branch screen from solving
+  loss by moving one global token bias. The context-80 freeze-bias smoke
+  `runs/transformer-answer-v0.43-branch-diversity-freezebias-smoke-dim4-context80/`
+  passed the branch-context gate and ran `50/50` direct steps, but still failed
+  branch diversity across all `9` multi-target profiles. QA moved from all
+  `"x"` predictions to all `"w"` predictions, final target-token coverage was
+  `0.0`, and `predicted_unique` stayed `1/8`. This rejects output-bias-only
+  collapse as the full explanation.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

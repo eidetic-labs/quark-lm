@@ -114,6 +114,10 @@ training boundary.
 - Diversity-aware branch modes must be judged by `branch_diversity_target` and
   target-token coverage, not by moving collapse from one dominant token to
   another.
+- Direct-answer stabilizers that freeze global parameters, such as output-bias
+  freezing, must record the frozen option, prove the excluded parameters stayed
+  unchanged in unit coverage, and still be judged by branch diversity rather
+  than loss movement alone.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

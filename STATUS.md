@@ -256,6 +256,21 @@ prediction moved from all `"x"` to all `"b"`, target-token coverage improved
 training-mode evidence: the objective moves the collapse token but does not yet
 create prompt-specific branch diversity.
 
+Direct-answer training can now exclude the transformer output bias from updates
+with `--direct-answer-freeze-output-bias`. This tests whether branch-diversity
+loss was escaping through one global output-bias move instead of learning
+prompt-specific weights. Unit coverage verifies that branch-diversity training
+can keep `bout` unchanged while still updating output weights. The context-80
+corpus smoke at
+`runs/transformer-answer-v0.43-branch-diversity-freezebias-smoke-dim4-context80/`
+passed the branch-context gate and ran `50/50` direct steps with the output bias
+frozen. Interval loss moved `3.6149 -> 3.5016`, but the final
+branch-diversity target still failed across all `9` multi-target profiles. QA
+prediction moved from all `"x"` to all `"w"`, final target-token coverage was
+`0.0`, and `predicted_unique` stayed `1/8`. This is rejected stabilizer
+evidence: output bias can be guarded, but the current direct-answer path still
+collapses through deeper prompt-independent weights.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

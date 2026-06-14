@@ -1723,6 +1723,24 @@ pools, and corpus diffs.
 - rejected as training-mode evidence: the objective moves the collapsed token
   but does not yet create prompt-specific branch diversity
 
+`runs/transformer-answer-v0.43-branch-diversity-freezebias-smoke-dim4-context80/`:
+
+- added `--direct-answer-freeze-output-bias`, which removes the transformer's
+  output bias from direct-answer updates
+- unit coverage verifies that branch-diversity training can leave `bout`
+  unchanged while still updating output weights
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- interval train loss moved `3.6149 -> 3.5016`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA diversity moved from all `"x"` predictions to all `"w"` predictions,
+  final target-token coverage was `0.0`, and `predicted_unique` remained `1/8`
+- rejected as stabilizer evidence: freezing global output bias prevents one
+  cheap escape hatch, but the current training path still collapses through
+  prompt-independent weights
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

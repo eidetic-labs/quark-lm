@@ -46,6 +46,7 @@ from closed_world_lm.transformer_char_model import (
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
+    exclude_scalars,
     sampled_choice_candidates,
     train_direct_answer_first_error,
     train_direct_answer_first_error_unlikelihood,
@@ -1279,6 +1280,61 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertLess(after_wrong, before_wrong)
         self.assertGreater(after_target, before_target)
 
+    def test_branch_diversity_training_can_freeze_output_bias(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=45,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+        params = exclude_scalars(model.parameters(), model.bout)
+        before_bout = [value.data for value in model.bout]
+        before_wout = model.wout[0][wrong_id].data
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+
+        train_direct_answer_branch_diversity_unlikelihood(
+            model,
+            tokenizer,
+            near,
+            examples,
+            lesson,
+            random.Random(16),
+            learning_rate=0.06,
+            negative_weight=1.0,
+            positive_weight=1.0,
+            contrast_weight=1.0,
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+            params=params,
+        )
+
+        self.assertEqual([value.data for value in model.bout], before_bout)
+        self.assertNotEqual(model.wout[0][wrong_id].data, before_wout)
+
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
         tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
@@ -2148,6 +2204,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--direct-answer-snapshot-mode",
                     "branch-only",
                     "--direct-answer-train-top-layer-only",
+                    "--direct-answer-freeze-output-bias",
                     "--direct-answer-require-branch-context-gate",
                     "--skip-post-direct-snapshot",
                     "--direct-answer-sequence-interval",
@@ -2173,6 +2230,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_hard_negatives, 7)
             self.assertEqual(args.direct_answer_snapshot_mode, "branch-only")
             self.assertTrue(args.direct_answer_train_top_layer_only)
+            self.assertTrue(args.direct_answer_freeze_output_bias)
             self.assertTrue(args.direct_answer_require_branch_context_gate)
             self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)
