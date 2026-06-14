@@ -242,6 +242,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Coverage-preserving deficit heldout</td><td><code>{state.transformerCoveragePreservingDeficitHeldout}</code></td></tr>
     <tr><td>Coverage-preserving deficit history</td><td><code>{state.transformerCoveragePreservingDeficitHistory}</code></td></tr>
     <tr><td>Coverage-preserving deficit status</td><td><code>{state.transformerCoveragePreservingDeficitStatus}</code></td></tr>
+    <tr><td>Latest profile-aware replay run</td><td><code>{state.transformerLatestProfileAwareReplayRun}</code></td></tr>
+    <tr><td>Profile-aware replay mode</td><td><code>{state.transformerProfileAwareReplayMode}</code></td></tr>
+    <tr><td>Profile-aware replay unit test</td><td><code>{state.transformerProfileAwareReplayUnitTest}</code></td></tr>
+    <tr><td>Profile-aware replay plan</td><td><code>{state.transformerProfileAwareReplayPlan}</code></td></tr>
+    <tr><td>Profile-aware replay gate</td><td><code>{state.transformerProfileAwareReplayGate}</code></td></tr>
+    <tr><td>Profile-aware replay smoke</td><td><code>{state.transformerProfileAwareReplaySmoke}</code></td></tr>
+    <tr><td>Profile-aware replay status</td><td><code>{state.transformerProfileAwareReplayStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -719,11 +726,22 @@ v0.42 promoted checkpoint.
   top-5 coverage to `0.5`, but both profiles collapsed to one predicted target
   token with target-token coverage `0.125`. This rejects current-prediction
   preservation as implemented.
+- `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+  adds profile-aware replay records and `direct_answer_replay_plan.json` for
+  the preserving-deficit path. Focused tests verify that global target coverage
+  cannot hide a profile-local missing target and that profiled replay records
+  keep their admitted source keys even when branch target tokens are shared.
+  The bounded smoke wrote a plan for `9144` branch/replay records across `21`
+  profiles, passed the branch-context gate across `219/219` semantic records,
+  and showed profile-specific coverage floors such as `qa:place` at `0.5` and
+  `qa:color` at `0.0`. It ran one branch-only direct step and restored from
+  step `0`; branch diversity still failed `0/9` multi-target profiles. This is
+  mechanics-readiness evidence, not model-quality promotion evidence.
 
-The next transformer repair should keep the context-coverage audit and
-profile-wise coverage floor, but make the training constraint profile-aware.
-v0.65 shows that anchoring currently represented target tokens can improve rank
-while over-preserving the represented token and regressing coverage diversity.
+The next transformer repair should keep the context-coverage audit,
+profile-wise coverage floor, and v0.67 replay-plan artifact, then spend a
+full-stack run measuring whether profile-aware preservation improves target
+coverage without erasing branch diversity.
 
 The v0.42 self-improvement run passed:
 

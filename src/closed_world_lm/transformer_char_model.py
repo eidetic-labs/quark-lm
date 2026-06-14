@@ -45,6 +45,83 @@ DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "paraphrases.jsonl",
 ]
 ANSWER_TERMINATOR = "\n"
+BranchReplayRecord = tuple[list[int], int, int] | tuple[list[int], int, int, str]
+ProfiledBranchSeed = tuple[list[int], int, str]
+
+
+def branch_replay_parts(
+    branch: BranchReplayRecord,
+) -> tuple[list[int], int, int, str]:
+    if len(branch) >= 4:
+        return branch[0], branch[1], branch[2], branch[3]
+    return branch[0], branch[1], branch[2], "__all__"
+
+
+def direct_answer_profile_key(example: AnswerExample) -> str:
+    return example.source or "unknown"
+
+
+def branch_replay_profile_groups(
+    branches: list[BranchReplayRecord],
+    profile_aware_targets: bool = False,
+) -> dict[str, list[tuple[list[int], int, int, str]]]:
+    groups: dict[str, list[tuple[list[int], int, int, str]]] = {}
+    for branch in branches:
+        context, target, predicted, profile = branch_replay_parts(branch)
+        profile_key = profile if profile_aware_targets else "__all__"
+        groups.setdefault(profile_key, []).append(
+            (context, target, predicted, profile)
+        )
+    return groups
+
+
+def branch_replay_plan(
+    branches: list[BranchReplayRecord],
+    replay_branches: list[BranchReplayRecord],
+    profile_aware_targets: bool = False,
+) -> dict[str, Any]:
+    branch_groups = branch_replay_profile_groups(branches, profile_aware_targets)
+    replay_groups = branch_replay_profile_groups(
+        replay_branches if replay_branches else branches,
+        profile_aware_targets,
+    )
+    profiles = sorted(set(branch_groups) | set(replay_groups))
+    profile_summaries: dict[str, dict[str, Any]] = {}
+    for profile in profiles:
+        branch_parts = branch_groups.get(profile, [])
+        replay_parts = replay_groups.get(profile, [])
+        target_ids = sorted(
+            {target for _context, target, _predicted, _profile in replay_parts}
+        )
+        represented_target_ids = sorted(
+            {
+                predicted
+                for _context, _target, predicted, _profile in replay_parts
+                if predicted in target_ids
+            }
+        )
+        missing_target_ids = sorted(set(target_ids) - set(represented_target_ids))
+        profile_summaries[profile] = {
+            "branch_count": len(branch_parts),
+            "replay_count": len(replay_parts),
+            "target_ids": target_ids,
+            "target_count": len(target_ids),
+            "represented_target_ids": represented_target_ids,
+            "represented_target_count": len(represented_target_ids),
+            "missing_target_ids": missing_target_ids,
+            "missing_target_count": len(missing_target_ids),
+            "coverage_floor": (
+                len(represented_target_ids) / len(target_ids)
+                if target_ids
+                else 1.0
+            ),
+        }
+    return {
+        "profile_aware_targets": profile_aware_targets,
+        "branch_count": len(branches),
+        "replay_count": len(replay_branches if replay_branches else branches),
+        "profiles": profile_summaries,
+    }
 
 
 @dataclass
@@ -2064,8 +2141,8 @@ class TinyTransformerLM:
 
     def train_step_with_branch_context_replay_coverage(
         self,
-        branches: list[tuple[list[int], int, int]],
-        replay_branches: list[tuple[list[int], int, int]],
+        branches: list[BranchReplayRecord],
+        replay_branches: list[BranchReplayRecord],
         learning_rate: float,
         negative_weight: float,
         positive_weight: float,
@@ -2077,39 +2154,71 @@ class TinyTransformerLM:
         focus_uncovered_targets: bool = False,
         preserve_predicted_target_coverage: bool = False,
         balance_deficit_targets: bool = False,
+        profile_aware_targets: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
+        replay_parts = [branch_replay_parts(branch) for branch in replay_branches]
+        branch_parts = [branch_replay_parts(branch) for branch in branches]
         replay_targets = sorted(
-            {target for _context, target, _predicted in replay_branches}
+            {target for _context, target, _predicted, _profile in replay_parts}
         )
         if not replay_targets:
-            replay_targets = sorted({target for _context, target, _predicted in branches})
-            replay_branches = branches
+            replay_targets = sorted(
+                {target for _context, target, _predicted, _profile in branch_parts}
+            )
+            replay_parts = branch_parts
+        replay_record_count = len(replay_parts)
         replay_target_set = set(replay_targets)
         replay_target_offsets = {
             target: offset for offset, target in enumerate(replay_targets)
         }
+        replay_targets_by_profile: dict[str, list[int]] = {}
+        replay_target_sets_by_profile: dict[str, set[int]] = {}
+        replay_target_offsets_by_profile: dict[str, dict[int, int]] = {}
+        for _context, target, _predicted, profile in replay_parts:
+            profile_key = profile if profile_aware_targets else "__all__"
+            replay_target_sets_by_profile.setdefault(profile_key, set()).add(target)
+        if not replay_target_sets_by_profile:
+            replay_target_sets_by_profile["__all__"] = set(replay_targets)
+        if not profile_aware_targets:
+            replay_target_sets_by_profile["__all__"] = replay_target_set
+        for profile_key, profile_targets in replay_target_sets_by_profile.items():
+            ordered_targets = sorted(profile_targets)
+            replay_targets_by_profile[profile_key] = ordered_targets
+            replay_target_offsets_by_profile[profile_key] = {
+                target: offset for offset, target in enumerate(ordered_targets)
+            }
         branch_loss = Scalar(0.0)
         replay_coverage_loss = Scalar(0.0)
         replay_ownership_loss = Scalar(0.0)
         deficit_target_loss = Scalar(0.0)
         deficit_target_count = 0
-        deficit_target_losses_by_target: dict[int, Scalar] = {}
-        deficit_target_counts_by_target: Counter[int] = Counter()
-        coverage_preservation_losses_by_target: dict[int, Scalar] = {}
-        coverage_preservation_counts_by_target: Counter[int] = Counter()
+        deficit_target_losses_by_target: dict[tuple[str, int], Scalar] = {}
+        deficit_target_counts_by_target: Counter[tuple[str, int]] = Counter()
+        coverage_preservation_losses_by_target: dict[tuple[str, int], Scalar] = {}
+        coverage_preservation_counts_by_target: Counter[tuple[str, int]] = Counter()
         covered_anchor_loss = Scalar(0.0)
         covered_anchor_count = 0
-        covered_anchor_losses_by_target: dict[int, Scalar] = {}
-        covered_anchor_counts_by_target: Counter[int] = Counter()
-        predicted_replay_targets = {
-            predicted
-            for _context, _target, predicted in replay_branches
-            if predicted in replay_target_set
+        covered_anchor_losses_by_target: dict[tuple[str, int], Scalar] = {}
+        covered_anchor_counts_by_target: Counter[tuple[str, int]] = Counter()
+        predicted_replay_targets_by_profile: dict[str, set[int]] = {}
+        for _context, _target, predicted, profile in replay_parts:
+            profile_key = profile if profile_aware_targets else "__all__"
+            profile_target_set = replay_target_sets_by_profile.get(
+                profile_key,
+                replay_target_set,
+            )
+            if predicted in profile_target_set:
+                predicted_replay_targets_by_profile.setdefault(profile_key, set()).add(
+                    predicted
+                )
+        deficit_targets_by_profile = {
+            profile_key: profile_target_set
+            - predicted_replay_targets_by_profile.get(profile_key, set())
+            for profile_key, profile_target_set in replay_target_sets_by_profile.items()
         }
-        deficit_targets = replay_target_set - predicted_replay_targets
-        for context, target, predicted in branches:
+        for context, target, predicted, _profile in branch_parts:
             logits = self._forward_scalars(context)
             probs = softmax_scalars(logits)
             if positive_weight > 0.0:
@@ -2118,8 +2227,22 @@ class TinyTransformerLM:
                 branch_loss = branch_loss + (
                     -(Scalar(1.0) - probs[predicted] + 1e-12).log()
                 ) * negative_weight
-        for context, target, predicted in replay_branches:
-            if target not in replay_target_offsets:
+        for context, target, predicted, profile in replay_parts:
+            profile_key = profile if profile_aware_targets else "__all__"
+            profile_replay_targets = replay_targets_by_profile.get(
+                profile_key,
+                replay_targets,
+            )
+            profile_replay_target_set = replay_target_sets_by_profile.get(
+                profile_key,
+                replay_target_set,
+            )
+            profile_replay_target_offsets = replay_target_offsets_by_profile.get(
+                profile_key,
+                replay_target_offsets,
+            )
+            profile_deficit_targets = deficit_targets_by_profile.get(profile_key, set())
+            if target not in profile_replay_target_offsets:
                 continue
             logits = self._forward_scalars(context)
             hard_candidates = [
@@ -2129,18 +2252,18 @@ class TinyTransformerLM:
                     key=lambda item: logits[item].data,
                     reverse=True,
                 )
-                if index not in replay_target_set
+                if index not in profile_replay_target_set
             ]
             if hard_negative_count > 0:
                 hard_candidates = hard_candidates[:hard_negative_count]
-            candidate_ids = [*replay_targets, *hard_candidates]
+            candidate_ids = [*profile_replay_targets, *hard_candidates]
             candidate_logits = [logits[candidate_id] for candidate_id in candidate_ids]
             candidate_probs = softmax_scalars(candidate_logits)
             target_set_mass = Scalar(0.0)
             for offset, candidate_id in enumerate(candidate_ids):
-                if candidate_id in replay_target_set:
+                if candidate_id in profile_replay_target_set:
                     target_set_mass = target_set_mass + candidate_probs[offset]
-            target_offset = replay_target_offsets[target]
+            target_offset = profile_replay_target_offsets[target]
             owned_target_share = candidate_probs[target_offset] / (
                 target_set_mass + 1e-12
             )
@@ -2150,44 +2273,56 @@ class TinyTransformerLM:
             replay_ownership_loss = replay_ownership_loss + (
                 -(owned_target_share + 1e-12).log()
             )
-            if focus_uncovered_targets and target in deficit_targets:
+            if focus_uncovered_targets and target in profile_deficit_targets:
+                target_key = (profile_key, target)
                 target_deficit_loss = -(candidate_probs[target_offset] + 1e-12).log()
                 deficit_target_loss = deficit_target_loss + target_deficit_loss
                 deficit_target_count += 1
-                deficit_target_losses_by_target[target] = (
-                    deficit_target_losses_by_target.get(target, Scalar(0.0))
+                deficit_target_losses_by_target[target_key] = (
+                    deficit_target_losses_by_target.get(target_key, Scalar(0.0))
                     + target_deficit_loss
                 )
-                deficit_target_counts_by_target[target] += 1
-            if preserve_predicted_target_coverage and predicted in replay_target_offsets:
-                predicted_offset = replay_target_offsets[predicted]
+                deficit_target_counts_by_target[target_key] += 1
+            if (
+                preserve_predicted_target_coverage
+                and predicted in profile_replay_target_offsets
+            ):
+                predicted_key = (profile_key, predicted)
+                predicted_offset = profile_replay_target_offsets[predicted]
                 coverage_preservation_loss = -(
                     candidate_probs[predicted_offset] + 1e-12
                 ).log()
-                coverage_preservation_losses_by_target[predicted] = (
-                    coverage_preservation_losses_by_target.get(predicted, Scalar(0.0))
+                coverage_preservation_losses_by_target[predicted_key] = (
+                    coverage_preservation_losses_by_target.get(
+                        predicted_key,
+                        Scalar(0.0),
+                    )
                     + coverage_preservation_loss
                 )
-                coverage_preservation_counts_by_target[predicted] += 1
+                coverage_preservation_counts_by_target[predicted_key] += 1
             if preserve_covered_targets and predicted == target:
+                target_key = (profile_key, target)
                 target_anchor_loss = -(candidate_probs[target_offset] + 1e-12).log()
                 covered_anchor_loss = covered_anchor_loss + target_anchor_loss
                 covered_anchor_count += 1
-                covered_anchor_losses_by_target[target] = (
-                    covered_anchor_losses_by_target.get(target, Scalar(0.0))
+                covered_anchor_losses_by_target[target_key] = (
+                    covered_anchor_losses_by_target.get(target_key, Scalar(0.0))
                     + target_anchor_loss
                 )
-                covered_anchor_counts_by_target[target] += 1
+                covered_anchor_counts_by_target[target_key] += 1
         loss = branch_loss / max(len(branches), 1)
-        if replay_weight > 0.0 and replay_branches and replay_targets:
+        if replay_weight > 0.0 and replay_record_count and replay_targets:
             replay_loss = (
-                replay_coverage_loss / max(len(replay_branches), 1)
-                + replay_ownership_loss / max(len(replay_branches), 1)
+                replay_coverage_loss / replay_record_count
+                + replay_ownership_loss / replay_record_count
             ) / 2.0
             if focus_uncovered_targets and deficit_target_count:
                 if balance_deficit_targets and deficit_target_losses_by_target:
                     balanced_deficit_loss = Scalar(0.0)
-                    for target, target_deficit_loss in deficit_target_losses_by_target.items():
+                    for (
+                        target,
+                        target_deficit_loss,
+                    ) in deficit_target_losses_by_target.items():
                         balanced_deficit_loss = balanced_deficit_loss + (
                             target_deficit_loss / deficit_target_counts_by_target[target]
                         )
@@ -3494,6 +3629,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-balanced-context-coverage-deficit-unlikelihood",
             "branch-context-coverage-preserving-deficit-unlikelihood",
             "branch-balanced-context-coverage-preserving-deficit-unlikelihood",
+            "branch-context-profile-coverage-preserving-deficit-unlikelihood",
+            "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
@@ -4997,6 +5134,125 @@ def direct_answer_target_balanced_branch_diversity_batch(
     return diversity_branches
 
 
+def direct_answer_profiled_branch_batch(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    balance_targets: bool = False,
+) -> list[BranchReplayRecord]:
+    branch = direct_answer_branch_context(
+        model,
+        tokenizer,
+        example,
+        branch_position,
+        terminator,
+    )
+    if branch is None:
+        return []
+    context, target_id, _position = branch
+    seeds: list[ProfiledBranchSeed] = [
+        (context, target_id, direct_answer_profile_key(example))
+    ]
+    candidates = branch_examples[:]
+    rng.shuffle(candidates)
+    if balance_targets:
+        by_target: dict[int, list[ProfiledBranchSeed]] = {}
+        for candidate in candidates:
+            candidate_branch = direct_answer_branch_context(
+                model,
+                tokenizer,
+                candidate,
+                branch_position,
+                terminator,
+            )
+            if candidate_branch is None:
+                continue
+            candidate_context, candidate_target, _candidate_position = candidate_branch
+            if candidate_target == target_id:
+                continue
+            by_target.setdefault(candidate_target, []).append(
+                (
+                    candidate_context,
+                    candidate_target,
+                    direct_answer_profile_key(candidate),
+                )
+            )
+        target_ids = list(by_target)
+        rng.shuffle(target_ids)
+        for candidate_target in target_ids:
+            if len(seeds) >= max(1, batch_size):
+                break
+            seeds.append(rng.choice(by_target[candidate_target]))
+    else:
+        seen_targets = {target_id}
+        for candidate in candidates:
+            if len(seeds) >= max(1, batch_size):
+                break
+            candidate_branch = direct_answer_branch_context(
+                model,
+                tokenizer,
+                candidate,
+                branch_position,
+                terminator,
+            )
+            if candidate_branch is None:
+                continue
+            candidate_context, candidate_target, _candidate_position = candidate_branch
+            if candidate_target in seen_targets:
+                continue
+            seeds.append(
+                (
+                    candidate_context,
+                    candidate_target,
+                    direct_answer_profile_key(candidate),
+                )
+            )
+            seen_targets.add(candidate_target)
+    profiled: list[BranchReplayRecord] = []
+    for context, target_id, profile in seeds:
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        profiled.append((context, target_id, predicted_id, profile))
+    return profiled
+
+
+def direct_answer_profiled_replay_records(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    branch_examples: list[AnswerExample],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[BranchReplayRecord]:
+    records: list[BranchReplayRecord] = []
+    for example in branch_examples:
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            example,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            continue
+        context, target_id, _position = branch
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        records.append(
+            (
+                context,
+                target_id,
+                predicted_id,
+                direct_answer_profile_key(example),
+            )
+        )
+    return records
+
+
 def direct_answer_hard_branch_contrast(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -5960,22 +6216,36 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     focus_uncovered_targets: bool = False,
     preserve_predicted_target_coverage: bool = False,
     balance_deficit_targets: bool = False,
+    profile_aware_targets: bool = False,
 ) -> float:
-    batch_builder = (
-        direct_answer_target_balanced_branch_diversity_batch
-        if balance_targets
-        else direct_answer_branch_diversity_batch
-    )
-    branches = batch_builder(
-        model,
-        tokenizer,
-        example,
-        branch_examples,
-        rng,
-        branch_position,
-        batch_size,
-        terminator,
-    )
+    if profile_aware_targets:
+        branches = direct_answer_profiled_branch_batch(
+            model,
+            tokenizer,
+            example,
+            branch_examples,
+            rng,
+            branch_position,
+            batch_size,
+            terminator,
+            balance_targets=balance_targets,
+        )
+    else:
+        batch_builder = (
+            direct_answer_target_balanced_branch_diversity_batch
+            if balance_targets
+            else direct_answer_branch_diversity_batch
+        )
+        branches = batch_builder(
+            model,
+            tokenizer,
+            example,
+            branch_examples,
+            rng,
+            branch_position,
+            batch_size,
+            terminator,
+        )
     if not branches:
         return train_direct_answer_lesson(
             model,
@@ -5985,16 +6255,29 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
             params=params,
         )
     replay_batch_size = max(batch_size, batch_size + max(0, hard_negative_count))
-    replay_branches = direct_answer_target_balanced_branch_diversity_batch(
-        model,
-        tokenizer,
-        example,
-        branch_examples,
-        rng,
-        branch_position,
-        replay_batch_size,
-        terminator,
-    )
+    if profile_aware_targets:
+        replay_branches = direct_answer_profiled_branch_batch(
+            model,
+            tokenizer,
+            example,
+            branch_examples,
+            rng,
+            branch_position,
+            replay_batch_size,
+            terminator,
+            balance_targets=True,
+        )
+    else:
+        replay_branches = direct_answer_target_balanced_branch_diversity_batch(
+            model,
+            tokenizer,
+            example,
+            branch_examples,
+            rng,
+            branch_position,
+            replay_batch_size,
+            terminator,
+        )
     return model.train_step_with_branch_context_replay_coverage(
         branches,
         replay_branches,
@@ -6009,6 +6292,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         focus_uncovered_targets=focus_uncovered_targets,
         preserve_predicted_target_coverage=preserve_predicted_target_coverage,
         balance_deficit_targets=balance_deficit_targets,
+        profile_aware_targets=profile_aware_targets,
     )
 
 
@@ -7102,6 +7386,36 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         }
         direct_rng = random.Random(args.seed + 307)
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
+        direct_profile_aware_targets = args.direct_answer_mode in {
+            "branch-context-profile-coverage-preserving-deficit-unlikelihood",
+            "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
+        }
+        direct_replay_plan_path = (
+            args.run / "direct_answer_replay_plan.json"
+            if direct_profile_aware_targets
+            else None
+        )
+        direct_replay_plan = None
+        if direct_profile_aware_targets:
+            replay_records = direct_answer_profiled_replay_records(
+                model,
+                tokenizer,
+                direct_training_pool,
+                args.direct_answer_branch_position,
+                direct_answer_terminator,
+            )
+            direct_replay_plan = branch_replay_plan(
+                replay_records,
+                replay_records,
+                profile_aware_targets=True,
+            )
+            direct_replay_plan["mode"] = args.direct_answer_mode
+            direct_replay_plan["branch_position"] = args.direct_answer_branch_position
+            direct_replay_plan["training_examples"] = len(direct_training_pool)
+            if direct_replay_plan_path is not None:
+                with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
+                    json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
+                    handle.write("\n")
 
         def direct_snapshot(
             step: int,
@@ -8346,6 +8660,51 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     preserve_predicted_target_coverage=True,
                     balance_deficit_targets=True,
                 )
+            elif args.direct_answer_mode == "branch-context-profile-coverage-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                    profile_aware_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                    profile_aware_targets=True,
+                )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
                     model,
@@ -8803,6 +9162,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 args.direct_answer_snapshot_mode == "branch-only"
             ),
             "direct_answer_mode": args.direct_answer_mode,
+            "direct_answer_profile_aware_targets": direct_profile_aware_targets,
+            "direct_answer_replay_plan": (
+                str(direct_replay_plan_path)
+                if direct_replay_plan_path is not None
+                else None
+            ),
+            "direct_answer_replay_plan_summary": direct_replay_plan,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,
             "direct_answer_positive_weight": args.direct_answer_positive_weight,
             "direct_answer_contrast_weight": args.direct_answer_contrast_weight,

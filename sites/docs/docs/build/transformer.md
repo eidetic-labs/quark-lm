@@ -171,6 +171,14 @@ to combine missing-target pressure with target-balanced preservation anchors
 for target tokens currently represented in replay predictions. Use
 `--direct-answer-mode branch-balanced-context-coverage-preserving-deficit-unlikelihood`
 for the same objective with target-balanced sampled branch and replay batches.
+Use `--direct-answer-mode branch-context-profile-coverage-preserving-deficit-unlikelihood`
+to compute those deficits and preservation anchors inside each admitted
+source/profile instead of one global replay target set. Use
+`--direct-answer-mode branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood`
+for the same objective with target-balanced sampled branch and replay batches.
+Profile-aware modes emit `direct_answer_replay_plan.json` with branch counts,
+replay counts, target ids, represented target ids, missing target ids, and
+coverage floors by profile before direct-answer training starts.
 Best branch snapshot scoring first enforces a profile-wise target-token
 coverage floor against the baseline snapshot. Eligible snapshots then use
 target-rank/top-k evidence before generic wrong-token diversity, so restore
@@ -1044,6 +1052,25 @@ Latest full-stack coverage-preserving deficit branch repair smoke:
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; current-prediction preservation improves rank but over-preserves one represented target token |
 
+Latest profile-aware replay-plan smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood` |
+| Replay plan artifact | `direct_answer_replay_plan.json` |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Example profile floors | `qa:place` coverage floor `0.5`; `qa:color` coverage floor `0.0` |
+| Foundation stack | AdamW, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Unit coverage | focused transformer tests pass, including profile-deficit isolation and shared-target source preservation |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Direct steps | `1/1` bounded smoke |
+| Snapshot mode | `branch-only`; post-direct candidate snapshot skipped and recorded |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | mechanics-readiness evidence only; profile-aware plan exists, but model quality is not promoted |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1136,3 +1163,11 @@ top-one hard-negative screen then regresses rank and top-k coverage, so the
 next repair should not simply concentrate more pressure on the current top
 wrong token. It needs a prompt-conditioned mechanism that selects among
 near-tied branch candidates.
+
+The v0.66 open-source mechanics audit reframes the current blocker as trainer
+mechanics rather than another global branch loss. v0.67 implements the first
+profile-aware replay-plan surface: branch records carry source/profile keys,
+deficits and preservation are computed per profile, and the plan is written as
+a run artifact before training. The next full-stack transformer repair should
+use that plan as a constraint and reject snapshots that improve rank by erasing
+per-profile coverage.

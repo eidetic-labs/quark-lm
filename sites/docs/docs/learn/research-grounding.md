@@ -47,10 +47,10 @@ tokenizers, Avalanche, LLM360, OLMo, OLMo 2, Self-Instruct, STaR, Reflexion,
 InsCL, and deep generative replay as design references only.
 
 The audit decision is that QuarkLM's next transformer bottleneck is trainer
-mechanics, not another global branch-loss term. Before the next full-stack
-direct-answer repair run, branch replay should carry profile keys, compute
-coverage deficits per profile, preserve represented targets per profile, emit a
-replay-plan artifact, and test profile isolation. See
+mechanics, not another global branch-loss term. v0.67 implements the first
+profile-aware replay-plan surface: branch replay can carry profile keys,
+coverage deficits and represented-target preservation are computed per profile,
+and profile-aware screens emit a replay-plan artifact before training. See
 [Open-source mechanics audit](./open-source-mechanics-audit.md).
 
 ## Paper Map
@@ -144,13 +144,12 @@ loops become fragile.
   candidate/original ratios, and rare-record coverage.
 - Teach the self-diagnosis layer to emit candidate lessons and candidate probes
   that are verified before admission.
-- Continue the transformer repair as profile-aware coverage-constrained
-  deficit training: v0.65 shows current-prediction anchors can improve rank,
-  but they over-preserve one represented target token and regress coverage
-  diversity.
-- Require the next direct-answer full-stack repair to emit an explicit
-  replay-plan artifact with per-profile branch counts, replay counts, target
-  sets, represented targets, missing targets, and coverage floors.
+- Continue the transformer repair with the v0.67 profile-aware replay plan:
+  branch records now carry profiles, deficits and preservation are profile
+  local, and the plan artifact exposes profile coverage floors before training.
+- Require the next direct-answer full-stack repair to use that replay-plan
+  artifact as a constraint and reject snapshots that improve rank while
+  sacrificing per-profile target coverage.
 - Keep branch-diversity and target-coverage gates in the transformer path,
   because the current failure is collapse under weight updates, not lack of
   loss movement.

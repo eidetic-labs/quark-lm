@@ -1,8 +1,8 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.66 open-source mechanics audit; promoted responder
-evidence remains v0.42
+**Active version:** v0.67 profile-aware replay-plan mechanics; promoted
+responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
 
@@ -58,6 +58,9 @@ Working tagline: Big idea. Tiny package.
 - Open-source mechanics audit guidance for trainer boundaries, profile-aware
   replay, checkpoint scoring, tokenizer artifacts, and candidate lesson
   acceptance without copying outside code or importing outside training data.
+- Profile-aware direct-answer replay records, per-profile deficit and
+  preservation accounting, replay-plan artifacts, and profile-isolation tests
+  for transformer repair screens.
 - Source probes for known, unknown, held-out, paraphrase, ownership, self,
   learning, admission, admission-paraphrase, and glossary answers.
 
@@ -85,8 +88,9 @@ The practical near-term guidance is:
   branch-diversity gates;
 - train the transformer from coverage deficits, not only from already-covered
   branch targets;
-- emit replay-plan artifacts and compute coverage deficits per profile before
-  the next full-stack direct-answer repair run;
+- use the v0.67 replay-plan artifact to gate profile-aware full-stack
+  direct-answer repair runs and reject any snapshot that improves rank by
+  erasing profile coverage;
 - defer model editing and self-rewarded grading until locality, side effects,
   and verifier quality are measurable inside the closed world.
 
@@ -97,6 +101,16 @@ design references only. It concludes that QuarkLM should pause global
 branch-loss churn and make profile-aware replay plans, per-profile deficits,
 per-profile preservation, replay-plan artifacts, and profile-isolation tests
 the next implementation gate.
+
+v0.67 implements that gate for the direct-answer transformer path. Branch
+replay records can now carry profile keys, replay deficits and represented
+target preservation are computed per profile, and profile-aware modes write
+`direct_answer_replay_plan.json` before training. The bounded smoke run
+`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+completed one gated direct step, wrote a replay plan for `9144` branch records
+across `21` profiles, and confirmed that `qa:place` and `qa:color` can expose
+different coverage floors in the same artifact. This is mechanics-readiness
+evidence, not promotion evidence.
 
 ## Latest Evidence
 
@@ -350,6 +364,17 @@ top-5 coverage to `0.5`, but QA and heldout collapsed to predicted diversity
 `1/8` around the represented `"i"` token and target-token coverage regressed to
 `0.125`. The next repair should make preservation profile-aware instead of
 anchoring current predicted target tokens.
+
+`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+adds the first profile-aware replay-plan mechanics for that path. Branch replay
+records can carry admitted source/profile keys, replay targets are partitioned
+by profile for deficit and preservation accounting, and profile-aware modes
+write `direct_answer_replay_plan.json` before direct-answer training. The
+bounded smoke completed one gated branch-only direct step, wrote a plan for
+`9144` branch records across `21` profiles, and showed separate profile floors
+such as `qa:place` at `0.5` and `qa:color` at `0.0`. The branch-diversity
+target still failed `0/9` multi-target profiles, so this is
+mechanics-readiness evidence, not promotion evidence.
 
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final

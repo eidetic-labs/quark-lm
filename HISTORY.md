@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.67
+
+- Added profile-aware replay plans and bounded smoke evidence.
+
 ## v0.66
 
 - Added open-source mechanics audit and profile-aware replay requirements.

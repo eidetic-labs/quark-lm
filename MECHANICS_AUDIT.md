@@ -144,10 +144,29 @@ at character-token length as the limiting factor.
 7. Documentation must state whether a version is model-quality evidence,
    mechanics-readiness evidence, audit evidence, or promotion evidence.
 
+## v0.67 Implementation Status
+
+v0.67 implements the first version of these requirements in the transformer
+direct-answer path. Branch replay records may now carry profile keys, deficits
+and represented-target preservation can be computed per profile, and
+profile-aware modes emit `direct_answer_replay_plan.json` before direct-answer
+training. Focused tests cover profile-deficit isolation and preservation of
+source profile keys when different examples share the same branch target token.
+
+The bounded smoke run
+`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+is mechanics-readiness evidence. It wrote a replay plan for `9144` branch
+records across `21` profiles and passed the branch-context gate, but it ran
+only one direct step and still failed branch-diversity promotion checks. The
+next full-stack repair run should use this profile-aware plan as a constraint
+and then measure whether training improves target coverage without sacrificing
+profile coverage.
+
 ## Decision
 
 v0.66 should be treated as an open-source mechanics audit and gap-setting
-version. The next implementation should continue the in-progress
-profile-aware coverage-constrained repair, but only with explicit replay-plan
-artifacts and profile-isolation tests. That moves the project forward without
-copying outside code or diluting the closed-world training boundary.
+version. v0.67 should be treated as mechanics-readiness evidence: it implements
+the profile-aware replay-plan surface without copying outside code or diluting
+the closed-world training boundary. The next implementation should spend a
+full-stack repair run against that profile-aware plan and reject any checkpoint
+that improves rank by erasing profile coverage.

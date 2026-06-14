@@ -48,6 +48,15 @@ trainer mechanics, not another global branch-loss term: profile-aware replay,
 per-profile coverage deficits, per-profile preservation, replay-plan artifacts,
 and profile-isolation tests should gate the next full-stack direct-answer run.
 
+v0.67 implements that first mechanics gate. Direct-answer branch replay records
+can now carry profile keys, coverage deficits and represented-target
+preservation are computed per profile, and profile-aware modes emit
+`direct_answer_replay_plan.json` before training. The bounded smoke run
+`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+wrote a replay plan for `9144` branch records across `21` profiles and passed
+the branch-context gate. It is mechanics-readiness evidence, not promoted
+model-quality evidence.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -572,6 +581,17 @@ Current transformer answer-lesson run:
   rejects current-prediction preservation; the next repair should make coverage
   preservation profile-aware rather than anchoring whatever target token is
   currently represented.
+- v0.67 adds profile-aware replay-plan mechanics for that repair path. Branch
+  replay records can carry admitted source/profile keys, replay targets are
+  partitioned by profile for deficit and preservation accounting, and
+  profile-aware modes write `direct_answer_replay_plan.json` before
+  direct-answer training. The bounded smoke run
+  `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+  completed one gated branch-only direct step, wrote a plan for `9144` branch
+  records across `21` profiles, and showed separate profile floors such as
+  `qa:place` at `0.5` and `qa:color` at `0.0`. The branch-diversity target
+  still failed `0/9` multi-target profiles, so this is mechanics-readiness
+  evidence, not promotion evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -864,9 +884,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Strengthen prompt-conditioned representation so the direct transformer emits
-   target-specific answers instead of a short global wrong answer, while
-   preserving the `37/219` candidate discrimination and v0.42 target-loss gains.
+5. Run the next transformer repair through the v0.67 profile-aware replay plan
+   and require it to improve target coverage without erasing per-profile
+   coverage or branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

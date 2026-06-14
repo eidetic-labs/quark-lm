@@ -46,15 +46,22 @@ constraints before ranking snapshots by loss or target rank.
 
 ## Required Direction
 
-Before the next full-stack direct-answer repair run, the branch replay path
-should:
+v0.67 implements the first direct-answer replay path with these mechanics:
 
-1. carry profile keys through branch records;
-2. compute missing targets per profile instead of globally;
-3. preserve represented coverage per profile;
-4. emit a replay-plan artifact with profile counts, target sets, represented
-   targets, deficits, and coverage floors;
-5. test that one profile's improvement cannot mask another profile's deficit.
+1. Profile keys are carried through branch records.
+2. Missing targets are computed per profile instead of globally.
+3. Represented coverage is preserved per profile.
+4. A replay-plan artifact records profile counts, target sets, represented
+   targets, deficits, and coverage floors.
+5. Focused tests verify that one profile's improvement cannot mask another
+   profile's deficit.
+
+The bounded smoke run
+`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
+wrote `direct_answer_replay_plan.json` for `9144` branch records across `21`
+profiles and passed the branch-context gate. It is mechanics-readiness evidence
+only: the next full-stack repair run still has to prove that profile-aware
+training improves target coverage without sacrificing branch-diversity gates.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
