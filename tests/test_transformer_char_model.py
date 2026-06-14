@@ -5009,6 +5009,10 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertIn("branch_context_gate_recorded", gates)
         self.assertIn("custom_gate", gates)
         self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
+        self.assertIn(
+            "runs/profile-screen/candidate_quarantine.json",
+            intent["planned_artifacts"],
+        )
         self.assertEqual(intent["decision"]["status"], "planned")
 
     def test_transformer_experiment_decision_records_screen_evidence(self) -> None:

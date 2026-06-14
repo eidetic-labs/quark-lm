@@ -22,6 +22,8 @@ A promoted QuarkLM run must have:
   candidate-ratio, and rare-profile evidence
 - `training_plan.json` with allowed data sources, scheduled example mixture,
   replay-plan status, and planned artifacts
+- `candidate_quarantine.json` with candidate lifecycle state and proof that
+  candidate records are not training data until admitted
 - self-diagnosis with `uses_external_model: false` unless a future release
   explicitly admits and documents a different source
 - archived attempts under `attempts/attempt-###/`

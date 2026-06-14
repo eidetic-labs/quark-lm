@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from closed_world_lm.curriculum import build_curriculum, read_jsonl
+from closed_world_lm.candidate_quarantine import build_candidate_quarantine_manifest
 from closed_world_lm.glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
 from closed_world_lm.self_improve import (
     audit_exact_promotion,
@@ -86,6 +87,10 @@ class SelfImproveTest(unittest.TestCase):
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
         self.assertIn("promotion_gate", gates)
         self.assertIn("exact_eval_audit", gates)
+        self.assertIn(
+            str(attempt_dir / "candidate_quarantine.json"),
+            intent["planned_artifacts"],
+        )
         self.assertEqual(intent["decision"]["status"], "planned")
         self.assertEqual(intent["notes"], ["test note"])
 
@@ -105,6 +110,10 @@ class SelfImproveTest(unittest.TestCase):
                 "corpus_diff": {"status": "evaluated"},
                 "corpus_hygiene": {"schema_version": 1, "kind": "corpus_hygiene_report"},
                 "training_plan": {"schema_version": 1, "kind": "training_plan"},
+                "candidate_quarantine": build_candidate_quarantine_manifest(
+                    "self-improvement-answer-cycle",
+                    "attempt-001",
+                ),
                 "promotion_gate": {"passed": False},
                 "experiment_intent": self_improvement_experiment_intent(
                     args,
@@ -128,6 +137,8 @@ class SelfImproveTest(unittest.TestCase):
             self.assertTrue((run_dir / "corpus_diff.json").exists())
             self.assertTrue((attempt_dir / "corpus_hygiene.json").exists())
             self.assertTrue((run_dir / "training_plan.json").exists())
+            self.assertTrue((attempt_dir / "candidate_quarantine.json").exists())
+            self.assertTrue((run_dir / "candidate_quarantine.json").exists())
             self.assertTrue((attempt_dir / "experiment_intent.json").exists())
             self.assertTrue((run_dir / "experiment_intent.json").exists())
 

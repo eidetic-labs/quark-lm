@@ -19,6 +19,10 @@ from closed_world_lm.corpus_hygiene import (
     source_mixture,
     train_eval_overlap,
 )
+from closed_world_lm.candidate_quarantine import (
+    build_candidate_quarantine_manifest,
+    candidate_quarantine_summary,
+)
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -145,6 +149,10 @@ class CorpusHygieneTest(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
+            manifest = build_candidate_quarantine_manifest(
+                "transformer-answer-train",
+                "run-001",
+            )
             plan = build_training_plan(
                 "transformer-answer-train",
                 "run-001",
@@ -155,6 +163,8 @@ class CorpusHygieneTest(unittest.TestCase):
                 [examples[0], examples[0], examples[1]],
                 root / "run" / "corpus_hygiene.json",
                 replay_plan_path=root / "run" / "direct_answer_replay_plan.json",
+                candidate_quarantine_path=root / "run" / "candidate_quarantine.json",
+                candidate_quarantine_summary=candidate_quarantine_summary(manifest),
             )
             updated = attach_replay_plan_summary(
                 plan,
@@ -172,6 +182,15 @@ class CorpusHygieneTest(unittest.TestCase):
 
         self.assertFalse(plan["data_boundary"]["pretrained_weights"])
         self.assertEqual(plan["candidate_policy"]["candidate_examples"], 1)
+        self.assertEqual(
+            plan["candidate_policy"]["status"],
+            "training_examples_contain_candidates",
+        )
+        self.assertFalse(plan["candidate_policy"]["candidate_records_are_training_data"])
+        self.assertEqual(
+            plan["candidate_policy"]["candidate_quarantine"]["summary"]["candidate_count"],
+            0,
+        )
         self.assertEqual(updated["replay_plan"]["status"], "written")
         self.assertEqual(updated["replay_plan"]["profiles_with_missing_targets"], ["qa:place"])
 

@@ -77,10 +77,10 @@ train/eval prompt overlap, candidate ratio, rare-profile coverage, allowed data
 sources, planned artifacts, and replay-plan summaries when profile-aware replay
 writes a plan.
 
-v0.74 does not change transformer training behavior. It adds the research
-implementation map that makes candidate quarantine, deterministic verifier
-checks, recipes, promotion gates, and transformer responsibility boundaries the
-source-backed next steps before another larger repair screen.
+From v0.75 onward, `answer-train` also writes
+`candidate_quarantine.json`. The manifest records candidate lifecycle state and
+is linked from `training_plan.json`; candidate records are not training data
+until admitted into the ledgered corpus.
 
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer

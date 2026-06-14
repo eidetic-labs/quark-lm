@@ -68,7 +68,7 @@ For QuarkLM, that means:
 
 ## Near-Term Decision
 
-v0.69 is strategy evidence, v0.70 is deep research evidence, and v0.71-v0.74
+v0.69 is strategy evidence, v0.70 is deep research evidence, and v0.71-v0.75
 are the first operating-system implementation steps. None of those are
 model-quality promotion evidence. The next engineering versions should
 continue the training operating system before another anti-collapse objective
@@ -79,8 +79,10 @@ replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
 profile-aware replay behavior. v0.73 adds corpus hygiene and training-plan
 artifacts for source mixture, duplicates, train/eval overlap, candidate ratio,
 rare-profile coverage, allowed data sources, planned artifacts, and replay-plan
-summaries. The revised sequence now moves to candidate quarantine,
-deterministic verifier checks, recipes, and constraint-first promotion. v0.74
-adds the [Research implementation map](./research-implementation-map.md), which
-ties each next mechanic to source clusters, public implementation patterns,
-QuarkLM gaps, and acceptance evidence before more code is added.
+summaries. v0.74 adds the
+[Research implementation map](./research-implementation-map.md), which ties
+each next mechanic to source clusters, public implementation patterns, QuarkLM
+gaps, and acceptance evidence before more code is added. v0.75 implements
+candidate quarantine artifacts and lifecycle states, so the revised sequence now
+moves to deterministic verifier checks, recipes, and constraint-first
+promotion.

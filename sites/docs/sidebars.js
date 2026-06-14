@@ -39,6 +39,7 @@ const sidebars = {
         'operate/release-discipline',
         'operate/experiment-registry',
         'operate/corpus-hygiene',
+        'operate/candidate-quarantine',
         'operate/provenance',
         'operate/docs-drift',
       ],

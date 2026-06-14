@@ -54,7 +54,7 @@ external-model-shaped training data.
 QuarkLM should continue the self-improvement operating system before another
 direct-answer objective mode:
 
-1. **v0.75:** candidate quarantine artifacts and lifecycle states.
+1. **v0.75:** candidate quarantine artifacts and lifecycle states. Implemented.
 2. **v0.76:** deterministic closed-world verifier checks.
 3. **v0.77:** recipe objects and constraint-first promotion gates.
 4. **v0.78:** transformer responsibility refactor behind those surfaces.
@@ -67,12 +67,11 @@ QuarkLM already has:
 
 - v0.71 experiment intent;
 - v0.72 replay planning;
-- v0.73 corpus hygiene and training plans.
+- v0.73 corpus hygiene and training plans;
+- v0.75 candidate quarantine artifacts and lifecycle states.
 
 It still needs:
 
-- candidate quarantine so generated lessons, probes, and repair notes cannot
-  silently become training data;
 - deterministic verifier checks before any learned self-judge;
 - named recipe artifacts so a run can be reproduced from intent instead of
   argparse memory;

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.75
+
+- Added candidate quarantine artifacts and lifecycle states.
+
 ## v0.74
 
 - Added research implementation map for source-backed mechanics planning.

@@ -60,8 +60,8 @@ open-source mechanics, and QuarkLM-codebase gap review before the next
 implementation step. The decision is to build the self-improvement operating
 system before more objective modes. v0.71 implements the experiment registry;
 v0.72 extracts replay planning; v0.73 adds corpus hygiene and training-plan
-artifacts; v0.74 adds the research implementation map; the remaining work is
-candidate quarantine, deterministic verifier checks, training recipes, and
+artifacts; v0.74 adds the research implementation map; v0.75 adds candidate
+quarantine; the remaining work is deterministic verifier checks, training recipes, and
 constraint-first promotion gates. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -171,8 +171,8 @@ loops become fragile.
 - Continue the v0.70 sequence before adding another direct-answer objective
   mode: v0.71 implemented experiment registry and v0.72 extracted replay
   planning; v0.73 added corpus hygiene and training plans; v0.74 added the
-  research implementation map; next are candidate quarantine, verifier checks,
-  training recipes, and constraint-first promotion.
+  research implementation map; v0.75 added candidate quarantine; next are
+  verifier checks, training recipes, and constraint-first promotion.
 
 ## Defer
 

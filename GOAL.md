@@ -96,10 +96,10 @@ provenance, and the goal framework itself.
     artifacts; v0.72 extracts replay planning into a standalone module; v0.73
     adds corpus hygiene and training-plan artifacts; v0.74 adds the research
     implementation map that cross-references papers, open-source mechanics, and
-    QuarkLM gaps into a versioned implementation ladder. The remaining sequence
-    is candidate quarantine, deterministic verifier checks, recipe boundaries,
-    constraint-first promotion gates, and transformer responsibility
-    refactoring.
+    QuarkLM gaps into a versioned implementation ladder; v0.75 adds candidate
+    quarantine artifacts and lifecycle states. The remaining sequence is
+    deterministic verifier checks, recipe boundaries, constraint-first
+    promotion gates, and transformer responsibility refactoring.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
@@ -117,6 +117,12 @@ provenance, and the goal framework itself.
     should cite the research or public implementation pattern they follow, name
     the closed-world boundary they protect, and produce an artifact that proves
     the mechanic worked or rejected the run.
+24. Treat candidate quarantine as the required staging area for generated
+    lessons, generated probes, repair proposals, diagnosis notes, and memory
+    proposals. Candidate records may be proposed, quarantined, verified,
+    rejected, admitted, trained, or promoted, but they are not training data
+    until admitted into the ledgered corpus and converted into curriculum
+    lessons.
 
 ## Weight Update Policy
 

@@ -17,6 +17,11 @@ from .answer_model import (
     load_training_examples,
     train_model,
 )
+from .candidate_quarantine import (
+    build_candidate_quarantine_manifest,
+    candidate_quarantine_summary,
+    write_candidate_quarantine,
+)
 from .corpus_hygiene import (
     build_corpus_hygiene_report,
     build_training_plan,
@@ -288,6 +293,11 @@ def write_report_artifacts(
         write_json_artifact(attempt_dir / "corpus_hygiene.json", report["corpus_hygiene"])
     if "training_plan" in report:
         write_json_artifact(attempt_dir / "training_plan.json", report["training_plan"])
+    if "candidate_quarantine" in report:
+        write_candidate_quarantine(
+            attempt_dir / "candidate_quarantine.json",
+            report["candidate_quarantine"],
+        )
     if "experiment_intent" in report:
         write_experiment_intent(
             attempt_dir / "experiment_intent.json",
@@ -300,6 +310,11 @@ def write_report_artifacts(
         write_json_artifact(run_dir / "corpus_hygiene.json", report["corpus_hygiene"])
     if "training_plan" in report:
         write_json_artifact(run_dir / "training_plan.json", report["training_plan"])
+    if "candidate_quarantine" in report:
+        write_candidate_quarantine(
+            run_dir / "candidate_quarantine.json",
+            report["candidate_quarantine"],
+        )
     if "experiment_intent" in report:
         write_experiment_intent(
             run_dir / "experiment_intent.json",
@@ -321,7 +336,7 @@ def self_improvement_experiment_intent(
     )
     notes = getattr(args, "experiment_note", None) or []
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.73"),
+        version=getattr(args, "experiment_version", "v0.75"),
         run_id=attempt_dir.name or run_dir.name,
         component="self-improvement-answer-cycle",
         hypothesis=hypothesis,
@@ -338,14 +353,16 @@ def self_improvement_experiment_intent(
             str(attempt_dir / "corpus_diff.json"),
             str(attempt_dir / "corpus_hygiene.json"),
             str(attempt_dir / "training_plan.json"),
+            str(attempt_dir / "candidate_quarantine.json"),
             str(attempt_dir / "experiment_intent.json"),
             str(attempt_dir / "self_improvement_report.json"),
             str(run_dir / "corpus_hygiene.json"),
             str(run_dir / "training_plan.json"),
+            str(run_dir / "candidate_quarantine.json"),
             str(run_dir / "experiment_intent.json"),
             str(run_dir / "self_improvement_report.json"),
         ],
-        training_recipe_id="self-improve-answer-cycle:v0.73",
+        training_recipe_id="self-improve-answer-cycle:v0.75",
         acceptance_gates=[
             {
                 "name": "admission_probe_audit",
@@ -452,6 +469,13 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     write_experiment_intent(attempt_dir / "experiment_intent.json", experiment_intent)
     hygiene_path = attempt_dir / "corpus_hygiene.json"
     training_plan_path = attempt_dir / "training_plan.json"
+    candidate_quarantine_path = attempt_dir / "candidate_quarantine.json"
+    candidate_quarantine = build_candidate_quarantine_manifest(
+        "self-improvement-answer-cycle",
+        attempt_dir.name,
+    )
+    write_candidate_quarantine(candidate_quarantine_path, candidate_quarantine)
+    candidate_summary = candidate_quarantine_summary(candidate_quarantine)
     corpus_hygiene = build_corpus_hygiene_report(
         "self-improvement-answer-cycle",
         args.corpus_dir,
@@ -473,8 +497,11 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
             decoder_run / "answer_decoder.json",
             hygiene_path,
             training_plan_path,
+            candidate_quarantine_path,
             attempt_dir / "self_improvement_report.json",
         ],
+        candidate_quarantine_path=candidate_quarantine_path,
+        candidate_quarantine_summary=candidate_summary,
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
@@ -552,6 +579,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         "curriculum_manifest": curriculum.manifest,
         "corpus_hygiene": corpus_hygiene,
         "training_plan": training_plan,
+        "candidate_quarantine": candidate_quarantine,
         "corpus_snapshot": snapshot,
         "corpus_diff": corpus_diff_for_report(snapshot, args.compare_report),
         "responder": evaluate_responder(curriculum.train_text),
@@ -614,7 +642,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer.add_argument("--max-answer-chars", type=int, default=64)
     answer.add_argument("--seed", type=int, default=7)
     answer.add_argument("--compare-report", type=Path, default=None)
-    answer.add_argument("--experiment-version", default="v0.73")
+    answer.add_argument("--experiment-version", default="v0.75")
     answer.add_argument("--experiment-hypothesis", default=None)
     answer.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)

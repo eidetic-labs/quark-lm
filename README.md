@@ -102,7 +102,7 @@ answer-training runs now write `corpus_hygiene.json` and `training_plan.json`
 with source mixtures, duplicate checks, train/eval prompt-overlap checks,
 candidate ratios, rare-profile coverage, allowed data sources, and planned
 artifacts. Candidate ratio is visible now; the v0.74 implementation map defines
-candidate quarantine as the next code mechanic.
+candidate quarantine as the v0.75 code mechanic.
 
 v0.74 adds `RESEARCH_IMPLEMENTATION_MAP.md` and a matching Docusaurus Learn
 page. This is a research-control checkpoint, not a model-quality claim. It
@@ -110,6 +110,14 @@ cross-references papers, open-source mechanics, and QuarkLM's current codebase
 into a source-to-gap-to-version implementation map. Candidate quarantine moves
 to v0.75, followed by deterministic verifier checks, recipe objects,
 constraint-first promotion gates, and transformer responsibility refactoring.
+
+v0.75 adds `src/closed_world_lm/candidate_quarantine.py` and wires
+`candidate_quarantine.json` into self-improvement and transformer
+answer-training runs. Candidate records now have stable ids, lifecycle states,
+validated transitions, manifest summaries, and a training policy that keeps
+generated or proposed candidates out of training until they are admitted into
+the ledgered corpus and converted into curriculum lessons. Deterministic
+closed-world verifier checks move to v0.76.
 
 ## Latest Evidence
 

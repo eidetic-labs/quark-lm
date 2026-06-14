@@ -415,7 +415,9 @@ implementation, and acceptance evidence.
 
 ### v0.75
 
-Add candidate quarantine artifacts and lifecycle states.
+Implemented candidate quarantine artifacts and lifecycle states.
+Self-improvement and transformer answer-training runs write
+`candidate_quarantine.json`, and training plans link its summary.
 
 ### v0.76
 

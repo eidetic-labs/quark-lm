@@ -300,8 +300,20 @@ def build_training_plan(
     hygiene_path: Path,
     planned_artifacts: list[Path] | None = None,
     replay_plan_path: Path | None = None,
+    candidate_quarantine_path: Path | None = None,
+    candidate_quarantine_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     candidate_examples = source_mixture(training_examples)["candidate_examples"]
+    candidate_status = "candidate_quarantine_missing"
+    if candidate_examples > 0:
+        candidate_status = "training_examples_contain_candidates"
+    elif candidate_quarantine_summary is not None:
+        if candidate_quarantine_summary.get("candidate_count", 0) == 0:
+            candidate_status = "candidate_quarantine_empty"
+        elif candidate_quarantine_summary.get("not_training_eligible_count", 0) > 0:
+            candidate_status = "candidate_quarantine_holds_candidates"
+        else:
+            candidate_status = "candidate_quarantine_all_candidates_admitted"
     return {
         "schema_version": SCHEMA_VERSION,
         "kind": "training_plan",
@@ -336,7 +348,17 @@ def build_training_plan(
                 if training_examples
                 else 0.0
             ),
-            "status": "no_candidate_store_yet" if candidate_examples == 0 else "contains_candidates",
+            "status": candidate_status,
+            "candidate_records_are_training_data": False,
+            "rule": "Candidate records are excluded from training until admitted into the ledgered corpus and converted into curriculum lessons.",
+            "candidate_quarantine": {
+                "path": (
+                    str(candidate_quarantine_path)
+                    if candidate_quarantine_path is not None
+                    else None
+                ),
+                "summary": candidate_quarantine_summary,
+            },
         },
         "replay_plan": {
             "status": "planned" if replay_plan_path is not None else "not_applicable",

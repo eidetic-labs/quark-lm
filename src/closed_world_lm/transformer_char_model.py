@@ -29,6 +29,11 @@ from .answer_model import (
     semantic_feature_names,
     write_lessons,
 )
+from .candidate_quarantine import (
+    build_candidate_quarantine_manifest,
+    candidate_quarantine_summary,
+    write_candidate_quarantine,
+)
 from .curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
 from .corpus_hygiene import (
     attach_replay_plan_summary,
@@ -3438,6 +3443,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         str(args.run / "tokenizer.json"),
         str(args.run / "corpus_hygiene.json"),
         str(args.run / "training_plan.json"),
+        str(args.run / "candidate_quarantine.json"),
         str(args.run / "transformer_answer_metrics.json"),
         str(args.run / "transformer_answer_metrics.jsonl"),
         str(args.run / "transformer_answer_lessons.jsonl"),
@@ -3446,7 +3452,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
     if direct_profile_aware:
         planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.73"),
+        version=getattr(args, "experiment_version", "v0.75"),
         run_id=args.run.name,
         component="transformer-answer-train",
         hypothesis=hypothesis,
@@ -3945,7 +3951,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
-    answer_parser.add_argument("--experiment-version", default="v0.73")
+    answer_parser.add_argument("--experiment-version", default="v0.75")
     answer_parser.add_argument("--experiment-hypothesis", default=None)
     answer_parser.add_argument(
         "--experiment-acceptance-gate",
@@ -7400,6 +7406,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     write_experiment_intent(experiment_path, experiment_intent)
     hygiene_path = args.run / "corpus_hygiene.json"
     training_plan_path = args.run / "training_plan.json"
+    candidate_quarantine_path = args.run / "candidate_quarantine.json"
+    candidate_quarantine = build_candidate_quarantine_manifest(
+        "transformer-answer-train",
+        args.run.name,
+    )
+    write_candidate_quarantine(candidate_quarantine_path, candidate_quarantine)
+    candidate_summary = candidate_quarantine_summary(candidate_quarantine)
     planned_replay_path = (
         args.run / "direct_answer_replay_plan.json"
         if args.direct_answer_steps > 0
@@ -7428,9 +7441,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.run / "tokenizer.json",
             hygiene_path,
             training_plan_path,
+            candidate_quarantine_path,
             args.run / "transformer_answer_metrics.json",
         ],
         replay_plan_path=planned_replay_path,
+        candidate_quarantine_path=candidate_quarantine_path,
+        candidate_quarantine_summary=candidate_summary,
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
@@ -9672,6 +9688,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "corpus_hygiene_path": str(hygiene_path),
         "training_plan": training_plan,
         "training_plan_path": str(training_plan_path),
+        "candidate_quarantine": candidate_quarantine,
+        "candidate_quarantine_path": str(candidate_quarantine_path),
         "experiment_intent_path": str(experiment_path),
         "pretrained_weights": False,
         "pretrained_tokenizer": False,

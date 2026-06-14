@@ -426,8 +426,10 @@ implementation map. No model-quality claim.
 
 ### v0.75
 
-Add candidate quarantine artifacts for generated lessons, generated probes, and
-repair proposals. Candidates are not training data.
+Implemented candidate quarantine artifacts in
+`src/closed_world_lm/candidate_quarantine.py`. Self-improvement and transformer
+answer-training runs now write `candidate_quarantine.json`, and training plans
+record the quarantine path and summary. Candidates are not training data.
 
 ### v0.76
 

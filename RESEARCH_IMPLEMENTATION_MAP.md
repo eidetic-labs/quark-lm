@@ -79,7 +79,7 @@ Acceptance:
 
 ### v0.75
 
-Implement candidate quarantine artifacts.
+Implemented candidate quarantine artifacts.
 
 Acceptance:
 

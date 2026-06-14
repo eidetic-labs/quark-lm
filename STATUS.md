@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.74 research implementation map; promoted
+**Active version:** v0.75 candidate quarantine artifacts; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -82,6 +82,12 @@ Working tagline: Big idea. Tiny package.
   clusters and open-source mechanics to QuarkLM implementation gaps and shifts
   candidate quarantine to v0.75 so the next mechanics are source-backed before
   code is added.
+- Candidate quarantine artifacts in
+  `src/closed_world_lm/candidate_quarantine.py`. Self-improvement and
+  transformer answer-training runs now write `candidate_quarantine.json` with
+  lifecycle state, manifest counts, transition policy, and an explicit rule
+  that candidate records are not training data until admitted into the ledgered
+  corpus and converted into curriculum lessons.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -189,6 +195,13 @@ and public training-stack sources against QuarkLM's implementation gaps. The
 decision is to treat candidate quarantine as v0.75, deterministic verifier
 checks as v0.76, recipe and constraint-first promotion as v0.77, and transformer
 responsibility refactoring as v0.78 before another larger repair run.
+
+v0.75 adds `src/closed_world_lm/candidate_quarantine.py`, the Docusaurus
+Operate page for candidate quarantine, and `candidate_quarantine.json` artifacts
+for self-improvement and transformer answer-training paths. Training plans now
+link the quarantine manifest and summarize candidate counts. The next code
+mechanic is v0.76 deterministic closed-world verifier checks for candidate
+acceptance and training-plan approval.
 
 ## Latest Evidence
 
