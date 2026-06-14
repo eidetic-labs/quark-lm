@@ -114,6 +114,17 @@ Current transformer answer-lesson run:
   `1/8 -> 0/8` and collapsed to all `"a"` predictions. The current evidence
   points at weak prompt representation rather than insufficient branch-token
   suppression.
+- A representation-side v0.43 experiment added `--use-context-mean`, which
+  adds the mean-pooled prompt context to the final transformer hidden state.
+  The context-mean branch-batch smoke
+  `runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`
+  improved direct loss `3.5805 -> 3.5252`, and the context-mean branch-repair
+  smoke
+  `runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
+  improved direct loss `3.5805 -> 3.5310`. Both screens regressed QA branch
+  accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so simple
+  prompt averaging is rejected representation evidence rather than a promotion
+  candidate.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -251,6 +262,8 @@ position such as the first content character after the leading answer space.
 `branch-contrast-unlikelihood` contrasts that branch against another admitted
 prompt with a different branch target; `periodic-branch-repair-contrast-*`
 keeps branch repair as the base update and injects contrast every N steps.
+Add `--use-context-mean` to either transformer training command to test a
+mean-pooled prompt-context residual in the final transformer representation.
 The direct transformer path is not yet part of the promotion gate for reliable
 answers.
 

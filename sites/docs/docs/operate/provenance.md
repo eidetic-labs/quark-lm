@@ -205,5 +205,12 @@ loss only slightly and moved collapse to all `"y"` predictions. The periodic
 smoke at
 `runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
 improved direct loss to `3.5248`, but QA branch accuracy regressed to `0/8`
-and the dominant prediction moved to all `"a"`. None of these runs were
+and the dominant prediction moved to all `"a"`. A representation-side
+context-mean option was then added without changing corpus sources. The
+branch-batch screen
+`runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`
+improved direct loss to `3.5252`, and the branch-repair screen
+`runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
+improved direct loss to `3.5310`; both regressed QA branch accuracy to `0/8`
+and collapsed the dominant prediction to all `"a"`. None of these runs were
 promoted.

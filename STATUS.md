@@ -147,6 +147,17 @@ improved direct loss `3.5800 -> 3.5248`, but QA branch accuracy regressed
 branch-batch contrast rejected repair evidence too: the objective can move loss
 without forcing prompt-conditioned branch separation.
 
+A representation-side screen added `--use-context-mean`, which adds the
+mean-pooled prompt context to the final transformer hidden state. The
+branch-batch comparison run at
+`runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`
+improved direct loss `3.5805 -> 3.5252`; the selected branch-repair comparison
+at
+`runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
+improved direct loss `3.5805 -> 3.5310`. Both regressed QA branch accuracy
+`1/8 -> 0/8` and collapsed to all `"a"` predictions, so context averaging is
+rejected representation evidence rather than a promoted transformer step.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

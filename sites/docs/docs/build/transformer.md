@@ -58,6 +58,11 @@ PYTHONPATH=src python3 -m closed_world_lm.transformer_char_model answer-train \
   --direct-answer-rollout-interval 50
 ```
 
+Add `--use-context-mean` to either `train` or `answer-train` to test the
+experimental mean-pooled context residual in the final transformer
+representation. It is diagnostic architecture evidence only until it improves
+prompt-conditioned branch profiles and complete answer metrics.
+
 Current language-model evidence from `runs/transformer-v0.25/`:
 
 | Signal | Value |
@@ -145,6 +150,24 @@ Latest branch repair smoke:
 | Dominant QA branch prediction | all `"o"` -> all `"a"` |
 | Promotion status | rejected repair evidence |
 
+Latest representation-side smoke:
+
+| Signal | Value |
+| --- | --- |
+| Selected run | `runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/` |
+| Comparison run | `runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/` |
+| Representation option | `--use-context-mean` |
+| Selected mode | `periodic-branch-repair-unlikelihood` |
+| Comparison mode | `periodic-branch-batch-contrast-unlikelihood` |
+| Steps | `5` target-loss + `20` direct-answer |
+| Post-direct candidate snapshot | skipped and recorded in metrics |
+| Selected direct answer loss | `3.5805 -> 3.5310` |
+| Comparison direct answer loss | `3.5805 -> 3.5252` |
+| Selected QA branch accuracy | `1/8 -> 0/8` |
+| Comparison QA branch accuracy | `1/8 -> 0/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
+| Promotion status | rejected representation evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -162,6 +185,9 @@ branch-collapse repair uses that diagnosis by penalizing the sampled dominant
 branch token, but the evidence shows it only moves the collapse to a new global
 token. Branch-batch contrast then trains several distinct target branches in
 one update; it lowers loss under sparse dosage, but the branch profile still
-collapses globally and even loses the one initially correct QA branch. The next
-repair needs a stronger prompt-conditioned representation signal, not just
-suppression or batching of branch tokens.
+collapses globally and even loses the one initially correct QA branch.
+`--use-context-mean` then adds a mean-pooled context residual to the final
+hidden representation, but the bounded screens still collapse the QA branch to
+one wrong global token. The next repair needs a stronger prompt-conditioned
+representation signal than simple prompt averaging, not just suppression or
+batching of branch tokens.

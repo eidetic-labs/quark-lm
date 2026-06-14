@@ -57,6 +57,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest transformer repair run</td><td><code>{state.transformerLatestRepairRun}</code></td></tr>
     <tr><td>Latest transformer repair mode</td><td><code>{state.transformerLatestRepairMode}</code></td></tr>
     <tr><td>Latest transformer repair status</td><td><code>{state.transformerLatestRepairStatus}</code></td></tr>
+    <tr><td>Latest representation screen</td><td><code>{state.transformerLatestRepresentationRun}</code></td></tr>
+    <tr><td>Latest representation option</td><td><code>{state.transformerLatestRepresentationOption}</code></td></tr>
+    <tr><td>Latest representation status</td><td><code>{state.transformerLatestRepresentationStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -196,6 +199,18 @@ v0.42 promoted checkpoint.
   `1/8 -> 0/8` and the dominant prediction moved from all `"o"` to all `"a"`.
   It is rejected evidence that distinct-target batching still does not force
   prompt-conditioned branch separation in the current representation.
+- `runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`
+  added `--use-context-mean`, a representation-side option that adds the
+  mean-pooled prompt context to the final transformer hidden state. With sparse
+  branch-batch contrast it improved direct loss `3.5805 -> 3.5252`, but QA
+  branch accuracy regressed `1/8 -> 0/8` and the dominant prediction moved from
+  all `"o"` to all `"a"`.
+- `runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
+  tested the same context-mean representation with sparse branch repair. It
+  improved direct loss `3.5805 -> 3.5310`, but again regressed QA branch
+  accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions. This is
+  rejected representation evidence: prompt averaging alone is not enough to
+  produce prompt-specific branch choices.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

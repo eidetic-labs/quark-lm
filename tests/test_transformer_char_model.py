@@ -174,6 +174,35 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_context_mean_transformer_trains_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=13,
+            use_context_mean=True,
+        )
+        model = TinyTransformerLM.init_random(config)
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        target = ids[4]
+        before = model.nll(context, target)
+        for _ in range(20):
+            model.train_step(context, target, learning_rate=0.02)
+        after = model.nll(context, target)
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer)
+            loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
+
+        self.assertTrue(loaded.config.use_context_mean)
+        self.assertGreater(before, after)
+        self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
     def test_multi_layer_top_layer_update_freezes_lower_layer(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)
@@ -1673,6 +1702,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--use-layer-norm",
                     "--layer-norm-epsilon",
                     "0.0001",
+                    "--use-context-mean",
                 ]
             )
             self.assertEqual(args.direct_answer_mode, mode)
@@ -1689,7 +1719,13 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.num_layers, 2)
             self.assertTrue(args.use_layer_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)
+            self.assertTrue(args.use_context_mean)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
+
+    def test_parse_train_args_accepts_context_mean(self) -> None:
+        args = parse_args(["train", "--use-context-mean"])
+
+        self.assertTrue(args.use_context_mean)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
         record = {

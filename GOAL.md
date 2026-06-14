@@ -1462,6 +1462,38 @@ pools, and corpus diffs.
 - this is also rejected repair evidence: the objective improves loss while the
   first answer branch remains global instead of prompt-conditioned
 
+`runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`:
+
+- added `--use-context-mean`, an optional representation-side transformer flag
+  that adds the mean-pooled prompt context to the final hidden state before the
+  feed-forward and language-model head path
+- the option is available on both `train` and `answer-train`, is saved in
+  `TransformerConfig`, and is recorded in run metrics
+- branch batch size was `4`
+- rollout interval was `5`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss improved `3.5805 -> 3.5252`
+- this is rejected representation evidence: adding prompt-average context can
+  lower loss without making first answer branches prompt-specific
+
+`runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`:
+
+- tested the same `--use-context-mean` representation with sparse branch repair
+  instead of branch-batch contrast
+- rollout interval was `5`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss improved `3.5805 -> 3.5310`
+- this is also rejected representation evidence: prompt averaging is too weak
+  by itself and the next repair must improve prompt-specific branch separation
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

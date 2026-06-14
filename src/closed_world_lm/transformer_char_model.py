@@ -57,6 +57,7 @@ class TransformerConfig:
     num_layers: int = 1
     use_layer_norm: bool = False
     layer_norm_epsilon: float = 1e-5
+    use_context_mean: bool = False
 
 
 class TinyTransformerLM:
@@ -382,6 +383,12 @@ class TinyTransformerLM:
             x[last_position][dim] + projected[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_context_mean:
+            hidden = [
+                hidden[dim]
+                + sum(row[dim] for row in x) / self.config.context_size
+                for dim in range(self.config.embedding_dim)
+            ]
         return self._feed_forward_scalars(hidden, block)
 
     def _forward_full_block_scalars(
@@ -462,6 +469,12 @@ class TinyTransformerLM:
             x[last_position][dim] + projected[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_context_mean:
+            hidden = [
+                hidden[dim]
+                + sum(row[dim] for row in x) / self.config.context_size
+                for dim in range(self.config.embedding_dim)
+            ]
         return self._feed_forward_floats(hidden, block)
 
     def _forward_full_block_floats(
@@ -1387,6 +1400,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--num-layers", type=int, default=1)
     train_parser.add_argument("--use-layer-norm", action="store_true")
     train_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
+    train_parser.add_argument(
+        "--use-context-mean",
+        action="store_true",
+        help="Add a mean-pooled context residual to the final transformer representation.",
+    )
     train_parser.add_argument("--seed", type=int, default=17)
     train_parser.add_argument("--eval-every", type=int, default=20)
     train_parser.add_argument("--valid-limit", type=int, default=256)
@@ -1541,6 +1559,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--num-layers", type=int, default=1)
     answer_parser.add_argument("--use-layer-norm", action="store_true")
     answer_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
+    answer_parser.add_argument(
+        "--use-context-mean",
+        action="store_true",
+        help="Add a mean-pooled context residual to the final transformer representation.",
+    )
     answer_parser.add_argument("--seed", type=int, default=17)
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
@@ -1574,6 +1597,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
+        use_context_mean=args.use_context_mean,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -1628,6 +1652,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
+        "use_context_mean": args.use_context_mean,
         "baseline_valid_nll": baseline["valid_nll"],
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
@@ -3360,6 +3385,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
+        use_context_mean=args.use_context_mean,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -4652,6 +4678,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
+        "use_context_mean": args.use_context_mean,
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,
