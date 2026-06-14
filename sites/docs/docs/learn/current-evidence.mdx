@@ -162,6 +162,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Bidirectional binding heldout</td><td><code>{state.transformerBidirectionalBindingHeldout}</code></td></tr>
     <tr><td>Bidirectional binding history</td><td><code>{state.transformerBidirectionalBindingHistory}</code></td></tr>
     <tr><td>Bidirectional binding status</td><td><code>{state.transformerBidirectionalBindingStatus}</code></td></tr>
+    <tr><td>Latest coverage binding run</td><td><code>{state.transformerLatestCoverageBindingRun}</code></td></tr>
+    <tr><td>Coverage binding mode</td><td><code>{state.transformerCoverageBindingMode}</code></td></tr>
+    <tr><td>Coverage binding unit test</td><td><code>{state.transformerCoverageBindingUnitTest}</code></td></tr>
+    <tr><td>Coverage binding QA</td><td><code>{state.transformerCoverageBindingQa}</code></td></tr>
+    <tr><td>Coverage binding heldout</td><td><code>{state.transformerCoverageBindingHeldout}</code></td></tr>
+    <tr><td>Coverage binding history</td><td><code>{state.transformerCoverageBindingHistory}</code></td></tr>
+    <tr><td>Coverage binding status</td><td><code>{state.transformerCoverageBindingStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -535,13 +542,23 @@ v0.42 promoted checkpoint.
   `7.875` with top-5 coverage `0.5`, but target-token coverage ended at
   `0.125` and the diversity target still failed `0/9` multi-target profiles.
   This is partial rank-pressure evidence, not promotion evidence.
+- `runs/transformer-answer-v0.54-fullstack-coverage-binding-smoke-dim4-context80/`
+  adds `branch-balanced-coverage-binding-unlikelihood`, which makes every
+  branch target compete against sibling branch targets and hard wrong tokens
+  while adding a target-set mass coverage guard. The focused transformer test
+  verifies that this pressure lifts target-set mass against hard wrong tokens.
+  The full-stack screen completed `50/50` direct steps but restored from step
+  `0`: training snapshots improved QA average target rank to `8.125`, but
+  target-token coverage collapsed to `0.0` and top-1 predictions collapsed to
+  wrong `"a"`. This rejects the bundled coverage-binding loss under the full
+  stack.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should now preserve target coverage while converting rank lift into
-top-1 prompt-conditioned branch choices. The repair must improve
-prompt-conditioned branch diversity instead of only making more prompt text
-visible, balancing branch targets, raising hidden distance, or lowering branch
-loss.
+but it should now preserve target-set coverage as its own objective before
+sharpening exact target selection. The repair must improve prompt-conditioned
+branch diversity instead of only making more prompt text visible, balancing
+branch targets, raising hidden distance, lowering branch loss, or trading
+coverage away for rank.
 
 The v0.42 self-improvement run passed:
 

@@ -410,6 +410,18 @@ Current transformer answer-lesson run:
   target still failed `0/9` multi-target profiles. This is useful rank-pressure
   evidence, not promotion evidence; the next repair should preserve target
   coverage while converting rank lift into top-1 branch choices.
+- v0.54 adds `branch-balanced-coverage-binding-unlikelihood`, which makes each
+  branch target compete against both sibling branch targets and the current hard
+  wrong tokens while also training target-set mass as a coverage guard. The
+  focused transformer test suite covers that hard-wrong-token coverage signal.
+  The full-stack screen
+  `runs/transformer-answer-v0.54-fullstack-coverage-binding-smoke-dim4-context80/`
+  completed `50/50` direct steps, but best-snapshot scoring restored step `0`.
+  Training snapshots improved QA rank as far as `8.125`, but target-token
+  coverage collapsed to `0.0` with one wrong `"a"` top-1 branch token. This
+  rejects the bundled coverage-binding loss under the full stack and points the
+  next repair toward stronger coverage preservation before exact-target
+  sharpening.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

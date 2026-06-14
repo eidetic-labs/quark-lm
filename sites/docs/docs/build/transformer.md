@@ -127,6 +127,12 @@ inside each prompt context, and column-wise target-token ownership across
 prompt contexts. Use
 `--direct-answer-mode branch-balanced-bidirectional-binding-unlikelihood` for
 the same objective with target-balanced branch batches.
+Use `--direct-answer-mode branch-coverage-binding-unlikelihood` to combine
+bidirectional binding with hard-wrong-token competition and a target-set mass
+coverage guard. Use
+`--direct-answer-mode branch-balanced-coverage-binding-unlikelihood` for the
+same objective with target-balanced branch batches, and use
+`--direct-answer-hard-negatives` to choose the hard wrong-token pool size.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -782,6 +788,31 @@ Latest full-stack bidirectional binding branch repair smoke:
 | Final heldout target-token coverage | `0.125` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | partial rank-pressure progress; rejected until target coverage is preserved and top-1 branch choices improve |
+
+Latest full-stack coverage binding branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.54-fullstack-coverage-binding-smoke-dim4-context80/` |
+| Mode | `branch-balanced-coverage-binding-unlikelihood` |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Binding pressure | branch targets versus sibling targets plus hard wrong tokens, with target-set mass coverage guard |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including the hard-wrong-token coverage regression |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | step `50` improved QA average target rank to `8.125`, but target-token coverage collapsed to `0.0` with wrong `"a"` top-1 collapse |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | rejected; best-snapshot scoring protected the checkpoint, but the objective traded target coverage away for rank |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

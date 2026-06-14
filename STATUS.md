@@ -167,6 +167,17 @@ top-1 remained wrong, and the diversity target still failed `0/9` multi-target
 profiles. This is partial rank-pressure progress and makes coverage
 preservation the next repair target.
 
+`runs/transformer-answer-v0.54-fullstack-coverage-binding-smoke-dim4-context80/`
+adds `branch-balanced-coverage-binding-unlikelihood`, which combines
+bidirectional binding with hard-wrong-token competition and an explicit
+target-set mass coverage guard. The focused tests pass, but the full-stack
+screen rejects the mechanism: it completed `50/50` direct steps and
+best-snapshot scoring restored step `0`. Training snapshots improved QA rank as
+far as `8.125`, but target-token coverage fell to `0.0` and top-1 collapsed to
+wrong `"a"`. The guard prevented promotion of a worse checkpoint; the next
+repair should preserve target-set coverage as its own objective before
+sharpening exact target selection.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test
