@@ -121,6 +121,12 @@ objective with target-balanced branch batches. The
 `--direct-answer-hard-negatives` value controls the top-wrong-token candidate
 count, and `--direct-answer-contrast-weight` controls the restricted-softmax
 loss weight.
+Use `--direct-answer-mode branch-bidirectional-binding-unlikelihood` to bind
+prompt contexts and branch targets in both directions: row-wise target choice
+inside each prompt context, and column-wise target-token ownership across
+prompt contexts. Use
+`--direct-answer-mode branch-balanced-bidirectional-binding-unlikelihood` for
+the same objective with target-balanced branch batches.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -752,6 +758,30 @@ Latest full-stack top-k branch repair smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected unchanged top-k pressure under full stack |
+
+Latest full-stack bidirectional binding branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.53-fullstack-bidir-binding-smoke-dim4-context80/` |
+| Mode | `branch-balanced-bidirectional-binding-unlikelihood` |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Binding pressure | row-wise branch target choice plus column-wise target-token ownership across prompt contexts |
+| Unit coverage | focused transformer tests pass, including the context-ownership regression |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, restored from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `2` |
+| Final QA dominant prediction | wrong `"a"` |
+| Final QA average target rank | `7.875` |
+| Final QA target-token coverage | `0.125` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.5` |
+| Step-50 QA note | target-token coverage briefly reached `0.25` with average rank `8.375` before restore selected step `40` |
+| Final heldout average target rank | `9.0` |
+| Final heldout target-token coverage | `0.125` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | partial rank-pressure progress; rejected until target coverage is preserved and top-1 branch choices improve |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

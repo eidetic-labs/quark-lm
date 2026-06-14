@@ -1716,6 +1716,72 @@ class TinyTransformerLM:
         self.apply_gradients(params, learning_rate)
         return loss.data
 
+    def train_step_with_branch_bidirectional_binding(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        binding_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        branch_target_offsets = {
+            target: offset for offset, target in enumerate(branch_targets)
+        }
+        branch_loss = Scalar(0.0)
+        branch_logits_by_target: list[tuple[list[Scalar], int]] = []
+        for context, target, predicted in branches:
+            logits = self._forward_scalars(context)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                branch_loss = branch_loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                branch_loss = branch_loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            branch_logits_by_target.append((logits, target))
+        loss = branch_loss / max(len(branches), 1)
+        if binding_weight > 0.0 and len(branch_targets) > 1:
+            row_loss = Scalar(0.0)
+            for logits, target in branch_logits_by_target:
+                target_logits = [logits[branch_target] for branch_target in branch_targets]
+                target_probs = softmax_scalars(target_logits)
+                row_loss = row_loss + (
+                    -target_probs[branch_target_offsets[target]].log()
+                )
+            row_loss = row_loss / max(len(branch_logits_by_target), 1)
+
+            column_loss = Scalar(0.0)
+            column_count = 0
+            for branch_target in branch_targets:
+                context_logits = [
+                    logits[branch_target]
+                    for logits, _target in branch_logits_by_target
+                ]
+                positive_indexes = [
+                    index
+                    for index, (_logits, target) in enumerate(branch_logits_by_target)
+                    if target == branch_target
+                ]
+                if not positive_indexes or len(positive_indexes) == len(context_logits):
+                    continue
+                context_probs = softmax_scalars(context_logits)
+                positive_mass = Scalar(0.0)
+                for index in positive_indexes:
+                    positive_mass = positive_mass + context_probs[index]
+                column_loss = column_loss + (-(positive_mass + 1e-12).log())
+                column_count += 1
+            binding_loss = row_loss
+            if column_count:
+                binding_loss = (binding_loss + column_loss / column_count) / 2.0
+            loss = loss + binding_loss * binding_weight
+        loss.backward()
+        self.apply_gradients(params, learning_rate)
+        return loss.data
+
     def train_step_with_branch_rank_margin(
         self,
         branches: list[tuple[list[int], int, int]],
@@ -2949,6 +3015,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-representation-contrast-unlikelihood",
             "branch-balanced-representation-contrast-unlikelihood",
             "branch-output-binding-unlikelihood",
+            "branch-bidirectional-binding-unlikelihood",
+            "branch-balanced-bidirectional-binding-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
@@ -5074,6 +5142,56 @@ def train_direct_answer_branch_output_binding_unlikelihood(
     )
 
 
+def train_direct_answer_branch_bidirectional_binding_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    binding_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+    balance_targets: bool = False,
+) -> float:
+    batch_builder = (
+        direct_answer_target_balanced_branch_diversity_batch
+        if balance_targets
+        else direct_answer_branch_diversity_batch
+    )
+    branches = batch_builder(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_bidirectional_binding(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        binding_weight,
+        params=params,
+    )
+
+
 def train_direct_answer_branch_rank_margin_unlikelihood(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -7017,6 +7135,41 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_branch_batch_size,
                     direct_answer_terminator,
                     direct_params,
+                )
+            elif args.direct_answer_mode == "branch-bidirectional-binding-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_bidirectional_binding_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "branch-balanced-bidirectional-binding-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_bidirectional_binding_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
                 )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(

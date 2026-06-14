@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.53
+
+- Added bidirectional branch binding and full-stack screening evidence.
+
 ## v0.52
 
 - Recorded full-stack top-k branch repair screening evidence.

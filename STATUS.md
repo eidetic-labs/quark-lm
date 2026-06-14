@@ -156,6 +156,17 @@ coverage and diversity to one wrong token, so the screen rejects unchanged
 top-k pressure under the full stack and points next toward bidirectional
 prompt-to-token binding.
 
+`runs/transformer-answer-v0.53-fullstack-bidir-binding-smoke-dim4-context80/`
+adds `branch-balanced-bidirectional-binding-unlikelihood`, which binds prompt
+contexts to target tokens in both directions. It completed `50/50` direct steps
+under the same full stack and restored the best branch snapshot from step `40`.
+QA average target rank improved to `7.875` with top-5 coverage `0.5`; heldout
+average rank improved to `9.0` with top-5 coverage `0.375`. The screen is
+still rejected for promotion because target-token coverage ended at `0.125`,
+top-1 remained wrong, and the diversity target still failed `0/9` multi-target
+profiles. This is partial rank-pressure progress and makes coverage
+preservation the next repair target.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

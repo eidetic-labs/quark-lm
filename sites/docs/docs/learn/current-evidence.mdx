@@ -155,6 +155,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Full-stack top-k QA</td><td><code>{state.transformerFullStackTopKQa}</code></td></tr>
     <tr><td>Full-stack top-k heldout</td><td><code>{state.transformerFullStackTopKHeldout}</code></td></tr>
     <tr><td>Full-stack top-k status</td><td><code>{state.transformerFullStackTopKStatus}</code></td></tr>
+    <tr><td>Latest bidirectional binding run</td><td><code>{state.transformerLatestBidirectionalBindingRun}</code></td></tr>
+    <tr><td>Bidirectional binding mode</td><td><code>{state.transformerBidirectionalBindingMode}</code></td></tr>
+    <tr><td>Bidirectional binding unit test</td><td><code>{state.transformerBidirectionalBindingUnitTest}</code></td></tr>
+    <tr><td>Bidirectional binding QA</td><td><code>{state.transformerBidirectionalBindingQa}</code></td></tr>
+    <tr><td>Bidirectional binding heldout</td><td><code>{state.transformerBidirectionalBindingHeldout}</code></td></tr>
+    <tr><td>Bidirectional binding history</td><td><code>{state.transformerBidirectionalBindingHistory}</code></td></tr>
+    <tr><td>Bidirectional binding status</td><td><code>{state.transformerBidirectionalBindingStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -518,12 +525,23 @@ v0.42 promoted checkpoint.
   coverage `0.25`, but training collapsed to one wrong token at later
   snapshots. This rejects unchanged top-k pressure under the full stack and
   points the next repair toward prompt-context-to-target-token binding.
+- `runs/transformer-answer-v0.53-fullstack-bidir-binding-smoke-dim4-context80/`
+  adds `branch-balanced-bidirectional-binding-unlikelihood`. The objective
+  trains each prompt context to choose its own branch target and each target
+  token to assign cross-context probability mass back to its own prompt
+  contexts. The focused transformer unit test verifies that context-ownership
+  signal on a small branch batch. The full-stack screen completed `50/50`
+  direct steps and restored from step `40`: QA average target rank improved to
+  `7.875` with top-5 coverage `0.5`, but target-token coverage ended at
+  `0.125` and the diversity target still failed `0/9` multi-target profiles.
+  This is partial rank-pressure evidence, not promotion evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should now strengthen prompt-to-answer binding for QA and heldout under
-the pre-layer-norm path. The repair must improve prompt-conditioned branch
-diversity instead of only making more prompt text visible, balancing branch
-targets, raising hidden distance, or lowering branch loss.
+but it should now preserve target coverage while converting rank lift into
+top-1 prompt-conditioned branch choices. The repair must improve
+prompt-conditioned branch diversity instead of only making more prompt text
+visible, balancing branch targets, raising hidden distance, or lowering branch
+loss.
 
 The v0.42 self-improvement run passed:
 

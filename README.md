@@ -398,6 +398,18 @@ Current transformer answer-lesson run:
   best-snapshot restore returned to step `0`. This rejects reusing top-k
   pressure unchanged under the new stack and points the next repair toward
   bidirectional prompt-to-token binding.
+- v0.53 adds `branch-balanced-bidirectional-binding-unlikelihood`, which trains
+  branch targets in two directions: each prompt context should choose its own
+  target, and each target token should concentrate probability mass on its own
+  prompt contexts. The focused transformer test suite now covers that
+  context-ownership signal. The full-stack screen
+  `runs/transformer-answer-v0.53-fullstack-bidir-binding-smoke-dim4-context80/`
+  completed `50/50` direct steps and restored the best branch snapshot from
+  step `40`. QA average target rank improved to `7.875` and top-5 coverage
+  reached `0.5`, but target-token coverage ended at `0.125` and the diversity
+  target still failed `0/9` multi-target profiles. This is useful rank-pressure
+  evidence, not promotion evidence; the next repair should preserve target
+  coverage while converting rank lift into top-1 branch choices.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
