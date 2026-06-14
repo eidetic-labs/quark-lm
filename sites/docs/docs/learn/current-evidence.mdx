@@ -54,6 +54,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest transformer diagnostic</td><td><code>{state.transformerLatestDiagnostic}</code></td></tr>
     <tr><td>Latest diagnostic QA branch accuracy</td><td><code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code></td></tr>
     <tr><td>Latest diagnostic dominant prediction</td><td><code>{state.transformerLatestDiagnosticQaDominantPrediction}</code></td></tr>
+    <tr><td>Latest transformer repair run</td><td><code>{state.transformerLatestRepairRun}</code></td></tr>
+    <tr><td>Latest transformer repair mode</td><td><code>{state.transformerLatestRepairMode}</code></td></tr>
+    <tr><td>Latest transformer repair status</td><td><code>{state.transformerLatestRepairStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -175,6 +178,14 @@ v0.42 promoted checkpoint.
   after five tiny direct updates, and kept a negative average target margin.
   This is model-native self-diagnosis evidence for prompt-independent branch
   collapse, not promotion evidence.
+- `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/` tested
+  full-dose dominant-branch-token suppression. It regressed direct loss and
+  moved QA branch collapse from all `"o"` predictions to all `"a"` predictions.
+- `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
+  tested sparse dominant-token suppression every five direct steps. It improved
+  direct loss `3.5800 -> 3.5157`, but QA branch accuracy stayed `1/8 -> 1/8`
+  and the dominant prediction moved from all `"o"` to all `"n"`. It remains
+  rejected repair evidence because the branch stayed prompt-independent.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

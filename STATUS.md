@@ -126,7 +126,16 @@ logits. The smoke run at
 QA branch-position-1 accuracy at `1/8` before and after five tiny direct updates;
 the dominant prediction moved from all `"o"` to all `"y"`, and the average
 target margin stayed negative. This gives the next repair loop a measurable
-prompt-independent branch-collapse signal.
+prompt-independent branch-collapse signal. Branch-collapse repair now uses the
+dominant sampled branch prediction as the unlikelihood negative. The full-dose
+smoke at `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/`
+regressed direct loss and moved the QA branch collapse to all `"a"` predictions.
+The periodic smoke at
+`runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
+improved direct loss `3.5800 -> 3.5157`, but QA branch accuracy stayed
+`1/8 -> 1/8` and the dominant branch prediction moved from all `"o"` to all
+`"n"`. The repair is recorded as rejected evidence: dominant-token suppression
+helps loss under sparse dosage, but does not create prompt-specific branches.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

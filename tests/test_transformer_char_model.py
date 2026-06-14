@@ -35,6 +35,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_branch_context,
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
+    direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
     evaluate_direct_answer_records,
@@ -51,6 +52,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_sequence_repair_unlikelihood,
     train_direct_answer_loop_escape_unlikelihood,
     train_direct_answer_branch_repair_unlikelihood,
+    train_direct_answer_branch_collapse_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -590,6 +592,96 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(profile["failed_records"][0]["id"], "color")
         self.assertEqual(profile["failed_records"][0]["target_token"], " ")
         self.assertEqual(profile["failed_records"][0]["predicted_token"], ".")
+
+    def test_dominant_branch_prediction_finds_global_wrong_token(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tokenizer = CharTokenizer.train(
+            near.prompt + near.target + green.prompt + green.target + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=38,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+
+        dominant = direct_answer_dominant_branch_prediction(
+            model,
+            tokenizer,
+            [near, green],
+            random.Random(8),
+            branch_position=1,
+            sample_count=0,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertIsNotNone(dominant)
+        predicted_id, count, scored = dominant  # type: ignore[misc]
+        self.assertEqual(tokenizer.itos[predicted_id], ".")
+        self.assertEqual(count, 2)
+        self.assertEqual(scored, 2)
+
+    def test_branch_collapse_repair_penalizes_dominant_wrong_token(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tokenizer = CharTokenizer.train(
+            near.prompt + near.target + green.prompt + green.target + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=39,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            near,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(branch)
+        near_context, near_target, _position = branch  # type: ignore[misc]
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        before_wrong = model.predict(near_context)[wrong_id]
+        before_target = model.predict(near_context)[near_target]
+        rng = random.Random(9)
+
+        for _ in range(32):
+            train_direct_answer_branch_collapse_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                [near, green],
+                lesson,
+                rng,
+                learning_rate=0.08,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                branch_position=1,
+                sample_count=0,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_probs = model.predict(near_context)
+        self.assertLess(after_probs[wrong_id], before_wrong)
+        self.assertGreater(after_probs[near_target], before_target)
 
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
@@ -1416,6 +1508,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-sequence-loop-escape-unlikelihood",
             "branch-repair-unlikelihood",
             "periodic-branch-repair-unlikelihood",
+            "branch-collapse-unlikelihood",
+            "periodic-branch-collapse-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",

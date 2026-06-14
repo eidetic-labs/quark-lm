@@ -89,6 +89,11 @@ training boundary.
   token distribution, average target probability, and target-vs-top margin.
   These profiles are diagnostic evidence for prompt-independent collapse and
   should guide repair policies before adding another training mode.
+- Branch-collapse repair runs must record the sampled branch pool size, branch
+  profile before/after, dominant predicted token, direct loss, exact greedy
+  output, and whether lower loss actually improved branch accuracy. Penalizing
+  a dominant wrong token is not a promotion unless it produces prompt-specific
+  branch choices instead of moving collapse to a different global token.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

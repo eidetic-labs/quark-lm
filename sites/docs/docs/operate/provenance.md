@@ -191,5 +191,11 @@ snapshots then gained branch-profile diagnostics under
 the model's own branch-position logits, dominant predicted tokens, target-token
 distribution, and target margin. The smoke profile showed QA branch accuracy
 staying at `1/8` while dominant prediction moved from all `"o"` to all `"y"`,
-which is prompt-independent branch-collapse evidence. None of these runs were
-promoted.
+which is prompt-independent branch-collapse evidence. Branch-collapse repair
+then used the dominant sampled branch token as the unlikelihood negative. The
+full-dose smoke at
+`runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/` regressed
+loss and moved collapse to all `"a"` predictions. The periodic smoke at
+`runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
+improved direct loss to `3.5157`, but branch accuracy stayed `1/8` and the
+dominant prediction moved to all `"n"`. None of these runs were promoted.

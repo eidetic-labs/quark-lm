@@ -1401,6 +1401,36 @@ pools, and corpus diffs.
 - this is self-diagnosis evidence for prompt-independent branch collapse, not
   promotion evidence
 
+`runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/`:
+
+- added `branch-collapse-unlikelihood`, which samples branch examples, finds
+  the dominant predicted branch token from QuarkLM's own logits, and uses that
+  token as the unlikelihood negative when it differs from the current target
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- sampled branch pool size came from `--direct-answer-hard-negatives 16`
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss regressed `3.5800 -> 3.5827`
+- this is rejected repair evidence: dominant-token suppression alone can move
+  the collapse without making branches prompt-specific
+
+`runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`:
+
+- added `periodic-branch-collapse-unlikelihood`, which applies branch-collapse
+  repair every rollout interval and uses ordinary branch repair otherwise
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- rollout interval was `5`
+- sampled branch pool size came from `--direct-answer-hard-negatives 16`
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy stayed `1/8 -> 1/8`
+- dominant QA branch prediction moved from all `"o"` to all `"n"`
+- average direct-answer target loss improved `3.5800 -> 3.5157`
+- this is also rejected repair evidence: sparse dominant-token suppression can
+  improve loss, but it still leaves a global branch token
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

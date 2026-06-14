@@ -130,6 +130,21 @@ Latest direct-answer diagnostic smoke:
 | Final QA target margin | negative, about `-0.0048` |
 | Promotion status | diagnostic smoke only |
 
+Latest branch-collapse repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Selected comparison run | `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/` |
+| Rejected full-dose run | `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/` |
+| Mode | `periodic-branch-collapse-unlikelihood` |
+| Branch pool sample count | `16` |
+| Rollout interval | `5` |
+| Steps | `5` target-loss + `20` direct-answer |
+| Direct answer loss | `3.5800 -> 3.5157` |
+| QA branch accuracy | `1/8 -> 1/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"n"` |
+| Promotion status | rejected repair evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -142,4 +157,8 @@ repeated `"a"` output is still a failed direct decoder. v0.31's no-candidate
 transformer-guided generator remains useful comparison evidence, but it is not
 raw transformer decoding. The branch-profile smoke adds a sharper diagnosis:
 at the configured branch position, the model is selecting one global token
-across prompts instead of separating target-specific answer branches.
+across prompts instead of separating target-specific answer branches. The
+branch-collapse repair uses that diagnosis by penalizing the sampled dominant
+branch token, but the current evidence shows it only moves the collapse to a
+new global token. The next repair needs a stronger prompt-conditioned
+representation signal, not just suppression of yesterday's dominant branch.

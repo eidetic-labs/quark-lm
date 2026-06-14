@@ -95,7 +95,17 @@ Current transformer answer-lesson run:
   the QA branch-position-1 prediction collapsed from all `"o"` choices at
   baseline to all `"y"` choices after five direct updates, with branch accuracy
   `1/8` and a negative average target margin. That is diagnostic evidence for
-  prompt-independent branch collapse, not a promotion candidate.
+  prompt-independent branch collapse, not a promotion candidate. Branch-collapse
+  repair then used the dominant branch token as the unlikelihood negative. The
+  full-dose smoke
+  `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/`
+  regressed loss and moved collapse to all `"a"` predictions; the periodic
+  smoke
+  `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
+  improved direct loss `3.5800 -> 3.5157` but still stayed at QA branch
+  accuracy `1/8` and collapsed to all `"n"` predictions. The lesson is that
+  dominant-token suppression alone is not enough to create prompt-specific
+  branches.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
