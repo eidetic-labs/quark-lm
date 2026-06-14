@@ -60,20 +60,27 @@ Working tagline: Big idea. Tiny package.
 ## Research Grounding
 
 QuarkLM's current research posture is documented in
-`sites/docs/docs/learn/research-grounding.md`. The project is adjacent to
-continual learning and lifelong pretraining, but its stricter claim is that
-model weights and tokenizer state should be trained only from admitted,
-ledgered data. Research on replay, catastrophic forgetting, STaR-style
-self-generated rationales, self-rewarded models, RAG, and model editing informs
-the roadmap without relaxing that boundary.
+`sites/docs/docs/learn/research-grounding.md`. The 2026-06-14 research pass
+maps QuarkLM to self-improvement lifecycle work, continual learning, replay,
+synthetic-recursion risk, small-data language learning, data hygiene, retrieval
+rails, model editing boundaries, transformer mechanics, and evaluation
+contamination. The project is adjacent to those areas, but its stricter claim
+is that model weights and tokenizer state should be trained only from admitted,
+ledgered data.
 
 The practical near-term guidance is:
 
 - make replay a first-class training primitive;
 - keep corpus admission separate from model belief;
+- accumulate original admitted records instead of replacing them with
+  model-generated summaries;
+- add corpus hygiene reports for duplicates, source mixtures, synthetic
+  candidate ratios, and rare-record coverage;
 - verify self-generated lessons before admission or training;
 - promote only through retention, forgetting, leakage, unknown-policy, and
   branch-diversity gates;
+- train the transformer from coverage deficits, not only from already-covered
+  branch targets;
 - defer model editing and self-rewarded grading until locality, side effects,
   and verifier quality are measurable inside the closed world.
 

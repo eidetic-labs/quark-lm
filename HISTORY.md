@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.63
+
+- Added paper-grounded self-improvement best-practice guidance.
+
 ## v0.62
 
 - Added target-balanced anchor repair and rejected full-stack evidence.
