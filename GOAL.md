@@ -114,6 +114,11 @@ continued. A weight update is acceptable only when:
 12. A context-size increase should record prompt coverage, runtime cost, direct
     loss, answer NLL, exact greedy output, candidate accuracy, and failure
     pattern before it is considered a model improvement.
+13. A bounded architecture screen may skip an expensive post-direct candidate
+    snapshot only when the run metrics record that skip. Such a run can prove
+    training-loop completion, checkpoint writing, and direct-answer loss
+    movement, but it is not promotion evidence until a full final candidate
+    evaluation is recorded.
 
 ## Reliability Strategy
 
@@ -1347,6 +1352,32 @@ pools, and corpus diffs.
   held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
   learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
   glossary `38/38`
+
+`runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/`:
+
+- added top-layer-only direct-answer updates for stacked transformers so lower
+  layers can be treated as fixed feature extractors during bounded screens
+- added `--skip-post-direct-snapshot`, which lets a screening run finish and
+  save a checkpoint while explicitly recording that the full post-direct
+  answer-candidate snapshot was skipped
+- checkpoint:
+  `runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/transformer_answer.json`
+- transformer trained for `40` target-loss answer-lesson steps from random
+  initialization
+- direct answer phase trained for `80` top-layer-only steps
+- layer count was `2`
+- context size was `32`
+- embedding dimension was `8`
+- feed-forward dimension was `16`
+- direct answer mode was `periodic-branch-repair-contrast-unlikelihood`
+- direct answer target loss moved from `3.5186` to `3.2436`
+- pre-direct answer target NLL moved from `3.5855` to `3.4796`
+- pre-direct transformer-only eval-scoped candidate accuracy stayed
+  `15/219 -> 15/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- failure mode moved from repeated `"e"` output to repeated `"a"` output
+- post-direct candidate snapshot was intentionally skipped, so this is
+  training-loop and runtime evidence only, not promotion evidence
 
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short

@@ -46,6 +46,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Direct transformer loss</td><td><code>{state.transformerDirectLoss}</code></td></tr>
     <tr><td>Direct transformer mode</td><td><code>{state.transformerDirectMode}</code></td></tr>
     <tr><td>Direct transformer failure pattern</td><td><code>{state.transformerDirectFailurePattern}</code></td></tr>
+    <tr><td>Latest transformer screen</td><td><code>{state.transformerLatestScreenRun}</code></td></tr>
+    <tr><td>Latest screen direct loss</td><td><code>{state.transformerLatestScreenDirectLoss}</code></td></tr>
+    <tr><td>Latest screen direct exact</td><td><code>{state.transformerLatestScreenDirectExact}</code></td></tr>
+    <tr><td>Latest screen post-direct candidate snapshot skipped</td><td><code>{String(state.transformerLatestScreenCandidateSnapshotSkipped)}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -153,6 +157,14 @@ v0.42 promoted checkpoint.
   last state. The optimization is covered by logit-equivalence tests, but the
   run was still interrupted before final metrics because the intermediate
   full-state layer remains too expensive for direct-answer repair updates.
+- `runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/`
+  tested top-layer-only direct-answer updates for a two-layer transformer and
+  the explicit post-direct snapshot skip used for bounded screens. It completed
+  and saved a checkpoint after `40` target-loss steps and `80` direct-answer
+  steps, recorded the skipped post-direct candidate snapshot, improved
+  direct-answer target loss `3.5186 -> 3.2436`, but kept direct greedy exact at
+  `0/219 -> 0/219` with repeated `"a"` output. It is training-loop completion
+  evidence, not promotion evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

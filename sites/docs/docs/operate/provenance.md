@@ -178,4 +178,12 @@ autograd path was too slow for the regular loop. The final stacked layer was
 then optimized to compute only the last state with logit-equivalence coverage,
 but `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/`
 was still interrupted before final metrics because intermediate full-state
-training remains too expensive. None of these runs were promoted.
+training remains too expensive. A later bounded screen added top-layer-only
+direct-answer updates for stacked transformers plus the explicit
+`--skip-post-direct-snapshot` control:
+`runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/`
+completed, saved a checkpoint, recorded that the post-direct candidate snapshot
+was skipped, improved direct-answer target loss from `3.5186` to `3.2436`, and
+still failed direct greedy exact at `0/219` with repeated `"a"` output. It is
+runtime and training-loop evidence, not promotion evidence. None of these runs
+were promoted.

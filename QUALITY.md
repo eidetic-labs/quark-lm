@@ -111,6 +111,11 @@ training boundary.
   candidate discrimination, direct loss, answer NLL, and final failure pattern.
   An interrupted run with partial JSONL history is runtime evidence only, not a
   promotion candidate.
+- Stacked-transformer screening runs may use top-layer-only direct-answer
+  updates or skip an expensive post-direct candidate snapshot only when the
+  run metrics explicitly record that choice. A skipped post-direct snapshot is
+  acceptable smoke evidence for loop completion and checkpoint writing, but it
+  is not promotion evidence without a separate full final candidate evaluation.
 - Depth runtime optimizations must prove logit equivalence against the
   unoptimized full-stack path when they change which layer positions are
   computed. Passing equivalence tests does not make a run promotable without a

@@ -79,7 +79,16 @@ Current transformer answer-lesson run:
   proved equivalence against full-stack logits, but
   `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/` was
   still interrupted before final metrics; the intermediate full-state layer is
-  still too expensive for direct-answer repair updates.
+  still too expensive for direct-answer repair updates. A follow-up added
+  top-layer-only direct-answer training for stacked models plus an explicit
+  `--skip-post-direct-snapshot` screening control. The completed bounded screen
+  at
+  `runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/`
+  saved a two-layer checkpoint after `40` target-loss steps and `80` top-layer
+  direct steps, recorded that the post-direct candidate snapshot was skipped,
+  moved direct-answer target loss `3.5186 -> 3.2436`, and still failed direct
+  greedy exact at `0/219 -> 0/219` with repeated `"a"` output. This is loop
+  completion and runtime evidence, not promotion evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

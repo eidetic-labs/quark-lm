@@ -169,6 +169,40 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_multi_layer_top_layer_update_freezes_lower_layer(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=12,
+            num_layers=2,
+        )
+        model = TinyTransformerLM.init_random(config)
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        target = ids[4]
+        lower_before = model.wq[0][0].data
+        top_before = model.extra_blocks[0]["wq"][0][0].data
+        head_before = model.wout[0][target].data
+        model.freeze_lower_layers_for_updates = True
+
+        for _ in range(20):
+            model.train_step(
+                context,
+                target,
+                learning_rate=0.02,
+                params=model.top_layer_parameters(),
+            )
+
+        self.assertEqual(model.wq[0][0].data, lower_before)
+        self.assertTrue(
+            model.extra_blocks[0]["wq"][0][0].data != top_before
+            or model.wout[0][target].data != head_before
+        )
+
     def test_multi_layer_final_block_matches_full_stack_logits(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)
@@ -1376,6 +1410,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "3",
                     "--direct-answer-hard-negatives",
                     "7",
+                    "--direct-answer-train-top-layer-only",
+                    "--skip-post-direct-snapshot",
                     "--direct-answer-sequence-interval",
                     "6",
                     "--num-layers",
@@ -1393,6 +1429,8 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_branch_position, 1)
             self.assertEqual(args.direct_answer_branch_span, 3)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
+            self.assertTrue(args.direct_answer_train_top_layer_only)
+            self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)
             self.assertTrue(args.use_layer_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)

@@ -68,27 +68,28 @@ Current language-model evidence from `runs/transformer-v0.25/`:
 | Pretrained weights | `false` |
 | Pretrained tokenizer | `false` |
 
-Current answer-lesson evidence from `runs/transformer-answer-v0.38-periodic-balanced50-context32/`:
+Current promoted answer-lesson evidence from
+`runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/`:
 
 | Signal | Value |
 | --- | --- |
 | Steps | `80` |
 | Context size | `32` |
+| Embedding / feed-forward dimensions | `8 / 16` |
 | Candidate scope | `eval` |
-| Selector steps | `1600` |
-| Selector labels | `55` |
-| Selector features | `3163` |
 | Direct answer steps | `1000` |
-| Direct answer mode | `periodic-balanced-repair-unlikelihood` |
+| Direct answer mode | `periodic-branch-repair-contrast-unlikelihood` |
 | Direct answer negative weight | `1.0` |
 | Direct answer positive weight | `1.0` |
+| Direct answer contrast weight | `1.0` |
+| Direct answer branch position | `1` |
 | Direct answer rollout interval | `50` |
 | Direct answer training examples | `9144` |
 | Direct answer exact | `0/219 -> 0/219` |
-| Direct answer target loss | `3.3496 -> 3.0399` |
+| Direct answer target loss | `3.4278 -> 2.2708` |
 | Direct answer uses candidates | `false` |
 | Direct answer auxiliary weights | `false` |
-| Answer target NLL | `3.5828 -> 2.8552` |
+| Answer target NLL | `3.5850 -> 2.4129` |
 | Transformer-only candidate accuracy | `15/219 -> 37/219` |
 | Selector-emitted exact answers | `18/219 -> 219/219` |
 | Selector candidate accuracy | `18/219 -> 219/219` |
@@ -99,13 +100,30 @@ Current answer-lesson evidence from `runs/transformer-answer-v0.38-periodic-bala
 | External embeddings | `false` |
 | v0.31 generator uses answer candidates | `false` |
 
+Latest bounded stacked-transformer screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/` |
+| Layers | `2` |
+| Steps | `40` target-loss + `80` direct-answer |
+| Direct-answer update scope | top layer and language-model head only |
+| Post-direct candidate snapshot | skipped and recorded in metrics |
+| Pre-direct candidate accuracy | `15/219 -> 15/219` |
+| Pre-direct answer target NLL | `3.5855 -> 3.4796` |
+| Direct answer target loss | `3.5186 -> 3.2436` |
+| Direct answer exact | `0/219 -> 0/219` |
+| Failure pattern | repeated `"a"` greedy completion |
+| Promotion status | screening evidence only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
-corpus and leave a checkpoint plus metrics. v0.38 adds periodic balanced
-repair training: most updates preserve first-error discrimination while every
-fiftieth update pairs a self-generated repair target with a teacher-forced
-admitted continuation. That preserves the `37/219` transformer-only candidate
-result and improves answer-target NLL versus v0.37, but raw greedy completion
-still fails exact answers and loops on `" t"`. v0.31's no-candidate
+corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
+transformer-only candidate result while improving answer-target NLL versus
+v0.41, but raw greedy completion still fails exact answers with the short wrong
+completion `" te."`. The latest v0.43 stacked screen proves that two-layer
+top-layer-only direct-answer training can complete and write a checkpoint when
+the expensive post-direct candidate snapshot is explicitly skipped, but its
+repeated `"a"` output is still a failed direct decoder. v0.31's no-candidate
 transformer-guided generator remains useful comparison evidence, but it is not
 raw transformer decoding.

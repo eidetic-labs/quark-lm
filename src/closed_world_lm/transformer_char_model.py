@@ -95,6 +95,7 @@ class TinyTransformerLM:
                 f"config expects {expected_extra_layers}"
             )
         self.blocks = [self._first_block()] + self.extra_blocks
+        self.freeze_lower_layers_for_updates = False
 
     @classmethod
     def init_random(cls, config: TransformerConfig) -> "TinyTransformerLM":
@@ -261,11 +262,59 @@ class TinyTransformerLM:
                     params.extend(flatten_scalars(item))
         return params
 
+    def top_layer_parameters(self) -> list[Scalar]:
+        if self.config.num_layers == 1:
+            return self.parameters()
+        params: list[Scalar] = []
+        top_block = self.blocks[-1]
+        for item in [
+            top_block["wq"],
+            top_block["bq"],
+            top_block["wk"],
+            top_block["bk"],
+            top_block["wv"],
+            top_block["bv"],
+            top_block["wo"],
+            top_block["bo"],
+            top_block["w1"],
+            top_block["b1"],
+            top_block["w2"],
+            top_block["b2"],
+            self.wout,
+            self.bout,
+        ]:
+            params.extend(flatten_scalars(item))
+        if self.config.use_layer_norm:
+            for item in [
+                top_block["ln1_gain"],
+                top_block["ln1_bias"],
+                top_block["ln2_gain"],
+                top_block["ln2_bias"],
+            ]:
+                params.extend(flatten_scalars(item))
+        return params
+
     def _forward_scalars(self, context: list[int]) -> list[Scalar]:
         if len(context) != self.config.context_size:
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
             )
+        if self.freeze_lower_layers_for_updates and self.config.num_layers > 1:
+            float_blocks = [self._block_to_floats(block) for block in self.blocks[:-1]]
+            token_embeddings = matrix_to_floats(self.token_embeddings)
+            position_embeddings = matrix_to_floats(self.position_embeddings)
+            x_float = [
+                [
+                    token_embeddings[token_id][dim] + position_embeddings[position][dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
+            ]
+            for block in float_blocks:
+                x_float = self._forward_full_block_floats(x_float, block)
+            x = matrix_to_scalars(x_float)
+            block_out = self._forward_final_block_scalars(x, self.blocks[-1])
+            return linear_scalars(block_out, self.wout, self.bout)
         x = [
             [
                 self.token_embeddings[token_id][dim] + self.position_embeddings[position][dim]
@@ -1428,6 +1477,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-branch-position", type=int, default=1)
     answer_parser.add_argument("--direct-answer-branch-span", type=int, default=1)
     answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
+    answer_parser.add_argument("--direct-answer-train-top-layer-only", action="store_true")
+    answer_parser.add_argument(
+        "--skip-post-direct-snapshot",
+        action="store_true",
+        help=(
+            "Skip the full answer-candidate snapshot after direct-answer updates. "
+            "Use only for bounded screening runs; promotion evidence should keep "
+            "the default full post-direct snapshot."
+        ),
+    )
     answer_parser.add_argument("--direct-answer-sequence-interval", type=int, default=50)
     answer_parser.add_argument("--direct-answer-rollout-interval", type=int, default=5)
     answer_parser.add_argument(
@@ -3114,6 +3173,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         last_snapshot = snapshot(args.steps, None)
 
     direct_answer_metrics: dict[str, Any] | None = None
+    post_direct_candidate_snapshot: dict[str, Any] | None = None
+    post_direct_candidate_snapshot_skipped = False
     if args.direct_answer_steps > 0:
         direct_answer_terminator = normalize_answer_terminator(args.direct_answer_terminator)
         if direct_answer_terminator and direct_answer_terminator not in tokenizer.stoi:
@@ -3162,7 +3223,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_pool_order = direct_training_pool[:]
         direct_rng.shuffle(direct_pool_order)
         direct_pool_index = 0
-        direct_params = model.parameters()
+        model.freeze_lower_layers_for_updates = (
+            args.direct_answer_train_top_layer_only and model.config.num_layers > 1
+        )
+        direct_params = (
+            model.top_layer_parameters()
+            if args.direct_answer_train_top_layer_only
+            else model.parameters()
+        )
         for direct_step in range(1, args.direct_answer_steps + 1):
             if direct_pool_index == len(direct_pool_order):
                 direct_rng.shuffle(direct_pool_order)
@@ -3904,7 +3972,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         if last_direct_snapshot_step != args.direct_answer_steps:
             last_direct_snapshot = direct_snapshot(args.direct_answer_steps, None)
 
-        last_snapshot = snapshot(args.steps + args.direct_answer_steps, None)
+        post_direct_candidate_snapshot_skipped = args.skip_post_direct_snapshot
+        if post_direct_candidate_snapshot_skipped:
+            print("skipped post-direct candidate snapshot")
+        else:
+            last_snapshot = snapshot(args.steps + args.direct_answer_steps, None)
+            post_direct_candidate_snapshot = last_snapshot
         direct_answer_metrics = {
             "architecture": "tiny-decoder-only-transformer-direct-answer",
             "checkpoint": str(args.run / "transformer_answer.json"),
@@ -3921,6 +3994,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_branch_position": args.direct_answer_branch_position,
             "direct_answer_branch_span": args.direct_answer_branch_span,
             "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
+            "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
+            "post_direct_candidate_snapshot_skipped": post_direct_candidate_snapshot_skipped,
             "direct_answer_sequence_interval": args.direct_answer_sequence_interval,
             "direct_answer_rollout_interval": args.direct_answer_rollout_interval,
             "max_new_chars": args.direct_answer_max_new_chars,
@@ -4154,6 +4229,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,
+        "post_direct_candidate_snapshot": post_direct_candidate_snapshot,
+        "post_direct_candidate_snapshot_skipped": post_direct_candidate_snapshot_skipped,
         "direct_answer": direct_answer_metrics,
         "answer_selector": selector_metrics,
         "answer_generator": generator_metrics,
