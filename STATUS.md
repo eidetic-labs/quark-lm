@@ -120,6 +120,13 @@ direct steps, recorded that the post-direct candidate snapshot was skipped,
 improved direct-answer target loss `3.5186 -> 3.2436`, but kept direct greedy
 exact at `0/219 -> 0/219` with repeated `"a"` output. It is runtime and
 training-loop evidence only; v0.42 remains the promoted transformer checkpoint.
+Direct-answer snapshots now include branch profiles computed from QuarkLM's own
+logits. The smoke run at
+`runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/` recorded
+QA branch-position-1 accuracy at `1/8` before and after five tiny direct updates;
+the dominant prediction moved from all `"o"` to all `"y"`, and the average
+target margin stayed negative. This gives the next repair loop a measurable
+prompt-independent branch-collapse signal.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

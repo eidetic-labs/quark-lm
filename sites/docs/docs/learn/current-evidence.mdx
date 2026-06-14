@@ -50,6 +50,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest screen direct loss</td><td><code>{state.transformerLatestScreenDirectLoss}</code></td></tr>
     <tr><td>Latest screen direct exact</td><td><code>{state.transformerLatestScreenDirectExact}</code></td></tr>
     <tr><td>Latest screen post-direct candidate snapshot skipped</td><td><code>{String(state.transformerLatestScreenCandidateSnapshotSkipped)}</code></td></tr>
+    <tr><td>Latest transformer diagnostic run</td><td><code>{state.transformerLatestDiagnosticRun}</code></td></tr>
+    <tr><td>Latest transformer diagnostic</td><td><code>{state.transformerLatestDiagnostic}</code></td></tr>
+    <tr><td>Latest diagnostic QA branch accuracy</td><td><code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code></td></tr>
+    <tr><td>Latest diagnostic dominant prediction</td><td><code>{state.transformerLatestDiagnosticQaDominantPrediction}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -165,6 +169,12 @@ v0.42 promoted checkpoint.
   direct-answer target loss `3.5186 -> 3.2436`, but kept direct greedy exact at
   `0/219 -> 0/219` with repeated `"a"` output. It is training-loop completion
   evidence, not promotion evidence.
+- `runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/` verified
+  direct-answer branch-profile metrics. The QA branch-position-1 profile stayed
+  at `1/8` accuracy, moved from all `"o"` predictions to all `"y"` predictions
+  after five tiny direct updates, and kept a negative average target margin.
+  This is model-native self-diagnosis evidence for prompt-independent branch
+  collapse, not promotion evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

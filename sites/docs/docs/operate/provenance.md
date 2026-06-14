@@ -185,5 +185,11 @@ direct-answer updates for stacked transformers plus the explicit
 completed, saved a checkpoint, recorded that the post-direct candidate snapshot
 was skipped, improved direct-answer target loss from `3.5186` to `3.2436`, and
 still failed direct greedy exact at `0/219` with repeated `"a"` output. It is
-runtime and training-loop evidence, not promotion evidence. None of these runs
-were promoted.
+runtime and training-loop evidence, not promotion evidence. Direct-answer
+snapshots then gained branch-profile diagnostics under
+`runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/`, recording
+the model's own branch-position logits, dominant predicted tokens, target-token
+distribution, and target margin. The smoke profile showed QA branch accuracy
+staying at `1/8` while dominant prediction moved from all `"o"` to all `"y"`,
+which is prompt-independent branch-collapse evidence. None of these runs were
+promoted.

@@ -25,6 +25,7 @@ from closed_world_lm.transformer_char_model import (
     has_repeated_suffix,
     direct_answer_sequence_nll,
     direct_answer_first_error,
+    direct_answer_branch_profile,
     direct_answer_rollout_error,
     direct_answer_early_stop_error,
     direct_answer_repeat_loop_error,
@@ -551,6 +552,44 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(tokenizer.itos[target_id], " ")
         self.assertEqual(tokenizer.itos[predicted_id], ".")
         self.assertEqual(position, 0)
+
+    def test_direct_answer_branch_profile_summarizes_branch_confusion(self) -> None:
+        record = {
+            "id": "color",
+            "prompt": "q:\na:",
+            "target": " a.",
+        }
+        tokenizer = CharTokenizer.train(record["prompt"] + record["target"] + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=24,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+
+        profile = direct_answer_branch_profile(
+            model,
+            tokenizer,
+            [record],
+            branch_position=0,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(profile["count"], 1)
+        self.assertEqual(profile["correct"], 0)
+        self.assertEqual(profile["skipped"], 0)
+        self.assertLess(profile["avg_target_margin"], 0.0)
+        self.assertEqual(profile["target_tokens"][0], {"value": " ", "count": 1})
+        self.assertEqual(profile["predicted_tokens"][0], {"value": ".", "count": 1})
+        self.assertEqual(profile["confusions"][0], {"value": "' '->'.'", "count": 1})
+        self.assertEqual(profile["failed_records"][0]["id"], "color")
+        self.assertEqual(profile["failed_records"][0]["target_token"], " ")
+        self.assertEqual(profile["failed_records"][0]["predicted_token"], ".")
 
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")

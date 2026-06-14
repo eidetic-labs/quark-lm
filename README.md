@@ -88,7 +88,14 @@ Current transformer answer-lesson run:
   direct steps, recorded that the post-direct candidate snapshot was skipped,
   moved direct-answer target loss `3.5186 -> 3.2436`, and still failed direct
   greedy exact at `0/219 -> 0/219` with repeated `"a"` output. This is loop
-  completion and runtime evidence, not promotion evidence.
+  completion and runtime evidence, not promotion evidence. Direct-answer
+  snapshots now also record branch profiles from QuarkLM's own logits. The
+  smoke run at
+  `runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/` shows
+  the QA branch-position-1 prediction collapsed from all `"o"` choices at
+  baseline to all `"y"` choices after five direct updates, with branch accuracy
+  `1/8` and a negative average target margin. That is diagnostic evidence for
+  prompt-independent branch collapse, not a promotion candidate.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -116,6 +116,20 @@ Latest bounded stacked-transformer screen:
 | Failure pattern | repeated `"a"` greedy completion |
 | Promotion status | screening evidence only |
 
+Latest direct-answer diagnostic smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/` |
+| Diagnostic | branch profiles from model logits |
+| Branch position | `1` |
+| Smoke steps | `5` target-loss + `5` direct-answer |
+| Post-direct candidate snapshot | skipped and recorded in metrics |
+| QA branch accuracy | `1/8 -> 1/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"y"` |
+| Final QA target margin | negative, about `-0.0048` |
+| Promotion status | diagnostic smoke only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -126,4 +140,6 @@ top-layer-only direct-answer training can complete and write a checkpoint when
 the expensive post-direct candidate snapshot is explicitly skipped, but its
 repeated `"a"` output is still a failed direct decoder. v0.31's no-candidate
 transformer-guided generator remains useful comparison evidence, but it is not
-raw transformer decoding.
+raw transformer decoding. The branch-profile smoke adds a sharper diagnosis:
+at the configured branch position, the model is selecting one global token
+across prompts instead of separating target-specific answer branches.

@@ -12,6 +12,7 @@ import argparse
 import json
 import math
 import random
+from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -1712,6 +1713,99 @@ def direct_answer_sequence_nll(
     return total / max(len(lesson), 1)
 
 
+def direct_answer_branch_profile(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    records: list[dict[str, Any]],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+    max_failed_records: int = 12,
+) -> dict[str, Any]:
+    predicted_counts: Counter[str] = Counter()
+    target_counts: Counter[str] = Counter()
+    confusion_counts: Counter[str] = Counter()
+    failed_records: list[dict[str, Any]] = []
+    total_target_prob = 0.0
+    total_predicted_prob = 0.0
+    total_target_margin = 0.0
+    profiled = 0
+    correct = 0
+    skipped = 0
+
+    for record in records:
+        example = AnswerExample(
+            prompt=record["prompt"],
+            target=record["target"],
+            source=f"eval:{record['id']}",
+        )
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            example,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            skipped += 1
+            continue
+        context, target_id, position = branch
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        target_prob = probs[target_id]
+        predicted_prob = probs[predicted_id]
+        strongest_non_target = max(
+            (prob for index, prob in enumerate(probs) if index != target_id),
+            default=0.0,
+        )
+        target_margin = target_prob - strongest_non_target
+        target_token = tokenizer.itos[target_id]
+        predicted_token = tokenizer.itos[predicted_id]
+
+        profiled += 1
+        total_target_prob += target_prob
+        total_predicted_prob += predicted_prob
+        total_target_margin += target_margin
+        target_counts[target_token] += 1
+        predicted_counts[predicted_token] += 1
+        confusion_counts[f"{target_token!r}->{predicted_token!r}"] += 1
+        if predicted_id == target_id:
+            correct += 1
+        elif len(failed_records) < max_failed_records:
+            failed_records.append(
+                {
+                    "id": record["id"],
+                    "target": record["target"],
+                    "branch_position": position,
+                    "target_token": target_token,
+                    "predicted_token": predicted_token,
+                    "target_prob": target_prob,
+                    "predicted_prob": predicted_prob,
+                    "target_margin": target_margin,
+                }
+            )
+
+    def top_items(counter: Counter[str]) -> list[dict[str, Any]]:
+        return [
+            {"value": value, "count": count}
+            for value, count in counter.most_common(12)
+        ]
+
+    return {
+        "branch_position": branch_position,
+        "count": profiled,
+        "skipped": skipped,
+        "correct": correct,
+        "accuracy": correct / profiled if profiled else 0.0,
+        "avg_target_prob": total_target_prob / profiled if profiled else 0.0,
+        "avg_predicted_prob": total_predicted_prob / profiled if profiled else 0.0,
+        "avg_target_margin": total_target_margin / profiled if profiled else 0.0,
+        "target_tokens": top_items(target_counts),
+        "predicted_tokens": top_items(predicted_counts),
+        "confusions": top_items(confusion_counts),
+        "failed_records": failed_records,
+    }
+
+
 def train_direct_answer_lesson(
     model: TinyTransformerLM,
     lesson: DirectAnswerLesson,
@@ -3207,6 +3301,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         tokenizer,
                         records,
                         args.direct_answer_max_new_chars,
+                        direct_answer_terminator,
+                    )
+                    for name, records in sorted(eval_records.items())
+                },
+                "branch_profiles": {
+                    name: direct_answer_branch_profile(
+                        model,
+                        tokenizer,
+                        records,
+                        args.direct_answer_branch_position,
                         direct_answer_terminator,
                     )
                     for name, records in sorted(eval_records.items())

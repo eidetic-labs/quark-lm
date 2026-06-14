@@ -119,6 +119,10 @@ continued. A weight update is acceptable only when:
     training-loop completion, checkpoint writing, and direct-answer loss
     movement, but it is not promotion evidence until a full final candidate
     evaluation is recorded.
+14. Direct-answer snapshots should include branch profiles from QuarkLM's own
+    logits so repair selection can distinguish prompt-independent branch
+    collapse from later answer-generation failures without relying on an
+    external model.
 
 ## Reliability Strategy
 
@@ -1378,6 +1382,24 @@ pools, and corpus diffs.
 - failure mode moved from repeated `"e"` output to repeated `"a"` output
 - post-direct candidate snapshot was intentionally skipped, so this is
   training-loop and runtime evidence only, not promotion evidence
+
+`runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/`:
+
+- added direct-answer branch profiles to JSONL snapshots
+- branch profiles record branch position, branch accuracy, dominant predicted
+  tokens, target-token distribution, average target probability, predicted
+  probability, target margin, confusion counts, and failed branch examples
+- smoke checkpoint:
+  `runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/transformer_answer.json`
+- smoke run trained for `5` target-loss steps and `5` direct-answer branch
+  repair steps with the post-direct candidate snapshot skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy stayed `1/8`
+- dominant QA branch prediction moved from all `"o"` at baseline to all `"y"`
+  after five direct updates
+- final QA average target margin was negative at about `-0.0048`
+- this is self-diagnosis evidence for prompt-independent branch collapse, not
+  promotion evidence
 
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short

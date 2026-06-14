@@ -84,6 +84,11 @@ training boundary.
   output, candidate discrimination, direct loss, answer NLL, and final failure
   pattern. Better branch likelihood is not enough if the model still chooses a
   prompt-independent repeated sequence.
+- Direct-answer snapshots should record branch profiles from the model's own
+  logits: branch position, branch accuracy, dominant predicted tokens, target
+  token distribution, average target probability, and target-vs-top margin.
+  These profiles are diagnostic evidence for prompt-independent collapse and
+  should guide repair policies before adding another training mode.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion
