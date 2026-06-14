@@ -1431,6 +1431,37 @@ pools, and corpus diffs.
 - this is also rejected repair evidence: sparse dominant-token suppression can
   improve loss, but it still leaves a global branch token
 
+`runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/`:
+
+- added `branch-batch-contrast-unlikelihood`, which builds a small batch of
+  branch contexts with distinct target tokens and trains them in one gradient
+  update
+- branch batch size was `4`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy stayed `1/8 -> 1/8`
+- dominant QA branch prediction moved from all `"o"` to all `"y"`
+- average direct-answer target loss improved slightly `3.5800 -> 3.5749`
+- this is rejected repair evidence: distinct-target branch batching did not
+  create prompt-specific branch choices
+
+`runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`:
+
+- added `periodic-branch-batch-contrast-unlikelihood`, which applies the
+  branch-batch objective every rollout interval and uses ordinary branch repair
+  otherwise
+- branch batch size was `4`
+- rollout interval was `5`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss improved `3.5800 -> 3.5248`
+- this is also rejected repair evidence: the objective improves loss while the
+  first answer branch remains global instead of prompt-conditioned
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

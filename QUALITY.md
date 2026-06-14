@@ -94,6 +94,10 @@ training boundary.
   output, and whether lower loss actually improved branch accuracy. Penalizing
   a dominant wrong token is not a promotion unless it produces prompt-specific
   branch choices instead of moving collapse to a different global token.
+- Branch-batch contrast runs must record branch batch size, dosage, direct
+  loss, branch profile before/after, and whether distinct target branches
+  become prompt-specific. A batch objective that lowers loss while preserving
+  or worsening a global branch token is rejected repair evidence.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

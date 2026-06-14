@@ -617,6 +617,40 @@ class TinyTransformerLM:
             parameter.data -= learning_rate * clipped_grad
         return loss.data
 
+    def train_step_with_branch_batch_contrast(
+        self,
+        branches: list[tuple[list[int], int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target in branches})
+        loss = Scalar(0.0)
+        for context, target in branches:
+            probs = softmax_scalars(self._forward_scalars(context))
+            if positive_weight > 0.0:
+                loss = loss + (-probs[target].log()) * positive_weight
+            negatives = [
+                branch_target
+                for branch_target in branch_targets
+                if branch_target != target
+            ]
+            if negative_weight > 0.0 and negatives:
+                per_negative_weight = negative_weight / len(negatives)
+                for negative in negatives:
+                    loss = loss + (
+                        -(Scalar(1.0) - probs[negative] + 1e-12).log()
+                    ) * per_negative_weight
+        loss = loss / max(len(branches), 1)
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
     def generate(
         self,
         tokenizer: CharTokenizer,
@@ -1458,6 +1492,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-repair-unlikelihood",
             "branch-collapse-unlikelihood",
             "periodic-branch-collapse-unlikelihood",
+            "branch-batch-contrast-unlikelihood",
+            "periodic-branch-batch-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
@@ -1479,6 +1515,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-recovery-steps", type=int, default=3)
     answer_parser.add_argument("--direct-answer-branch-position", type=int, default=1)
     answer_parser.add_argument("--direct-answer-branch-span", type=int, default=1)
+    answer_parser.add_argument("--direct-answer-branch-batch-size", type=int, default=4)
     answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
     answer_parser.add_argument("--direct-answer-train-top-layer-only", action="store_true")
     answer_parser.add_argument(
@@ -2165,6 +2202,50 @@ def direct_answer_dominant_branch_prediction(
     return predicted_id, count, scored
 
 
+def direct_answer_branch_batch(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[tuple[list[int], int]]:
+    branch = direct_answer_branch_context(
+        model,
+        tokenizer,
+        example,
+        branch_position,
+        terminator,
+    )
+    if branch is None:
+        return []
+    context, target_id, _position = branch
+    branches = [(context, target_id)]
+    seen_targets = {target_id}
+    candidates = branch_examples[:]
+    rng.shuffle(candidates)
+    for candidate in candidates:
+        if len(branches) >= max(1, batch_size):
+            break
+        candidate_branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            candidate,
+            branch_position,
+            terminator,
+        )
+        if candidate_branch is None:
+            continue
+        candidate_context, candidate_target, _candidate_position = candidate_branch
+        if candidate_target in seen_targets:
+            continue
+        branches.append((candidate_context, candidate_target))
+        seen_targets.add(candidate_target)
+    return branches
+
+
 def direct_answer_hard_branch_contrast(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -2565,6 +2646,48 @@ def train_direct_answer_branch_collapse_unlikelihood(
         negative_id,
         positive_context,
         positive_target,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_batch_contrast_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_batch_contrast(
+        branches,
         learning_rate,
         negative_weight,
         positive_weight,
@@ -3923,6 +4046,54 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_terminator,
                         direct_params,
                     )
+            elif args.direct_answer_mode == "branch-batch-contrast-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_batch_contrast_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-branch-batch-contrast-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_branch_batch_contrast_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_branch_batch_size,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_branch_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
             elif args.direct_answer_mode == "branch-span-repair-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_span_repair_unlikelihood(
                     model,
@@ -4247,6 +4418,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_recovery_steps": args.direct_answer_recovery_steps,
             "direct_answer_branch_position": args.direct_answer_branch_position,
             "direct_answer_branch_span": args.direct_answer_branch_span,
+            "direct_answer_branch_batch_size": args.direct_answer_branch_batch_size,
             "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
             "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
             "post_direct_candidate_snapshot_skipped": post_direct_candidate_snapshot_skipped,

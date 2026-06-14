@@ -198,4 +198,12 @@ full-dose smoke at
 loss and moved collapse to all `"a"` predictions. The periodic smoke at
 `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
 improved direct loss to `3.5157`, but branch accuracy stayed `1/8` and the
-dominant prediction moved to all `"n"`. None of these runs were promoted.
+dominant prediction moved to all `"n"`. Branch-batch contrast then trained
+several distinct target branches in one update. The full-dose smoke at
+`runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/` improved
+loss only slightly and moved collapse to all `"y"` predictions. The periodic
+smoke at
+`runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
+improved direct loss to `3.5248`, but QA branch accuracy regressed to `0/8`
+and the dominant prediction moved to all `"a"`. None of these runs were
+promoted.

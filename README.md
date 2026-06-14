@@ -105,7 +105,15 @@ Current transformer answer-lesson run:
   improved direct loss `3.5800 -> 3.5157` but still stayed at QA branch
   accuracy `1/8` and collapsed to all `"n"` predictions. The lesson is that
   dominant-token suppression alone is not enough to create prompt-specific
-  branches.
+  branches. Branch-batch contrast then trained several distinct branch targets
+  in one update. The full-dose smoke
+  `runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/` improved
+  loss only slightly and collapsed to all `"y"` predictions; the periodic smoke
+  `runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
+  improved direct loss `3.5800 -> 3.5248` but regressed QA branch accuracy
+  `1/8 -> 0/8` and collapsed to all `"a"` predictions. The current evidence
+  points at weak prompt representation rather than insufficient branch-token
+  suppression.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

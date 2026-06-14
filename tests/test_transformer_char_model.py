@@ -35,6 +35,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_branch_context,
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
+    direct_answer_branch_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
@@ -53,6 +54,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_loop_escape_unlikelihood,
     train_direct_answer_branch_repair_unlikelihood,
     train_direct_answer_branch_collapse_unlikelihood,
+    train_direct_answer_branch_batch_contrast_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -682,6 +684,121 @@ class TransformerCharModelTest(unittest.TestCase):
         after_probs = model.predict(near_context)
         self.assertLess(after_probs[wrong_id], before_wrong)
         self.assertGreater(after_probs[near_target], before_target)
+
+    def test_branch_batch_selects_distinct_branch_targets(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=40,
+            )
+        )
+
+        batch = direct_answer_branch_batch(
+            model,
+            tokenizer,
+            near,
+            [near, green, tree],
+            random.Random(11),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(len(batch), 3)
+        self.assertEqual(
+            {tokenizer.itos[target] for _context, target in batch},
+            {"n", "g", "t"},
+        )
+
+    def test_branch_batch_contrast_improves_prompt_branch_margin(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=41,
+            )
+        )
+        batch = direct_answer_branch_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(12),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+        branch_targets = {target for _context, target in batch}
+
+        def branch_margin() -> float:
+            total = 0.0
+            for context, target in batch:
+                probs = model.predict(context)
+                strongest_other = max(
+                    probs[other]
+                    for other in branch_targets
+                    if other != target
+                )
+                total += probs[target] - strongest_other
+            return total
+
+        before = branch_margin()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(13)
+
+        for _ in range(64):
+            train_direct_answer_branch_batch_contrast_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.06,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after = branch_margin()
+        self.assertGreater(after, before)
 
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
@@ -1510,6 +1627,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-repair-unlikelihood",
             "branch-collapse-unlikelihood",
             "periodic-branch-collapse-unlikelihood",
+            "branch-batch-contrast-unlikelihood",
+            "periodic-branch-batch-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
@@ -1541,6 +1660,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "1",
                     "--direct-answer-branch-span",
                     "3",
+                    "--direct-answer-branch-batch-size",
+                    "5",
                     "--direct-answer-hard-negatives",
                     "7",
                     "--direct-answer-train-top-layer-only",
@@ -1561,6 +1682,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_recovery_steps, 2)
             self.assertEqual(args.direct_answer_branch_position, 1)
             self.assertEqual(args.direct_answer_branch_span, 3)
+            self.assertEqual(args.direct_answer_branch_batch_size, 5)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
             self.assertTrue(args.direct_answer_train_top_layer_only)
             self.assertTrue(args.skip_post_direct_snapshot)

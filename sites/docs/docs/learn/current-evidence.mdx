@@ -186,6 +186,16 @@ v0.42 promoted checkpoint.
   direct loss `3.5800 -> 3.5157`, but QA branch accuracy stayed `1/8 -> 1/8`
   and the dominant prediction moved from all `"o"` to all `"n"`. It remains
   rejected repair evidence because the branch stayed prompt-independent.
+- `runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/` tested
+  full-dose distinct-target branch batching. It improved direct loss only
+  slightly and moved QA branch collapse from all `"o"` predictions to all `"y"`
+  predictions.
+- `runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
+  tested sparse branch-batch contrast every five direct steps. It improved
+  direct loss `3.5800 -> 3.5248`, but QA branch accuracy regressed
+  `1/8 -> 0/8` and the dominant prediction moved from all `"o"` to all `"a"`.
+  It is rejected evidence that distinct-target batching still does not force
+  prompt-conditioned branch separation in the current representation.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

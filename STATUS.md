@@ -136,6 +136,16 @@ improved direct loss `3.5800 -> 3.5157`, but QA branch accuracy stayed
 `1/8 -> 1/8` and the dominant branch prediction moved from all `"o"` to all
 `"n"`. The repair is recorded as rejected evidence: dominant-token suppression
 helps loss under sparse dosage, but does not create prompt-specific branches.
+Branch-batch contrast now trains multiple distinct branch targets in a single
+update. The full-dose smoke at
+`runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/` improved loss
+only slightly and moved the QA branch collapse to all `"y"` predictions. The
+periodic smoke at
+`runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
+improved direct loss `3.5800 -> 3.5248`, but QA branch accuracy regressed
+`1/8 -> 0/8` and the dominant branch prediction moved to all `"a"`. That makes
+branch-batch contrast rejected repair evidence too: the objective can move loss
+without forcing prompt-conditioned branch separation.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

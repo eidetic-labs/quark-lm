@@ -130,19 +130,19 @@ Latest direct-answer diagnostic smoke:
 | Final QA target margin | negative, about `-0.0048` |
 | Promotion status | diagnostic smoke only |
 
-Latest branch-collapse repair smoke:
+Latest branch repair smoke:
 
 | Signal | Value |
 | --- | --- |
-| Selected comparison run | `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/` |
-| Rejected full-dose run | `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/` |
-| Mode | `periodic-branch-collapse-unlikelihood` |
-| Branch pool sample count | `16` |
+| Selected comparison run | `runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/` |
+| Prior rejected repair | `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/` |
+| Mode | `periodic-branch-batch-contrast-unlikelihood` |
+| Branch batch size | `4` |
 | Rollout interval | `5` |
 | Steps | `5` target-loss + `20` direct-answer |
-| Direct answer loss | `3.5800 -> 3.5157` |
-| QA branch accuracy | `1/8 -> 1/8` |
-| Dominant QA branch prediction | all `"o"` -> all `"n"` |
+| Direct answer loss | `3.5800 -> 3.5248` |
+| QA branch accuracy | `1/8 -> 0/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"a"` |
 | Promotion status | rejected repair evidence |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
@@ -159,6 +159,9 @@ raw transformer decoding. The branch-profile smoke adds a sharper diagnosis:
 at the configured branch position, the model is selecting one global token
 across prompts instead of separating target-specific answer branches. The
 branch-collapse repair uses that diagnosis by penalizing the sampled dominant
-branch token, but the current evidence shows it only moves the collapse to a
-new global token. The next repair needs a stronger prompt-conditioned
-representation signal, not just suppression of yesterday's dominant branch.
+branch token, but the evidence shows it only moves the collapse to a new global
+token. Branch-batch contrast then trains several distinct target branches in
+one update; it lowers loss under sparse dosage, but the branch profile still
+collapses globally and even loses the one initially correct QA branch. The next
+repair needs a stronger prompt-conditioned representation signal, not just
+suppression or batching of branch tokens.
