@@ -108,6 +108,7 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Prompt-position scale mode</td><td><code>{state.transformerPromptPositionScaleMode}</code></td></tr>
     <tr><td>Prompt-position scale status</td><td><code>{state.transformerPromptPositionScaleStatus}</code></td></tr>
     <tr><td>Transformer structure audit</td><td><code>{state.transformerStructureAudit}</code></td></tr>
+    <tr><td>Transformer structure decision</td><td><code>{state.transformerStructureAuditDecision}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -396,7 +397,9 @@ v0.42 promoted checkpoint.
   open-source model, trainer, tokenizer, checkpoint, and transparency patterns
   before adding another repair objective, while keeping all external weights,
   tokenizers, embeddings, datasets, and training text outside QuarkLM's
-  closed-world boundary.
+  closed-world boundary. The completed comparison table chooses an opt-in
+  pre-layer-norm transformer block path with final normalization as the next
+  structural implementation target.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should first compare QuarkLM's transformer against standard GPT

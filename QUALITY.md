@@ -165,6 +165,11 @@ training boundary.
   training text, or copied model implementations. Any adopted structure should
   be reimplemented QuarkLM-native, covered by focused tests, and documented in
   the evidence trail before it becomes the basis for another repair run.
+- Pre-layer-norm or final-normalization transformer paths must be opt-in until
+  evidence justifies promotion. They need config round-trip coverage,
+  checkpoint compatibility with older models, scalar/float forward parity,
+  focused tests for parameter inclusion, and a bounded branch-diversity screen
+  before they can be interpreted as architecture progress.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

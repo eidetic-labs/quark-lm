@@ -101,7 +101,9 @@ penalize nearly identical hidden states for different branch targets.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
-text.
+text. The current audit decision is to implement an opt-in pre-layer-norm
+transformer block path with final normalization before promoting another
+branch-loss repair.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -557,5 +559,6 @@ predictions still collapse globally, so width alone is not the missing repair.
 Prompt-position projection scaling shows the prompt residual can be made louder
 and the restored hidden-state distance can rise, but the branch prediction
 still collapses globally. Before adding another objective, the next transformer
-step should compare QuarkLM's architecture and trainer against proven
-open-source GPT structures while preserving the closed-world data boundary.
+step should implement the audited pre-layer-norm/final-normalization path and
+screen whether a more standard GPT block lets QuarkLM use prompt-conditioned
+hidden separation while preserving the closed-world data boundary.

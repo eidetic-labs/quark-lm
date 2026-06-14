@@ -167,6 +167,7 @@
   "transformerPromptPositionScaleStatus": "rejected prompt-signal scale screen: 50/50 direct steps ran, 1108/1284 prompt-position projection parameters moved, hidden distance increased, but diversity target still failed 0/9 multi-target profiles",
   "transformerPromptPositionScaleQa": "restored from step 40; final QA stayed all 'u' with target-token coverage 0.125, predicted_unique 1/8, and avg different-target hidden distance about 0.01235",
   "transformerStructureAudit": "STRUCTURE_AUDIT.md now gates the next transformer repair: study open-source model/trainer/tokenizer/checkpoint structure without importing external weights, tokenizers, embeddings, datasets, or training text",
+  "transformerStructureAuditDecision": "next implementation target is an opt-in pre-layer-norm transformer block path with final normalization before another branch-loss objective is promoted",
   "transformerBestCandidateRun": "runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/",
   "transformerBestCandidate": "15/219 -> 37/219 eval-scoped",
   "transformerUnlikelihoodRun": "runs/transformer-answer-v0.33-unlikelihood-context32/",

@@ -1933,17 +1933,21 @@ Open-source structure audit checkpoint:
 - prohibited scope: pretrained weights, pretrained tokenizer vocabularies,
   external embeddings, unledgered datasets, unledgered training text, or copied
   model implementations
-- next transformer work should compare QuarkLM's current transformer against
-  standard GPT structure before adding another direct-answer objective
+- completed a comparison table across module boundaries, block shape, final
+  normalization, attention, MLP activation, output head, optimizer, tokenizer,
+  and evidence discipline
+- next transformer implementation target is an opt-in pre-layer-norm
+  transformer block path with final normalization, preserving the existing
+  default path for checkpoint compatibility before adding another direct-answer
+  objective
 
 The next improvement target is a structural transformer audit that identifies
-which standard GPT stabilizers, tokenizer boundaries, trainer boundaries, or
-runtime batching conventions QuarkLM is missing, then strengthening
-prompt-conditioned branch diversity so the direct transformer emits
-target-specific answers instead of collapsing to a single global branch token
-or the short global wrong answer `" te."`, while preserving the `37/219`
-candidate-discrimination gain and v0.42 target-loss gains; then continuing
-admitted-memory batches, completing the Python package/import migration to
-QuarkLM naming, turning more of the deterministic self-diagnosis and repair
-policy into admitted-corpus-trained behavior, and folding the decoder's
-reliability back into the broader free-form language model.
+and tests an opt-in pre-layer-norm transformer path with final normalization,
+then strengthening prompt-conditioned branch diversity so the direct
+transformer emits target-specific answers instead of collapsing to a single
+global branch token or the short global wrong answer `" te."`, while preserving
+the `37/219` candidate-discrimination gain and v0.42 target-loss gains; then
+continuing admitted-memory batches, completing the Python package/import
+migration to QuarkLM naming, turning more of the deterministic self-diagnosis
+and repair policy into admitted-corpus-trained behavior, and folding the
+decoder's reliability back into the broader free-form language model.

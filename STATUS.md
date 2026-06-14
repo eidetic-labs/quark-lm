@@ -387,9 +387,11 @@ before another repair objective is added. `STRUCTURE_AUDIT.md` records the
 boundary: QuarkLM may study model/trainer/tokenizer/checkpoint patterns from
 open-source language-model projects, but must not import pretrained weights,
 pretrained tokenizer vocabularies, external embeddings, unledgered datasets, or
-training text. The audit target is to identify standard GPT stabilizers and
-training-loop structure QuarkLM is missing before the next branch-diversity
-repair.
+training text. The audit now includes a comparison table against common GPT
+structure. It identifies the next implementation target as an opt-in
+pre-layer-norm transformer block path with final normalization, preserving the
+existing default path for checkpoint compatibility before the next
+branch-diversity repair.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

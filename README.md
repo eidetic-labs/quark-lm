@@ -292,7 +292,10 @@ Current transformer answer-lesson run:
   structure audit. `STRUCTURE_AUDIT.md` records the allowed boundary: study
   model/trainer/tokenizer/checkpoint patterns from projects such as minGPT,
   nanoGPT, LitGPT, Hugging Face tokenizers, and LLM360, but never import their
-  pretrained weights, tokenizers, embeddings, datasets, or text.
+  pretrained weights, tokenizers, embeddings, datasets, or text. The completed
+  comparison table points the next implementation target at an opt-in
+  pre-layer-norm transformer block path with final normalization before another
+  branch-loss objective is promoted.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

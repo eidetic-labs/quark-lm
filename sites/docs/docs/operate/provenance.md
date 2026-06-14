@@ -335,5 +335,7 @@ still failed across all `9` multi-target eval profiles.
 The next checkpoint records an engineering-only open-source structure audit in
 `STRUCTURE_AUDIT.md`: QuarkLM may study model/trainer/tokenizer/checkpoint
 patterns, but no external weights, tokenizer vocabularies, embeddings,
-datasets, or training text enter the corpus or learned artifacts.
+datasets, or training text enter the corpus or learned artifacts. The audit
+selects an opt-in pre-layer-norm transformer block path with final
+normalization as the next structural screen before another branch-loss repair.
 None of these runs were promoted.
