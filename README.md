@@ -387,6 +387,17 @@ Current transformer answer-lesson run:
   `quarklm-transformer-v2` checkpoint, `eval.json`, and
   `eval_samples.jsonl`. This is mechanics evidence, not model-quality
   promotion evidence.
+- The v0.52 full-stack top-k screen
+  `runs/transformer-answer-v0.52-fullstack-topk-softmax-smoke-dim4-context80/`
+  reran `branch-balanced-topk-softmax-unlikelihood` with AdamW, gradient
+  accumulation, two attention heads, RMSNorm, gated MLPs, tied output
+  embeddings, rotary positions, cache-aware metadata, and prompt-position
+  projection. The full-stack baseline had better wrong-token diversity than
+  v0.50, with QA and heldout predicted diversity `3/8` and target-token
+  coverage `0.25`, but direct training collapsed to one wrong `"a"` token and
+  best-snapshot restore returned to step `0`. This rejects reusing top-k
+  pressure unchanged under the new stack and points the next repair toward
+  bidirectional prompt-to-token binding.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

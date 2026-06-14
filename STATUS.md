@@ -142,6 +142,20 @@ steps with AdamW, wrote `optimizer_state.json`, saved a
 `quarklm-transformer-v2` checkpoint, and produced traced eval artifacts. This
 is mechanics-readiness evidence, not a promoted responder checkpoint.
 
+`runs/transformer-answer-v0.52-fullstack-topk-softmax-smoke-dim4-context80/`
+uses the full v0.51 stack for the first post-foundation direct-answer screen.
+It reruns `branch-balanced-topk-softmax-unlikelihood` with AdamW, gradient
+accumulation, two attention heads, RMSNorm, gated MLPs, tied output embeddings,
+rotary positions, cache-aware metadata, and prompt-position projection. The
+run completed `50/50` direct steps and restored the best branch snapshot from
+step `0`. The baseline/final restored state had QA predicted diversity `3/8`,
+target-token coverage `0.25`, average target rank `13.25`, top-3 coverage
+`0.25`, and top-5 coverage `0.375`; heldout was similar with average rank
+`13.375`. Training improved rank at later snapshots but collapsed target
+coverage and diversity to one wrong token, so the screen rejects unchanged
+top-k pressure under the full stack and points next toward bidirectional
+prompt-to-token binding.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

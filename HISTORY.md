@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.52
+
+- Recorded full-stack top-k branch repair screening evidence.
+
 ## v0.51
 
 - Added full transformer foundation-stack mechanics and smoke evidence.

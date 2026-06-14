@@ -150,6 +150,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Foundation-stack smoke</td><td><code>{state.transformerFoundationStackSmoke}</code></td></tr>
     <tr><td>Foundation-stack artifacts</td><td><code>{state.transformerFoundationStackArtifacts}</code></td></tr>
     <tr><td>Foundation-stack status</td><td><code>{state.transformerFoundationStackStatus}</code></td></tr>
+    <tr><td>Latest full-stack top-k run</td><td><code>{state.transformerLatestFullStackTopKRun}</code></td></tr>
+    <tr><td>Full-stack top-k mode</td><td><code>{state.transformerFullStackTopKMode}</code></td></tr>
+    <tr><td>Full-stack top-k QA</td><td><code>{state.transformerFullStackTopKQa}</code></td></tr>
+    <tr><td>Full-stack top-k heldout</td><td><code>{state.transformerFullStackTopKHeldout}</code></td></tr>
+    <tr><td>Full-stack top-k status</td><td><code>{state.transformerFullStackTopKStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -506,6 +511,13 @@ v0.42 promoted checkpoint.
   `quarklm-transformer-v2` checkpoint, `optimizer_state.json`, `eval.json`, and
   replayable `eval_samples.jsonl` traces. This is mechanics-readiness evidence,
   not model-quality promotion evidence.
+- `runs/transformer-answer-v0.52-fullstack-topk-softmax-smoke-dim4-context80/`
+  reruns the v0.50 top-k branch objective under the full v0.51 stack. It
+  completed `50/50` direct steps and restored to step `0`: the full-stack
+  baseline had QA and heldout predicted diversity `3/8` and target-token
+  coverage `0.25`, but training collapsed to one wrong token at later
+  snapshots. This rejects unchanged top-k pressure under the full stack and
+  points the next repair toward prompt-context-to-target-token binding.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under
