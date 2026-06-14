@@ -68,7 +68,7 @@ the same discipline before another major repair screen.
 ## Revised Sequence
 
 1. **v0.71:** experiment registry and run-intent schemas. Implemented.
-2. **v0.72:** standalone replay planner.
+2. **v0.72:** standalone replay planner. Implemented.
 3. **v0.73:** corpus hygiene and training-plan artifacts.
 4. **v0.74:** candidate quarantine.
 5. **v0.75:** deterministic closed-world verifier.
@@ -85,6 +85,8 @@ criteria unless retention, leakage, unknown-policy, coverage, diversity, and
 contamination gates pass first.
 
 v0.71 satisfies the experiment-intent part of that rule for self-improvement
-answer cycles and transformer answer-training screens. The remaining required
-mechanics are replay extraction, corpus hygiene, candidate quarantine,
-deterministic verifier checks, recipes, and constraint-first promotion.
+answer cycles and transformer answer-training screens. v0.72 satisfies the
+replay-extraction part by moving replay planning to
+`src/closed_world_lm/replay_plan.py`. The remaining required mechanics are
+corpus hygiene, candidate quarantine, deterministic verifier checks, recipes,
+and constraint-first promotion.

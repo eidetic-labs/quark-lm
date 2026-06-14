@@ -65,6 +65,12 @@ Use `--experiment-hypothesis`, `--experiment-acceptance-gate name:rule`,
 intent more specific. Transformer screens remain evidence-only until a
 dedicated transformer promotion gate exists.
 
+From v0.72 onward, profile-aware replay planning lives in
+`src/closed_world_lm/replay_plan.py`. The transformer still emits the same
+`direct_answer_replay_plan.json` shape for profile-aware modes, but replay
+record normalization, profile grouping, coverage floors, and missing-target
+summaries are now standalone training-planning mechanics.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

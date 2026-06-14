@@ -396,8 +396,9 @@ constraint-first gate.
 
 ### v0.72
 
-Extract replay planning into a standalone module with focused tests. Preserve
-the existing profile-aware replay behavior.
+Implemented replay planning extraction into a standalone module with focused
+tests. The existing profile-aware replay behavior is preserved, but replay
+plan construction is now inspectable without loading the transformer trainer.
 
 ### v0.73
 

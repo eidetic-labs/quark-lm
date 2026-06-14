@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.71 experiment registry; promoted
+**Active version:** v0.72 replay planning extraction; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -69,6 +69,9 @@ Working tagline: Big idea. Tiny package.
   answer-training runs. Runs now declare hypothesis, allowed data sources,
   planned artifacts, recipe id, gates, failure criteria, notes, and a decision
   artifact before they are trusted as evidence.
+- Standalone replay planning in `src/closed_world_lm/replay_plan.py`, with
+  focused tests for profile-aware deficits, legacy branch records, fallback
+  replay records, profile keys, and JSON artifact safety.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -156,6 +159,11 @@ Self-improvement answer cycles and transformer answer-training runs now write
 `experiment_intent.json` before training and include the final intent decision
 in their reports or metrics. Transformer screens close as rejected screen
 evidence until a dedicated transformer promotion gate is implemented.
+
+v0.72 extracts replay planning into `src/closed_world_lm/replay_plan.py`.
+Transformer training still uses the existing profile-aware replay behavior, but
+branch replay normalization, profile grouping, coverage-floor summaries, and
+replay-plan JSON shape are now standalone mechanics with focused tests.
 
 ## Latest Evidence
 

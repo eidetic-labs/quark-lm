@@ -402,8 +402,10 @@ screens remain evidence-only until v0.76 promotion gates exist.
 
 ### v0.72
 
-Extract replay planning into a standalone module with focused tests. The
-existing profile-aware replay plan should be behaviorally preserved.
+Implemented replay planning extraction in `src/closed_world_lm/replay_plan.py`
+with focused tests. The existing profile-aware replay plan is behaviorally
+preserved while replay records, profile grouping, coverage floors, and missing
+target summaries now live outside the transformer monolith.
 
 ### v0.73
 

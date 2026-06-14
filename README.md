@@ -90,6 +90,12 @@ training and close it with the promotion-gate decision. Transformer
 answer-training runs also write an intent before training and close as
 structured screen evidence until a dedicated transformer promotion gate exists.
 
+v0.72 extracts replay planning into `src/closed_world_lm/replay_plan.py` with
+focused tests. The transformer path still uses the same profile-aware replay
+plan behavior, but replay records, profile grouping, coverage floors, and JSON
+artifact planning are now standalone mechanics that later corpus-governance and
+recipe layers can reuse.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

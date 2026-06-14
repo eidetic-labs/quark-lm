@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.72
+
+- Extracted replay planning into a standalone module.
+
 ## v0.71
 
 - Added experiment registry and run-intent artifacts.
