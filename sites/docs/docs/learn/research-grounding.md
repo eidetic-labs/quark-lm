@@ -39,6 +39,20 @@ self-generated text, replay and retention gates need to be first-class, and any
 future self-judge must prove itself inside the closed world before it can admit
 or grade lessons.
 
+## Mechanics Audit Addendum
+
+The v0.66 open-source mechanics audit adds a code-and-systems comparison layer
+on top of this paper map. It studies nanoGPT, minGPT, LitGPT, Hugging Face
+tokenizers, Avalanche, LLM360, OLMo, OLMo 2, Self-Instruct, STaR, Reflexion,
+InsCL, and deep generative replay as design references only.
+
+The audit decision is that QuarkLM's next transformer bottleneck is trainer
+mechanics, not another global branch-loss term. Before the next full-stack
+direct-answer repair run, branch replay should carry profile keys, compute
+coverage deficits per profile, preserve represented targets per profile, emit a
+replay-plan artifact, and test profile isolation. See
+[Open-source mechanics audit](./open-source-mechanics-audit.md).
+
 ## Paper Map
 
 | Area | Representative work | QuarkLM implication |
@@ -134,6 +148,9 @@ loops become fragile.
   deficit training: v0.65 shows current-prediction anchors can improve rank,
   but they over-preserve one represented target token and regress coverage
   diversity.
+- Require the next direct-answer full-stack repair to emit an explicit
+  replay-plan artifact with per-profile branch counts, replay counts, target
+  sets, represented targets, missing targets, and coverage floors.
 - Keep branch-diversity and target-coverage gates in the transformer path,
   because the current failure is collapse under weight updates, not lack of
   loss movement.

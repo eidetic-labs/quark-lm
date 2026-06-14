@@ -80,6 +80,10 @@ provenance, and the goal framework itself.
     Docusaurus docs site targets `docs.quark-lm.eidetic-labs.com`; the
     standalone static marketing page targets `quark-lm.eidetic-labs.com`; both
     have GitHub Actions deployment scaffolds.
+18. Use open-source and paper research as reference material only. v0.66 adds
+    an open-source mechanics audit and requires profile-aware replay plans,
+    replay-plan artifacts, and profile-isolation tests before the next
+    full-stack transformer repair run.
 
 ## Weight Update Policy
 

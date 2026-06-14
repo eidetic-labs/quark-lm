@@ -22,6 +22,7 @@ an evaluation artifact, and a docs update.
 | [Language model](./language-model.md) | You want the model philosophy and boundaries. |
 | [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
+| [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea

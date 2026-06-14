@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.66
+
+- Added open-source mechanics audit and profile-aware replay requirements.
+
 ## v0.65
 
 - Added coverage-preserving deficit repair and rejected full-stack evidence.

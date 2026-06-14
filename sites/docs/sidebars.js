@@ -9,6 +9,7 @@ const sidebars = {
         'learn/language-model',
         'learn/self-improvement-loop',
         'learn/research-grounding',
+        'learn/open-source-mechanics-audit',
         'learn/current-evidence',
       ],
     },

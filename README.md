@@ -40,6 +40,14 @@ gates. It also records what QuarkLM should adopt next, what should be deferred,
 and which claims should stay framed as project goals rather than proven
 novelty.
 
+v0.66 adds `MECHANICS_AUDIT.md` and a matching Docusaurus Learn page for the
+deeper open-source mechanics comparison. The audit studies public LLM,
+tokenizer, continual-learning, transparency, and self-improvement systems as
+design references only. Its decision is that the next transformer bottleneck is
+trainer mechanics, not another global branch-loss term: profile-aware replay,
+per-profile coverage deficits, per-profile preservation, replay-plan artifacts,
+and profile-isolation tests should gate the next full-stack direct-answer run.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

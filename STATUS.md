@@ -1,7 +1,8 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.42 wider sparse branch-contrast transformer training
+**Active version:** v0.66 open-source mechanics audit; promoted responder
+evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
 
@@ -54,6 +55,9 @@ Working tagline: Big idea. Tiny package.
 - Paper-grounded research guidance for continual learning, replay,
   self-generated candidate lessons, retrieval rails, model editing boundaries,
   transformer architecture, and tokenizer timing.
+- Open-source mechanics audit guidance for trainer boundaries, profile-aware
+  replay, checkpoint scoring, tokenizer artifacts, and candidate lesson
+  acceptance without copying outside code or importing outside training data.
 - Source probes for known, unknown, held-out, paraphrase, ownership, self,
   learning, admission, admission-paraphrase, and glossary answers.
 
@@ -81,8 +85,18 @@ The practical near-term guidance is:
   branch-diversity gates;
 - train the transformer from coverage deficits, not only from already-covered
   branch targets;
+- emit replay-plan artifacts and compute coverage deficits per profile before
+  the next full-stack direct-answer repair run;
 - defer model editing and self-rewarded grading until locality, side effects,
   and verifier quality are measurable inside the closed world.
+
+The v0.66 mechanics audit is documented in `MECHANICS_AUDIT.md` and
+`sites/docs/docs/learn/open-source-mechanics-audit.md`. It compares public LLM,
+tokenizer, continual-learning, transparency, and self-improvement mechanics as
+design references only. It concludes that QuarkLM should pause global
+branch-loss churn and make profile-aware replay plans, per-profile deficits,
+per-profile preservation, replay-plan artifacts, and profile-isolation tests
+the next implementation gate.
 
 ## Latest Evidence
 
