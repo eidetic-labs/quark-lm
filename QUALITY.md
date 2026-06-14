@@ -1,6 +1,6 @@
 # Engineering Quality
 
-Last reviewed for QuarkLM v0.39 on 2026-06-14.
+Last reviewed for QuarkLM v0.40 on 2026-06-14.
 
 This project should improve its codebase with the same discipline it applies to
 model behavior. A change is not promoted only because it works once; it should
@@ -80,6 +80,10 @@ training boundary.
   generated-prefix-based, plus exact greedy output, candidate discrimination,
   direct loss, and final failure pattern. A lower loss is not enough if greedy
   emission regresses or loops are hidden.
+- Branch-repair direct runs must record the branch position, exact greedy
+  output, candidate discrimination, direct loss, answer NLL, and final failure
+  pattern. Better branch likelihood is not enough if the model still chooses a
+  prompt-independent repeated sequence.
 - Tokenizer changes must be trained only from admitted corpus text and must not
   import pretrained vocabularies.
 - README, STATUS, GOAL, and QUALITY must be reviewed and updated for every

@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.39 periodic sequence-repair direct transformer training
+**Active version:** v0.40 branch-repair direct transformer training
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
 
@@ -56,27 +56,27 @@ Working tagline: Big idea. Tiny package.
 
 ## Latest Evidence
 
-`runs/self-improve-v0.39/` passes protected prompt leakage, forgetting against
-`runs/self-improve-v0.38/`, exact eval audit, promotion gate, and reaches 100%
+`runs/self-improve-v0.40/` passes protected prompt leakage, forgetting against
+`runs/self-improve-v0.39/`, exact eval audit, promotion gate, and reaches 100%
 exact match for the responder, learned answer classifier, and generative answer
 decoder across all 10 current eval sets. Admission probes now pass `48/48`
 direct and `84/84` paraphrase records; glossary probes pass `38/38`. The
 passing attempt is archived at
-`runs/self-improve-v0.39/attempts/attempt-001/`. The report diagnosis records
+`runs/self-improve-v0.40/attempts/attempt-001/`. The report diagnosis records
 zero blockers with `uses_external_model: false`.
 
-`runs/transformer-answer-v0.39-periodic-sequence50-context32/` is the current
+`runs/transformer-answer-v0.40-branch-context32/` is the current
 from-scratch transformer answer evidence. It uses the corpus-trained character
 tokenizer, no pretrained weights, no pretrained tokenizer, and no external
-embeddings. v0.39 adds periodic sequence-repair training: most direct updates
-use first-error unlikelihood, while every fiftieth update samples a greedy
-mistake from across the teacher-forced admitted target prefix and pairs it with
-a positive admitted continuation. The run trained `80` target-loss steps plus
-`1000` periodic direct answer steps with context size `32`; answer target NLL
-moved `3.5828 -> 2.8257`, direct answer target loss moved `3.3496 -> 2.9793`,
-and transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`.
-Raw direct greedy exact remained `0/219 -> 0/219`; the repeated `" t"` loop
-remains, so direct greedy answering is still the current bottleneck.
+embeddings. v0.40 adds branch-repair training at answer content position `1`:
+the model's current branch prediction becomes the negative signal, and the same
+update reinforces an admitted continuation. The run trained `80` target-loss
+steps plus `1000` branch-repair direct answer steps with context size `32`;
+answer target NLL moved `3.5828 -> 2.5427`, direct answer target loss moved
+`3.3496 -> 2.3935`, and transformer-only eval-scoped candidate accuracy moved
+`15/219 -> 37/219`. Raw direct greedy exact remained `0/219 -> 0/219`; the
+failure changed from a repeated `" t"` loop to a repeated `"ten"` loop, so
+prompt-conditioned greedy branching is still the current bottleneck.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

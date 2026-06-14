@@ -24,30 +24,31 @@ closed-world probes.
 
 ## Latest Evidence
 
-Current promoted run: `runs/self-improve-v0.39/`.
+Current promoted run: `runs/self-improve-v0.40/`.
 Current transformer answer-lesson run:
-`runs/transformer-answer-v0.39-periodic-sequence50-context32/`.
+`runs/transformer-answer-v0.40-branch-context32/`.
 
-- v0.39 keeps the admitted corpus unchanged from v0.38 at `12` admitted facts.
-- The v0.39 self-improvement cycle passed on archived `attempt-001`, with
-  forgetting compared against `runs/self-improve-v0.38/`.
+- v0.40 keeps the admitted corpus unchanged from v0.39 at `12` admitted facts.
+- The v0.40 self-improvement cycle passed on archived `attempt-001`, with
+  forgetting compared against `runs/self-improve-v0.39/`.
 - Admission-probe audit passed: direct probes `48/48`, paraphrase probes
   `84/84`, no missing, extra, or mismatched ids.
 - Glossary-probe audit passed: glossary probes `38/38`, no missing, extra, or
   mismatched ids.
-- v0.39 adds teacher-forced sequence repair for direct transformer answer
-  training. Most updates preserve first-error unlikelihood discrimination,
-  while every fiftieth update samples one greedy mismatch from across the
-  admitted target prefix and pairs it with a positive admitted continuation.
-- The current v0.39 direct-transformer run trained `80` target-loss steps plus
-  `1000` periodic sequence-repair direct answer steps at context size `32`.
-  Direct answer target loss moved `3.3496 -> 2.9793`, transformer answer target
-  NLL moved `3.5828 -> 2.8257`, and eval-scoped transformer-only candidate
-  accuracy moved `15/219 -> 37/219`.
+- v0.40 adds branch repair for direct transformer answer training. It targets
+  the first answer content character after the admitted leading space, using
+  the model's own current branch prediction as the negative signal while also
+  reinforcing an admitted continuation.
+- The current v0.40 direct-transformer run trained `80` target-loss steps plus
+  `1000` branch-repair direct answer steps at context size `32`. Direct answer
+  target loss moved `3.3496 -> 2.3935`, transformer answer target NLL moved
+  `3.5828 -> 2.5427`, and eval-scoped transformer-only candidate accuracy
+  moved `15/219 -> 37/219`.
 - Raw direct greedy transformer exact remained `0/219 -> 0/219`; completions
-  stayed in the repeated `" t"` loop. v0.39 improves the scored target
-  distribution without damaging candidate discrimination, but still shows that
-  raw greedy answer emission needs explicit repeat-loop escape training.
+  moved from the repeated `" t"` loop to a repeated `"ten"` loop. v0.40
+  improves the scored target distribution without damaging candidate
+  discrimination, but still shows that raw greedy answer emission needs prompt-
+  conditioned branching, not only stronger branch likelihood.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -62,7 +63,7 @@ Current transformer answer-lesson run:
   `corpus/admissions.jsonl` and audited in the run report.
 - Self and learning evals expanded to `7/7` and `4/4`, including questions about
   self-diagnosis source, external model shaping, and repair-action selection.
-- Forgetting audit passed against `runs/self-improve-v0.38/`.
+- Forgetting audit passed against `runs/self-improve-v0.39/`.
 - Protected prompt leakage audit passed.
 - Learned eval summaries now retain `failed_records` so failed cycles are
   diagnosable from report artifacts.
@@ -110,10 +111,10 @@ PYTHONPATH=src python3 -m closed_world_lm.transformer_char_model answer-train \
   --generator-eval-every 0 \
   --direct-answer-steps 100 \
   --direct-answer-eval-every 0 \
-  --direct-answer-mode periodic-sequence-repair-unlikelihood \
+  --direct-answer-mode branch-repair-unlikelihood \
   --direct-answer-negative-weight 1.0 \
   --direct-answer-positive-weight 1.0 \
-  --direct-answer-rollout-interval 50
+  --direct-answer-branch-position 1
 ```
 
 The `closed_world_lm` module name is still the stable command path during this
@@ -174,8 +175,12 @@ with a teacher-forced admitted continuation, and
 steps. `generated-prefix-recovery-unlikelihood` trains after the first bad
 generated prefix, while `sequence-repair-unlikelihood` samples greedy mistakes
 across the correct admitted target prefix. The `periodic-*` sequence and
-generated-prefix modes inject those repairs every N steps. The direct
-transformer path is not yet part of the promotion gate for reliable answers.
+generated-prefix modes inject those repairs every N steps.
+`loop-escape-unlikelihood` pairs repeated-loop penalties with admitted
+continuations, and `branch-repair-unlikelihood` targets an answer branch
+position such as the first content character after the leading answer space.
+The direct transformer path is not yet part of the promotion gate for reliable
+answers.
 
 `closed_world_lm.admit` appends a new structured memory to
 `corpus/admissions.jsonl`. That is the operational meaning of "I learned
@@ -264,7 +269,7 @@ When adding new admissions, compare the new run to the last promoted report:
 ```bash
 PYTHONPATH=src python3 -m closed_world_lm.self_improve answer-cycle \
   --run runs/self-improve-next \
-  --compare-report runs/self-improve-v0.39/self_improvement_report.json
+  --compare-report runs/self-improve-v0.40/self_improvement_report.json
 ```
 
 The forgetting audit compares responder, answer-classifier, and answer-decoder
@@ -321,8 +326,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Break the direct transformer's repeated-token greedy loop while preserving
-   the `37/219` candidate discrimination and v0.39 target-loss gains.
+5. Teach prompt-conditioned answer branching so the direct transformer stops
+   choosing a global repeated sequence while preserving the `37/219` candidate
+   discrimination and v0.40 target-loss gains.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

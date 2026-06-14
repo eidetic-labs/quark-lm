@@ -1137,10 +1137,98 @@ pools, and corpus diffs.
   learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
   glossary `38/38`
 
-The next improvement target is breaking the direct transformer's repeated-token
-greedy loop while preserving the `37/219` candidate-discrimination gain and
-v0.39 target-loss gains; then continuing admitted-memory batches, completing
-the Python package/import migration to QuarkLM naming, turning more of the
-deterministic self-diagnosis and repair policy into admitted-corpus-trained
-behavior, and folding the decoder's reliability back into the broader
-free-form language model.
+`runs/transformer-answer-v0.40-periodic-loop50-context32/`:
+
+- added `train_direct_answer_loop_escape_unlikelihood`
+- added `loop-escape-unlikelihood` and
+  `periodic-loop-escape-unlikelihood` direct-answer modes
+- loop escape pairs a generated repeated-loop penalty with a positive admitted
+  continuation
+- checkpoint:
+  `runs/transformer-answer-v0.40-periodic-loop50-context32/transformer_answer.json`
+- this run is preserved as rejected evidence
+- direct answer target loss moved from `3.3496` to `3.3128`
+- average transformer answer target NLL moved from `3.5828` to `3.1315`
+- transformer-only eval-scoped candidate accuracy regressed `15/219 -> 17/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- failure mode changed from repeated `" t"` loops to repeated `"tnonono"`
+  loops
+- lesson: direct loop pressure at interval `50` changes the loop shape but
+  damages scored target distribution and candidate discrimination
+
+`runs/transformer-answer-v0.40-sequence50-loop200-context32/`:
+
+- added `periodic-sequence-loop-escape-unlikelihood`
+- added `--direct-answer-sequence-interval`
+- this run kept v0.39's sequence-repair cadence and injected loop escape every
+  `200` steps
+- checkpoint:
+  `runs/transformer-answer-v0.40-sequence50-loop200-context32/transformer_answer.json`
+- this run is preserved as non-selected evidence
+- direct answer target loss moved from `3.3496` to `2.9855`
+- average transformer answer target NLL moved from `3.5828` to `2.7565`
+- transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- failure mode remained repeated `" t"` loops
+- lesson: sparse loop escape can preserve candidate discrimination and improve
+  NLL, but it does not solve greedy loop emission and trails the selected
+  branch-repair loss
+
+`runs/transformer-answer-v0.40-branch-context32/`:
+
+- added `direct_answer_branch_repair_error`
+- added `train_direct_answer_branch_repair_unlikelihood`
+- added `branch-repair-unlikelihood` and
+  `periodic-branch-repair-unlikelihood` direct-answer modes
+- added `--direct-answer-branch-position`
+- selected evidence trains the first answer content character at position `1`
+  after the admitted leading answer space
+- checkpoint:
+  `runs/transformer-answer-v0.40-branch-context32/transformer_answer.json`
+- uses the corpus-trained `CharTokenizer`; no pretrained tokenizer, pretrained
+  weights, or external embeddings
+- transformer trained for `80` target-loss answer-lesson steps from random
+  initialization
+- direct answer phase trained for `1000` steps on `9144` weighted direct-answer
+  examples
+- direct answer mode was `branch-repair-unlikelihood`
+- negative weight was `1.0`
+- positive weight was `1.0`
+- branch position was `1`
+- context size was `32`
+- average transformer answer target NLL moved from `3.5828` to `2.5427`
+- direct answer target loss moved from `3.3496` to `2.3935`
+- transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- current failure mode changed to repeated `"ten"` loops
+- v0.40 improves scored target distribution beyond v0.39 while preserving
+  candidate discrimination, but greedy emission still shows weak
+  prompt-conditioned branching
+
+`runs/self-improve-v0.40/`:
+
+- kept corpus sources unchanged from v0.39 at `12` admitted facts
+- standard self-improvement cycle passed on archived `attempt-001`
+- forgetting audit compared against `runs/self-improve-v0.39/` and passed
+- protected prompt leakage, exact eval audit, and promotion gate passed
+- report and standalone `self_diagnosis.json` record `uses_external_model:
+  false`, zero blockers, and recommendation `promote_or_expand_corpus`
+- generated probe counts: admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- learned answer model trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- generative answer decoder trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+
+The next improvement target is teaching prompt-conditioned answer branching so
+the direct transformer stops choosing a global repeated sequence while
+preserving the `37/219` candidate-discrimination gain and v0.40 target-loss
+gains; then continuing admitted-memory batches, completing the Python
+package/import migration to QuarkLM naming, turning more of the deterministic
+self-diagnosis and repair policy into admitted-corpus-trained behavior, and
+folding the decoder's reliability back into the broader free-form language
+model.

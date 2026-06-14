@@ -30,6 +30,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_repeat_loop_error,
     direct_answer_generated_prefix_recovery,
     direct_answer_sequence_repair_errors,
+    direct_answer_branch_repair_error,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -42,6 +43,8 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_balanced_repair_unlikelihood,
     train_direct_answer_generated_prefix_recovery_unlikelihood,
     train_direct_answer_sequence_repair_unlikelihood,
+    train_direct_answer_loop_escape_unlikelihood,
+    train_direct_answer_branch_repair_unlikelihood,
     train_direct_answer_lesson,
     train_answer_char,
     train_answer_mixed_step,
@@ -794,6 +797,113 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before_negative, after_negative)
         self.assertGreater(before_positive, after_positive)
 
+    def test_direct_answer_loop_escape_pairs_loop_penalty_with_positive_path(self) -> None:
+        example = AnswerExample(prompt="q:\na:", target=" near.", source="qa:place")
+        tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=6,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=34,
+            )
+        )
+        space_id = tokenizer.stoi[" "]
+        model.bout[space_id].data = 5.0
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        positive_lesson = [lesson[1]]
+        positive_context, positive_target = positive_lesson[0]
+        repair = direct_answer_repeat_loop_error(
+            model,
+            tokenizer,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(repair)
+        context, target_id, predicted_id, position = repair  # type: ignore[misc]
+        before_loop = model.predict(context)[predicted_id]
+        before_positive = model.nll(positive_context, positive_target)
+        rng = random.Random(12)
+
+        for _ in range(32):
+            train_direct_answer_loop_escape_unlikelihood(
+                model,
+                tokenizer,
+                example,
+                positive_lesson,
+                rng,
+                learning_rate=0.08,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_loop = model.predict(context)[predicted_id]
+        after_positive = model.nll(positive_context, positive_target)
+        self.assertEqual(tokenizer.itos[target_id], "n")
+        self.assertEqual(tokenizer.itos[predicted_id], " ")
+        self.assertEqual(position, 1)
+        self.assertGreater(before_loop, after_loop)
+        self.assertGreater(before_positive, after_positive)
+
+    def test_direct_answer_branch_repair_targets_first_content_character(self) -> None:
+        example = AnswerExample(prompt="q:\na:", target=" near.", source="qa:place")
+        tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=6,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=35,
+            )
+        )
+        space_id = tokenizer.stoi[" "]
+        model.bout[space_id].data = 5.0
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        repair = direct_answer_branch_repair_error(
+            model,
+            tokenizer,
+            example,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(repair)
+        context, target_id, predicted_id, position = repair  # type: ignore[misc]
+        before = model.predict(context)[predicted_id]
+        rng = random.Random(13)
+
+        for _ in range(24):
+            train_direct_answer_branch_repair_unlikelihood(
+                model,
+                tokenizer,
+                example,
+                lesson,
+                rng,
+                learning_rate=0.08,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                branch_position=1,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after = model.predict(context)[predicted_id]
+        self.assertEqual(tokenizer.itos[target_id], "n")
+        self.assertEqual(tokenizer.itos[predicted_id], " ")
+        self.assertEqual(position, 1)
+        self.assertGreater(before, after)
+
     def test_direct_answer_modes_include_rollout_and_hybrid(self) -> None:
         for mode in (
             "rollout-unlikelihood",
@@ -810,6 +920,11 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-generated-prefix-recovery-unlikelihood",
             "sequence-repair-unlikelihood",
             "periodic-sequence-repair-unlikelihood",
+            "loop-escape-unlikelihood",
+            "periodic-loop-escape-unlikelihood",
+            "periodic-sequence-loop-escape-unlikelihood",
+            "branch-repair-unlikelihood",
+            "periodic-branch-repair-unlikelihood",
         ):
             args = parse_args(
                 [
@@ -824,12 +939,18 @@ class TransformerCharModelTest(unittest.TestCase):
                     "1.5",
                     "--direct-answer-recovery-steps",
                     "2",
+                    "--direct-answer-branch-position",
+                    "1",
+                    "--direct-answer-sequence-interval",
+                    "6",
                 ]
             )
             self.assertEqual(args.direct_answer_mode, mode)
             self.assertEqual(args.direct_answer_rollout_interval, 4)
             self.assertEqual(args.direct_answer_positive_weight, 1.5)
             self.assertEqual(args.direct_answer_recovery_steps, 2)
+            self.assertEqual(args.direct_answer_branch_position, 1)
+            self.assertEqual(args.direct_answer_sequence_interval, 6)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
         record = {
