@@ -136,12 +136,12 @@ training boundary.
   become prompt-specific. A batch objective that lowers loss while preserving
   or worsening a global branch token is rejected repair evidence.
 - Representation-side transformer options, such as context-mean pooling,
-  context projection, or prompt-attention summaries, must record the option
-  flag, affected training commands, direct loss, branch profile before/after,
-  dominant branch token, whether new parameters actually moved, and whether the
-  representation produces prompt-specific branch choices. Lower loss from a
-  representation change is rejected evidence when branch accuracy regresses or
-  the branch still collapses to one global token.
+  context projection, prompt-prefix projection, or prompt-attention summaries,
+  must record the option flag, affected training commands, direct loss, branch
+  profile before/after, dominant branch token, whether new parameters actually
+  moved, and whether the representation produces prompt-specific branch choices.
+  Lower loss from a representation change is rejected evidence when branch
+  accuracy regresses or the branch still collapses to one global token.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

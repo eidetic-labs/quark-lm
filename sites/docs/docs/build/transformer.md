@@ -65,6 +65,8 @@ prompt-conditioned branch profiles and complete answer metrics.
 Add `--use-context-projection` to test a zero-initialized trainable projection
 of that context summary; it starts baseline-equivalent and must prove that its
 learned parameters improve branch profiles before it can be promoted.
+Add `--use-prompt-prefix-projection` to test a zero-initialized trainable
+projection of non-padding prompt-prefix positions before the final answer token.
 Add `--use-prompt-attention-summary` to test a trainable attention-pooled
 summary of the current context through a zero-initialized output projection.
 It is also diagnostic until branch profiles improve.
@@ -350,6 +352,25 @@ Latest branch restore-best smoke:
 | Final QA target-token coverage | `0.125` |
 | Promotion status | rejected guardrail evidence |
 
+Latest prompt-prefix projection smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-prompt-prefix-target-softmax-restorebest-smoke-dim4-context80/` |
+| Representation option | `--use-prompt-prefix-projection` |
+| Mode | `branch-target-softmax-unlikelihood` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Prompt-prefix projection movement | all `20` parameters moved, max abs about `0.0942` |
+| Composite train loss | `5.6649 -> 5.5679` |
+| Restored best branch snapshot | yes, from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | rejected representation evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -403,4 +424,6 @@ two tokens, then collapses back by the final snapshot. The next repair needs to
 make diversity stable across prompts, not just rotate or momentarily crack the
 collapsed token. Best-snapshot restoration can preserve a better measured
 branch state, but it still ends as a one-token collapse until the underlying
-representation separates prompts.
+representation separates prompts. Prompt-prefix projection gives the model a
+targeted trainable prompt path and the new parameters move, but the evidence
+still ends in the same all-`"u"` branch collapse.

@@ -89,6 +89,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch restore run</td><td><code>{state.transformerLatestBranchRestoreRun}</code></td></tr>
     <tr><td>Branch restore mode</td><td><code>{state.transformerBranchRestoreMode}</code></td></tr>
     <tr><td>Branch restore status</td><td><code>{state.transformerBranchRestoreStatus}</code></td></tr>
+    <tr><td>Latest prompt-prefix projection run</td><td><code>{state.transformerLatestPromptPrefixRun}</code></td></tr>
+    <tr><td>Prompt-prefix projection option</td><td><code>{state.transformerPromptPrefixOption}</code></td></tr>
+    <tr><td>Prompt-prefix projection status</td><td><code>{state.transformerPromptPrefixStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -334,6 +337,12 @@ v0.42 promoted checkpoint.
   from the prior all-`"w"` endpoint to all `"u"` with target-token coverage
   `0.125`, but `predicted_unique` stayed `1/8` and all `9` multi-target
   profiles still failed the diversity target.
+- `runs/transformer-answer-v0.43-prompt-prefix-target-softmax-restorebest-smoke-dim4-context80/`
+  added `--use-prompt-prefix-projection`, a zero-initialized trainable
+  projection over non-padding prompt-prefix positions before the final answer
+  token. All `20` projection parameters moved and composite train loss improved
+  `5.6649 -> 5.5679`, but the final checkpoint restored from step `40` to the
+  same all-`"u"` QA collapse with target-token coverage `0.125`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

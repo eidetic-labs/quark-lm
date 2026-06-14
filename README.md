@@ -236,6 +236,14 @@ Current transformer answer-lesson run:
   coverage `0.0` to all-`"u"` coverage `0.125`, but `predicted_unique` stayed
   `1/8` and the diversity target still failed across all `9` multi-target
   profiles.
+- `--use-prompt-prefix-projection` adds a zero-initialized trainable projection
+  of non-padding prompt-prefix positions before the final answer token. The
+  context-80 target-softmax restore-best screen
+  `runs/transformer-answer-v0.43-prompt-prefix-target-softmax-restorebest-smoke-dim4-context80/`
+  moved all `20` prompt-prefix projection parameters and lowered composite
+  loss `5.6649 -> 5.5679`, but it restored from step `40` to the same all-`"u"`
+  QA collapse with target-token coverage `0.125` and `predicted_unique` still
+  `1/8`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
