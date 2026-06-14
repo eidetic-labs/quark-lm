@@ -203,6 +203,17 @@ direct steps. The context-80 gated screen at
 passed the gate and recorded `actual_steps: 1` for `1` requested direct step.
 This is a training-loop guardrail, not promoted model quality evidence.
 
+Direct-answer snapshots now have a `branch-only` mode for bounded longer-context
+screens. The mode skips greedy completion evals in JSONL snapshots while still
+recording branch profiles, branch-context coverage, and the gate result. The
+context-80 gated screen at
+`runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
+passed the required gate across all `219/219` semantic records, recorded
+`actual_steps: 5` for `5` requested direct branch-repair steps, and marked
+`direct_answer_evals_skipped: true`. This makes longer-context branch-repair
+screening cheaper and auditable, but it is not promoted quality evidence because
+greedy completion evals were intentionally skipped.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

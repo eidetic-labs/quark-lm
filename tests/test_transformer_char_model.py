@@ -1918,6 +1918,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "5",
                     "--direct-answer-hard-negatives",
                     "7",
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
                     "--direct-answer-train-top-layer-only",
                     "--direct-answer-require-branch-context-gate",
                     "--skip-post-direct-snapshot",
@@ -1942,6 +1944,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_branch_span, 3)
             self.assertEqual(args.direct_answer_branch_batch_size, 5)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
+            self.assertEqual(args.direct_answer_snapshot_mode, "branch-only")
             self.assertTrue(args.direct_answer_train_top_layer_only)
             self.assertTrue(args.direct_answer_require_branch_context_gate)
             self.assertTrue(args.skip_post_direct_snapshot)

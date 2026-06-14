@@ -170,6 +170,14 @@ Current transformer answer-lesson run:
   context-80 gate smoke
   `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
   passed the gate and ran the requested `1` direct step.
+- Direct-answer snapshots now support an explicit `branch-only` mode for
+  bounded longer-context screens. It skips greedy completion evals in the JSONL
+  snapshots while retaining branch profiles, branch-context coverage, and the
+  branch-context gate result. The gated context-80 screen
+  `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
+  passed the required gate across all `219/219` semantic records, ran all `5`
+  requested branch-repair direct steps, and recorded `evals_skipped: true`.
+  This is screening efficiency evidence, not promoted model quality evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -246,4 +246,11 @@ failed the required gate and recorded `actual_steps: 0` for `5` requested
 direct-answer steps. The context-80 gate screen
 `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
 passed the required gate and recorded `actual_steps: 1` for `1` requested
-direct-answer step. None of these runs were promoted.
+direct-answer step. Branch-only direct-answer snapshots were then added as an
+explicit screening mode for longer-context repair runs, again without changing
+corpus sources. The context-80 gated branch-only screen
+`runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
+passed the required gate across all `219/219` semantic records, ran all `5`
+requested direct-answer steps, and recorded skipped greedy evals while retaining
+branch profiles and branch-context gate evidence. None of these runs were
+promoted.

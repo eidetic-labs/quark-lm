@@ -67,6 +67,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-context gate run</td><td><code>{state.transformerLatestBranchContextGateRun}</code></td></tr>
     <tr><td>Branch context gate at 16</td><td><code>{state.transformerBranchContextGateContext16}</code></td></tr>
     <tr><td>Branch context gate at 80</td><td><code>{state.transformerBranchContextGateContext80}</code></td></tr>
+    <tr><td>Latest branch-only screen</td><td><code>{state.transformerLatestBranchOnlyRun}</code></td></tr>
+    <tr><td>Branch-only gate</td><td><code>{state.transformerBranchOnlyGate}</code></td></tr>
+    <tr><td>Branch-only eval skipping</td><td><code>{state.transformerBranchOnlyEvalSkipping}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -262,6 +265,12 @@ v0.42 promoted checkpoint.
 - `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
   passed the same required gate at context size `80` and recorded
   `actual_steps: 1` for `1` requested direct-answer step.
+- `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
+  added `--direct-answer-snapshot-mode branch-only` to keep longer-context
+  branch screens bounded. The required context-80 gate passed across all
+  `219/219` semantic records, all `5` requested direct-answer steps ran, and
+  JSONL snapshots recorded `evals_skipped: true` while retaining branch profiles
+  and branch-context gate evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

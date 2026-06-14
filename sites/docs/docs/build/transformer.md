@@ -70,6 +70,9 @@ summary of the current context through a zero-initialized output projection.
 It is also diagnostic until branch profiles improve.
 Add `--direct-answer-require-branch-context-gate` to skip direct-answer
 training unless branch contexts are semantically complete and unambiguous.
+Add `--direct-answer-snapshot-mode branch-only` for bounded longer-context
+screens that need branch profiles and branch-context gate evidence but can
+intentionally skip greedy completion evals in direct-answer JSONL snapshots.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -237,6 +240,21 @@ Latest branch-context gate smoke:
 | Training skipped | `true` | `false` |
 | Promotion status | guardrail evidence only | guardrail evidence only |
 
+Latest branch-only snapshot smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/` |
+| Context size | `80` |
+| Snapshot mode | `branch-only` |
+| Required gate | `true` |
+| Gate status | passed, `219/219` semantic records covered |
+| Requested direct steps | `5` |
+| Actual direct steps | `5` |
+| JSONL greedy evals skipped | `true` |
+| Retained diagnostics | branch profiles, branch-context coverage, branch-context gate |
+| Promotion status | screening efficiency evidence only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -273,4 +291,6 @@ prompt-specific discrimination, not just suppression, batching, or a trainable
 summary of a truncated context. The optional branch-context gate now enforces
 that distinction for direct-answer screens: unsafe context-16 branch repair can
 be skipped and recorded, while complete context-80 branch repair is allowed to
-run.
+run. The branch-only snapshot mode keeps those longer-context screens practical
+by skipping greedy completion evals while still recording the branch diagnostics
+and gate evidence needed for the next decision.

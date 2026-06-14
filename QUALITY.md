@@ -100,6 +100,10 @@ training boundary.
   and record `actual_steps: 0` plus a skip reason; a run should not be promoted
   as branch-repair evidence unless complete, unambiguous branch contexts are
   proven or the exception is explicitly documented.
+- Branch-only direct-answer snapshots may be used for bounded longer-context
+  screening, but they must record the snapshot mode and `evals_skipped: true`.
+  Treat them as efficiency evidence only until a follow-up full snapshot run
+  records greedy completion evals, branch profiles, and gate evidence together.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

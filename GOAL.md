@@ -1649,6 +1649,21 @@ pools, and corpus diffs.
 - this confirms the gate distinguishes unsafe truncated branch contexts from
   complete branch contexts before training
 
+`runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`:
+
+- added `--direct-answer-snapshot-mode branch-only` for bounded longer-context
+  direct-answer screens
+- branch-only snapshots skip greedy completion evals while retaining branch
+  profiles, branch-context coverage, and branch-context gate evidence
+- required context-80 gate passed with `219/219` semantic branch coverage,
+  `0` ambiguous contexts, `0` collision contexts, and `0` skipped records
+- smoke run requested `5` direct-answer branch repair steps and recorded
+  `actual_steps: 5`
+- final metrics recorded `direct_answer_evals_skipped: true`
+- this is screening efficiency evidence, not promoted model quality evidence;
+  any promotion candidate still needs a full direct-answer snapshot with greedy
+  completion evals
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

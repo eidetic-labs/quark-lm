@@ -1626,6 +1626,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-eval-every", type=int, default=200)
     answer_parser.add_argument("--direct-answer-max-new-chars", type=int, default=96)
     answer_parser.add_argument(
+        "--direct-answer-snapshot-mode",
+        choices=["full", "branch-only"],
+        default="full",
+        help=(
+            "Direct-answer JSONL snapshot detail. 'branch-only' skips greedy "
+            "completion evals and records only branch profiles and branch-context "
+            "coverage for bounded screening runs."
+        ),
+    )
+    answer_parser.add_argument(
         "--direct-answer-mode",
         choices=[
             "first-error",
@@ -3878,6 +3888,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
 
         def direct_snapshot(step: int, train_loss: float | None) -> dict[str, Any]:
+            direct_answer_evals_skipped = args.direct_answer_snapshot_mode == "branch-only"
             branch_context_coverage = {
                 name: audit_direct_answer_branch_context_coverage(
                     model,
@@ -3891,7 +3902,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             record = {
                 "step": step,
                 "train_loss": train_loss,
-                "evals": {
+                "direct_answer_snapshot_mode": args.direct_answer_snapshot_mode,
+                "evals_skipped": direct_answer_evals_skipped,
+                "evals": {}
+                if direct_answer_evals_skipped
+                else {
                     name: evaluate_direct_answer_records(
                         model,
                         tokenizer,
@@ -4800,6 +4815,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "training_examples": len(direct_training_pool),
             "learning_rate": args.direct_answer_learning_rate,
             "direct_answer_eval_every": args.direct_answer_eval_every,
+            "direct_answer_snapshot_mode": args.direct_answer_snapshot_mode,
+            "direct_answer_evals_skipped": (
+                args.direct_answer_snapshot_mode == "branch-only"
+            ),
             "direct_answer_mode": args.direct_answer_mode,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,
             "direct_answer_positive_weight": args.direct_answer_positive_weight,
