@@ -118,6 +118,10 @@ training boundary.
   hidden-state diagnostics are present. A representation objective is not a
   promotion unless hidden separation improves enough to change
   prompt-conditioned branch diversity.
+- Representation-capacity screens must record runtime practicality, completed
+  direct steps, hidden-distance movement, and branch-diversity status. Wider
+  hidden states are diagnostic only unless they produce prompt-specific branch
+  choices.
 - Direct-answer stabilizers that freeze global parameters, such as output-bias
   freezing, must record the frozen option, prove the excluded parameters stayed
   unchanged in unit coverage, and still be judged by branch diversity rather

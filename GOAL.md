@@ -1874,6 +1874,29 @@ pools, and corpus diffs.
 - rejected as representation-contrast evidence: the model still has nearly
   indistinguishable hidden states at the answer branch
 
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/`:
+
+- tested whether the high-weight representation-contrast path was too narrow at
+  embedding/feed-forward dimensions `4/8`
+- the matching 50-step dim-8 screen reached step `40` but was too slow for the
+  regular loop, so this completed `40`-step run is the evidence artifact
+- used embedding/feed-forward dimensions `8/16`, prompt-position projection,
+  frozen output bias, best branch snapshot restoration, and
+  `--direct-answer-contrast-weight 50.0`
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `40` direct-answer steps and recorded `actual_steps: 40`
+- final checkpoint restored from step `10`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+  and `predicted_unique` still `1/8`
+- final QA different-target hidden distance averaged about `0.00209`, up from
+  the dim-4 representation-contrast screen's `0.00107`, but still insufficient
+  for branch diversity
+- rejected as capacity evidence: more hidden width improves measured separation
+  without creating prompt-specific branch choices
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

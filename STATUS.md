@@ -352,6 +352,20 @@ still `1/8`, and average different-target hidden distance only about
 `0.00107`. This is rejected representation-contrast evidence: the current
 hidden states remain nearly indistinguishable at the answer branch.
 
+A dim-8 capacity follow-up tested whether the representation-contrast path was
+too narrow at embedding/feed-forward dimensions `4/8`. The matching 50-step
+dim-8 screen reached step `40` but was too slow for the regular loop, so the
+completed evidence run is
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/`.
+It used embedding/feed-forward dimensions `8/16`, passed the branch-context
+gate, froze output bias, ran `40/40` direct steps, and restored the final
+checkpoint from step `10`. The restored QA different-target hidden distance
+rose to about `0.00209`, but QA still collapsed to all `"u"` with target-token
+coverage `0.125`, `predicted_unique` still `1/8`, and the branch-diversity
+target failed across all `9` multi-target profiles. This is rejected capacity
+evidence: more width gives more hidden distance, but not prompt-specific branch
+choices.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

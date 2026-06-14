@@ -319,4 +319,10 @@ recorded hidden-state distance profiles, ran all `50` direct steps with
 `--direct-answer-contrast-weight 50.0`, and restored the final checkpoint from
 step `40`; the final diversity target still failed across all `9` multi-target
 eval profiles.
+A dim-8 capacity screen followed, still without changing corpus sources. The
+completed 40-step prompt-position context-80 smoke
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/`
+used embedding/feed-forward dimensions `8/16`, restored the final checkpoint
+from step `10`, and increased measured QA hidden distance; the final diversity
+target still failed across all `9` multi-target eval profiles.
 None of these runs were promoted.

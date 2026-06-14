@@ -438,6 +438,27 @@ Latest branch-representation contrast smoke:
 | Final QA different-target hidden distance | avg about `0.00107`, max about `0.00237` |
 | Promotion status | rejected representation-contrast evidence |
 
+Latest branch-representation capacity smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/` |
+| Mode | `branch-representation-contrast-unlikelihood` |
+| Embedding/feed-forward dim | `8/16` |
+| Representation option | `--use-prompt-position-projection` |
+| Representation contrast weight | `50.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `40/40`; 50-step dim8 screen was too slow for the regular loop |
+| Train loss | `53.6111 -> 53.5752` |
+| Restored best branch snapshot | yes, from step `10` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Final QA different-target hidden distance | avg about `0.00209`, max about `0.00367` |
+| Promotion status | rejected capacity evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -503,3 +524,5 @@ Branch-representation contrast exposes that the hidden states themselves remain
 nearly indistinguishable at the answer branch, so the next repair needs a
 stronger prompt-conditioned representation path rather than another output-head
 loss alone.
+The dim-8 capacity screen increases measured hidden distance, but branch
+predictions still collapse globally, so width alone is not the missing repair.

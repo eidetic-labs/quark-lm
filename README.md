@@ -270,6 +270,13 @@ Current transformer answer-lesson run:
   moved only about `0.00097 -> 0.00107` at the restored checkpoint, and the
   final branch profile still collapsed to all `"u"` with `predicted_unique`
   `1/8`.
+- A dim-8 capacity screen
+  `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/`
+  completed `40/40` direct steps after the matching 50-step dim-8 screen proved
+  too slow for the regular loop. It doubled the restored QA different-target
+  hidden distance to about `0.00209`, but final QA still restored to all `"u"`
+  with target-token coverage `0.125`, `predicted_unique` `1/8`, and diversity
+  failure across all `9` multi-target profiles.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
