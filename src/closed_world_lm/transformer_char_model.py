@@ -1783,6 +1783,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     answer_parser.add_argument(
+        "--direct-answer-restore-best-branch-snapshot",
+        action="store_true",
+        help=(
+            "Restore the direct-answer weights with the best branch-diversity "
+            "snapshot score before final metrics and checkpoint writing."
+        ),
+    )
+    answer_parser.add_argument(
         "--direct-answer-require-branch-context-gate",
         action="store_true",
         help=(
@@ -2238,6 +2246,50 @@ def summarize_branch_diversity_target(
         ),
         "blocking_evals": blocking_evals,
     }
+
+
+def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ...]:
+    summary = snapshot.get("branch_diversity_target", {})
+    branch_profiles = snapshot.get("branch_profiles", {})
+    multi_target_diversities = []
+    for profile in branch_profiles.values():
+        diversity = profile.get("diversity", {})
+        target_unique = int(diversity.get("target_unique", 0))
+        if target_unique < 2:
+            continue
+        predicted_unique = int(diversity.get("predicted_unique", 0))
+        multi_target_diversities.append(
+            {
+                "predicted_unique_rate": predicted_unique / target_unique,
+                "target_token_coverage": float(
+                    diversity.get("target_token_coverage", 0.0)
+                ),
+                "inverse_dominant_rate": 1.0
+                - float(diversity.get("dominant_predicted_rate", 0.0)),
+            }
+        )
+    profile_count = max(len(multi_target_diversities), 1)
+    avg_predicted_unique_rate = (
+        sum(item["predicted_unique_rate"] for item in multi_target_diversities)
+        / profile_count
+    )
+    avg_target_token_coverage = (
+        sum(item["target_token_coverage"] for item in multi_target_diversities)
+        / profile_count
+    )
+    avg_inverse_dominant_rate = (
+        sum(item["inverse_dominant_rate"] for item in multi_target_diversities)
+        / profile_count
+    )
+    return (
+        1.0 if summary.get("passed", False) else 0.0,
+        float(summary.get("passed_profiles", 0)),
+        -float(summary.get("failed_profiles", 0)),
+        float(summary.get("min_target_token_coverage", 0.0)),
+        avg_target_token_coverage,
+        avg_predicted_unique_rate,
+        avg_inverse_dominant_rate,
+    )
 
 
 def train_direct_answer_lesson(
@@ -4193,7 +4245,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_rng = random.Random(args.seed + 307)
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
 
-        def direct_snapshot(step: int, train_loss: float | None) -> dict[str, Any]:
+        def direct_snapshot(
+            step: int,
+            train_loss: float | None,
+            extra: dict[str, Any] | None = None,
+        ) -> dict[str, Any]:
             direct_answer_evals_skipped = args.direct_answer_snapshot_mode == "branch-only"
             branch_context_coverage = {
                 name: audit_direct_answer_branch_context_coverage(
@@ -4241,11 +4297,27 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     branch_context_coverage
                 ),
             }
+            if extra is not None:
+                record.update(extra)
             with direct_history_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
             return record
 
         direct_baseline = direct_snapshot(0, None)
+        best_direct_snapshot_step = 0
+        best_direct_snapshot_score = branch_diversity_snapshot_score(direct_baseline)
+        best_direct_model_payload = model.to_dict(tokenizer)
+
+        def record_best_direct_snapshot(snapshot: dict[str, Any]) -> None:
+            nonlocal best_direct_snapshot_step
+            nonlocal best_direct_snapshot_score
+            nonlocal best_direct_model_payload
+            score = branch_diversity_snapshot_score(snapshot)
+            if score > best_direct_snapshot_score:
+                best_direct_snapshot_step = int(snapshot["step"])
+                best_direct_snapshot_score = score
+                best_direct_model_payload = model.to_dict(tokenizer)
+
         branch_context_gate = direct_baseline["branch_context_gate"]
         direct_answer_training_skipped = (
             args.direct_answer_require_branch_context_gate
@@ -5206,11 +5278,36 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 train_loss = running_direct_loss / args.direct_answer_eval_every
                 last_direct_snapshot = direct_snapshot(direct_step, train_loss)
                 last_direct_snapshot_step = direct_step
+                record_best_direct_snapshot(last_direct_snapshot)
                 print(f"direct_answer_step={direct_step} train_loss={train_loss:.4f}")
                 running_direct_loss = 0.0
 
         if last_direct_snapshot_step != args.direct_answer_steps:
             last_direct_snapshot = direct_snapshot(args.direct_answer_steps, None)
+            last_direct_snapshot_step = args.direct_answer_steps
+            record_best_direct_snapshot(last_direct_snapshot)
+
+        direct_answer_restored_best_branch_snapshot = False
+        if (
+            args.direct_answer_restore_best_branch_snapshot
+            and best_direct_snapshot_step != last_direct_snapshot_step
+        ):
+            restored_model, restored_tokenizer = TinyTransformerLM.from_dict(
+                best_direct_model_payload
+            )
+            model = restored_model
+            if restored_tokenizer is not None:
+                tokenizer = restored_tokenizer
+            direct_answer_restored_best_branch_snapshot = True
+            last_direct_snapshot = direct_snapshot(
+                args.direct_answer_steps,
+                None,
+                {
+                    "restored_best_branch_snapshot": True,
+                    "restored_from_step": best_direct_snapshot_step,
+                    "restored_from_score": list(best_direct_snapshot_score),
+                },
+            )
 
         post_direct_candidate_snapshot_skipped = args.skip_post_direct_snapshot
         if post_direct_candidate_snapshot_skipped:
@@ -5242,6 +5339,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
             "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
             "direct_answer_freeze_output_bias": args.direct_answer_freeze_output_bias,
+            "direct_answer_restore_best_branch_snapshot": (
+                args.direct_answer_restore_best_branch_snapshot
+            ),
+            "direct_answer_restored_best_branch_snapshot": (
+                direct_answer_restored_best_branch_snapshot
+            ),
+            "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
+            "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),
             "direct_answer_require_branch_context_gate": (
                 args.direct_answer_require_branch_context_gate
             ),

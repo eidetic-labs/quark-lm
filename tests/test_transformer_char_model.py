@@ -43,6 +43,7 @@ from closed_world_lm.transformer_char_model import (
     audit_direct_answer_branch_context_coverage,
     summarize_branch_context_coverage_gate,
     summarize_branch_diversity_target,
+    branch_diversity_snapshot_score,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -837,6 +838,49 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(summary["passed_profiles"], 1)
         self.assertEqual(summary["failed_profiles"], 0)
         self.assertEqual(summary["blocking_evals"], [])
+
+    def test_branch_diversity_snapshot_score_prefers_more_prediction_diversity(self) -> None:
+        collapsed = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 1.0,
+                    }
+                }
+            },
+        }
+        cracked = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 2,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 0.75,
+                    }
+                }
+            },
+        }
+
+        self.assertGreater(
+            branch_diversity_snapshot_score(cracked),
+            branch_diversity_snapshot_score(collapsed),
+        )
 
     def test_branch_context_coverage_marks_truncated_semantic_branch(self) -> None:
         record = {
@@ -2281,6 +2325,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "branch-only",
                     "--direct-answer-train-top-layer-only",
                     "--direct-answer-freeze-output-bias",
+                    "--direct-answer-restore-best-branch-snapshot",
                     "--direct-answer-require-branch-context-gate",
                     "--skip-post-direct-snapshot",
                     "--direct-answer-sequence-interval",
@@ -2307,6 +2352,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_snapshot_mode, "branch-only")
             self.assertTrue(args.direct_answer_train_top_layer_only)
             self.assertTrue(args.direct_answer_freeze_output_bias)
+            self.assertTrue(args.direct_answer_restore_best_branch_snapshot)
             self.assertTrue(args.direct_answer_require_branch_context_gate)
             self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)

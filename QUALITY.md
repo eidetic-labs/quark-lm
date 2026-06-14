@@ -122,6 +122,10 @@ training boundary.
   branch diversity. A temporary increase in `predicted_unique` is useful
   diagnostic evidence, but promotion-style interpretation requires the final
   branch-diversity target to improve.
+- Best-snapshot restoration must be explicit and auditable. Runs that restore a
+  branch snapshot must record the selection score, winning step, whether
+  restoration happened, and final branch-diversity target status; preserving a
+  better checkpoint is not a promotion unless the final target improves.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

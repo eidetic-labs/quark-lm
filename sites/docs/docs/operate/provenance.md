@@ -286,4 +286,10 @@ passed the branch-context gate, froze output bias, and ran all `50` requested
 direct steps. It briefly raised QA predicted diversity to two tokens at step
 `20`, but the final diversity target still failed across all `9` multi-target
 eval profiles.
+Best-branch-snapshot restoration followed, still without changing corpus
+sources. The context-80 smoke
+`runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, ran all `50` requested direct
+steps, and restored the final checkpoint from step `40`; the final diversity
+target still failed across all `9` multi-target eval profiles.
 None of these runs were promoted.

@@ -86,6 +86,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-target softmax run</td><td><code>{state.transformerLatestBranchTargetSoftmaxRun}</code></td></tr>
     <tr><td>Branch-target softmax mode</td><td><code>{state.transformerBranchTargetSoftmaxMode}</code></td></tr>
     <tr><td>Branch-target softmax status</td><td><code>{state.transformerBranchTargetSoftmaxStatus}</code></td></tr>
+    <tr><td>Latest branch restore run</td><td><code>{state.transformerLatestBranchRestoreRun}</code></td></tr>
+    <tr><td>Branch restore mode</td><td><code>{state.transformerBranchRestoreMode}</code></td></tr>
+    <tr><td>Branch restore status</td><td><code>{state.transformerBranchRestoreStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -324,6 +327,13 @@ v0.42 promoted checkpoint.
   still failed across all `9` multi-target profiles. QA briefly reached
   `predicted_unique: 2` at step `20`, then collapsed back to all `"w"` by
   step `50`.
+- `runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`
+  added `--direct-answer-restore-best-branch-snapshot`. The required
+  branch-context gate passed, output bias was frozen, and `50/50` direct steps
+  ran. The run restored the final checkpoint from step `40`; final QA moved
+  from the prior all-`"w"` endpoint to all `"u"` with target-token coverage
+  `0.125`, but `predicted_unique` stayed `1/8` and all `9` multi-target
+  profiles still failed the diversity target.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

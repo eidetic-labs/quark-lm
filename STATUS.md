@@ -285,6 +285,19 @@ briefly reached `predicted_unique: 2` at step `20`, then collapsed back to all
 target-set evidence: the restricted competition can crack collapse transiently,
 but it does not yet stabilize prompt-specific branches.
 
+Direct-answer runs can now opt into
+`--direct-answer-restore-best-branch-snapshot`, which scores every branch
+snapshot and restores the best measured branch-diversity checkpoint before
+final metrics and checkpoint writing. The restore-best target-softmax smoke at
+`runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, ran `50/50` direct steps,
+and restored the final checkpoint from step `40`. The final diversity target
+still failed across all `9` multi-target profiles, but final QA target-token
+coverage improved from the previous all-`"w"` final coverage `0.0` to all-`"u"`
+coverage `0.125`. This is rejected guardrail evidence: best-snapshot
+restoration preserves the best measured branch state, but it does not itself
+create prompt-specific branch choices.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

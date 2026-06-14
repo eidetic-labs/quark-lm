@@ -1761,6 +1761,27 @@ pools, and corpus diffs.
   transiently disrupt collapse, but does not yet stabilize prompt-specific
   branch diversity
 
+`runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`:
+
+- added `--direct-answer-restore-best-branch-snapshot`, which scores
+  direct-answer branch snapshots and restores the best measured checkpoint
+  before final metrics and checkpoint writing
+- unit coverage verifies that the branch-diversity snapshot score prefers a
+  less-collapsed prediction profile
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- output bias was frozen with `--direct-answer-freeze-output-bias`
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- final checkpoint was restored from step `40`, with score
+  `[0.0, 0.0, -9.0, 0.0, 0.0946, 0.1409, 0.0]`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA moved from the prior all-`"w"` target-softmax endpoint to all `"u"`;
+  target-token coverage improved `0.0 -> 0.125`, but `predicted_unique`
+  remained `1/8`
+- rejected as guardrail evidence: best-snapshot restoration preserves the best
+  measured branch state but does not yet create prompt-specific branch choices
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

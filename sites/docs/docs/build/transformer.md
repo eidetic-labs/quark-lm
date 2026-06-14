@@ -84,6 +84,8 @@ prompt-specific weights rather than moving one global token bias.
 Use `--direct-answer-mode branch-target-softmax-unlikelihood` to add a
 restricted softmax over the distinct branch targets in each batch, making the
 right target compete directly against the other observed branch targets.
+Use `--direct-answer-restore-best-branch-snapshot` to restore the best scored
+branch-diversity checkpoint before final metrics and checkpoint writing.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -330,6 +332,24 @@ Latest branch-target softmax smoke:
 | Final QA target-token coverage | `0.0` |
 | Promotion status | rejected target-set evidence |
 
+Latest branch restore-best smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/` |
+| Mode | `branch-target-softmax-unlikelihood` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, from step `40` |
+| Best branch score | `[0.0, 0.0, -9.0, 0.0, 0.0946, 0.1409, 0.0]` |
+| Snapshot mode | `branch-only` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | rejected guardrail evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -381,4 +401,6 @@ escape hatch, but the corpus smoke still rotates to a single dominant branch
 token. Restricted target-set softmax briefly raises QA predicted diversity to
 two tokens, then collapses back by the final snapshot. The next repair needs to
 make diversity stable across prompts, not just rotate or momentarily crack the
-collapsed token.
+collapsed token. Best-snapshot restoration can preserve a better measured
+branch state, but it still ends as a one-token collapse until the underlying
+representation separates prompts.

@@ -227,6 +227,15 @@ Current transformer answer-lesson run:
   multi-target profiles. QA briefly reached `predicted_unique: 2` at step `20`,
   then collapsed back to all `"w"` by step `50`, so target-set competition is
   rejected as a standalone repair.
+- `--direct-answer-restore-best-branch-snapshot` now preserves the best
+  measured branch-diversity checkpoint before final metric writing. The
+  target-softmax restore-best smoke
+  `runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`
+  restored the final checkpoint from step `40` after `50/50` direct steps. It
+  improved final QA target-token coverage from the prior all-`"w"` final
+  coverage `0.0` to all-`"u"` coverage `0.125`, but `predicted_unique` stayed
+  `1/8` and the diversity target still failed across all `9` multi-target
+  profiles.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
