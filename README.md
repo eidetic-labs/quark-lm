@@ -448,6 +448,18 @@ Current transformer answer-lesson run:
   batch-local target-set mass as a sufficient coverage objective; the next
   repair should add explicit anti-collapse pressure over predicted target
   tokens.
+- v0.57 adds that anti-collapse pressure with
+  `branch-balanced-target-diversity-unlikelihood`: it keeps target-set mass
+  pressure and adds a target-share term so one branch target cannot own the
+  whole target set inside the batch. The focused transformer test covers both
+  restricted target-set mass and target-share balance. The full-stack screen
+  `runs/transformer-answer-v0.57-fullstack-target-diversity-smoke-dim4-context80/`
+  completed `50/50` direct steps, but best-snapshot scoring restored step `0`.
+  Training improved QA average target rank to `10.0`, but target-token coverage
+  again collapsed to `0.0` with wrong `"a"` top-1 predictions. This rejects
+  batch-local target diversity as a sufficient eval-wide anti-collapse repair;
+  the next repair needs coverage preservation tied to eval profiles or replay,
+  not only within-batch target sharing.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

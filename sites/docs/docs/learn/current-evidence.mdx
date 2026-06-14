@@ -178,6 +178,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Target-set coverage heldout</td><td><code>{state.transformerTargetSetCoverageHeldout}</code></td></tr>
     <tr><td>Target-set coverage history</td><td><code>{state.transformerTargetSetCoverageHistory}</code></td></tr>
     <tr><td>Target-set coverage status</td><td><code>{state.transformerTargetSetCoverageStatus}</code></td></tr>
+    <tr><td>Latest target-diversity run</td><td><code>{state.transformerLatestTargetDiversityRun}</code></td></tr>
+    <tr><td>Target-diversity mode</td><td><code>{state.transformerTargetDiversityMode}</code></td></tr>
+    <tr><td>Target-diversity unit test</td><td><code>{state.transformerTargetDiversityUnitTest}</code></td></tr>
+    <tr><td>Target-diversity QA</td><td><code>{state.transformerTargetDiversityQa}</code></td></tr>
+    <tr><td>Target-diversity heldout</td><td><code>{state.transformerTargetDiversityHeldout}</code></td></tr>
+    <tr><td>Target-diversity history</td><td><code>{state.transformerTargetDiversityHistory}</code></td></tr>
+    <tr><td>Target-diversity status</td><td><code>{state.transformerTargetDiversityStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -571,13 +578,23 @@ v0.42 promoted checkpoint.
   snapshots improved QA average target rank to `10.0`, but target-token
   coverage still collapsed to `0.0` with wrong `"a"` top-1 predictions. This
   rejects batch-local target-set mass as a sufficient coverage repair.
+- `runs/transformer-answer-v0.57-fullstack-target-diversity-smoke-dim4-context80/`
+  adds target-share anti-collapse pressure with
+  `branch-balanced-target-diversity-unlikelihood`, positive target CE disabled,
+  and hard wrong-token competition. The focused transformer test verifies that
+  restricted target-set mass and weakest target-share balance can both improve
+  in a small branch batch. The full-stack screen completed `50/50` direct steps
+  and restored from step `0`: training snapshots improved QA average target
+  rank to `10.0`, but target-token coverage again collapsed to `0.0` with
+  wrong `"a"` top-1 predictions. This rejects batch-local target sharing as a
+  sufficient eval-wide anti-collapse repair.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should now add explicit anti-collapse pressure over predicted target
-tokens before sharpening exact target selection. The repair must improve
-prompt-conditioned branch diversity instead of only making more prompt text
-visible, balancing branch targets, raising hidden distance, lowering branch
-loss, or trading coverage away for rank.
+but it should preserve eval-wide target-token coverage directly, likely through
+replay or branch-profile-aware scoring, before sharpening exact target
+selection. The repair must improve prompt-conditioned branch diversity instead
+of only making more prompt text visible, balancing branch targets, raising
+hidden distance, lowering branch loss, or trading coverage away for rank.
 
 The v0.42 self-improvement run passed:
 

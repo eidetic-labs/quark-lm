@@ -212,6 +212,18 @@ The failure is now sharper: batch-local target-set mass is not enough to
 preserve eval target-token coverage, so the next repair should add explicit
 anti-collapse pressure over predicted target tokens.
 
+`runs/transformer-answer-v0.57-fullstack-target-diversity-smoke-dim4-context80/`
+adds that pressure with `branch-balanced-target-diversity-unlikelihood`, which
+combines target-set mass with a target-share diversity term. The focused tests
+pass, including a regression that lifts both restricted target-set mass and the
+weakest target's average share in a small branch batch. The full-stack screen
+still rejects the mechanism: it completed `50/50` direct steps and
+best-snapshot scoring restored step `0`. Training snapshots improved QA
+average target rank to `10.0`, but target-token coverage again fell to `0.0`
+with wrong `"a"` top-1 collapse. The next repair should preserve eval-wide
+target-token coverage directly, likely through replay or diversity scoring tied
+to heldout branch profiles rather than batch-local target sharing alone.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

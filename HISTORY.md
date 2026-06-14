@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.57
+
+- Added branch target-diversity repair and rejected full-stack evidence.
+
 ## v0.56
 
 - Added paper-grounded research guidance for closed-world self-improvement.
