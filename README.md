@@ -64,6 +64,11 @@ Current transformer answer-lesson run:
   (`runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/`) also kept
   `37/219` candidates with full context coverage, but regressed answer NLL to
   `2.5881` and produced repeated `" y"`/`"e"` loops, so it was not promoted.
+  A branch-span screen
+  (`runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/`) tested
+  repairing answer positions `1..3`; it preserved `37/219` candidates but
+  regressed answer NLL to `2.7426` and produced a long `"neeee"` loop, so it
+  also remains unpromoted evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

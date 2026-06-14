@@ -168,4 +168,7 @@ candidates but regressed other promotion metrics. Optional layer normalization
 was added as a tested architecture flag, but the context-80 screen
 `runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` preserved only
 `37/219` candidates and regressed answer NLL with repeated `" y"`/`"e"` greedy
-loops. None of these runs were promoted.
+loops. Branch-span repair was added as a tested direct-answer policy, but
+`runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/` preserved
+only `37/219` candidates and regressed answer NLL with a long `"neeee"` greedy
+loop. None of these runs were promoted.

@@ -84,6 +84,11 @@ training boundary.
   output, candidate discrimination, direct loss, answer NLL, and final failure
   pattern. Better branch likelihood is not enough if the model still chooses a
   prompt-independent repeated sequence.
+- Branch-span direct runs must record the start position, span, exact greedy
+  output, candidate discrimination, direct loss, answer NLL, context coverage,
+  and final failure pattern. Sweeping later answer positions is not a promotion
+  unless it improves the whole answer path rather than moving the loop to a new
+  repeated suffix.
 - Branch-contrast direct runs must record contrast weight, contrast interval,
   branch position, exact greedy output, candidate discrimination, direct loss,
   answer NLL, and final failure pattern. Full-dose contrast and sparse contrast

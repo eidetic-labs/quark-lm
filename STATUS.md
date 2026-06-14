@@ -97,7 +97,11 @@ was not promoted. A layer-normalized context-80 screen at
 `runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` preserved full
 coverage and `37/219` candidates but regressed answer NLL to `2.5881` and
 collapsed greedy output into repeated `" y"`/`"e"` loops, so it also remains
-unpromoted evidence.
+unpromoted evidence. A branch-span screen at
+`runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/` broadened
+branch repair to answer positions `1..3`; it preserved `37/219` candidates but
+regressed answer NLL to `2.7426` and produced a long `"neeee"` loop, so it was
+not promoted.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
