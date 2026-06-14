@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.49
+
+- Recorded top-one hard-negative rank-margin screening evidence.
+
 ## v0.48
 
 - Added target-balanced branch-rank margin repair screening.

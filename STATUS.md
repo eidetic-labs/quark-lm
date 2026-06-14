@@ -113,6 +113,14 @@ coverage `0.5`. It improves wrong-token diversity and top-3 coverage versus
 v0.47, but QA and heldout still choose wrong top-1 branch tokens, so it remains
 rejected evidence.
 
+`runs/transformer-answer-v0.49-balanced-rank-margin-top1-smoke-dim4-context80/`
+tests whether concentrating rank-margin pressure on only the top wrong token
+converts rank lift into top-1 branch choices. It restored the best branch
+snapshot from step `10`; QA target-token coverage stayed `0.125`, but average
+target rank regressed to `12.5`, top-3 coverage fell to `0.125`, and top-5
+coverage fell to `0.25`. The screen is rejected and points away from
+single-wrong-token pressure.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

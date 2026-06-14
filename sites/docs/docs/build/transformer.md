@@ -650,6 +650,33 @@ Latest balanced rank-margin repair smoke:
 | Final heldout top-3/top-5 target coverage | `0.125 -> 0.25` / `0.125 -> 0.5` |
 | Promotion status | rejected balanced rank-lift evidence |
 
+Latest top-one hard-negative rank-margin smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.49-balanced-rank-margin-top1-smoke-dim4-context80/` |
+| Mode | `branch-balanced-rank-margin-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Batch sampler | target-balanced branch batch |
+| Hard wrong tokens | `1` |
+| Margin weight | `2.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, rank-aware `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Train loss | `7.3512 -> 6.3642` |
+| Restored best branch snapshot | yes, restored from step `10` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | wrong `"n"` |
+| Final QA average target rank | `17.375 -> 12.5` |
+| Final QA target-token coverage | `0.0 -> 0.125` |
+| Final QA top-3/top-5 target coverage | `0.125 -> 0.125` / `0.125 -> 0.25` |
+| Final heldout average target rank | `17.25 -> 12.375` |
+| Final heldout target-token coverage | `0.0 -> 0.125` |
+| Final heldout top-3/top-5 target coverage | `0.125 -> 0.125` / `0.125 -> 0.25` |
+| Promotion status | rejected top-one hard-negative evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -737,4 +764,8 @@ it lifts correct targets into the top five more often and improves target-token
 coverage, but it still leaves a single global wrong prediction. The next repair
 needs to convert rank lift into prompt-specific top-1 branch choices. Target-
 balanced rank-margin adds some wrong-token diversity and better QA top-3
-coverage, but it still does not make correct target tokens win the branch.
+coverage, but it still does not make correct target tokens win the branch. The
+top-one hard-negative screen then regresses rank and top-k coverage, so the
+next repair should not simply concentrate more pressure on the current top
+wrong token. It needs a prompt-conditioned mechanism that selects among
+near-tied branch candidates.
