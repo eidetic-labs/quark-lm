@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.45
+
+- Added branch-target rank diagnostics to direct-answer branch profiles.
+
 ## Git Baseline
 
 Git tracking begins at QuarkLM v0.38.

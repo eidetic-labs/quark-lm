@@ -115,6 +115,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest target-balanced run</td><td><code>{state.transformerLatestTargetBalancedRun}</code></td></tr>
     <tr><td>Target-balanced mode</td><td><code>{state.transformerTargetBalancedMode}</code></td></tr>
     <tr><td>Target-balanced status</td><td><code>{state.transformerTargetBalancedStatus}</code></td></tr>
+    <tr><td>Latest branch-rank diagnostic run</td><td><code>{state.transformerLatestBranchRankRun}</code></td></tr>
+    <tr><td>Branch-rank diagnostic</td><td><code>{state.transformerBranchRankDiagnostic}</code></td></tr>
+    <tr><td>Branch-rank QA</td><td><code>{state.transformerBranchRankQa}</code></td></tr>
+    <tr><td>Branch-rank heldout</td><td><code>{state.transformerBranchRankHeldout}</code></td></tr>
+    <tr><td>Branch-rank status</td><td><code>{state.transformerBranchRankStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -420,6 +425,13 @@ v0.42 promoted checkpoint.
   because every trained snapshot scored worse than baseline. All `9/9`
   multi-target profiles collapsed to `"n"`, so target balancing is rejected as
   a standalone repair.
+- `runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/`
+  adds target-rank diagnostics to branch profiles. The smoke used the
+  pre-layer-norm prompt-position path and recorded QA and heldout both
+  collapsed to `"n"` with average target rank `14.25` and top-3/top-5 target
+  coverage `0.125`. The correct branch target is usually buried behind several
+  global alternatives, so this is output-binding evidence rather than a near-
+  miss rank problem.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under

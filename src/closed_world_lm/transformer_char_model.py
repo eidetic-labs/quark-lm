@@ -2528,6 +2528,9 @@ def direct_answer_branch_profile(
     total_target_prob = 0.0
     total_predicted_prob = 0.0
     total_target_margin = 0.0
+    total_target_rank = 0.0
+    target_top3 = 0
+    target_top5 = 0
     profiled = 0
     correct = 0
     skipped = 0
@@ -2550,7 +2553,12 @@ def direct_answer_branch_profile(
             continue
         context, target_id, position = branch
         probs = model.predict(context)
-        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        ranked_ids = sorted(
+            range(len(probs)),
+            key=lambda index: (-probs[index], tokenizer.itos[index], index),
+        )
+        predicted_id = ranked_ids[0]
+        target_rank = ranked_ids.index(target_id) + 1
         target_prob = probs[target_id]
         predicted_prob = probs[predicted_id]
         strongest_non_target = max(
@@ -2565,6 +2573,11 @@ def direct_answer_branch_profile(
         total_target_prob += target_prob
         total_predicted_prob += predicted_prob
         total_target_margin += target_margin
+        total_target_rank += target_rank
+        if target_rank <= 3:
+            target_top3 += 1
+        if target_rank <= 5:
+            target_top5 += 1
         target_counts[target_token] += 1
         predicted_counts[predicted_token] += 1
         confusion_counts[f"{target_token!r}->{predicted_token!r}"] += 1
@@ -2581,6 +2594,14 @@ def direct_answer_branch_profile(
                     "target_prob": target_prob,
                     "predicted_prob": predicted_prob,
                     "target_margin": target_margin,
+                    "target_rank": target_rank,
+                    "top_predictions": [
+                        {
+                            "token": tokenizer.itos[index],
+                            "prob": probs[index],
+                        }
+                        for index in ranked_ids[:5]
+                    ],
                 }
             )
 
@@ -2616,6 +2637,13 @@ def direct_answer_branch_profile(
         "avg_target_prob": total_target_prob / profiled if profiled else 0.0,
         "avg_predicted_prob": total_predicted_prob / profiled if profiled else 0.0,
         "avg_target_margin": total_target_margin / profiled if profiled else 0.0,
+        "target_rank": {
+            "avg": total_target_rank / profiled if profiled else 0.0,
+            "top1_rate": correct / profiled if profiled else 0.0,
+            "top3_rate": target_top3 / profiled if profiled else 0.0,
+            "top5_rate": target_top5 / profiled if profiled else 0.0,
+            "vocab_size": model.config.vocab_size,
+        },
         "target_tokens": top_items(target_counts),
         "predicted_tokens": top_items(predicted_counts),
         "confusions": top_items(confusion_counts),

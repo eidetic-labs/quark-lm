@@ -79,6 +79,14 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 `" te."`, so prompt-conditioned greedy branching is still the current
 bottleneck.
 
+The latest unpromoted transformer diagnostic is
+`runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/`.
+Branch profiles now record target rank and top predicted alternatives. In the
+pre-layer-norm prompt-position path, QA and heldout both still collapse to
+`"n"` with average target rank `14.25` and top-3/top-5 coverage `0.125`, so the
+next repair should improve prompt-to-answer output binding rather than only
+balance branch sampling.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

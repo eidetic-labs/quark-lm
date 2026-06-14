@@ -1000,12 +1000,20 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(profile["correct"], 0)
         self.assertEqual(profile["skipped"], 0)
         self.assertLess(profile["avg_target_margin"], 0.0)
+        self.assertGreater(profile["target_rank"]["avg"], 1.0)
+        self.assertEqual(profile["target_rank"]["top1_rate"], 0.0)
+        self.assertEqual(profile["target_rank"]["vocab_size"], tokenizer.vocab_size)
         self.assertEqual(profile["target_tokens"][0], {"value": " ", "count": 1})
         self.assertEqual(profile["predicted_tokens"][0], {"value": ".", "count": 1})
         self.assertEqual(profile["confusions"][0], {"value": "' '->'.'", "count": 1})
         self.assertEqual(profile["failed_records"][0]["id"], "color")
         self.assertEqual(profile["failed_records"][0]["target_token"], " ")
         self.assertEqual(profile["failed_records"][0]["predicted_token"], ".")
+        self.assertGreaterEqual(profile["failed_records"][0]["target_rank"], 2)
+        self.assertEqual(
+            profile["failed_records"][0]["top_predictions"][0]["token"],
+            ".",
+        )
 
     def test_direct_answer_branch_profile_reports_diversity_collapse(self) -> None:
         records = [

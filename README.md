@@ -316,6 +316,15 @@ Current transformer answer-lesson run:
   baseline, so best-snapshot restoration returned to step `0`. The restored
   final state collapsed all `9/9` multi-target profiles to `"n"` and QA stayed
   `predicted_unique` `1/8`. Target-balanced sampling alone is rejected.
+- Direct-answer branch profiles now include target-rank diagnostics: average
+  target rank, top-3/top-5 target coverage, and the top predicted alternatives
+  for failed branch records. The v0.45 branch-rank diagnostic smoke at
+  `runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/`
+  used the pre-layer-norm prompt-position path and recorded QA and heldout both
+  collapsed to `"n"` with average target rank `14.25` and top-3/top-5 coverage
+  `0.125`. This shows the correct target is usually buried, not merely a
+  near-miss behind the dominant token, so the next repair should target
+  prompt-to-answer binding through the output head.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -101,6 +101,9 @@ penalize nearly identical hidden states for different branch targets.
 Use `--direct-answer-mode branch-balanced-representation-contrast-unlikelihood`
 to build that representation-contrast batch from target buckets so frequent
 first answer tokens cannot crowd out rare branch targets.
+Direct-answer branch profiles also include target-rank diagnostics: average
+target rank, top-3/top-5 target coverage, and the top predicted alternatives on
+failed branch records.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
@@ -540,6 +543,25 @@ Latest target-balanced branch-batch smoke:
 | Final QA different-target hidden distance | restored avg about `0.1261`, max about `0.2476` |
 | Promotion status | rejected sampler evidence |
 
+Latest branch-rank diagnostic smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/` |
+| Diagnostic | branch target rank, top-3/top-5 target coverage, and failed-record top predictions |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Snapshot mode | `branch-only` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `1/1` |
+| Final QA dominant prediction | all `"n"` |
+| Final QA average target rank | `14.25` |
+| Final QA top-3/top-5 target coverage | `0.125` / `0.125` |
+| Final heldout dominant prediction | all `"n"` |
+| Final heldout average target rank | `14.25` |
+| Final heldout top-3/top-5 target coverage | `0.125` / `0.125` |
+| Promotion status | diagnostic evidence only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -614,4 +636,7 @@ implemented and screened; it cracks full collapse in most multi-target profiles
 but leaves QA and heldout collapsed. Target-balanced branch batching then
 regresses to a baseline-restored global `"n"` collapse, so the next repair
 should strengthen prompt-to-answer binding for QA and heldout rather than rely
-on sampler balancing or another unrelated loss term.
+on sampler balancing or another unrelated loss term. The branch-rank diagnostic
+confirms the correct target is usually buried outside the top five predictions,
+which points the next repair toward output-head prompt binding instead of a
+simple near-miss margin tweak.
