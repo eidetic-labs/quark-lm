@@ -74,6 +74,14 @@ experiment registry, replay extraction, corpus hygiene reports, candidate
 quarantine, closed-world verifier checks, recipe boundaries, and
 constraint-first promotion gates.
 
+v0.70 adds `DEEP_RESEARCH_REVIEW.md` and a matching Docusaurus Learn page for
+the deeper cross-referenced research pass. It compares primary papers,
+official open-source implementation references, and the current QuarkLM
+codebase. Its decision is sharper: no larger transformer repair screen should
+run until experiment intent, corpus plans, replay plans, verifier checks,
+recipes, and constraint-first promotion are explicit artifacts. The experiment
+registry moves to v0.71 so this research checkpoint stays auditable.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

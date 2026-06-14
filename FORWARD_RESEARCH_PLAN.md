@@ -386,37 +386,45 @@ Record this forward research plan and docs update. No model-quality claim.
 
 ### v0.70
 
+Record the deeper cross-referenced research review in `DEEP_RESEARCH_REVIEW.md`
+and the Docusaurus Learn section. No model-quality claim. This supersedes the
+earlier v0.70 implementation target because the project needed a deeper
+literature, implementation, and codebase gap review before writing more
+mechanics.
+
+### v0.71
+
 Implement experiment registry and run-intent schemas. Require transformer
 screens to record hypothesis, acceptance criteria, planned gates, and result
 decision.
 
-### v0.71
+### v0.72
 
 Extract replay planning into a standalone module with focused tests. The
 existing profile-aware replay plan should be behaviorally preserved.
 
-### v0.72
+### v0.73
 
 Add corpus hygiene and training-plan artifacts for self-improvement and
 transformer paths: mixture, duplicates, train/eval overlap, candidate ratios,
 and rare-profile coverage.
 
-### v0.73
+### v0.74
 
 Add candidate quarantine artifacts for generated lessons, generated probes, and
 repair proposals. Candidates are not training data.
 
-### v0.74
+### v0.75
 
 Add deterministic closed-world verifier checks for candidate acceptance and
 training-plan approval.
 
-### v0.75
+### v0.76
 
 Wire recipe objects and promotion gates so transformer screens cannot promote
 from loss, rank, or top-k movement unless constraints pass.
 
-### v0.76+
+### v0.77+
 
 Only after the above should QuarkLM add a new anti-collapse transformer
 objective, revisit tokenizer growth, or begin a learned verifier experiment.

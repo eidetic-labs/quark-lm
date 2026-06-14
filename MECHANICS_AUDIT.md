@@ -176,6 +176,11 @@ experiment registry, replay extraction, corpus hygiene, candidate quarantine,
 deterministic verifier checks, recipe boundaries, and constraint-first
 promotion before adding another direct-answer objective mode.
 
+v0.70 adds `DEEP_RESEARCH_REVIEW.md`, which deepens the plan with a more
+explicit literature, implementation, and local-codebase review. It keeps the
+same direction but makes the ordering stricter: the experiment registry is now
+v0.71, after the research checkpoint.
+
 ## Decision
 
 v0.66 should be treated as an open-source mechanics audit and gap-setting
@@ -185,5 +190,6 @@ the closed-world training boundary. v0.68 should be treated as rejected
 full-stack repair evidence: it proves the gate can block non-promotable rank
 gains, and it points the next implementation toward anti-collapse preservation
 inside the profile-aware plan. v0.69 should be treated as forward strategy
-evidence: it pauses objective churn until the self-improvement operating system
-around the trainer is explicit and tested.
+evidence. v0.70 should be treated as deep research evidence: it pauses
+objective churn until the self-improvement operating system around the trainer
+is explicit, tested, and grounded in the deeper cross-reference review.

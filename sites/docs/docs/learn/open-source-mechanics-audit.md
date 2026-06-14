@@ -68,6 +68,11 @@ training, but the gains come with target-token coverage and predicted diversity
 regressions, so best-snapshot scoring restores step `0`. The next mechanics
 move is anti-collapse preservation inside profile-local replay constraints.
 
+v0.70 adds the [Deep research review](./deep-research-review.md), which expands
+this audit into a fuller literature, implementation, and QuarkLM-codebase gap
+review. It keeps the same engineering direction and moves experiment registry
+implementation to v0.71 after the research checkpoint.
+
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
 improves one metric by erasing another.

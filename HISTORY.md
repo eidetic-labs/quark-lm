@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.70
+
+- Added deep research review and revised implementation sequence.
+
 ## v0.69
 
 - Added forward research plan and implementation sequence.

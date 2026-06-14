@@ -11,6 +11,7 @@ const sidebars = {
         'learn/research-grounding',
         'learn/open-source-mechanics-audit',
         'learn/forward-research-plan',
+        'learn/deep-research-review',
         'learn/current-evidence',
       ],
     },

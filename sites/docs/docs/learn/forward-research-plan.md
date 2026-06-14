@@ -30,6 +30,10 @@ Those sources are design references only. They do not change QuarkLM's purity
 boundary: no pretrained weights, no pretrained tokenizer, no external
 embeddings, no copied code, and no unledgered training data.
 
+v0.70 adds the deeper [Deep research review](./deep-research-review.md). It
+cross-checks primary papers, official open-source mechanics, and the current
+QuarkLM codebase before the next implementation step.
+
 ## Main Finding
 
 Mature language-model projects do not improve by secretly changing one training
@@ -64,6 +68,11 @@ For QuarkLM, that means:
 
 ## Near-Term Decision
 
-v0.69 is strategy evidence, not model-quality evidence. The next engineering
-versions should implement the training operating system before another
-anti-collapse objective or tokenizer migration.
+v0.69 is strategy evidence, and v0.70 is deep research evidence. Neither is
+model-quality evidence. The next engineering versions should implement the
+training operating system before another anti-collapse objective or tokenizer
+migration.
+
+The revised sequence starts with v0.71 experiment registry and run-intent
+schemas, then replay extraction, corpus hygiene, candidate quarantine,
+deterministic verifier checks, recipes, and constraint-first promotion.

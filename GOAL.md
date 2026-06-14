@@ -88,8 +88,10 @@ provenance, and the goal framework itself.
     profile-aware replay-plan mechanics with replay-plan artifacts and
     profile-isolation tests. v0.68 shows the constraint working: profile-aware
     rank gains are rejected when they erase target-token coverage or branch
-    diversity.
-19. Follow the v0.69 forward research plan before adding more direct-answer
+    diversity. v0.69 records the forward plan, and v0.70 deepens it with a
+    cross-referenced research review against primary papers, official
+    open-source mechanics, and QuarkLM's current codebase.
+19. Follow the v0.70 implementation sequence before adding more direct-answer
     objective modes: add experiment registry, replay extraction, corpus hygiene,
     candidate quarantine, deterministic verifier checks, recipe boundaries, and
     constraint-first promotion gates.

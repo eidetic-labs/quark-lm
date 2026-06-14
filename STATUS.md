@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.69 forward research plan; promoted
+**Active version:** v0.70 deep research review; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -62,6 +62,9 @@ Working tagline: Big idea. Tiny package.
   experiment registry, corpus governance, candidate quarantine, deterministic
   verifier checks, replay extraction, training recipes, and constraint-first
   promotion gates before the next objective mode.
+- Deep research review that cross-references primary research, official
+  open-source implementation references, and the current QuarkLM codebase to
+  define the full operating-system stack required before the next major run.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -134,6 +137,15 @@ systems. The implementation decision is to pause further direct-answer objective
 churn until QuarkLM has experiment registry, replay extraction, corpus hygiene,
 candidate quarantine, closed-world verifier checks, training recipes, and
 constraint-first promotion gates.
+
+v0.70 records the deeper cross-referenced review in `DEEP_RESEARCH_REVIEW.md`
+and `sites/docs/docs/learn/deep-research-review.md`. It reviews primary papers,
+official project mechanics, and QuarkLM's current codebase. The implementation
+decision is to treat experiment intent, training recipes, corpus hygiene,
+candidate quarantine, deterministic verification, replay extraction, and
+constraint-first promotion as required operating-system mechanics before the
+next larger transformer screen. The experiment registry is now the v0.71
+implementation target.
 
 ## Latest Evidence
 
