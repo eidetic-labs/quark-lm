@@ -1826,6 +1826,28 @@ pools, and corpus diffs.
 - rejected as representation evidence: position-specific prompt access is
   active but still insufficient for prompt-specific branch separation
 
+`runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`:
+
+- added `branch-target-margin-unlikelihood`, a smooth pairwise target-margin
+  loss over each batch's distinct branch targets
+- unit coverage verifies that the objective improves a restricted branch logit
+  gap on a tiny prompt batch
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- output bias was frozen, prompt-position projection was enabled, and best
+  branch snapshot restoration was enabled
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- `1108/1284` prompt-position projection parameters moved; max absolute
+  parameter value was about `0.1096`
+- train loss moved `4.8973 -> 4.7784`
+- final checkpoint restored from step `40`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+  and `predicted_unique` still `1/8`
+- rejected as target-margin evidence: pairwise target separation lowers the
+  bounded loss but still does not stabilize prompt-specific branch choices
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

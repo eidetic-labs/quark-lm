@@ -95,6 +95,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest prompt-position projection run</td><td><code>{state.transformerLatestPromptPositionRun}</code></td></tr>
     <tr><td>Prompt-position projection option</td><td><code>{state.transformerPromptPositionOption}</code></td></tr>
     <tr><td>Prompt-position projection status</td><td><code>{state.transformerPromptPositionStatus}</code></td></tr>
+    <tr><td>Latest branch-target margin run</td><td><code>{state.transformerLatestBranchTargetMarginRun}</code></td></tr>
+    <tr><td>Branch-target margin mode</td><td><code>{state.transformerBranchTargetMarginMode}</code></td></tr>
+    <tr><td>Branch-target margin status</td><td><code>{state.transformerBranchTargetMarginStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -352,6 +355,13 @@ v0.42 promoted checkpoint.
   token. `1108/1284` projection parameters moved and composite train loss
   improved `5.6649 -> 5.5679`, but the final checkpoint restored from step
   `40` to the same all-`"u"` QA collapse with target-token coverage `0.125`.
+- `runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`
+  added `branch-target-margin-unlikelihood`, a smooth pairwise target-margin
+  loss over each batch's distinct branch targets. The prompt-position
+  context-80 screen moved train loss `4.8973 -> 4.7784` and moved `1108/1284`
+  prompt-position projection parameters, but the final checkpoint restored
+  from step `40` to the same all-`"u"` QA collapse with target-token coverage
+  `0.125`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

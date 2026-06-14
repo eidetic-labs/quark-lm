@@ -90,6 +90,8 @@ Use `--direct-answer-restore-best-branch-snapshot` to restore the best scored
 branch-diversity checkpoint before final metrics and checkpoint writing.
 Add `--use-prompt-position-projection` to test a zero-initialized
 position-specific projection of non-padding prompt-prefix positions.
+Use `--direct-answer-mode branch-target-margin-unlikelihood` to add a smooth
+pairwise target-margin loss over the distinct branch targets in each batch.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -392,6 +394,25 @@ Latest prompt-position projection smoke:
 | Final QA target-token coverage | `0.125` |
 | Promotion status | rejected representation evidence |
 
+Latest branch-target margin smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/` |
+| Mode | `branch-target-margin-unlikelihood` |
+| Representation option | `--use-prompt-position-projection` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Prompt-position projection movement | `1108/1284` parameters moved, max abs about `0.1096` |
+| Train loss | `4.8973 -> 4.7784` |
+| Restored best branch snapshot | yes, from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | rejected target-margin evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -450,3 +471,6 @@ targeted trainable prompt path and the new parameters move, but the evidence
 still ends in the same all-`"u"` branch collapse.
 Prompt-position projection keeps position-specific prompt access and moves many
 more parameters, but the branch profile remains collapsed too.
+Branch-target margin adds pairwise target separation on top of that prompt path
+and lowers bounded train loss, but the restored branch profile remains the same
+one-token collapse.

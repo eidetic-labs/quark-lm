@@ -304,4 +304,11 @@ context-80 smoke
 passed the branch-context gate, moved `1108/1284` prompt-position projection
 parameters, and restored the final checkpoint from step `40`; the final
 diversity target still failed across all `9` multi-target eval profiles.
+A pairwise branch-target margin objective followed, still without changing
+corpus sources. The prompt-position context-80 smoke
+`runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`
+passed the branch-context gate, ran all `50` direct steps, moved train loss
+`4.8973 -> 4.7784`, moved `1108/1284` prompt-position projection parameters,
+and restored the final checkpoint from step `40`; the final diversity target
+still failed across all `9` multi-target eval profiles.
 None of these runs were promoted.

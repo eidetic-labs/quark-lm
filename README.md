@@ -252,6 +252,15 @@ Current transformer answer-lesson run:
   composite loss `5.6649 -> 5.5679`, but the final restored branch profile
   stayed all `"u"` with target-token coverage `0.125` and `predicted_unique`
   `1/8`.
+- `branch-target-margin-unlikelihood` adds a smooth pairwise target-margin loss
+  over each batch's distinct branch targets. The prompt-position context-80
+  screen
+  `runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`
+  ran `50/50` direct steps, moved train loss `4.8973 -> 4.7784`, and moved
+  `1108/1284` prompt-position projection parameters, but the restored final
+  profile stayed all `"u"` with target-token coverage `0.125`,
+  `predicted_unique` `1/8`, and diversity failure across all `9` multi-target
+  profiles.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

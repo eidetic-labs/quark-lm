@@ -118,9 +118,10 @@ training boundary.
   freezing, must record the frozen option, prove the excluded parameters stayed
   unchanged in unit coverage, and still be judged by branch diversity rather
   than loss movement alone.
-- Restricted branch-target objectives must record both transient and final
-  branch diversity. A temporary increase in `predicted_unique` is useful
-  diagnostic evidence, but promotion-style interpretation requires the final
+- Restricted branch-target objectives, including target-set softmax and
+  pairwise target-margin losses, must record both transient and final branch
+  diversity. A temporary increase in `predicted_unique` is useful diagnostic
+  evidence, but promotion-style interpretation requires the final
   branch-diversity target to improve.
 - Best-snapshot restoration must be explicit and auditable. Runs that restore a
   branch snapshot must record the selection score, winning step, whether

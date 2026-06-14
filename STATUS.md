@@ -324,6 +324,19 @@ and `predicted_unique` still `1/8`. This is rejected representation evidence:
 position-specific prompt access also moves, but still does not produce
 prompt-specific branch choices.
 
+A follow-up target-margin screen added `branch-target-margin-unlikelihood`, a
+smooth pairwise margin loss over each batch's distinct branch targets. The
+prompt-position context-80 smoke at
+`runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, ran `50/50` direct steps,
+moved train loss `4.8973 -> 4.7784`, and moved `1108/1284` prompt-position
+projection parameters. The final checkpoint restored from step `40`; QA stayed
+collapsed to all `"u"` with target-token coverage `0.125`, `predicted_unique`
+still `1/8`, and the branch-diversity target failed across all `9`
+multi-target profiles. This is rejected target-margin evidence: pairwise target
+separation improves the bounded loss but still does not stabilize
+prompt-specific branch choices.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

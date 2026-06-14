@@ -63,6 +63,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_batch_contrast_unlikelihood,
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
+    train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -1557,6 +1558,83 @@ class TransformerCharModelTest(unittest.TestCase):
         after = restricted_target_probability()
         self.assertGreater(after, before)
 
+    def test_branch_target_margin_improves_restricted_logit_gap(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=42,
+            )
+        )
+        model.bout[tokenizer.stoi["."]].data = 5.0
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+        branch_targets = sorted({target for _context, target, _predicted in batch})
+
+        def restricted_logit_gap() -> float:
+            total = 0.0
+            for context, target, _predicted in batch:
+                logits = model._forward_floats(context)
+                strongest_other = max(
+                    logits[other]
+                    for other in branch_targets
+                    if other != target
+                )
+                total += logits[target] - strongest_other
+            return total
+
+        before = restricted_logit_gap()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_target_margin_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.02,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                margin_weight=1.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after = restricted_logit_gap()
+        self.assertGreater(after, before)
+
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
         tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
@@ -2390,6 +2468,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-diversity-unlikelihood",
             "branch-target-softmax-unlikelihood",
             "periodic-branch-target-softmax-unlikelihood",
+            "branch-target-margin-unlikelihood",
+            "periodic-branch-target-margin-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
