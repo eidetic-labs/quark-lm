@@ -68,6 +68,8 @@ learned parameters improve branch profiles before it can be promoted.
 Add `--use-prompt-attention-summary` to test a trainable attention-pooled
 summary of the current context through a zero-initialized output projection.
 It is also diagnostic until branch profiles improve.
+Add `--direct-answer-require-branch-context-gate` to skip direct-answer
+training unless branch contexts are semantically complete and unambiguous.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -223,6 +225,18 @@ Latest branch-context coverage diagnostic:
 | All-eval ambiguous branch contexts | `40` | `0` | `0` |
 | Promotion status | diagnostic only | diagnostic only | diagnostic only |
 
+Latest branch-context gate smoke:
+
+| Signal | Context 16 | Context 80 |
+| --- | --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/` | `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/` |
+| Required gate | `true` | `true` |
+| Gate status | failed | passed |
+| Requested direct steps | `5` | `1` |
+| Actual direct steps | `0` | `1` |
+| Training skipped | `true` | `false` |
+| Promotion status | guardrail evidence only | guardrail evidence only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -256,4 +270,7 @@ removes literal QA ambiguity but still truncates semantic prompt features.
 Context-80 gives every current eval record complete semantic branch-context
 coverage with no ambiguity. The next repair needs efficient longer-context
 prompt-specific discrimination, not just suppression, batching, or a trainable
-summary of a truncated context.
+summary of a truncated context. The optional branch-context gate now enforces
+that distinction for direct-answer screens: unsafe context-16 branch repair can
+be skipped and recorded, while complete context-80 branch repair is allowed to
+run.

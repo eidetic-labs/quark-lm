@@ -40,6 +40,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
     audit_direct_answer_branch_context_coverage,
+    summarize_branch_context_coverage_gate,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -814,6 +815,39 @@ class TransformerCharModelTest(unittest.TestCase):
             audit["ambiguous_records"][0]["target_tokens"],
             [{"value": "r", "count": 1}, {"value": "b", "count": 1}],
         )
+
+    def test_branch_context_coverage_gate_summarizes_blockers(self) -> None:
+        summary = summarize_branch_context_coverage_gate(
+            {
+                "qa": {
+                    "count": 2,
+                    "semantic_records": 2,
+                    "covered": 1,
+                    "missing": 1,
+                    "covered_rate": 0.5,
+                    "ambiguous_contexts": 1,
+                    "collision_contexts": 1,
+                    "skipped": 0,
+                },
+                "self": {
+                    "count": 1,
+                    "semantic_records": 1,
+                    "covered": 1,
+                    "missing": 0,
+                    "covered_rate": 1.0,
+                    "ambiguous_contexts": 0,
+                    "collision_contexts": 0,
+                    "skipped": 0,
+                },
+            }
+        )
+
+        self.assertFalse(summary["passed"])
+        self.assertEqual(summary["count"], 3)
+        self.assertEqual(summary["covered"], 2)
+        self.assertEqual(summary["missing"], 1)
+        self.assertEqual(summary["ambiguous_contexts"], 1)
+        self.assertEqual(summary["blocking_evals"][0]["name"], "qa")
 
     def test_dominant_branch_prediction_finds_global_wrong_token(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
@@ -1885,6 +1919,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--direct-answer-hard-negatives",
                     "7",
                     "--direct-answer-train-top-layer-only",
+                    "--direct-answer-require-branch-context-gate",
                     "--skip-post-direct-snapshot",
                     "--direct-answer-sequence-interval",
                     "6",
@@ -1908,6 +1943,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_branch_batch_size, 5)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
             self.assertTrue(args.direct_answer_train_top_layer_only)
+            self.assertTrue(args.direct_answer_require_branch_context_gate)
             self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)
             self.assertTrue(args.use_layer_norm)

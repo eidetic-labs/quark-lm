@@ -194,6 +194,15 @@ reached complete branch-context coverage across all eval sets (`219/219`) with
 zero ambiguous branch contexts. This makes efficient longer-context branch
 repair the next structured transformer target.
 
+The branch-context coverage diagnostic is now actionable through
+`--direct-answer-require-branch-context-gate`. The context-16 gated screen at
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`
+required the gate, failed it, and recorded `actual_steps: 0` for `5` requested
+direct steps. The context-80 gated screen at
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
+passed the gate and recorded `actual_steps: 1` for `1` requested direct step.
+This is a training-loop guardrail, not promoted model quality evidence.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

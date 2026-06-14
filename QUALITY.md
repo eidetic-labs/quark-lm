@@ -95,6 +95,11 @@ training boundary.
   and representative missing/ambiguous records. A branch repair screen with
   ambiguous or semantically incomplete branch contexts is diagnostic evidence,
   not proof that another objective can solve prompt-specific branching.
+- Direct-answer branch screens should use the branch-context gate when the goal
+  is prompt-specific branch repair. A required gate failure should skip training
+  and record `actual_steps: 0` plus a skip reason; a run should not be promoted
+  as branch-repair evidence unless complete, unambiguous branch contexts are
+  proven or the exception is explicitly documented.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

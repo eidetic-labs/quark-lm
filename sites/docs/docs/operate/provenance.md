@@ -238,4 +238,12 @@ removed QA ambiguity but still had `0/8` semantic coverage. The context-80
 screen
 `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
 reached complete branch-context coverage across all eval sets (`219/219`) with
-zero ambiguous branch contexts. None of these runs were promoted.
+zero ambiguous branch contexts. The branch-context gate was then added as an
+opt-in training guardrail, again without changing corpus sources. The context-16
+gate screen
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`
+failed the required gate and recorded `actual_steps: 0` for `5` requested
+direct-answer steps. The context-80 gate screen
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
+passed the required gate and recorded `actual_steps: 1` for `1` requested
+direct-answer step. None of these runs were promoted.

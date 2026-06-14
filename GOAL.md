@@ -1618,6 +1618,37 @@ pools, and corpus diffs.
   the next structured transformer target; another context-16 branch objective
   alone is unlikely to solve prompt-specific branching
 
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`:
+
+- added `--direct-answer-require-branch-context-gate`, an opt-in direct-answer
+  training guardrail
+- the gate passes only when direct-answer branch contexts have complete
+  semantic coverage, zero ambiguous target-token contexts, and zero skipped
+  branch records
+- the gate summary is recorded in every direct-answer JSONL snapshot as
+  `branch_context_gate` and in final metrics as
+  `direct_answer_branch_context_gate`
+- smoke run requested `5` direct-answer branch repair steps at context size
+  `16`
+- baseline gate failed with `219` missing semantic branch records, `40`
+  ambiguous contexts, and `42` collision contexts
+- direct-answer training was skipped with reason `branch_context_gate_failed`
+- final metrics recorded `steps: 5`, `actual_steps: 0`, and
+  `direct_answer_training_skipped: true`
+- this is training-loop guardrail evidence: underdetermined context-16 branch
+  screens should not be treated as direct-answer improvement evidence
+
+`runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`:
+
+- tested the same required branch-context gate at context size `80`
+- smoke run requested `1` direct-answer branch repair step
+- baseline gate passed with `219/219` semantic branch coverage, `0` ambiguous
+  contexts, `0` collision contexts, and `0` skipped records
+- final metrics recorded `steps: 1`, `actual_steps: 1`, and
+  `direct_answer_training_skipped: false`
+- this confirms the gate distinguishes unsafe truncated branch contexts from
+  complete branch contexts before training
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

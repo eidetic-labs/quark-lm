@@ -1679,6 +1679,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
     answer_parser.add_argument("--direct-answer-train-top-layer-only", action="store_true")
     answer_parser.add_argument(
+        "--direct-answer-require-branch-context-gate",
+        action="store_true",
+        help=(
+            "Skip direct-answer training unless branch contexts have complete "
+            "semantic coverage, no ambiguous target-token contexts, and no skipped records."
+        ),
+    )
+    answer_parser.add_argument(
         "--skip-post-direct-snapshot",
         action="store_true",
         help=(
@@ -3393,6 +3401,51 @@ def audit_direct_answer_branch_context_coverage(
     }
 
 
+def summarize_branch_context_coverage_gate(
+    coverage_by_eval: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    total_count = 0
+    semantic_records = 0
+    covered = 0
+    missing = 0
+    ambiguous_contexts = 0
+    collision_contexts = 0
+    skipped = 0
+    blocking_evals: list[dict[str, Any]] = []
+    for name, coverage in sorted(coverage_by_eval.items()):
+        total_count += coverage["count"]
+        semantic_records += coverage["semantic_records"]
+        covered += coverage["covered"]
+        missing += coverage["missing"]
+        ambiguous_contexts += coverage["ambiguous_contexts"]
+        collision_contexts += coverage["collision_contexts"]
+        skipped += coverage["skipped"]
+        if coverage["missing"] or coverage["ambiguous_contexts"] or coverage["skipped"]:
+            blocking_evals.append(
+                {
+                    "name": name,
+                    "count": coverage["count"],
+                    "missing": coverage["missing"],
+                    "ambiguous_contexts": coverage["ambiguous_contexts"],
+                    "skipped": coverage["skipped"],
+                    "covered_rate": coverage["covered_rate"],
+                }
+            )
+    passed = missing == 0 and ambiguous_contexts == 0 and skipped == 0
+    return {
+        "passed": passed,
+        "count": total_count,
+        "semantic_records": semantic_records,
+        "covered": covered,
+        "missing": missing,
+        "covered_rate": covered / semantic_records if semantic_records else 1.0,
+        "ambiguous_contexts": ambiguous_contexts,
+        "collision_contexts": collision_contexts,
+        "skipped": skipped,
+        "blocking_evals": blocking_evals,
+    }
+
+
 def answer_char_loss_scalars(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -3825,6 +3878,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
 
         def direct_snapshot(step: int, train_loss: float | None) -> dict[str, Any]:
+            branch_context_coverage = {
+                name: audit_direct_answer_branch_context_coverage(
+                    model,
+                    tokenizer,
+                    records,
+                    args.direct_answer_branch_position,
+                    direct_answer_terminator,
+                )
+                for name, records in sorted(eval_records.items())
+            }
             record = {
                 "step": step,
                 "train_loss": train_loss,
@@ -3848,22 +3911,29 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     )
                     for name, records in sorted(eval_records.items())
                 },
-                "branch_context_coverage": {
-                    name: audit_direct_answer_branch_context_coverage(
-                        model,
-                        tokenizer,
-                        records,
-                        args.direct_answer_branch_position,
-                        direct_answer_terminator,
-                    )
-                    for name, records in sorted(eval_records.items())
-                },
+                "branch_context_coverage": branch_context_coverage,
+                "branch_context_gate": summarize_branch_context_coverage_gate(
+                    branch_context_coverage
+                ),
             }
             with direct_history_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
             return record
 
         direct_baseline = direct_snapshot(0, None)
+        branch_context_gate = direct_baseline["branch_context_gate"]
+        direct_answer_training_skipped = (
+            args.direct_answer_require_branch_context_gate
+            and not branch_context_gate["passed"]
+        )
+        direct_answer_skip_reason = (
+            "branch_context_gate_failed"
+            if direct_answer_training_skipped
+            else None
+        )
+        direct_steps_to_run = 0 if direct_answer_training_skipped else args.direct_answer_steps
+        if direct_answer_training_skipped:
+            print("skipped direct-answer training: branch context gate failed")
         running_direct_loss = 0.0
         last_direct_snapshot = direct_baseline
         last_direct_snapshot_step = 0
@@ -3878,7 +3948,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if args.direct_answer_train_top_layer_only
             else model.parameters()
         )
-        for direct_step in range(1, args.direct_answer_steps + 1):
+        for direct_step in range(1, direct_steps_to_run + 1):
             if direct_pool_index == len(direct_pool_order):
                 direct_rng.shuffle(direct_pool_order)
                 direct_pool_index = 0
@@ -4726,6 +4796,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "checkpoint": str(args.run / "transformer_answer.json"),
             "history": str(direct_history_path),
             "steps": args.direct_answer_steps,
+            "actual_steps": direct_steps_to_run,
             "training_examples": len(direct_training_pool),
             "learning_rate": args.direct_answer_learning_rate,
             "direct_answer_eval_every": args.direct_answer_eval_every,
@@ -4739,6 +4810,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_branch_batch_size": args.direct_answer_branch_batch_size,
             "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
             "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
+            "direct_answer_require_branch_context_gate": (
+                args.direct_answer_require_branch_context_gate
+            ),
+            "direct_answer_training_skipped": direct_answer_training_skipped,
+            "direct_answer_skip_reason": direct_answer_skip_reason,
+            "direct_answer_branch_context_gate": branch_context_gate,
             "post_direct_candidate_snapshot_skipped": post_direct_candidate_snapshot_skipped,
             "direct_answer_sequence_interval": args.direct_answer_sequence_interval,
             "direct_answer_rollout_interval": args.direct_answer_rollout_interval,

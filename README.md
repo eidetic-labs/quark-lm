@@ -160,6 +160,16 @@ Current transformer answer-lesson run:
   reached `219/219` semantic coverage across all eval sets with zero ambiguous
   branch contexts. This points the next transformer work toward efficient
   longer-context branch repair rather than another context-16 objective.
+- A branch-context gate now makes that diagnostic actionable for direct-answer
+  screens. When `--direct-answer-require-branch-context-gate` is set, training
+  is skipped unless branch contexts have complete semantic coverage, no
+  ambiguous target-token contexts, and no skipped records. The context-16 gate
+  smoke
+  `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`
+  requested `5` direct steps but ran `0` because the gate failed. The
+  context-80 gate smoke
+  `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
+  passed the gate and ran the requested `1` direct step.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -303,6 +313,8 @@ Add `--use-context-projection` to test a zero-initialized trainable projection
 of that prompt-context summary.
 Add `--use-prompt-attention-summary` to test a trainable attention-pooled
 summary of the current context through a zero-initialized output projection.
+Add `--direct-answer-require-branch-context-gate` to require complete,
+unambiguous branch contexts before direct-answer training runs.
 The direct transformer path is not yet part of the promotion gate for reliable
 answers.
 

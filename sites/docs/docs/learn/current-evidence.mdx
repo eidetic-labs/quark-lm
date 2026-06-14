@@ -64,6 +64,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Branch context 16 QA</td><td><code>{state.transformerBranchContext16Qa}</code></td></tr>
     <tr><td>Branch context 32 QA</td><td><code>{state.transformerBranchContext32Qa}</code></td></tr>
     <tr><td>Branch context 80 all evals</td><td><code>{state.transformerBranchContext80AllEvals}</code></td></tr>
+    <tr><td>Latest branch-context gate run</td><td><code>{state.transformerLatestBranchContextGateRun}</code></td></tr>
+    <tr><td>Branch context gate at 16</td><td><code>{state.transformerBranchContextGateContext16}</code></td></tr>
+    <tr><td>Branch context gate at 80</td><td><code>{state.transformerBranchContextGateContext80}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -252,6 +255,13 @@ v0.42 promoted checkpoint.
   reached complete branch-context coverage across all eval sets (`219/219`)
   with zero ambiguous branch contexts. This is diagnostic evidence for
   efficient longer-context branch repair.
+- `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`
+  made that diagnostic actionable with `--direct-answer-require-branch-context-gate`.
+  The required gate failed at context size `16`, so the run recorded
+  `actual_steps: 0` for `5` requested direct-answer steps.
+- `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
+  passed the same required gate at context size `80` and recorded
+  `actual_steps: 1` for `1` requested direct-answer step.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only
