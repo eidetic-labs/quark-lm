@@ -169,6 +169,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Coverage binding heldout</td><td><code>{state.transformerCoverageBindingHeldout}</code></td></tr>
     <tr><td>Coverage binding history</td><td><code>{state.transformerCoverageBindingHistory}</code></td></tr>
     <tr><td>Coverage binding status</td><td><code>{state.transformerCoverageBindingStatus}</code></td></tr>
+    <tr><td>Latest target-set coverage run</td><td><code>{state.transformerLatestTargetSetCoverageRun}</code></td></tr>
+    <tr><td>Target-set coverage mode</td><td><code>{state.transformerTargetSetCoverageMode}</code></td></tr>
+    <tr><td>Target-set coverage unit test</td><td><code>{state.transformerTargetSetCoverageUnitTest}</code></td></tr>
+    <tr><td>Target-set coverage QA</td><td><code>{state.transformerTargetSetCoverageQa}</code></td></tr>
+    <tr><td>Target-set coverage heldout</td><td><code>{state.transformerTargetSetCoverageHeldout}</code></td></tr>
+    <tr><td>Target-set coverage history</td><td><code>{state.transformerTargetSetCoverageHistory}</code></td></tr>
+    <tr><td>Target-set coverage status</td><td><code>{state.transformerTargetSetCoverageStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -552,13 +559,23 @@ v0.42 promoted checkpoint.
   target-token coverage collapsed to `0.0` and top-1 predictions collapsed to
   wrong `"a"`. This rejects the bundled coverage-binding loss under the full
   stack.
+- `runs/transformer-answer-v0.55-fullstack-target-set-coverage-smoke-dim4-context80/`
+  isolates target-set coverage with
+  `branch-balanced-target-set-coverage-unlikelihood`, positive target CE
+  disabled, and no exact-target row or cross-context ownership losses. The
+  focused transformer test verifies that target-set mass can increase against
+  hard wrong tokens without asserting exact-target sharpening. The full-stack
+  screen completed `50/50` direct steps and restored from step `0`: training
+  snapshots improved QA average target rank to `10.0`, but target-token
+  coverage still collapsed to `0.0` with wrong `"a"` top-1 predictions. This
+  rejects batch-local target-set mass as a sufficient coverage repair.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should now preserve target-set coverage as its own objective before
-sharpening exact target selection. The repair must improve prompt-conditioned
-branch diversity instead of only making more prompt text visible, balancing
-branch targets, raising hidden distance, lowering branch loss, or trading
-coverage away for rank.
+but it should now add explicit anti-collapse pressure over predicted target
+tokens before sharpening exact target selection. The repair must improve
+prompt-conditioned branch diversity instead of only making more prompt text
+visible, balancing branch targets, raising hidden distance, lowering branch
+loss, or trading coverage away for rank.
 
 The v0.42 self-improvement run passed:
 

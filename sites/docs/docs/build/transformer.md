@@ -133,6 +133,10 @@ coverage guard. Use
 `--direct-answer-mode branch-balanced-coverage-binding-unlikelihood` for the
 same objective with target-balanced branch batches, and use
 `--direct-answer-hard-negatives` to choose the hard wrong-token pool size.
+Use `--direct-answer-mode branch-target-set-coverage-unlikelihood` to train
+only target-set mass against hard wrong tokens before exact-target sharpening.
+Use `--direct-answer-mode branch-balanced-target-set-coverage-unlikelihood`
+for the same objective with target-balanced branch batches.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -813,6 +817,32 @@ Latest full-stack coverage binding branch repair smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; best-snapshot scoring protected the checkpoint, but the objective traded target coverage away for rank |
+
+Latest full-stack target-set coverage branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.55-fullstack-target-set-coverage-smoke-dim4-context80/` |
+| Mode | `branch-balanced-target-set-coverage-unlikelihood` |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Coverage pressure | branch target set versus hard wrong tokens, without exact-target row loss or cross-context ownership |
+| Positive target CE | `0.0` |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including the target-set-only coverage regression |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | step `50` improved QA average target rank to `10.0`, but target-token coverage collapsed to `0.0` with wrong `"a"` top-1 collapse |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | rejected; batch-local target-set mass is not enough to preserve eval target-token coverage |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

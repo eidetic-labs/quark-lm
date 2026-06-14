@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.55
+
+- Added target-set coverage branch repair and rejected full-stack evidence.
+
 ## v0.54
 
 - Added coverage-binding branch repair and rejected full-stack evidence.

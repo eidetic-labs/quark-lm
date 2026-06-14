@@ -79,6 +79,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_output_binding_unlikelihood,
     train_direct_answer_branch_bidirectional_binding_unlikelihood,
     train_direct_answer_branch_coverage_binding_unlikelihood,
+    train_direct_answer_branch_target_set_coverage_unlikelihood,
     train_direct_answer_branch_rank_margin_unlikelihood,
     train_direct_answer_branch_topk_softmax_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
@@ -2672,6 +2673,97 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(after_target_set, before_target_set)
         self.assertGreater(after_target, before_target)
 
+    def test_branch_target_set_coverage_lifts_set_without_exact_sharpening(
+        self,
+    ) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=55,
+            )
+        )
+        model.bout[tokenizer.stoi["."]].data = 5.0
+        batch = direct_answer_target_balanced_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+        branch_targets = sorted({target for _context, target, _predicted in batch})
+        branch_target_set = set(branch_targets)
+        self.assertGreater(len(branch_targets), 1)
+
+        def restricted_target_set_mass() -> float:
+            total = 0.0
+            for context, _target, _predicted in batch:
+                probs = model.predict(context)
+                hard_candidates = [
+                    index
+                    for index in sorted(
+                        range(len(probs)),
+                        key=lambda item: probs[item],
+                        reverse=True,
+                    )
+                    if index not in branch_target_set
+                ][:5]
+                candidate_ids = [*branch_targets, *hard_candidates]
+                denominator = sum(probs[candidate_id] for candidate_id in candidate_ids)
+                total += (
+                    sum(probs[branch_target] for branch_target in branch_targets)
+                    / denominator
+                )
+            return total / len(batch)
+
+        before_mass = restricted_target_set_mass()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_target_set_coverage_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.03,
+                negative_weight=1.0,
+                positive_weight=0.0,
+                coverage_weight=2.0,
+                branch_position=1,
+                batch_size=3,
+                hard_negative_count=5,
+                terminator=ANSWER_TERMINATOR,
+                balance_targets=True,
+            )
+
+        self.assertGreater(restricted_target_set_mass(), before_mass)
+
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -3598,6 +3690,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-balanced-bidirectional-binding-unlikelihood",
             "branch-coverage-binding-unlikelihood",
             "branch-balanced-coverage-binding-unlikelihood",
+            "branch-target-set-coverage-unlikelihood",
+            "branch-balanced-target-set-coverage-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",

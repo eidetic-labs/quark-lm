@@ -422,6 +422,19 @@ Current transformer answer-lesson run:
   rejects the bundled coverage-binding loss under the full stack and points the
   next repair toward stronger coverage preservation before exact-target
   sharpening.
+- v0.55 isolates that idea with
+  `branch-balanced-target-set-coverage-unlikelihood`: it trains target-set mass
+  against hard wrong tokens without exact-target row loss or cross-context
+  ownership, and the screen turns off positive target CE. The focused
+  transformer test suite covers the target-set-only signal. The full-stack
+  screen
+  `runs/transformer-answer-v0.55-fullstack-target-set-coverage-smoke-dim4-context80/`
+  again completed `50/50` direct steps and restored step `0`. Training improved
+  QA average target rank to `10.0`, but target-token coverage still collapsed
+  to `0.0` with the same wrong `"a"` top-1 branch token. This rejects
+  batch-local target-set mass as a sufficient coverage objective; the next
+  repair should add explicit anti-collapse pressure over predicted target
+  tokens.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

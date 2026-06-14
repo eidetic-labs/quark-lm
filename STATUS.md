@@ -178,6 +178,17 @@ wrong `"a"`. The guard prevented promotion of a worse checkpoint; the next
 repair should preserve target-set coverage as its own objective before
 sharpening exact target selection.
 
+`runs/transformer-answer-v0.55-fullstack-target-set-coverage-smoke-dim4-context80/`
+isolates target-set coverage with
+`branch-balanced-target-set-coverage-unlikelihood`: no exact-target row loss,
+no cross-context ownership term, and positive target CE disabled in the screen.
+The focused tests pass, but the full-stack screen still restores step `0`.
+Training snapshots improved QA average target rank to `10.0`, yet
+target-token coverage again fell to `0.0` and top-1 collapsed to wrong `"a"`.
+The failure is now sharper: batch-local target-set mass is not enough to
+preserve eval target-token coverage, so the next repair should add explicit
+anti-collapse pressure over predicted target tokens.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test
