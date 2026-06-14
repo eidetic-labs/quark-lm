@@ -67,7 +67,7 @@ the same discipline before another major repair screen.
 
 ## Revised Sequence
 
-1. **v0.71:** experiment registry and run-intent schemas.
+1. **v0.71:** experiment registry and run-intent schemas. Implemented.
 2. **v0.72:** standalone replay planner.
 3. **v0.73:** corpus hygiene and training-plan artifacts.
 4. **v0.74:** candidate quarantine.
@@ -83,3 +83,8 @@ corpus plan, replay plan, verifier checks, and explicit promotion constraints.
 Loss, rank, top-k, and NLL are useful metrics, but they are not promotion
 criteria unless retention, leakage, unknown-policy, coverage, diversity, and
 contamination gates pass first.
+
+v0.71 satisfies the experiment-intent part of that rule for self-improvement
+answer cycles and transformer answer-training screens. The remaining required
+mechanics are replay extraction, corpus hygiene, candidate quarantine,
+deterministic verifier checks, recipes, and constraint-first promotion.

@@ -36,6 +36,7 @@ const sidebars = {
       link: { type: 'doc', id: 'operate/index' },
       items: [
         'operate/release-discipline',
+        'operate/experiment-registry',
         'operate/provenance',
         'operate/docs-drift',
       ],

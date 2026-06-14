@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,6 +101,8 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_lesson,
     flatten_scalars,
     parse_args,
+    transformer_experiment_decision,
+    transformer_experiment_intent,
     transformer_direct_answer_training_pool,
     transformer_answer_generator_training_pool,
 )
@@ -4959,6 +4962,81 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(args.use_kv_cache_path)
         self.assertEqual(args.optimizer, "adamw")
         self.assertEqual(args.gradient_accumulation_steps, 3)
+
+    def test_parse_answer_args_accepts_experiment_contract(self) -> None:
+        args = parse_args(
+            [
+                "answer-train",
+                "--experiment-version",
+                "v0.71",
+                "--experiment-hypothesis",
+                "A bounded screen can explain itself.",
+                "--experiment-acceptance-gate",
+                "custom_gate:Custom rule.",
+                "--experiment-failure-criterion",
+                "Custom failure.",
+                "--experiment-note",
+                "Custom note.",
+            ]
+        )
+
+        self.assertEqual(args.experiment_version, "v0.71")
+        self.assertEqual(args.experiment_hypothesis, "A bounded screen can explain itself.")
+        self.assertEqual(args.experiment_acceptance_gate, ["custom_gate:Custom rule."])
+        self.assertEqual(args.experiment_failure_criterion, ["Custom failure."])
+        self.assertEqual(args.experiment_note, ["Custom note."])
+
+    def test_transformer_experiment_intent_records_profile_aware_plan(self) -> None:
+        args = SimpleNamespace(
+            train_text=Path("build/train.txt"),
+            valid=Path("build/valid.txt"),
+            corpus_dir=Path("corpus"),
+            run=Path("runs/profile-screen"),
+            direct_answer_steps=1,
+            direct_answer_mode=(
+                "branch-context-profile-coverage-preserving-deficit-unlikelihood"
+            ),
+            experiment_version="v0.71",
+            experiment_hypothesis="Profile-aware screens should declare their replay plan.",
+            experiment_acceptance_gate=["custom_gate:Custom rule."],
+            experiment_failure_criterion=["Custom failure."],
+            experiment_note=["Custom note."],
+        )
+
+        intent = transformer_experiment_intent(args)
+
+        gates = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn("branch_context_gate_recorded", gates)
+        self.assertIn("custom_gate", gates)
+        self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
+        self.assertEqual(intent["decision"]["status"], "planned")
+
+    def test_transformer_experiment_decision_records_screen_evidence(self) -> None:
+        metrics = {
+            "baseline": {"step": 0},
+            "final": {"step": 1},
+            "training_data": (
+                "closed_world_lm.answer_model corpus-derived AnswerExample lessons"
+            ),
+            "pretrained_weights": False,
+            "pretrained_tokenizer": False,
+            "external_embeddings": False,
+            "direct_answer": {
+                "direct_answer_branch_context_gate": {"passed": True},
+                "final": {
+                    "branch_diversity_target": {"passed": False},
+                    "branch_target_coverage_by_profile": {"qa": {"a": 1}},
+                },
+            },
+        }
+
+        status, summary, evidence = transformer_experiment_decision(metrics)
+
+        evidence_by_name = {item["name"]: item for item in evidence}
+        self.assertEqual(status, "rejected")
+        self.assertIn("promotion awaits", summary)
+        self.assertTrue(evidence_by_name["branch_context_gate_recorded"]["passed"])
+        self.assertFalse(evidence_by_name["branch_diversity_target"]["passed"])
 
     def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
         args = parse_args(

@@ -68,11 +68,11 @@ For QuarkLM, that means:
 
 ## Near-Term Decision
 
-v0.69 is strategy evidence, and v0.70 is deep research evidence. Neither is
-model-quality evidence. The next engineering versions should implement the
-training operating system before another anti-collapse objective or tokenizer
-migration.
+v0.69 is strategy evidence, v0.70 is deep research evidence, and v0.71 is the
+first operating-system implementation step. None of those are model-quality
+promotion evidence. The next engineering versions should continue the training
+operating system before another anti-collapse objective or tokenizer migration.
 
-The revised sequence starts with v0.71 experiment registry and run-intent
-schemas, then replay extraction, corpus hygiene, candidate quarantine,
+v0.71 implements experiment registry and run-intent schemas. The revised
+sequence now moves to replay extraction, corpus hygiene, candidate quarantine,
 deterministic verifier checks, recipes, and constraint-first promotion.

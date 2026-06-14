@@ -70,8 +70,9 @@ move is anti-collapse preservation inside profile-local replay constraints.
 
 v0.70 adds the [Deep research review](./deep-research-review.md), which expands
 this audit into a fuller literature, implementation, and QuarkLM-codebase gap
-review. It keeps the same engineering direction and moves experiment registry
-implementation to v0.71 after the research checkpoint.
+review. It keeps the same engineering direction and moves the implementation
+sequence to experiment registry first. v0.71 implements that registry and
+leaves replay extraction as the next mechanics step.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

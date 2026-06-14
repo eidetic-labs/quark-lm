@@ -92,9 +92,14 @@ provenance, and the goal framework itself.
     cross-referenced research review against primary papers, official
     open-source mechanics, and QuarkLM's current codebase.
 19. Follow the v0.70 implementation sequence before adding more direct-answer
-    objective modes: add experiment registry, replay extraction, corpus hygiene,
+    objective modes. v0.71 implements the experiment registry and run-intent
+    artifacts; the remaining sequence is replay extraction, corpus hygiene,
     candidate quarantine, deterministic verifier checks, recipe boundaries, and
     constraint-first promotion gates.
+20. Treat experiment intent as required run evidence: self-improvement and
+    transformer screens should declare hypothesis, allowed data, planned
+    artifacts, acceptance gates, failure criteria, and final decision before
+    they can influence the next version.
 
 ## Weight Update Policy
 

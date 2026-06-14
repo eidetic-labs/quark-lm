@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.70 deep research review; promoted
+**Active version:** v0.71 experiment registry; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -65,6 +65,10 @@ Working tagline: Big idea. Tiny package.
 - Deep research review that cross-references primary research, official
   open-source implementation references, and the current QuarkLM codebase to
   define the full operating-system stack required before the next major run.
+- Experiment intent registry for self-improvement and transformer
+  answer-training runs. Runs now declare hypothesis, allowed data sources,
+  planned artifacts, recipe id, gates, failure criteria, notes, and a decision
+  artifact before they are trusted as evidence.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -146,6 +150,12 @@ candidate quarantine, deterministic verification, replay extraction, and
 constraint-first promotion as required operating-system mechanics before the
 next larger transformer screen. The experiment registry is now the v0.71
 implementation target.
+
+v0.71 implements that target in `src/closed_world_lm/experiment_registry.py`.
+Self-improvement answer cycles and transformer answer-training runs now write
+`experiment_intent.json` before training and include the final intent decision
+in their reports or metrics. Transformer screens close as rejected screen
+evidence until a dedicated transformer promotion gate is implemented.
 
 ## Latest Evidence
 

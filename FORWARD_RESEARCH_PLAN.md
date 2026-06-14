@@ -394,9 +394,11 @@ mechanics.
 
 ### v0.71
 
-Implement experiment registry and run-intent schemas. Require transformer
-screens to record hypothesis, acceptance criteria, planned gates, and result
-decision.
+Implemented experiment registry and run-intent schemas in
+`src/closed_world_lm/experiment_registry.py`. Self-improvement answer cycles
+and transformer answer-training runs now record hypothesis, allowed data,
+planned artifacts, gates, failure criteria, and a result decision. Transformer
+screens remain evidence-only until v0.76 promotion gates exist.
 
 ### v0.72
 

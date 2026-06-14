@@ -58,7 +58,8 @@ between papers, public implementation mechanics, and the current QuarkLM
 codebase. The v0.70 deep research review then expands the literature,
 open-source mechanics, and QuarkLM-codebase gap review before the next
 implementation step. The decision is to build the self-improvement operating
-system before more objective modes: experiment registry, corpus governance,
+system before more objective modes. v0.71 implements the experiment registry;
+the remaining work is corpus governance,
 candidate quarantine, deterministic verifier checks, replay extraction,
 training recipes, and constraint-first promotion gates. See
 [Forward research plan](./forward-research-plan.md) and
@@ -166,10 +167,10 @@ loops become fragile.
 - Begin designing a closed-world verifier lane. It can start deterministic and
   rule-based, then later become a from-scratch model only after its judgments
   can be audited against admitted sources.
-- Implement the v0.70 sequence before adding another direct-answer objective
-  mode: v0.71 experiment registry, then replay extraction, corpus hygiene,
-  candidate quarantine, verifier checks, training recipes, and constraint-first
-  promotion.
+- Continue the v0.70 sequence before adding another direct-answer objective
+  mode: v0.71 implemented experiment registry; next are replay extraction,
+  corpus hygiene, candidate quarantine, verifier checks, training recipes, and
+  constraint-first promotion.
 
 ## Defer
 

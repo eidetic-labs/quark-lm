@@ -13,6 +13,11 @@ from .admission_probes import audit_all_admission_probes
 from .answer_decoder import train_decoder
 from .answer_model import DEFAULT_EVALS, train_model
 from .curriculum import DEFAULT_CORPUS_DIR, build_curriculum, write_json, write_curriculum
+from .experiment_registry import (
+    ExperimentIntent,
+    record_experiment_decision,
+    write_experiment_intent,
+)
 from .glossary_probes import audit_glossary_probes
 from .probes import read_jsonl
 from .provenance import corpus_diff_for_report, corpus_snapshot
@@ -269,10 +274,139 @@ def write_report_artifacts(
     }
     write_json(attempt_dir / "corpus_snapshot.json", report["corpus_snapshot"])
     write_json(attempt_dir / "corpus_diff.json", report["corpus_diff"])
+    if "experiment_intent" in report:
+        write_experiment_intent(
+            attempt_dir / "experiment_intent.json",
+            report["experiment_intent"],
+        )
     write_json(attempt_dir / "self_improvement_report.json", report)
     write_json(run_dir / "corpus_snapshot.json", report["corpus_snapshot"])
     write_json(run_dir / "corpus_diff.json", report["corpus_diff"])
+    if "experiment_intent" in report:
+        write_experiment_intent(
+            run_dir / "experiment_intent.json",
+            report["experiment_intent"],
+        )
     write_json(run_dir / "self_improvement_report.json", report)
+
+
+def self_improvement_experiment_intent(
+    args: argparse.Namespace,
+    run_dir: Path,
+    attempt_dir: Path,
+    train_text_path: Path,
+) -> dict[str, Any]:
+    hypothesis = getattr(args, "experiment_hypothesis", None) or (
+        "A closed-world answer-cycle can update answer_model and answer_decoder "
+        "weights from admitted corpus lessons while preserving exact evals, "
+        "prompt-leakage controls, and forgetting gates."
+    )
+    notes = getattr(args, "experiment_note", None) or []
+    intent = ExperimentIntent(
+        version=getattr(args, "experiment_version", "v0.71"),
+        run_id=attempt_dir.name or run_dir.name,
+        component="self-improvement-answer-cycle",
+        hypothesis=hypothesis,
+        allowed_data_sources=[
+            str(args.corpus_dir / "admissions.jsonl"),
+            str(args.corpus_dir / "glossary.json"),
+            str(args.corpus_dir / "grammar.json"),
+            str(train_text_path),
+        ],
+        planned_artifacts=[
+            str(attempt_dir / "answer" / "answer_model.json"),
+            str(attempt_dir / "decoder" / "answer_decoder.json"),
+            str(attempt_dir / "corpus_snapshot.json"),
+            str(attempt_dir / "corpus_diff.json"),
+            str(attempt_dir / "experiment_intent.json"),
+            str(attempt_dir / "self_improvement_report.json"),
+            str(run_dir / "experiment_intent.json"),
+            str(run_dir / "self_improvement_report.json"),
+        ],
+        training_recipe_id="self-improve-answer-cycle:v0.71",
+        acceptance_gates=[
+            {
+                "name": "admission_probe_audit",
+                "rule": "Generated probes for every admitted fact must pass.",
+                "required": True,
+            },
+            {
+                "name": "glossary_probe_audit",
+                "rule": "Glossary-derived probes must remain exact.",
+                "required": True,
+            },
+            {
+                "name": "heldout_prompt_leakage",
+                "rule": "Heldout prompts must not appear in training lessons.",
+                "required": True,
+            },
+            {
+                "name": "owner_heldout_prompt_leakage",
+                "rule": "Protected owner heldout prompts must not appear in lessons.",
+                "required": True,
+            },
+            {
+                "name": "forgetting_audit",
+                "rule": "Current evals may not regress against the comparison report.",
+                "required": True,
+            },
+            {
+                "name": "exact_eval_audit",
+                "rule": "Responder, answer model, and decoder evals must be exact.",
+                "required": True,
+            },
+            {
+                "name": "promotion_gate",
+                "rule": "All required audits must pass before the result can promote.",
+                "required": True,
+            },
+        ],
+        failure_criteria=[
+            "Any required probe, leakage, forgetting, or exact-eval audit fails.",
+            "Training writes checkpoints without a matching report and intent artifact.",
+            "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
+        ],
+        notes=notes,
+    )
+    return intent.to_record()
+
+
+def self_improvement_experiment_decision(
+    report: dict[str, Any],
+) -> tuple[str, str, list[dict[str, Any]]]:
+    gate = report["promotion_gate"]
+    evidence = [
+        {
+            "name": "admission_probe_audit",
+            "passed": report["admission_probe_audit"]["passed"],
+        },
+        {
+            "name": "glossary_probe_audit",
+            "passed": report["glossary_probe_audit"]["passed"],
+        },
+        {
+            "name": "heldout_prompt_leakage",
+            "passed": report["prompt_leakage_audit"]["heldout"]["passed"],
+        },
+        {
+            "name": "owner_heldout_prompt_leakage",
+            "passed": report["prompt_leakage_audit"]["owner_heldout"]["passed"],
+        },
+        {"name": "forgetting_audit", "passed": report["forgetting_audit"]["passed"]},
+        {"name": "exact_eval_audit", "passed": report["exact_eval_audit"]["passed"]},
+        {"name": "promotion_gate", "passed": gate["passed"]},
+    ]
+    if gate["passed"]:
+        return (
+            "promoted",
+            "Self-improvement run passed all declared gates and is eligible for promotion.",
+            evidence,
+        )
+    return (
+        "rejected",
+        "Self-improvement run was recorded as evidence but failed at least one declared gate.",
+        evidence,
+    )
 
 
 def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
@@ -285,6 +419,13 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     attempt_dir.mkdir(parents=True, exist_ok=False)
     answer_run = attempt_dir / "answer"
     decoder_run = attempt_dir / "decoder"
+    experiment_intent = self_improvement_experiment_intent(
+        args,
+        run_dir,
+        attempt_dir,
+        train_text_path,
+    )
+    write_experiment_intent(attempt_dir / "experiment_intent.json", experiment_intent)
 
     answer_metrics = train_model(
         SimpleNamespace(
@@ -380,11 +521,19 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
             "features": decoder_metrics["features"],
             "labels": decoder_metrics["labels"],
         },
+        "experiment_intent": experiment_intent,
     }
     report["forgetting_audit"] = audit_forgetting(report, args.compare_report)
     report["exact_eval_audit"] = audit_exact_promotion(report)
     report["promotion_gate"] = promotion_gate(report)
     report["self_diagnosis"] = diagnose_report(report)
+    status, summary, evidence = self_improvement_experiment_decision(report)
+    report["experiment_intent"] = record_experiment_decision(
+        experiment_intent,
+        status,
+        summary,
+        evidence,
+    )
     run_dir.mkdir(parents=True, exist_ok=True)
     write_report_artifacts(report, run_dir, attempt_dir, attempt_number)
     print(json.dumps({"answer_model": report["answer_model"]["final"]}, indent=2, sort_keys=True))
@@ -411,6 +560,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer.add_argument("--max-answer-chars", type=int, default=64)
     answer.add_argument("--seed", type=int, default=7)
     answer.add_argument("--compare-report", type=Path, default=None)
+    answer.add_argument("--experiment-version", default="v0.71")
+    answer.add_argument("--experiment-hypothesis", default=None)
+    answer.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)
 
 

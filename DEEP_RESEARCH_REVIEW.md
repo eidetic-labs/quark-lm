@@ -388,9 +388,11 @@ model-quality claim.
 
 ### v0.71
 
-Implement experiment registry and run-intent schemas. Require transformer
-screens and self-improvement runs to record hypothesis, acceptance criteria,
-planned gates, and result decision.
+Implemented experiment registry and run-intent schemas. Self-improvement runs
+and transformer screens now record hypothesis, allowed data, planned artifacts,
+acceptance gates, failure criteria, and result decision before their output is
+treated as evidence. Transformer screens still do not promote without the later
+constraint-first gate.
 
 ### v0.72
 

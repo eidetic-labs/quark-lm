@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +19,7 @@ from closed_world_lm.self_improve import (
     evaluate_responder,
     next_attempt,
     promotion_gate,
+    self_improvement_experiment_intent,
     write_report_artifacts,
 )
 
@@ -62,15 +64,52 @@ class SelfImproveTest(unittest.TestCase):
             self.assertEqual(number, 4)
             self.assertEqual(path.name, "attempt-004")
 
+    def test_self_improvement_experiment_intent_declares_required_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            run_dir = root / "run"
+            attempt_dir = run_dir / "attempts" / "attempt-001"
+            args = SimpleNamespace(
+                corpus_dir=root / "corpus",
+                experiment_version="v0.71",
+                experiment_hypothesis=None,
+                experiment_note=["test note"],
+            )
+
+            intent = self_improvement_experiment_intent(
+                args,
+                run_dir,
+                attempt_dir,
+                root / "build" / "train.txt",
+            )
+
+        gates = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn("promotion_gate", gates)
+        self.assertIn("exact_eval_audit", gates)
+        self.assertEqual(intent["decision"]["status"], "planned")
+        self.assertEqual(intent["notes"], ["test note"])
+
     def test_write_report_artifacts_preserves_attempt_and_latest_report(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             run_dir = Path(temp)
             attempt_dir = run_dir / "attempts" / "attempt-001"
             attempt_dir.mkdir(parents=True)
+            args = SimpleNamespace(
+                corpus_dir=run_dir / "corpus",
+                experiment_version="v0.71",
+                experiment_hypothesis=None,
+                experiment_note=None,
+            )
             report = {
                 "corpus_snapshot": {"schema_version": 1},
                 "corpus_diff": {"status": "evaluated"},
                 "promotion_gate": {"passed": False},
+                "experiment_intent": self_improvement_experiment_intent(
+                    args,
+                    run_dir,
+                    attempt_dir,
+                    run_dir / "build" / "train.txt",
+                ),
             }
 
             write_report_artifacts(report, run_dir, attempt_dir, 1)
@@ -85,6 +124,8 @@ class SelfImproveTest(unittest.TestCase):
             self.assertEqual(latest_report["attempt"]["report"], str(attempt_dir / "self_improvement_report.json"))
             self.assertTrue((attempt_dir / "corpus_snapshot.json").exists())
             self.assertTrue((run_dir / "corpus_diff.json").exists())
+            self.assertTrue((attempt_dir / "experiment_intent.json").exists())
+            self.assertTrue((run_dir / "experiment_intent.json").exists())
 
     def test_forgetting_audit_detects_regression(self) -> None:
         previous = {

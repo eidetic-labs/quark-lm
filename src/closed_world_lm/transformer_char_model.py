@@ -30,6 +30,11 @@ from .answer_model import (
     write_lessons,
 )
 from .curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
+from .experiment_registry import (
+    ExperimentIntent,
+    record_experiment_decision,
+    write_experiment_intent,
+)
 from .neural_char_model import context_before, continuation_nll, make_context
 from .probes import read_jsonl, score_records, summarize
 from .tokenizer import CharTokenizer
@@ -45,6 +50,10 @@ DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "paraphrases.jsonl",
 ]
 ANSWER_TERMINATOR = "\n"
+PROFILE_AWARE_DIRECT_ANSWER_MODES = {
+    "branch-context-profile-coverage-preserving-deficit-unlikelihood",
+    "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
+}
 BranchReplayRecord = tuple[list[int], int, int] | tuple[list[int], int, int, str]
 ProfiledBranchSeed = tuple[list[int], int, str]
 
@@ -3388,6 +3397,204 @@ def ensure_curriculum(corpus_path: Path, valid_path: Path) -> None:
     write_curriculum(curriculum, DEFAULT_OUTPUT_DIR)
 
 
+def parse_experiment_gate(raw_gate: str) -> dict[str, Any]:
+    if ":" in raw_gate:
+        name, rule = raw_gate.split(":", 1)
+    else:
+        name = raw_gate
+        rule = raw_gate
+    name = name.strip().replace(" ", "_")
+    rule = rule.strip()
+    if not name or not rule:
+        raise ValueError("experiment gates must be formatted as name:rule")
+    return {"name": name, "rule": rule, "required": True}
+
+
+def is_profile_aware_direct_answer_mode(mode: str) -> bool:
+    return mode in PROFILE_AWARE_DIRECT_ANSWER_MODES
+
+
+def transformer_experiment_acceptance_gates(args: argparse.Namespace) -> list[dict[str, Any]]:
+    gates = [
+        {
+            "name": "baseline_snapshot_recorded",
+            "rule": "Record a step-0 baseline before training updates.",
+            "required": True,
+        },
+        {
+            "name": "final_snapshot_recorded",
+            "rule": "Record a final snapshot after training updates.",
+            "required": True,
+        },
+        {
+            "name": "closed_world_training_data",
+            "rule": "Use only corpus-derived AnswerExample lessons and declared eval probes.",
+            "required": True,
+        },
+        {
+            "name": "no_pretrained_weights",
+            "rule": (
+                "Initialize transformer weights randomly or from declared "
+                "QuarkLM checkpoints only."
+            ),
+            "required": True,
+        },
+        {
+            "name": "no_pretrained_tokenizer",
+            "rule": "Train the tokenizer from admitted corpus text.",
+            "required": True,
+        },
+        {
+            "name": "no_external_embeddings",
+            "rule": "Do not import external embeddings or pretrained representation tables.",
+            "required": True,
+        },
+    ]
+    if getattr(args, "direct_answer_steps", 0) > 0:
+        gates.extend(
+            [
+                {
+                    "name": "branch_context_gate_recorded",
+                    "rule": "Record semantic branch-context coverage for direct-answer screens.",
+                    "required": True,
+                },
+                {
+                    "name": "branch_diversity_recorded",
+                    "rule": "Record branch diversity for each direct-answer snapshot.",
+                    "required": True,
+                },
+                {
+                    "name": "target_coverage_recorded",
+                    "rule": "Record target coverage by branch profile.",
+                    "required": True,
+                },
+            ]
+        )
+    gates.extend(
+        parse_experiment_gate(raw_gate)
+        for raw_gate in (getattr(args, "experiment_acceptance_gate", None) or [])
+    )
+    return gates
+
+
+def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
+    hypothesis = getattr(args, "experiment_hypothesis", None) or (
+        "A tiny decoder-only transformer can improve corpus-derived answer "
+        "evidence under declared gates without leaving the closed-world data boundary."
+    )
+    notes = list(getattr(args, "experiment_note", None) or [])
+    notes.append("Eval probe paths are declared for measurement, not as hidden training data.")
+    failure_criteria = [
+        "Metrics omit baseline or final snapshots.",
+        "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
+        "Direct-answer screens omit branch-context, branch-diversity, or target-coverage evidence.",
+        "A screen writes checkpoints without experiment intent and metrics artifacts.",
+    ]
+    failure_criteria.extend(getattr(args, "experiment_failure_criterion", None) or [])
+    direct_profile_aware = (
+        getattr(args, "direct_answer_steps", 0) > 0
+        and is_profile_aware_direct_answer_mode(getattr(args, "direct_answer_mode", ""))
+    )
+    planned_artifacts = [
+        str(args.run / "transformer_answer.json"),
+        str(args.run / "optimizer_state.json"),
+        str(args.run / "tokenizer.json"),
+        str(args.run / "transformer_answer_metrics.json"),
+        str(args.run / "transformer_answer_metrics.jsonl"),
+        str(args.run / "transformer_answer_lessons.jsonl"),
+        str(args.run / "experiment_intent.json"),
+    ]
+    if direct_profile_aware:
+        planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
+    intent = ExperimentIntent(
+        version=getattr(args, "experiment_version", "v0.71"),
+        run_id=args.run.name,
+        component="transformer-answer-train",
+        hypothesis=hypothesis,
+        allowed_data_sources=[
+            str(args.train_text),
+            str(args.valid),
+            str(args.corpus_dir),
+            *[str(path) for path in DEFAULT_ANSWER_EVALS],
+        ],
+        planned_artifacts=planned_artifacts,
+        training_recipe_id=(
+            f"transformer-answer:{getattr(args, 'direct_answer_mode', 'target-loss')}"
+            if getattr(args, "direct_answer_steps", 0) > 0
+            else "transformer-answer:target-loss"
+        ),
+        acceptance_gates=transformer_experiment_acceptance_gates(args),
+        failure_criteria=failure_criteria,
+        replay_plan_id="direct_answer_replay_plan.json" if direct_profile_aware else None,
+        notes=notes,
+    )
+    return intent.to_record()
+
+
+def transformer_experiment_decision(
+    metrics: dict[str, Any],
+) -> tuple[str, str, list[dict[str, Any]]]:
+    evidence = [
+        {"name": "baseline_snapshot_recorded", "passed": bool(metrics.get("baseline"))},
+        {"name": "final_snapshot_recorded", "passed": bool(metrics.get("final"))},
+        {
+            "name": "closed_world_training_data",
+            "passed": metrics.get("training_data")
+            == "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+        },
+        {"name": "no_pretrained_weights", "passed": metrics.get("pretrained_weights") is False},
+        {
+            "name": "no_pretrained_tokenizer",
+            "passed": metrics.get("pretrained_tokenizer") is False,
+        },
+        {"name": "no_external_embeddings", "passed": metrics.get("external_embeddings") is False},
+    ]
+    direct_answer = metrics.get("direct_answer")
+    if isinstance(direct_answer, dict):
+        branch_gate = direct_answer.get("direct_answer_branch_context_gate")
+        final_snapshot = direct_answer.get("final", {})
+        diversity = final_snapshot.get("branch_diversity_target", {})
+        coverage = final_snapshot.get("branch_target_coverage_by_profile", {})
+        evidence.extend(
+            [
+                {
+                    "name": "branch_context_gate_recorded",
+                    "passed": isinstance(branch_gate, dict),
+                },
+                {
+                    "name": "branch_diversity_recorded",
+                    "passed": isinstance(diversity, dict),
+                },
+                {
+                    "name": "target_coverage_recorded",
+                    "passed": isinstance(coverage, dict),
+                },
+            ]
+        )
+        if isinstance(branch_gate, dict):
+            evidence.append(
+                {
+                    "name": "branch_context_gate",
+                    "passed": bool(branch_gate.get("passed")),
+                }
+            )
+        if isinstance(diversity, dict):
+            evidence.append(
+                {
+                    "name": "branch_diversity_target",
+                    "passed": bool(diversity.get("passed")),
+                }
+            )
+    return (
+        "rejected",
+        (
+            "Transformer run recorded structured screen evidence; promotion "
+            "awaits a dedicated transformer promotion gate."
+        ),
+        evidence,
+    )
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -3799,6 +4006,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
+    answer_parser.add_argument("--experiment-version", default="v0.71")
+    answer_parser.add_argument("--experiment-hypothesis", default=None)
+    answer_parser.add_argument(
+        "--experiment-acceptance-gate",
+        action="append",
+        default=None,
+        help="Additional required experiment gate formatted as name:rule.",
+    )
+    answer_parser.add_argument(
+        "--experiment-failure-criterion",
+        action="append",
+        default=None,
+        help="Additional failure criterion for this screen.",
+    )
+    answer_parser.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)
 
 
@@ -7234,6 +7456,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     generation_config = generation_config_from_args(args)
     rng = random.Random(args.seed)
     args.run.mkdir(parents=True, exist_ok=True)
+    experiment_path = args.run / "experiment_intent.json"
+    experiment_intent = transformer_experiment_intent(args)
+    write_experiment_intent(experiment_path, experiment_intent)
     history_path = args.run / "transformer_answer_metrics.jsonl"
     lessons_path = args.run / "transformer_answer_lessons.jsonl"
     write_lessons(examples, lessons_path)
@@ -7386,10 +7611,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         }
         direct_rng = random.Random(args.seed + 307)
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
-        direct_profile_aware_targets = args.direct_answer_mode in {
-            "branch-context-profile-coverage-preserving-deficit-unlikelihood",
-            "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
-        }
+        direct_profile_aware_targets = is_profile_aware_direct_answer_mode(
+            args.direct_answer_mode
+        )
         direct_replay_plan_path = (
             args.run / "direct_answer_replay_plan.json"
             if direct_profile_aware_targets
@@ -9463,11 +9687,20 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "direct_answer": direct_answer_metrics,
         "answer_selector": selector_metrics,
         "answer_generator": generator_metrics,
+        "experiment_intent_path": str(experiment_path),
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
         "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
     }
+    status, summary, evidence = transformer_experiment_decision(metrics)
+    metrics["experiment_intent"] = record_experiment_decision(
+        experiment_intent,
+        status,
+        summary,
+        evidence,
+    )
+    write_experiment_intent(experiment_path, metrics["experiment_intent"])
     with (args.run / "transformer_answer_metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2, sort_keys=True)
         handle.write("\n")

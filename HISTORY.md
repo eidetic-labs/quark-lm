@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.71
+
+- Added experiment registry and run-intent artifacts.
+
 ## v0.70
 
 - Added deep research review and revised implementation sequence.

@@ -178,8 +178,9 @@ promotion before adding another direct-answer objective mode.
 
 v0.70 adds `DEEP_RESEARCH_REVIEW.md`, which deepens the plan with a more
 explicit literature, implementation, and local-codebase review. It keeps the
-same direction but makes the ordering stricter: the experiment registry is now
-v0.71, after the research checkpoint.
+same direction but makes the ordering stricter: experiment registry first,
+then replay extraction and the remaining operating-system mechanics. v0.71
+implements the registry.
 
 ## Decision
 

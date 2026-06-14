@@ -82,6 +82,14 @@ run until experiment intent, corpus plans, replay plans, verifier checks,
 recipes, and constraint-first promotion are explicit artifacts. The experiment
 registry moves to v0.71 so this research checkpoint stays auditable.
 
+v0.71 implements the first experiment registry. `ExperimentIntent` records now
+capture run version, component, hypothesis, allowed data sources, planned
+artifacts, training recipe id, acceptance gates, failure criteria, notes, and a
+decision. Self-improvement answer cycles write `experiment_intent.json` before
+training and close it with the promotion-gate decision. Transformer
+answer-training runs also write an intent before training and close as
+structured screen evidence until a dedicated transformer promotion gate exists.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

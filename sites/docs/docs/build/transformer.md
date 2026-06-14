@@ -58,6 +58,13 @@ PYTHONPATH=src python3 -m closed_world_lm.transformer_char_model answer-train \
   --direct-answer-rollout-interval 50
 ```
 
+From v0.71 onward, `answer-train` writes `experiment_intent.json` before
+training and closes it with a decision in `transformer_answer_metrics.json`.
+Use `--experiment-hypothesis`, `--experiment-acceptance-gate name:rule`,
+`--experiment-failure-criterion`, and `--experiment-note` to make a screen's
+intent more specific. Transformer screens remain evidence-only until a
+dedicated transformer promotion gate exists.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

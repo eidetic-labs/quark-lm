@@ -16,6 +16,8 @@ A promoted QuarkLM run must have:
 - forgetting audit against the prior promoted run
 - exact eval audit
 - passing promotion gate
+- `experiment_intent.json` with hypothesis, allowed data, planned artifacts,
+  acceptance gates, failure criteria, and final decision
 - self-diagnosis with `uses_external_model: false` unless a future release
   explicitly admits and documents a different source
 - archived attempts under `attempts/attempt-###/`
@@ -36,4 +38,7 @@ not from an external model.
 
 Architecture prototypes, such as the v0.24 transformer, can be documented as
 evidence only for the behavior they actually show. Lower language-model loss is
-not a reliable-answer claim until answer evals pass.
+not a reliable-answer claim until answer evals pass. From v0.71 onward,
+transformer answer-training screens also write experiment intent artifacts, but
+they close as rejected screen evidence until a dedicated transformer promotion
+gate exists.

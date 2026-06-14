@@ -14,9 +14,11 @@ public surfaces synchronized.
 | Surface | Purpose |
 | --- | --- |
 | `runs/self-improve-*` | Versioned training and audit evidence. |
+| `experiment_intent.json` | Hypothesis, allowed data, planned artifacts, gates, and decision for a run. |
 | `corpus_snapshot.json` | Current ledger source hashes and record counts. |
 | `corpus_diff.json` | Comparison to the previous promoted run. |
 | README / Docusaurus / marketing | Public state that must not drift. |
 
 Start with [release discipline](./release-discipline.md), then read
-[provenance](./provenance.md) and [docs drift](./docs-drift.md).
+[experiment registry](./experiment-registry.md), [provenance](./provenance.md),
+and [docs drift](./docs-drift.md).
