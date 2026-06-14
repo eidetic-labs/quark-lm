@@ -393,6 +393,26 @@ pre-layer-norm transformer block path with final normalization, preserving the
 existing default path for checkpoint compatibility before the next
 branch-diversity repair.
 
+The opt-in pre-layer-norm path is now implemented with
+`--use-pre-layer-norm`. It uses GPT-style pre-normalization for attention and
+MLP sublayers and applies final layer normalization before the output head,
+while leaving the legacy default path unchanged for older checkpoints and prior
+evidence. Focused tests cover config round trip, older-checkpoint defaults,
+scalar/float forward parity, parameter inclusion, and parser wiring. The
+context-80 prompt-position representation-contrast smoke at
+`runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, ran `50/50` direct steps,
+moved `1108/1284` prompt-position projection parameters and all `8` final-norm
+parameters, and did not need best-snapshot restoration because step `50` was
+the best measured branch snapshot. The final branch-diversity target still
+failed across all `9` multi-target profiles; QA and heldout stayed fully
+collapsed, with QA all `"y"` and target-token coverage `0.125`. The useful
+change is that `7/9` profiles were no longer fully collapsed, including
+admission paraphrases at `predicted_unique: 4/14` and admissions at
+`2/14`. This is partial structural evidence, not promotion evidence: the next
+repair should stabilize and extend that diversity to QA and heldout rather
+than add another unrelated branch objective.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

@@ -169,7 +169,10 @@ training boundary.
   evidence justifies promotion. They need config round-trip coverage,
   checkpoint compatibility with older models, scalar/float forward parity,
   focused tests for parameter inclusion, and a bounded branch-diversity screen
-  before they can be interpreted as architecture progress.
+  before they can be interpreted as architecture progress. A screen that cracks
+  collapse in some profiles is useful structural evidence, but it is not
+  promotion evidence while the formal branch-diversity target fails or QA and
+  heldout remain fully collapsed.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

@@ -1941,13 +1941,43 @@ Open-source structure audit checkpoint:
   default path for checkpoint compatibility before adding another direct-answer
   objective
 
-The next improvement target is a structural transformer audit that identifies
-and tests an opt-in pre-layer-norm transformer path with final normalization,
-then strengthening prompt-conditioned branch diversity so the direct
-transformer emits target-specific answers instead of collapsing to a single
-global branch token or the short global wrong answer `" te."`, while preserving
-the `37/219` candidate-discrimination gain and v0.42 target-loss gains; then
-continuing admitted-memory batches, completing the Python package/import
-migration to QuarkLM naming, turning more of the deterministic self-diagnosis
-and repair policy into admitted-corpus-trained behavior, and folding the
-decoder's reliability back into the broader free-form language model.
+`runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`:
+
+- implemented `--use-pre-layer-norm`, an opt-in GPT-style block path that
+  normalizes before attention, normalizes before the MLP, and applies final
+  layer normalization before the output head
+- preserved the existing default path for checkpoint compatibility and prior
+  evidence comparison
+- focused tests cover config round trip, older-checkpoint defaults,
+  scalar/float forward parity, parameter inclusion, and parser wiring
+- used embedding/feed-forward dimensions `4/8`, prompt-position projection,
+  frozen output bias, best branch snapshot restoration, and
+  `--direct-answer-contrast-weight 50.0`
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- train loss moved to `43.8918` at step `50`; step `50` was the best measured
+  branch snapshot, so no restore was needed
+- `1108/1284` prompt-position projection parameters moved; max absolute
+  prompt-position value was about `0.44679`
+- all `8` final-norm parameters moved; max absolute final-norm value was about
+  `2.6389`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA stayed collapsed to all `"y"` with target-token coverage `0.125`,
+  `predicted_unique` still `1/8`, and different-target hidden distance average
+  about `0.2835`
+- useful partial structural evidence: `7/9` multi-target profiles were no
+  longer fully collapsed; admission paraphrases reached `predicted_unique`
+  `4/14`, admissions reached `2/14`, and learning reached `2/4`
+- rejected for promotion: QA and heldout remain fully collapsed, so the formal
+  branch-diversity target still blocks promotion-style interpretation
+
+The next improvement target is stabilizing the pre-layer-norm structural gain
+so prompt-conditioned branch diversity reaches QA and heldout instead of only
+partially cracking non-QA profiles, while preserving the `37/219`
+candidate-discrimination gain and v0.42 target-loss gains; then continuing
+admitted-memory batches, completing the Python package/import migration to
+QuarkLM naming, turning more of the deterministic self-diagnosis and repair
+policy into admitted-corpus-trained behavior, and folding the decoder's
+reliability back into the broader free-form language model.

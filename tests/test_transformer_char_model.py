@@ -155,6 +155,101 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_pre_layer_normalized_transformer_trains_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=11,
+            use_pre_layer_norm=True,
+        )
+        model = TinyTransformerLM.init_random(config)
+        baseline = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=11,
+            )
+        )
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        target = ids[4]
+        before = model.nll(context, target)
+        params = model.parameters()
+
+        self.assertNotEqual(baseline.final_hidden(context), model.final_hidden(context))
+        self.assertTrue(any(param is model.ln1_gain[0] for param in params))
+        self.assertTrue(any(param is model.ln2_gain[0] for param in params))
+        self.assertTrue(any(param is model.final_ln_gain[0] for param in params))
+
+        for _ in range(30):
+            model.train_step(context, target, learning_rate=0.02)
+        after = model.nll(context, target)
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer)
+            loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
+
+        weights = loaded.to_dict()["weights"]
+        self.assertTrue(loaded.config.use_pre_layer_norm)
+        self.assertIn("final_ln_gain", weights)
+        self.assertIn("final_ln_bias", weights)
+        self.assertGreater(before, after)
+        self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
+    def test_pre_layer_norm_scalar_and_float_forward_match(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=12,
+                num_layers=2,
+                use_pre_layer_norm=True,
+            )
+        )
+        context = context_before(ids, 4, model.config.context_size, tokenizer.pad_id)
+        scalar_logits = [value.data for value in model._forward_scalars(context)]
+        float_logits = model._forward_floats(context)
+
+        for expected, actual in zip(float_logits, scalar_logits):
+            self.assertAlmostEqual(expected, actual)
+
+    def test_legacy_transformer_checkpoint_defaults_pre_layer_norm_off(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=13,
+            )
+        )
+        payload = model.to_dict(tokenizer)
+        payload["config"].pop("use_pre_layer_norm", None)
+        payload["weights"].pop("final_ln_gain", None)
+        payload["weights"].pop("final_ln_bias", None)
+
+        loaded, _loaded_tokenizer = TinyTransformerLM.from_dict(payload)
+
+        self.assertFalse(loaded.config.use_pre_layer_norm)
+        self.assertEqual(
+            [value.data for value in loaded.final_ln_gain],
+            [1.0 for _ in range(loaded.config.embedding_dim)],
+        )
+
     def test_multi_layer_transformer_trains_and_round_trips(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)
@@ -2707,6 +2802,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--num-layers",
                     "2",
                     "--use-layer-norm",
+                    "--use-pre-layer-norm",
                     "--layer-norm-epsilon",
                     "0.0001",
                     "--use-context-mean",
@@ -2735,6 +2831,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)
             self.assertTrue(args.use_layer_norm)
+            self.assertTrue(args.use_pre_layer_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)
             self.assertTrue(args.use_context_mean)
             self.assertTrue(args.use_context_projection)
@@ -2752,6 +2849,7 @@ class TransformerCharModelTest(unittest.TestCase):
                 "--use-context-projection",
                 "--use-prompt-prefix-projection",
                 "--use-prompt-position-projection",
+                "--use-pre-layer-norm",
                 "--prompt-position-projection-scale",
                 "4.0",
                 "--use-prompt-attention-summary",
@@ -2762,6 +2860,7 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(args.use_context_projection)
         self.assertTrue(args.use_prompt_prefix_projection)
         self.assertTrue(args.use_prompt_position_projection)
+        self.assertTrue(args.use_pre_layer_norm)
         self.assertEqual(args.prompt_position_projection_scale, 4.0)
         self.assertTrue(args.use_prompt_attention_summary)
 

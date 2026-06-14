@@ -109,6 +109,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Prompt-position scale status</td><td><code>{state.transformerPromptPositionScaleStatus}</code></td></tr>
     <tr><td>Transformer structure audit</td><td><code>{state.transformerStructureAudit}</code></td></tr>
     <tr><td>Transformer structure decision</td><td><code>{state.transformerStructureAuditDecision}</code></td></tr>
+    <tr><td>Latest pre-layer-norm run</td><td><code>{state.transformerLatestPreLayerNormRun}</code></td></tr>
+    <tr><td>Pre-layer-norm mode</td><td><code>{state.transformerPreLayerNormMode}</code></td></tr>
+    <tr><td>Pre-layer-norm status</td><td><code>{state.transformerPreLayerNormStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -400,12 +403,19 @@ v0.42 promoted checkpoint.
   closed-world boundary. The completed comparison table chooses an opt-in
   pre-layer-norm transformer block path with final normalization as the next
   structural implementation target.
+- `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+  implemented that path with `--use-pre-layer-norm`. The bounded context-80
+  screen ran `50/50` direct steps, moved `1108/1284` prompt-position
+  parameters and all `8` final-norm parameters, and cracked full collapse in
+  `7/9` multi-target profiles. The formal diversity target still failed
+  `0/9`, and QA stayed collapsed to all `"y"` with target-token coverage
+  `0.125`.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should first compare QuarkLM's transformer against standard GPT
-structure. The repair must improve prompt-conditioned branch diversity instead
-of only making more prompt text visible, raising hidden distance, or lowering
-branch loss.
+but it should now stabilize the pre-layer-norm partial-diversity gain so QA and
+heldout stop collapsing. The repair must improve prompt-conditioned branch
+diversity instead of only making more prompt text visible, raising hidden
+distance, or lowering branch loss.
 
 The v0.42 self-improvement run passed:
 

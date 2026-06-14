@@ -296,6 +296,17 @@ Current transformer answer-lesson run:
   comparison table points the next implementation target at an opt-in
   pre-layer-norm transformer block path with final normalization before another
   branch-loss objective is promoted.
+- `--use-pre-layer-norm` now adds that opt-in GPT-style block path and applies
+  final normalization before the output head. The context-80 smoke
+  `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+  passed focused tests, ran `50/50` direct steps, moved `1108/1284`
+  prompt-position projection parameters plus all `8` final-norm parameters,
+  and lowered interval train loss to `43.8918` at step `50`. It still failed
+  the branch-diversity target across all `9` multi-target profiles, and QA
+  stayed collapsed to all `"y"` with target-token coverage `0.125`. Unlike the
+  prior all-global-token screens, `7/9` profiles were no longer fully
+  collapsed, so the structural path is useful partial evidence but not a
+  promotion.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

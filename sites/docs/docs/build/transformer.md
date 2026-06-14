@@ -101,9 +101,9 @@ penalize nearly identical hidden states for different branch targets.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
-text. The current audit decision is to implement an opt-in pre-layer-norm
-transformer block path with final normalization before promoting another
-branch-loss repair.
+text. Use `--use-pre-layer-norm` to run the audited opt-in GPT-style
+pre-layer-norm block path with final normalization before the language-model
+head.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -489,6 +489,30 @@ Latest prompt-position scale smoke:
 | Final QA different-target hidden distance | restored avg about `0.01235`, max about `0.03610`; raw step-50 avg about `0.4115` before restore |
 | Promotion status | rejected prompt-signal scale evidence |
 
+Latest pre-layer-norm structural smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/` |
+| Mode | `branch-representation-contrast-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Representation contrast weight | `50.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Train loss | final interval `43.8918` |
+| Prompt-position parameters moved | `1108/1284`, max absolute value about `0.44679` |
+| Final-norm parameters moved | `8/8`, max absolute value about `2.6389` |
+| Restored best branch snapshot | no; step `50` was best |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"y"` |
+| Final QA target-token coverage | `0.125` |
+| Final QA different-target hidden distance | avg about `0.2835`, max about `0.5151` |
+| Partial diversity | `7/9` multi-target profiles no longer fully collapsed |
+| Promotion status | partial structural evidence, rejected for promotion |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -558,7 +582,8 @@ The dim-8 capacity screen increases measured hidden distance, but branch
 predictions still collapse globally, so width alone is not the missing repair.
 Prompt-position projection scaling shows the prompt residual can be made louder
 and the restored hidden-state distance can rise, but the branch prediction
-still collapses globally. Before adding another objective, the next transformer
-step should implement the audited pre-layer-norm/final-normalization path and
-screen whether a more standard GPT block lets QuarkLM use prompt-conditioned
-hidden separation while preserving the closed-world data boundary.
+still collapses globally. The pre-layer-norm/final-normalization path is now
+implemented and screened; it cracks full collapse in most multi-target profiles
+but leaves QA and heldout collapsed, so the next repair should stabilize that
+partial prompt-conditioned diversity rather than moving to another unrelated
+loss term.

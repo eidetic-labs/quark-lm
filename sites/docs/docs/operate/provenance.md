@@ -338,4 +338,10 @@ patterns, but no external weights, tokenizer vocabularies, embeddings,
 datasets, or training text enter the corpus or learned artifacts. The audit
 selects an opt-in pre-layer-norm transformer block path with final
 normalization as the next structural screen before another branch-loss repair.
+That path was implemented and screened in
+`runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+without changing corpus sources. The run moved prompt-position and final-norm
+parameters and cracked full collapse in `7/9` multi-target profiles, but QA and
+heldout remained collapsed and the final diversity target still failed across
+all `9` multi-target eval profiles.
 None of these runs were promoted.

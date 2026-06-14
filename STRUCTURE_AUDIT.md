@@ -89,24 +89,26 @@ separation without producing prompt-specific branch tokens. That shifts the
 next model change away from another branch-loss objective and toward a standard
 GPT structural screen.
 
-Next implementation target:
+Implementation checkpoint:
 
-1. Add an opt-in pre-layer-norm transformer block path.
-2. Include a final normalization before the output head when that path is
-   enabled.
-3. Preserve the existing default path so prior checkpoints still load and
-   previous evidence remains comparable.
-4. Add focused tests proving baseline-equivalent behavior at initialization
-   where zero-initialized additions are expected, forward parity between scalar
-   and float paths, config round trip, and distinct behavior when the new path
-   is enabled.
-5. Run a bounded context-80 branch-only screen only after those structural tests
-   pass.
+1. `--use-pre-layer-norm` now adds an opt-in pre-layer-norm transformer block
+   path.
+2. The path applies final layer normalization before the output head.
+3. The existing default path remains unchanged so prior checkpoints still load
+   and previous evidence remains comparable.
+4. Focused tests cover config round trip, older-checkpoint defaults,
+   scalar/float forward parity, parameter inclusion, parser wiring, and
+   distinct behavior when the new path is enabled.
+5. The bounded context-80 branch-only screen
+   `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+   ran after those tests passed. It failed the formal branch-diversity target
+   across all `9` multi-target profiles, but it cracked full collapse in `7/9`
+   profiles while QA and heldout stayed collapsed.
 
 ## Next Structural Targets
 
-1. Implement and test an opt-in pre-layer-norm transformer path with final
-   normalization.
+1. Stabilize the pre-layer-norm partial-diversity gain so QA and heldout also
+   stop collapsing to one global branch token.
 2. Decide whether QuarkLM should add additional standard stabilizers such as
    residual-dropout placeholders, tied embeddings, better initialization, or a
    more conventional optimizer schedule.

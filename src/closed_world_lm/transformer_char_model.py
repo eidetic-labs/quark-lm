@@ -56,6 +56,7 @@ class TransformerConfig:
     seed: int = 17
     num_layers: int = 1
     use_layer_norm: bool = False
+    use_pre_layer_norm: bool = False
     layer_norm_epsilon: float = 1e-5
     use_context_mean: bool = False
     use_context_projection: bool = False
@@ -134,6 +135,12 @@ class TinyTransformerLM:
         self.ln1_bias = vector_to_scalars(weights.get("ln1_bias", [0.0 for _ in range(dim)]))
         self.ln2_gain = vector_to_scalars(weights.get("ln2_gain", [1.0 for _ in range(dim)]))
         self.ln2_bias = vector_to_scalars(weights.get("ln2_bias", [0.0 for _ in range(dim)]))
+        self.final_ln_gain = vector_to_scalars(
+            weights.get("final_ln_gain", [1.0 for _ in range(dim)])
+        )
+        self.final_ln_bias = vector_to_scalars(
+            weights.get("final_ln_bias", [0.0 for _ in range(dim)])
+        )
         self.extra_blocks = [
             self._block_from_dict(layer)
             for layer in weights.get("extra_layers", [])
@@ -206,6 +213,8 @@ class TinyTransformerLM:
             "prompt_summary_query": [rand(scale) for _ in range(dim)],
             "prompt_summary_w": [[0.0 for _ in range(dim)] for _ in range(dim)],
             "prompt_summary_b": [0.0 for _ in range(dim)],
+            "final_ln_gain": [1.0 for _ in range(dim)],
+            "final_ln_bias": [0.0 for _ in range(dim)],
             "extra_layers": [
                 block_weights()
                 for _ in range(max(config.num_layers - 1, 0))
@@ -274,6 +283,9 @@ class TinyTransformerLM:
             "ln2_bias": vector_to_floats(block["ln2_bias"]),
         }
 
+    def _uses_block_layer_norm_parameters(self) -> bool:
+        return self.config.use_layer_norm or self.config.use_pre_layer_norm
+
     def parameters(self) -> list[Scalar]:
         params: list[Scalar] = []
         for item in [
@@ -317,8 +329,11 @@ class TinyTransformerLM:
                 self.prompt_summary_b,
             ]:
                 params.extend(flatten_scalars(item))
-        if self.config.use_layer_norm:
+        if self._uses_block_layer_norm_parameters():
             for item in [self.ln1_gain, self.ln1_bias, self.ln2_gain, self.ln2_bias]:
+                params.extend(flatten_scalars(item))
+        if self.config.use_pre_layer_norm:
+            for item in [self.final_ln_gain, self.final_ln_bias]:
                 params.extend(flatten_scalars(item))
         for block in self.extra_blocks:
             for item in [
@@ -336,7 +351,7 @@ class TinyTransformerLM:
                 block["b2"],
             ]:
                 params.extend(flatten_scalars(item))
-            if self.config.use_layer_norm:
+            if self._uses_block_layer_norm_parameters():
                 for item in [
                     block["ln1_gain"],
                     block["ln1_bias"],
@@ -390,13 +405,16 @@ class TinyTransformerLM:
                 self.prompt_summary_b,
             ]:
                 params.extend(flatten_scalars(item))
-        if self.config.use_layer_norm:
+        if self._uses_block_layer_norm_parameters():
             for item in [
                 top_block["ln1_gain"],
                 top_block["ln1_bias"],
                 top_block["ln2_gain"],
                 top_block["ln2_bias"],
             ]:
+                params.extend(flatten_scalars(item))
+        if self.config.use_pre_layer_norm:
+            for item in [self.final_ln_gain, self.final_ln_bias]:
                 params.extend(flatten_scalars(item))
         return params
 
@@ -422,7 +440,9 @@ class TinyTransformerLM:
             for block in float_blocks:
                 x_float = self._forward_full_block_floats(x_float, block)
             x = matrix_to_scalars(x_float)
-            return self._forward_final_block_scalars(x, self.blocks[-1], context)
+            return self._finalize_hidden_scalars(
+                self._forward_final_block_scalars(x, self.blocks[-1], context)
+            )
         x = [
             [
                 self.token_embeddings[token_id][dim] + self.position_embeddings[position][dim]
@@ -431,11 +451,15 @@ class TinyTransformerLM:
             for position, token_id in enumerate(context)
         ]
         if self.config.num_layers == 1:
-            return self._forward_final_block_scalars(x, self.blocks[0], context)
+            return self._finalize_hidden_scalars(
+                self._forward_final_block_scalars(x, self.blocks[0], context)
+            )
         else:
             for block in self.blocks[:-1]:
                 x = self._forward_full_block_scalars(x, block)
-            return self._forward_final_block_scalars(x, self.blocks[-1], context)
+            return self._finalize_hidden_scalars(
+                self._forward_final_block_scalars(x, self.blocks[-1], context)
+            )
 
     def _forward_floats(self, context: list[int]) -> list[float]:
         return linear_floats(
@@ -460,11 +484,35 @@ class TinyTransformerLM:
         ]
         float_blocks = [self._block_to_floats(block) for block in self.blocks]
         if self.config.num_layers == 1:
-            return self._forward_final_block_floats(x, float_blocks[0], context)
+            return self._finalize_hidden_floats(
+                self._forward_final_block_floats(x, float_blocks[0], context)
+            )
         else:
             for block in float_blocks[:-1]:
                 x = self._forward_full_block_floats(x, block)
-            return self._forward_final_block_floats(x, float_blocks[-1], context)
+            return self._finalize_hidden_floats(
+                self._forward_final_block_floats(x, float_blocks[-1], context)
+            )
+
+    def _finalize_hidden_scalars(self, hidden: list[Scalar]) -> list[Scalar]:
+        if not self.config.use_pre_layer_norm:
+            return hidden
+        return layer_norm_scalars(
+            hidden,
+            self.final_ln_gain,
+            self.final_ln_bias,
+            self.config.layer_norm_epsilon,
+        )
+
+    def _finalize_hidden_floats(self, hidden: list[float]) -> list[float]:
+        if not self.config.use_pre_layer_norm:
+            return hidden
+        return layer_norm_floats(
+            hidden,
+            vector_to_floats(self.final_ln_gain),
+            vector_to_floats(self.final_ln_bias),
+            self.config.layer_norm_epsilon,
+        )
 
     def _forward_final_block_scalars(
         self,
@@ -472,9 +520,10 @@ class TinyTransformerLM:
         block: dict[str, Any],
         context: list[int],
     ) -> list[Scalar]:
-        q = [linear_scalars(row, block["wq"], block["bq"]) for row in x]
-        k = [linear_scalars(row, block["wk"], block["bk"]) for row in x]
-        v = [linear_scalars(row, block["wv"], block["bv"]) for row in x]
+        attention_input = self._attention_input_scalars(x, block)
+        q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
+        k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
+        v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
         last_position = self.config.context_size - 1
         scores = [
@@ -586,9 +635,10 @@ class TinyTransformerLM:
         x: list[list[Scalar]],
         block: dict[str, Any],
     ) -> list[list[Scalar]]:
-        q = [linear_scalars(row, block["wq"], block["bq"]) for row in x]
-        k = [linear_scalars(row, block["wk"], block["bk"]) for row in x]
-        v = [linear_scalars(row, block["wv"], block["bv"]) for row in x]
+        attention_input = self._attention_input_scalars(x, block)
+        q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
+        k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
+        v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
         outputs = []
         for position in range(self.config.context_size):
@@ -613,6 +663,22 @@ class TinyTransformerLM:
         hidden: list[Scalar],
         block: dict[str, Any],
     ) -> list[Scalar]:
+        if self.config.use_pre_layer_norm:
+            ff_input = layer_norm_scalars(
+                hidden,
+                block["ln2_gain"],
+                block["ln2_bias"],
+                self.config.layer_norm_epsilon,
+            )
+            ff_hidden = [
+                value.tanh()
+                for value in linear_scalars(ff_input, block["w1"], block["b1"])
+            ]
+            ff_out = linear_scalars(ff_hidden, block["w2"], block["b2"])
+            return [
+                hidden[dim] + ff_out[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
         if self.config.use_layer_norm:
             hidden = layer_norm_scalars(
                 hidden,
@@ -635,15 +701,33 @@ class TinyTransformerLM:
             )
         return block_out
 
+    def _attention_input_scalars(
+        self,
+        x: list[list[Scalar]],
+        block: dict[str, Any],
+    ) -> list[list[Scalar]]:
+        if not self.config.use_pre_layer_norm:
+            return x
+        return [
+            layer_norm_scalars(
+                row,
+                block["ln1_gain"],
+                block["ln1_bias"],
+                self.config.layer_norm_epsilon,
+            )
+            for row in x
+        ]
+
     def _forward_final_block_floats(
         self,
         x: list[list[float]],
         block: dict[str, Any],
         context: list[int],
     ) -> list[float]:
-        q = [linear_floats(row, block["wq"], block["bq"]) for row in x]
-        k = [linear_floats(row, block["wk"], block["bk"]) for row in x]
-        v = [linear_floats(row, block["wv"], block["bv"]) for row in x]
+        attention_input = self._attention_input_floats(x, block)
+        q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
+        k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
+        v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
         last_position = self.config.context_size - 1
         scores = [
@@ -758,9 +842,10 @@ class TinyTransformerLM:
         x: list[list[float]],
         block: dict[str, Any],
     ) -> list[list[float]]:
-        q = [linear_floats(row, block["wq"], block["bq"]) for row in x]
-        k = [linear_floats(row, block["wk"], block["bk"]) for row in x]
-        v = [linear_floats(row, block["wv"], block["bv"]) for row in x]
+        attention_input = self._attention_input_floats(x, block)
+        q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
+        k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
+        v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
         outputs = []
         for position in range(self.config.context_size):
@@ -783,6 +868,22 @@ class TinyTransformerLM:
         hidden: list[float],
         block: dict[str, Any],
     ) -> list[float]:
+        if self.config.use_pre_layer_norm:
+            ff_input = layer_norm_floats(
+                hidden,
+                block["ln2_gain"],
+                block["ln2_bias"],
+                self.config.layer_norm_epsilon,
+            )
+            ff_hidden = [
+                math.tanh(value)
+                for value in linear_floats(ff_input, block["w1"], block["b1"])
+            ]
+            ff_out = linear_floats(ff_hidden, block["w2"], block["b2"])
+            return [
+                hidden[dim] + ff_out[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
         if self.config.use_layer_norm:
             hidden = layer_norm_floats(
                 hidden,
@@ -804,6 +905,23 @@ class TinyTransformerLM:
                 self.config.layer_norm_epsilon,
             )
         return block_out
+
+    def _attention_input_floats(
+        self,
+        x: list[list[float]],
+        block: dict[str, Any],
+    ) -> list[list[float]]:
+        if not self.config.use_pre_layer_norm:
+            return x
+        return [
+            layer_norm_floats(
+                row,
+                block["ln1_gain"],
+                block["ln1_bias"],
+                self.config.layer_norm_epsilon,
+            )
+            for row in x
+        ]
 
     def predict(self, context: list[int]) -> list[float]:
         return softmax_floats(self._forward_floats(context))
@@ -1171,6 +1289,8 @@ class TinyTransformerLM:
                 "ln1_bias": vector_to_floats(self.ln1_bias),
                 "ln2_gain": vector_to_floats(self.ln2_gain),
                 "ln2_bias": vector_to_floats(self.ln2_bias),
+                "final_ln_gain": vector_to_floats(self.final_ln_gain),
+                "final_ln_bias": vector_to_floats(self.final_ln_bias),
                 "extra_layers": [
                     self._block_to_floats(block)
                     for block in self.extra_blocks
@@ -1862,6 +1982,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--feedforward-dim", type=int, default=16)
     train_parser.add_argument("--num-layers", type=int, default=1)
     train_parser.add_argument("--use-layer-norm", action="store_true")
+    train_parser.add_argument(
+        "--use-pre-layer-norm",
+        action="store_true",
+        help=(
+            "Use GPT-style pre-layer normalization in transformer blocks and "
+            "apply a final layer norm before the language-model head."
+        ),
+    )
     train_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     train_parser.add_argument(
         "--use-context-mean",
@@ -2104,6 +2232,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--feedforward-dim", type=int, default=16)
     answer_parser.add_argument("--num-layers", type=int, default=1)
     answer_parser.add_argument("--use-layer-norm", action="store_true")
+    answer_parser.add_argument(
+        "--use-pre-layer-norm",
+        action="store_true",
+        help=(
+            "Use GPT-style pre-layer normalization in transformer blocks and "
+            "apply a final layer norm before the language-model head."
+        ),
+    )
     answer_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     answer_parser.add_argument(
         "--use-context-mean",
@@ -2183,6 +2319,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         seed=args.seed,
         num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
+        use_pre_layer_norm=args.use_pre_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
@@ -2243,6 +2380,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "feedforward_dim": args.feedforward_dim,
         "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
+        "use_pre_layer_norm": args.use_pre_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
@@ -4561,6 +4699,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         seed=args.seed,
         num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
+        use_pre_layer_norm=args.use_pre_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
@@ -6173,6 +6312,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "feedforward_dim": args.feedforward_dim,
         "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
+        "use_pre_layer_norm": args.use_pre_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
