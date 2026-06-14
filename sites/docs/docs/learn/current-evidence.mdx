@@ -213,6 +213,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Coverage-anchor heldout</td><td><code>{state.transformerCoverageAnchorHeldout}</code></td></tr>
     <tr><td>Coverage-anchor history</td><td><code>{state.transformerCoverageAnchorHistory}</code></td></tr>
     <tr><td>Coverage-anchor status</td><td><code>{state.transformerCoverageAnchorStatus}</code></td></tr>
+    <tr><td>Latest target-balanced anchor run</td><td><code>{state.transformerLatestTargetBalancedAnchorRun}</code></td></tr>
+    <tr><td>Target-balanced anchor mode</td><td><code>{state.transformerTargetBalancedAnchorMode}</code></td></tr>
+    <tr><td>Target-balanced anchor unit test</td><td><code>{state.transformerTargetBalancedAnchorUnitTest}</code></td></tr>
+    <tr><td>Target-balanced anchor QA</td><td><code>{state.transformerTargetBalancedAnchorQa}</code></td></tr>
+    <tr><td>Target-balanced anchor heldout</td><td><code>{state.transformerTargetBalancedAnchorHeldout}</code></td></tr>
+    <tr><td>Target-balanced anchor history</td><td><code>{state.transformerTargetBalancedAnchorHistory}</code></td></tr>
+    <tr><td>Target-balanced anchor status</td><td><code>{state.transformerTargetBalancedAnchorStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -660,13 +667,22 @@ v0.42 promoted checkpoint.
   already-covered wrong `"i"` token: QA/heldout predicted diversity fell to
   `1/8`, target-token coverage to `0.125`, and average target rank above `21`.
   This rejects global covered-target anchoring as implemented.
+- `runs/transformer-answer-v0.62-fullstack-target-balanced-anchor-smoke-dim4-context80/`
+  makes covered-target anchoring target-balanced: anchor losses are averaged by
+  covered target and skipped when only one covered target is present. The
+  focused transformer test verifies that this singleton guard skips the v0.61
+  one-token over-anchor while the old global anchor still raises that token.
+  The full-stack screen completed `50/50` direct steps and restored from step
+  `0` under the v0.60 coverage floor. It avoided the hard `"i"` attractor, but
+  QA/heldout target-token coverage still collapsed to `0.0` during training.
+  This rejects target-balanced anchoring as sufficient.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should preserve target-token coverage in a target-balanced or
-profile-aware way before sharpening exact target selection. The repair must
-improve prompt-conditioned branch diversity instead of only making more prompt
-text visible, balancing branch targets, raising hidden distance, lowering
-branch loss, or letting one covered token become a global attractor.
+but it should train directly from profile-level target-coverage deficits before
+sharpening exact target selection. The repair must improve prompt-conditioned
+branch diversity instead of only making more prompt text visible, balancing
+branch targets, raising hidden distance, lowering branch loss, or only
+anchoring branches that are already covered.
 
 The v0.42 self-improvement run passed:
 

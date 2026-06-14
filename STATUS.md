@@ -289,6 +289,20 @@ QA/heldout predicted diversity fell to `1/8`, target-token coverage fell to
 make preservation target-balanced or profile-aware, so an anchor can protect
 baseline coverage without turning one covered token into a global attractor.
 
+`runs/transformer-answer-v0.62-fullstack-target-balanced-anchor-smoke-dim4-context80/`
+makes the covered-target anchor target-balanced with
+`branch-balanced-context-target-balanced-anchor-unlikelihood`: anchor losses are
+averaged by covered target and skipped when a replay batch contains only one
+covered target. The focused tests pass, including a regression where the
+singleton guard skips the v0.61 over-anchor while the old global anchor still
+raises that single token. The full-stack screen completed `50/50` direct
+steps, wrote `7` direct-answer JSONL rows, and restored step `0` under the
+v0.60 coverage floor. It avoided the v0.61 global `"i"` attractor, but
+QA/heldout target-token coverage still collapsed to `0.0` during training and
+trained snapshots remained ineligible for restore. The next repair should use
+profile-level coverage deficits as the training signal, not only anchors from
+already-covered replay branches.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

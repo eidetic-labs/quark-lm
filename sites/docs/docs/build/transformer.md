@@ -156,6 +156,11 @@ Use `--direct-answer-mode branch-context-coverage-anchor-unlikelihood` to add a
 covered-target anchor for replay branches whose own target is already top-1.
 Use `--direct-answer-mode branch-balanced-context-coverage-anchor-unlikelihood`
 for the same objective with target-balanced sampled branch and replay batches.
+Use `--direct-answer-mode branch-context-target-balanced-anchor-unlikelihood`
+to average covered-target anchors by covered target and skip singleton covered
+target batches. Use
+`--direct-answer-mode branch-balanced-context-target-balanced-anchor-unlikelihood`
+for the same objective with target-balanced sampled branch and replay batches.
 Best branch snapshot scoring first enforces a profile-wise target-token
 coverage floor against the baseline snapshot. Eligible snapshots then use
 target-rank/top-k evidence before generic wrong-token diversity, so restore
@@ -999,6 +1004,34 @@ Latest full-stack covered-target anchor branch repair smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; global covered-target anchoring over-protects one covered token instead of preserving coverage diversity |
+
+Latest full-stack target-balanced anchor branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.62-fullstack-target-balanced-anchor-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-target-balanced-anchor-unlikelihood` |
+| Scoring guard | profile-wise target-token coverage floor before rank/top-k scoring |
+| Anchor pressure | covered-target anchors averaged by covered target; singleton covered-target batches skip anchors |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Positive target CE | `0.0` |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including singleton covered-target skip regression |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | avoided v0.61's hard `"i"` attractor, but QA/heldout target-token coverage still collapsed to `0.0` during training |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | rejected; target-balanced anchors are not enough without profile-level coverage-deficit pressure |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

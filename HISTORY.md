@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.62
+
+- Added target-balanced anchor repair and rejected full-stack evidence.
+
 ## v0.61
 
 - Added covered-target anchor repair and rejected full-stack evidence.

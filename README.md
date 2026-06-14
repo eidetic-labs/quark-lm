@@ -519,6 +519,20 @@ Current transformer answer-lesson run:
   regressed above `21`. This rejects global covered-target anchoring as
   implemented; the next repair should preserve coverage per target bucket
   without letting one covered token dominate every branch context.
+- v0.62 makes that anchor target-balanced with
+  `branch-balanced-context-target-balanced-anchor-unlikelihood`: covered-target
+  anchors are averaged by covered target and skipped when only one covered
+  target is present, preventing a singleton covered token from dominating the
+  replay loss. The focused transformer test proves the singleton guard skips
+  the v0.61 over-anchor while the old global anchor still raises that one
+  token. The full-stack screen
+  `runs/transformer-answer-v0.62-fullstack-target-balanced-anchor-smoke-dim4-context80/`
+  completed `50/50` direct steps, wrote `7` JSONL rows, and restored step `0`.
+  It avoided v0.61's hard `"i"` attractor, but QA/heldout target-token
+  coverage still collapsed to `0.0` during training and the best trained
+  snapshots remained ineligible under the v0.60 coverage floor. This rejects
+  target-balanced anchoring as sufficient; the next repair should preserve
+  coverage from profile-level deficits, not only from covered replay branches.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
