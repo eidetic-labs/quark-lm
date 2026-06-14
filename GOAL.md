@@ -1705,6 +1705,24 @@ pools, and corpus diffs.
 - this is target-definition evidence: future transformer screens should not
   graduate to full greedy-eval promotion snapshots until this target improves
 
+`runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`:
+
+- added `branch-diversity-unlikelihood`, a direct-answer training mode that
+  batches distinct branch targets, trains their targets, suppresses each branch
+  context's current wrong prediction, and keeps branch-target contrast
+- unit coverage verifies that the objective suppresses a global wrong token
+  while raising branch target probability on a small branch batch
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `10` direct-answer steps and recorded `actual_steps: 10`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA diversity moved from all `"x"` predictions to all `"b"` predictions,
+  target-token coverage improved `0.0 -> 0.125`, and `predicted_unique`
+  remained `1/8`
+- rejected as training-mode evidence: the objective moves the collapsed token
+  but does not yet create prompt-specific branch diversity
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

@@ -199,6 +199,15 @@ Current transformer answer-lesson run:
   `predicted_unique: 1`, dominant predicted token `"r"` at rate `1.0`, and
   target-token coverage `0.125`. This makes prompt-specific branch diversity an
   explicit screen target before any full greedy-eval promotion snapshot.
+- A new `branch-diversity-unlikelihood` mode now trains each distinct branch
+  target while also penalizing the model's current wrong prediction for that
+  branch context. The first context-80 smoke
+  `runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`
+  passed the branch-context gate and ran `10/10` direct steps, but still failed
+  the diversity target across all `9` multi-target profiles. QA moved from all
+  `"x"` predictions to all `"b"` predictions, with target-token coverage
+  `0.0 -> 0.125` and `predicted_unique` still `1/8`, so it is rejected
+  training-mode evidence rather than a promotion candidate.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -77,6 +77,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-diversity target run</td><td><code>{state.transformerLatestBranchDiversityRun}</code></td></tr>
     <tr><td>Branch-diversity target</td><td><code>{state.transformerBranchDiversityTarget}</code></td></tr>
     <tr><td>Branch-diversity smoke</td><td><code>{state.transformerBranchDiversitySmoke}</code></td></tr>
+    <tr><td>Latest branch-diversity training run</td><td><code>{state.transformerLatestBranchDiversityTrainRun}</code></td></tr>
+    <tr><td>Branch-diversity training mode</td><td><code>{state.transformerBranchDiversityTrainMode}</code></td></tr>
+    <tr><td>Branch-diversity training status</td><td><code>{state.transformerBranchDiversityTrainStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -293,6 +296,13 @@ v0.42 promoted checkpoint.
   diversity target failed across all `9` multi-target eval profiles. Final QA
   had `target_unique: 8`, `predicted_unique: 1`, dominant predicted token `"r"`
   at rate `1.0`, and target-token coverage `0.125`.
+- `runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`
+  added `branch-diversity-unlikelihood`, which trains distinct branch targets
+  while penalizing each branch context's current wrong prediction. The required
+  branch-context gate passed and `10/10` direct steps ran, but the diversity
+  target still failed across all `9` multi-target profiles. QA moved from all
+  `"x"` to all `"b"` predictions, with target-token coverage `0.0 -> 0.125`
+  and `predicted_unique` still `1/8`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

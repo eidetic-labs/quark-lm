@@ -785,6 +785,45 @@ class TinyTransformerLM:
             parameter.data -= learning_rate * clipped_grad
         return loss.data
 
+    def train_step_with_branch_diversity(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        contrast_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        loss = Scalar(0.0)
+        for context, target, predicted in branches:
+            probs = softmax_scalars(self._forward_scalars(context))
+            if positive_weight > 0.0:
+                loss = loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                loss = loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            contrast_targets = [
+                branch_target
+                for branch_target in branch_targets
+                if branch_target != target
+            ]
+            if contrast_weight > 0.0 and contrast_targets:
+                per_target_weight = contrast_weight / len(contrast_targets)
+                for contrast_target in contrast_targets:
+                    loss = loss + (
+                        -(Scalar(1.0) - probs[contrast_target] + 1e-12).log()
+                    ) * per_target_weight
+        loss = loss / max(len(branches), 1)
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
     def generate(
         self,
         tokenizer: CharTokenizer,
@@ -1664,6 +1703,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-collapse-unlikelihood",
             "branch-batch-contrast-unlikelihood",
             "periodic-branch-batch-contrast-unlikelihood",
+            "branch-diversity-unlikelihood",
+            "periodic-branch-diversity-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
@@ -2547,6 +2588,34 @@ def direct_answer_branch_batch(
     return branches
 
 
+def direct_answer_branch_diversity_batch(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[tuple[list[int], int, int]]:
+    branches = direct_answer_branch_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    diversity_branches: list[tuple[list[int], int, int]] = []
+    for context, target_id in branches:
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        diversity_branches.append((context, target_id, predicted_id))
+    return diversity_branches
+
+
 def direct_answer_hard_branch_contrast(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -2992,6 +3061,50 @@ def train_direct_answer_branch_batch_contrast_unlikelihood(
         learning_rate,
         negative_weight,
         positive_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_diversity_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    contrast_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_diversity(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        contrast_weight,
         params=params,
     )
 
@@ -4578,6 +4691,56 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         args.direct_answer_learning_rate,
                         args.direct_answer_negative_weight,
                         args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_branch_batch_size,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_branch_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+            elif args.direct_answer_mode == "branch-diversity-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_diversity_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-branch-diversity-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_branch_diversity_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_contrast_weight,
                         args.direct_answer_branch_position,
                         args.direct_answer_branch_batch_size,
                         direct_answer_terminator,

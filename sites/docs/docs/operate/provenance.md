@@ -267,4 +267,10 @@ corpus sources. The smoke run
 `runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
 passed the branch-context gate, ran all `5` requested direct steps, and recorded
 `branch_diversity_target` failure across all `9` multi-target eval profiles.
+The first diversity-aware training objective was then added as
+`branch-diversity-unlikelihood`, still without changing corpus sources. The
+context-80 smoke
+`runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`
+passed the branch-context gate and ran all `10` requested direct steps, but the
+diversity target still failed across all `9` multi-target eval profiles.
 None of these runs were promoted.

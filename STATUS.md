@@ -242,6 +242,20 @@ rate `1.0`, and target-token coverage `0.125`. This turns branch diversity into
 a required screen signal before a full greedy-eval promotion snapshot is worth
 running.
 
+The first diversity-aware training mode is now implemented as
+`branch-diversity-unlikelihood`. It trains distinct branch targets together,
+penalizes the model's current wrong prediction for each branch context, and
+retains the existing branch-target contrast penalty. Unit coverage verifies that
+the objective suppresses a global wrong token while raising target probability
+on a small branch batch. The context-80 corpus smoke at
+`runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`
+passed the branch-context gate and ran `10/10` direct steps, but the final
+branch-diversity target still failed across all `9` multi-target profiles. QA
+prediction moved from all `"x"` to all `"b"`, target-token coverage improved
+`0.0 -> 0.125`, and `predicted_unique` stayed `1/8`. This is rejected
+training-mode evidence: the objective moves the collapse token but does not yet
+create prompt-specific branch diversity.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

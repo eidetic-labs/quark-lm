@@ -111,6 +111,9 @@ training boundary.
   profiles are present. A failed diversity target blocks promotion-style
   interpretation until a follow-up screen improves predicted-token coverage
   across multi-target eval profiles.
+- Diversity-aware branch modes must be judged by `branch_diversity_target` and
+  target-token coverage, not by moving collapse from one dominant token to
+  another.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

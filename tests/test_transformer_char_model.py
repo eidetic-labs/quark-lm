@@ -36,6 +36,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
     direct_answer_branch_batch,
+    direct_answer_branch_diversity_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
@@ -58,6 +59,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_repair_unlikelihood,
     train_direct_answer_branch_collapse_unlikelihood,
     train_direct_answer_branch_batch_contrast_unlikelihood,
+    train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -1081,6 +1083,52 @@ class TransformerCharModelTest(unittest.TestCase):
             {"n", "g", "t"},
         )
 
+    def test_branch_diversity_batch_records_current_predictions(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=44,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            [near, green, tree],
+            random.Random(14),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(len(batch), 3)
+        self.assertEqual(
+            {tokenizer.itos[target] for _context, target, _predicted in batch},
+            {"n", "g", "t"},
+        )
+        self.assertEqual(
+            {tokenizer.itos[predicted] for _context, _target, predicted in batch},
+            {"."},
+        )
+
     def test_branch_batch_contrast_improves_prompt_branch_margin(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -1155,6 +1203,81 @@ class TransformerCharModelTest(unittest.TestCase):
 
         after = branch_margin()
         self.assertGreater(after, before)
+
+    def test_branch_diversity_unlikelihood_suppresses_global_wrong_token(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=45,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        def batch_scores() -> tuple[float, float]:
+            wrong_total = 0.0
+            target_total = 0.0
+            for context, target, _predicted in batch:
+                probs = model.predict(context)
+                wrong_total += probs[wrong_id]
+                target_total += probs[target]
+            return wrong_total, target_total
+
+        before_wrong, before_target = batch_scores()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_diversity_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.06,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                contrast_weight=1.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_wrong, after_target = batch_scores()
+        self.assertLess(after_wrong, before_wrong)
+        self.assertGreater(after_target, before_target)
 
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
@@ -1985,6 +2108,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-collapse-unlikelihood",
             "branch-batch-contrast-unlikelihood",
             "periodic-branch-batch-contrast-unlikelihood",
+            "branch-diversity-unlikelihood",
+            "periodic-branch-diversity-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",

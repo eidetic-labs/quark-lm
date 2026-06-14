@@ -75,6 +75,9 @@ screens that need branch profiles and branch-context gate evidence but can
 intentionally skip greedy completion evals in direct-answer JSONL snapshots.
 Direct-answer snapshots also emit `branch_diversity_target`, which fails when
 multi-target eval profiles collapse to too few predicted branch tokens.
+Use `--direct-answer-mode branch-diversity-unlikelihood` to train distinct
+branch targets while also suppressing each branch context's current wrong
+prediction.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -271,6 +274,21 @@ Latest branch-diversity target smoke:
 | Final QA target-token coverage | `0.125` |
 | Promotion status | explicit target evidence only |
 
+Latest branch-diversity training smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/` |
+| Mode | `branch-diversity-unlikelihood` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `10/10` |
+| Snapshot mode | `branch-only` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"b"` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | rejected training-mode evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -315,3 +333,7 @@ repair/contrast and branch-batch contrast collapse QA branch prediction to one
 global token. A full greedy-eval promotion snapshot is not warranted until a
 screen improves prompt-specific branch diversity. The branch-diversity target
 now makes that requirement machine-readable in every direct-answer snapshot.
+`branch-diversity-unlikelihood` trains directly against the observed collapse
+token and improves the tiny unit case, but the first corpus smoke only moves the
+dominant global prediction. The next repair needs to make diversity stable
+across prompts, not just rotate the collapsed token.
