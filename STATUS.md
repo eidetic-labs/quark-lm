@@ -240,6 +240,23 @@ predictions collapsed to one wrong branch token by step `50`. The next repair
 should make replay context-owned, not merely pool-owned, so broad target mass
 cannot be satisfied by the same target distribution on every branch context.
 
+`runs/transformer-answer-v0.59-fullstack-context-replay-coverage-smoke-dim4-context80/`
+implements context-owned replay with
+`branch-balanced-context-replay-coverage-unlikelihood`: the repair batch still
+trains wrong-token unlikelihood, while a broader target-balanced replay sample
+trains each admitted branch context to own its own target within the replay
+target set. The focused tests pass, including a regression that raises replay
+target-set mass and the weakest owned-target share on fixed replay contexts.
+The full-stack screen still rejects the mechanism: it completed `50/50` direct
+steps and best-snapshot scoring restored step `0`. Training snapshots improved
+QA average target rank as far as `7.375`, QA top-3 to `0.375`, QA top-5 to
+`0.5`, and admissions top-5 to `0.5208` by step `50`; however, the diversity
+target still failed `0/9`, target-token coverage hit `0.0` during training,
+and no trained snapshot beat the step-0 baseline under branch snapshot scoring.
+The next repair should either strengthen target-preserving ownership directly
+or make snapshot scoring reject rank/top-k gains whenever target-token coverage
+regresses.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

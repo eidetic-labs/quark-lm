@@ -147,6 +147,11 @@ target-set mass and target-share balance over the broader admitted branch
 training pool at the same branch position. Use
 `--direct-answer-mode branch-balanced-target-replay-coverage-unlikelihood` for
 the same objective with target-balanced sampled branch batches.
+Use `--direct-answer-mode branch-context-replay-coverage-unlikelihood` to train
+each sampled replay branch context to own its own target within the replay
+target set. Use
+`--direct-answer-mode branch-balanced-context-replay-coverage-unlikelihood` for
+the same objective with target-balanced sampled branch and replay batches.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -905,6 +910,32 @@ Latest full-stack target-replay coverage branch repair smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; pool-owned replay coverage still does not preserve context-specific target ownership |
+
+Latest full-stack context-replay coverage branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.59-fullstack-context-replay-coverage-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-replay-coverage-unlikelihood` |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Replay pressure | target-set mass plus context-owned target share over admitted branch-pool replay contexts |
+| Positive target CE | `0.0` |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including fixed replay-context owned-target share regression |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | step `40` improved QA average target rank to `7.375`, top-3 to `0.375`, and top-5 to `0.5`; by step `50`, QA predicted diversity was only `2/8` and target-token coverage had hit `0.0` during training |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | rejected; context-owned replay improves rank/top-k snapshots but still does not preserve target-token coverage |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

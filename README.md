@@ -475,6 +475,21 @@ Current transformer answer-lesson run:
   rejects pool-level replay coverage as implemented; the next repair needs
   replay that preserves context-specific target ownership instead of only
   equalizing broad target-token mass.
+- v0.59 makes replay context-owned with
+  `branch-balanced-context-replay-coverage-unlikelihood`: replay uses admitted
+  branch contexts from the training pool, and each replay context is trained to
+  own its target within the replay target set instead of spreading the same
+  target distribution across every context. The focused transformer test proves
+  the objective lifts replay target-set mass and weakest owned-target share on
+  fixed replay contexts. The full-stack screen
+  `runs/transformer-answer-v0.59-fullstack-context-replay-coverage-smoke-dim4-context80/`
+  completed `50/50` direct steps, but best-snapshot scoring restored step `0`.
+  Training improved QA average target rank as far as `7.375`, QA top-3 to
+  `0.375`, and QA top-5 to `0.5`; by step `50`, admissions top-5 reached
+  `0.5208`. The diversity target still failed `0/9`, and target-token coverage
+  hit `0.0` during training. This rejects context-owned replay coverage as
+  implemented; the next repair needs stronger target-preserving ownership or
+  snapshot scoring that refuses rank gains when coverage collapses.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
