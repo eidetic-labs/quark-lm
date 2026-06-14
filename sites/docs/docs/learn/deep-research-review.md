@@ -70,10 +70,11 @@ the same discipline before another major repair screen.
 1. **v0.71:** experiment registry and run-intent schemas. Implemented.
 2. **v0.72:** standalone replay planner. Implemented.
 3. **v0.73:** corpus hygiene and training-plan artifacts. Implemented.
-4. **v0.74:** candidate quarantine.
-5. **v0.75:** deterministic closed-world verifier.
-6. **v0.76:** recipes and constraint-first promotion gates.
-7. **v0.77+:** new anti-collapse objective, tokenizer growth, or learned
+4. **v0.74:** research implementation map. Implemented.
+5. **v0.75:** candidate quarantine.
+6. **v0.76:** deterministic closed-world verifier.
+7. **v0.77:** recipes and constraint-first promotion gates.
+8. **v0.78+:** new anti-collapse objective, tokenizer growth, or learned
    verifier experiments.
 
 ## Operating Rule
@@ -89,5 +90,7 @@ answer cycles and transformer answer-training screens. v0.72 satisfies the
 replay-extraction part by moving replay planning to
 `src/closed_world_lm/replay_plan.py`. v0.73 satisfies the corpus-hygiene and
 training-plan part by writing `corpus_hygiene.json` and `training_plan.json`.
-The remaining required mechanics are candidate quarantine, deterministic
-verifier checks, recipes, and constraint-first promotion.
+v0.74 adds the [Research implementation map](./research-implementation-map.md)
+so the next mechanics are tied to sources, gaps, and acceptance evidence. The
+remaining required mechanics are candidate quarantine, deterministic verifier
+checks, recipes, and constraint-first promotion.

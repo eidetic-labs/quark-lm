@@ -94,9 +94,12 @@ provenance, and the goal framework itself.
 19. Follow the v0.70 implementation sequence before adding more direct-answer
     objective modes. v0.71 implements the experiment registry and run-intent
     artifacts; v0.72 extracts replay planning into a standalone module; v0.73
-    adds corpus hygiene and training-plan artifacts. The remaining sequence is
-    candidate quarantine, deterministic verifier checks, recipe boundaries, and
-    constraint-first promotion gates.
+    adds corpus hygiene and training-plan artifacts; v0.74 adds the research
+    implementation map that cross-references papers, open-source mechanics, and
+    QuarkLM gaps into a versioned implementation ladder. The remaining sequence
+    is candidate quarantine, deterministic verifier checks, recipe boundaries,
+    constraint-first promotion gates, and transformer responsibility
+    refactoring.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
@@ -110,6 +113,10 @@ provenance, and the goal framework itself.
     duplicate pressure, train/eval prompt overlap, candidate ratios,
     rare-profile coverage, allowed data sources, and planned artifacts before
     their metrics influence later versions.
+23. Treat deep research as a required implementation control: future mechanics
+    should cite the research or public implementation pattern they follow, name
+    the closed-world boundary they protect, and produce an artifact that proves
+    the mechanic worked or rejected the run.
 
 ## Weight Update Policy
 

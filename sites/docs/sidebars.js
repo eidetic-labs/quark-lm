@@ -12,6 +12,7 @@ const sidebars = {
         'learn/open-source-mechanics-audit',
         'learn/forward-research-plan',
         'learn/deep-research-review',
+        'learn/research-implementation-map',
         'learn/current-evidence',
       ],
     },

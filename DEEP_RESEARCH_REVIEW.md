@@ -408,19 +408,26 @@ sources, planned artifacts, and replay-plan summaries where applicable.
 
 ### v0.74
 
-Add candidate quarantine artifacts and lifecycle states.
+Added `RESEARCH_IMPLEMENTATION_MAP.md` and the matching Docusaurus Learn page.
+This checkpoint turns the deeper research review into a direct implementation
+map: source cluster, external mechanics pattern, QuarkLM gap, required
+implementation, and acceptance evidence.
 
 ### v0.75
+
+Add candidate quarantine artifacts and lifecycle states.
+
+### v0.76
 
 Add deterministic closed-world verifier checks for candidate acceptance and
 training-plan approval.
 
-### v0.76
+### v0.77
 
 Wire recipe objects and promotion gates so transformer screens cannot promote
 from loss, rank, or top-k movement unless constraints pass.
 
-### v0.77+
+### v0.78+
 
 Only after the above should QuarkLM add a new anti-collapse transformer
 objective, revisit tokenizer growth, or begin a learned verifier experiment.

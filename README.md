@@ -101,7 +101,15 @@ v0.73 adds corpus hygiene and training-plan artifacts in
 answer-training runs now write `corpus_hygiene.json` and `training_plan.json`
 with source mixtures, duplicate checks, train/eval prompt-overlap checks,
 candidate ratios, rare-profile coverage, allowed data sources, and planned
-artifacts. Candidate ratio is visible now; candidate quarantine remains v0.74.
+artifacts. Candidate ratio is visible now; the v0.74 implementation map defines
+candidate quarantine as the next code mechanic.
+
+v0.74 adds `RESEARCH_IMPLEMENTATION_MAP.md` and a matching Docusaurus Learn
+page. This is a research-control checkpoint, not a model-quality claim. It
+cross-references papers, open-source mechanics, and QuarkLM's current codebase
+into a source-to-gap-to-version implementation map. Candidate quarantine moves
+to v0.75, followed by deterministic verifier checks, recipe objects,
+constraint-first promotion gates, and transformer responsibility refactoring.
 
 ## Latest Evidence
 

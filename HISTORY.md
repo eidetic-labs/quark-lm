@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.74
+
+- Added research implementation map for source-backed mechanics planning.
+
 ## v0.73
 
 - Added corpus hygiene and training-plan artifacts.

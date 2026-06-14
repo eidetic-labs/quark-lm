@@ -419,20 +419,27 @@ replay-plan summary evidence.
 
 ### v0.74
 
+Added `RESEARCH_IMPLEMENTATION_MAP.md` and the matching Docusaurus Learn page.
+This research-control checkpoint cross-references papers, open-source
+mechanics, and QuarkLM's current codebase into a source-to-gap-to-version
+implementation map. No model-quality claim.
+
+### v0.75
+
 Add candidate quarantine artifacts for generated lessons, generated probes, and
 repair proposals. Candidates are not training data.
 
-### v0.75
+### v0.76
 
 Add deterministic closed-world verifier checks for candidate acceptance and
 training-plan approval.
 
-### v0.76
+### v0.77
 
 Wire recipe objects and promotion gates so transformer screens cannot promote
 from loss, rank, or top-k movement unless constraints pass.
 
-### v0.77+
+### v0.78+
 
 Only after the above should QuarkLM add a new anti-collapse transformer
 objective, revisit tokenizer growth, or begin a learned verifier experiment.

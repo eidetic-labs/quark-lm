@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.73 corpus hygiene and training-plan artifacts; promoted
+**Active version:** v0.74 research implementation map; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -77,6 +77,11 @@ Working tagline: Big idea. Tiny package.
   answer-training runs now write `corpus_hygiene.json` and `training_plan.json`
   with source mixtures, duplicate checks, train/eval prompt overlap, candidate
   ratios, rare-profile coverage, allowed data sources, and planned artifacts.
+- Research implementation map in `RESEARCH_IMPLEMENTATION_MAP.md` and
+  `sites/docs/docs/learn/research-implementation-map.md`. v0.74 ties research
+  clusters and open-source mechanics to QuarkLM implementation gaps and shifts
+  candidate quarantine to v0.75 so the next mechanics are source-backed before
+  code is added.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -176,6 +181,14 @@ transformer answer-training runs. These artifacts report source mixtures,
 duplicates, train/eval prompt overlap, candidate ratios, rare-profile
 coverage, allowed data sources, planned artifacts, and replay-plan summaries
 when profile-aware replay is written.
+
+v0.74 adds `RESEARCH_IMPLEMENTATION_MAP.md` and the matching Docusaurus Learn
+page. It cross-references transformer, continual-learning, small-data,
+self-generated-data, verifier, tokenizer, data-curation, transparent open-model,
+and public training-stack sources against QuarkLM's implementation gaps. The
+decision is to treat candidate quarantine as v0.75, deterministic verifier
+checks as v0.76, recipe and constraint-first promotion as v0.77, and transformer
+responsibility refactoring as v0.78 before another larger repair run.
 
 ## Latest Evidence
 

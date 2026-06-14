@@ -22,6 +22,5 @@ public surfaces synchronized.
 | README / Docusaurus / marketing | Public state that must not drift. |
 
 Start with [release discipline](./release-discipline.md), then read
-[experiment registry](./experiment-registry.md), [provenance](./provenance.md),
-[corpus hygiene](./corpus-hygiene.md), [provenance](./provenance.md), and
-[docs drift](./docs-drift.md).
+[experiment registry](./experiment-registry.md), [corpus hygiene](./corpus-hygiene.md),
+[provenance](./provenance.md), and [docs drift](./docs-drift.md).

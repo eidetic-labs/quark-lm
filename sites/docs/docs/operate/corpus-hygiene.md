@@ -45,6 +45,7 @@ visible before promotion gates or transformer screens interpret metrics.
 - replay-plan path and summary when profile-aware replay writes one;
 - planned artifacts.
 
-Candidate ratio is reported in v0.73. Candidate quarantine is the next planned
-mechanic, so generated or proposed examples still must not become training data
-without a later admission and verification path.
+Candidate ratio is reported in v0.73. v0.74 adds the research implementation
+map that makes candidate quarantine the next code mechanic, so generated or
+proposed examples still must not become training data without a later admission
+and verification path.
