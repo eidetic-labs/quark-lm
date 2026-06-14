@@ -551,6 +551,19 @@ Current transformer answer-lesson run:
   remained ineligible. This rejects deficit pressure by itself; the next repair
   should combine deficit pressure with an explicit coverage-preserving
   constraint.
+- v0.65 adds `branch-balanced-context-coverage-preserving-deficit-unlikelihood`,
+  which balances missing-target deficit pressure with preservation anchors for
+  target tokens currently represented in replay predictions. Focused tests
+  prove that missing targets still lift while represented target tokens are
+  protected better than deficit-only training. The full-stack screen
+  `runs/transformer-answer-v0.65-fullstack-coverage-preserving-deficit-smoke-dim4-context80/`
+  completed `50/50` direct steps, wrote `7` JSONL rows, and restored step `0`.
+  Step `50` improved QA average target rank to `7.75`, heldout average target
+  rank to `7.125`, and top-5 coverage to `0.5`, but QA and heldout collapsed
+  to one represented `"i"` prediction with target-token coverage `0.125`. This
+  rejects current-prediction preservation; the next repair should make coverage
+  preservation profile-aware rather than anchoring whatever target token is
+  currently represented.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -2075,6 +2075,8 @@ class TinyTransformerLM:
         preserve_covered_targets: bool = False,
         balance_covered_target_anchors: bool = False,
         focus_uncovered_targets: bool = False,
+        preserve_predicted_target_coverage: bool = False,
+        balance_deficit_targets: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
@@ -2093,6 +2095,10 @@ class TinyTransformerLM:
         replay_ownership_loss = Scalar(0.0)
         deficit_target_loss = Scalar(0.0)
         deficit_target_count = 0
+        deficit_target_losses_by_target: dict[int, Scalar] = {}
+        deficit_target_counts_by_target: Counter[int] = Counter()
+        coverage_preservation_losses_by_target: dict[int, Scalar] = {}
+        coverage_preservation_counts_by_target: Counter[int] = Counter()
         covered_anchor_loss = Scalar(0.0)
         covered_anchor_count = 0
         covered_anchor_losses_by_target: dict[int, Scalar] = {}
@@ -2145,10 +2151,24 @@ class TinyTransformerLM:
                 -(owned_target_share + 1e-12).log()
             )
             if focus_uncovered_targets and target in deficit_targets:
-                deficit_target_loss = deficit_target_loss + (
-                    -(candidate_probs[target_offset] + 1e-12).log()
-                )
+                target_deficit_loss = -(candidate_probs[target_offset] + 1e-12).log()
+                deficit_target_loss = deficit_target_loss + target_deficit_loss
                 deficit_target_count += 1
+                deficit_target_losses_by_target[target] = (
+                    deficit_target_losses_by_target.get(target, Scalar(0.0))
+                    + target_deficit_loss
+                )
+                deficit_target_counts_by_target[target] += 1
+            if preserve_predicted_target_coverage and predicted in replay_target_offsets:
+                predicted_offset = replay_target_offsets[predicted]
+                coverage_preservation_loss = -(
+                    candidate_probs[predicted_offset] + 1e-12
+                ).log()
+                coverage_preservation_losses_by_target[predicted] = (
+                    coverage_preservation_losses_by_target.get(predicted, Scalar(0.0))
+                    + coverage_preservation_loss
+                )
+                coverage_preservation_counts_by_target[predicted] += 1
             if preserve_covered_targets and predicted == target:
                 target_anchor_loss = -(candidate_probs[target_offset] + 1e-12).log()
                 covered_anchor_loss = covered_anchor_loss + target_anchor_loss
@@ -2165,8 +2185,32 @@ class TinyTransformerLM:
                 + replay_ownership_loss / max(len(replay_branches), 1)
             ) / 2.0
             if focus_uncovered_targets and deficit_target_count:
+                if balance_deficit_targets and deficit_target_losses_by_target:
+                    balanced_deficit_loss = Scalar(0.0)
+                    for target, target_deficit_loss in deficit_target_losses_by_target.items():
+                        balanced_deficit_loss = balanced_deficit_loss + (
+                            target_deficit_loss / deficit_target_counts_by_target[target]
+                        )
+                    replay_loss = replay_loss + (
+                        balanced_deficit_loss / len(deficit_target_losses_by_target)
+                    )
+                else:
+                    replay_loss = replay_loss + (
+                        deficit_target_loss / max(deficit_target_count, 1)
+                    )
+            if preserve_predicted_target_coverage and coverage_preservation_losses_by_target:
+                balanced_preservation_loss = Scalar(0.0)
+                for (
+                    target,
+                    target_preservation_loss,
+                ) in coverage_preservation_losses_by_target.items():
+                    balanced_preservation_loss = balanced_preservation_loss + (
+                        target_preservation_loss
+                        / coverage_preservation_counts_by_target[target]
+                    )
                 replay_loss = replay_loss + (
-                    deficit_target_loss / max(deficit_target_count, 1)
+                    balanced_preservation_loss
+                    / len(coverage_preservation_losses_by_target)
                 )
             if (
                 preserve_covered_targets
@@ -3448,6 +3492,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-balanced-context-target-balanced-anchor-unlikelihood",
             "branch-context-coverage-deficit-unlikelihood",
             "branch-balanced-context-coverage-deficit-unlikelihood",
+            "branch-context-coverage-preserving-deficit-unlikelihood",
+            "branch-balanced-context-coverage-preserving-deficit-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
@@ -5912,6 +5958,8 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     preserve_covered_targets: bool = False,
     balance_covered_target_anchors: bool = False,
     focus_uncovered_targets: bool = False,
+    preserve_predicted_target_coverage: bool = False,
+    balance_deficit_targets: bool = False,
 ) -> float:
     batch_builder = (
         direct_answer_target_balanced_branch_diversity_batch
@@ -5959,6 +6007,8 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         preserve_covered_targets=preserve_covered_targets,
         balance_covered_target_anchors=balance_covered_target_anchors,
         focus_uncovered_targets=focus_uncovered_targets,
+        preserve_predicted_target_coverage=preserve_predicted_target_coverage,
+        balance_deficit_targets=balance_deficit_targets,
     )
 
 
@@ -8252,6 +8302,49 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_params,
                     balance_targets=True,
                     focus_uncovered_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-context-coverage-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-balanced-context-coverage-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
                 )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(

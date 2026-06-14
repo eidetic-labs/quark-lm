@@ -323,6 +323,20 @@ accuracy `1/8`, QA predicted diversity `4/8`, and QA average target rank
 trained snapshots remained ineligible. The next repair should combine deficit
 pressure with an explicit coverage-preserving constraint.
 
+`runs/transformer-answer-v0.65-fullstack-coverage-preserving-deficit-smoke-dim4-context80/`
+adds `branch-balanced-context-coverage-preserving-deficit-unlikelihood`, which
+balances missing-target deficit pressure with target-balanced anchors for target
+tokens that are currently represented in replay predictions. Focused tests
+pass, including a regression where missing targets still lift and the
+represented target is protected better than deficit-only training. The
+full-stack screen completed `50/50` direct steps, wrote `7` direct-answer JSONL
+rows, and restored step `0` under the v0.60 coverage floor. Step `50` improved
+QA average target rank to `7.75`, heldout average target rank to `7.125`, and
+top-5 coverage to `0.5`, but QA and heldout collapsed to predicted diversity
+`1/8` around the represented `"i"` token and target-token coverage regressed to
+`0.125`. The next repair should make preservation profile-aware instead of
+anchoring current predicted target tokens.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

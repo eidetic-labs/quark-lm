@@ -166,6 +166,11 @@ identify replay target tokens that are absent from current replay predictions
 and focus extra target pressure on those missing targets. Use
 `--direct-answer-mode branch-balanced-context-coverage-deficit-unlikelihood`
 for the same objective with target-balanced sampled branch and replay batches.
+Use `--direct-answer-mode branch-context-coverage-preserving-deficit-unlikelihood`
+to combine missing-target pressure with target-balanced preservation anchors
+for target tokens currently represented in replay predictions. Use
+`--direct-answer-mode branch-balanced-context-coverage-preserving-deficit-unlikelihood`
+for the same objective with target-balanced sampled branch and replay batches.
 Best branch snapshot scoring first enforces a profile-wise target-token
 coverage floor against the baseline snapshot. Eligible snapshots then use
 target-rank/top-k evidence before generic wrong-token diversity, so restore
@@ -1010,19 +1015,20 @@ Latest full-stack covered-target anchor branch repair smoke:
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; global covered-target anchoring over-protects one covered token instead of preserving coverage diversity |
 
-Latest full-stack coverage-deficit branch repair smoke:
+Latest full-stack coverage-preserving deficit branch repair smoke:
 
 | Signal | Value |
 | --- | --- |
-| Run | `runs/transformer-answer-v0.64-fullstack-coverage-deficit-smoke-dim4-context80/` |
-| Mode | `branch-balanced-context-coverage-deficit-unlikelihood` |
+| Run | `runs/transformer-answer-v0.65-fullstack-coverage-preserving-deficit-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-coverage-preserving-deficit-unlikelihood` |
 | Scoring guard | profile-wise target-token coverage floor before rank/top-k scoring |
-| Deficit pressure | replay target tokens absent from current replay predictions receive extra target-vs-hard-candidate pressure |
+| Deficit pressure | replay target tokens absent from current replay predictions receive target-vs-hard-candidate pressure |
+| Preservation pressure | target tokens currently represented in replay predictions receive target-balanced anchors |
 | Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
 | Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
 | Positive target CE | `0.0` |
 | Hard wrong tokens | `5` |
-| Unit coverage | focused transformer tests pass, including missing-target deficit regression |
+| Unit coverage | focused transformer tests pass, including missing-target lift and represented-target preservation regressions |
 | Direct steps | `50/50` |
 | Direct-answer JSONL rows | `7` clean rows |
 | Restored best branch snapshot | yes, restored from step `0` |
@@ -1032,11 +1038,11 @@ Latest full-stack coverage-deficit branch repair smoke:
 | Final QA average target rank | `13.25` |
 | Final QA target-token coverage | `0.25` |
 | Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
-| Training snapshot note | step `50` reached QA branch accuracy `1/8`, QA predicted diversity `4/8`, and QA average target rank `10.0`, but QA/heldout target-token coverage regressed to `0.125` |
+| Training snapshot note | step `50` reached QA/heldout branch accuracy `1/8`, QA average target rank `7.75`, heldout average target rank `7.125`, and top-5 coverage `0.5`, but both profiles collapsed to predicted diversity `1/8` and target-token coverage `0.125` |
 | Final heldout average target rank | `13.375` |
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
-| Promotion status | rejected; deficit pressure cracks top-1 behavior but still trades away target-token coverage |
+| Promotion status | rejected; current-prediction preservation improves rank but over-preserves one represented target token |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

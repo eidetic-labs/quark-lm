@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.65
+
+- Added coverage-preserving deficit repair and rejected full-stack evidence.
+
 ## v0.64
 
 - Added coverage-deficit branch repair and rejected full-stack evidence.

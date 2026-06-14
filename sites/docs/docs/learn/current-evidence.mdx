@@ -230,6 +230,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Coverage-deficit heldout</td><td><code>{state.transformerCoverageDeficitHeldout}</code></td></tr>
     <tr><td>Coverage-deficit history</td><td><code>{state.transformerCoverageDeficitHistory}</code></td></tr>
     <tr><td>Coverage-deficit status</td><td><code>{state.transformerCoverageDeficitStatus}</code></td></tr>
+    <tr><td>Latest coverage-preserving deficit run</td><td><code>{state.transformerLatestCoveragePreservingDeficitRun}</code></td></tr>
+    <tr><td>Coverage-preserving deficit mode</td><td><code>{state.transformerCoveragePreservingDeficitMode}</code></td></tr>
+    <tr><td>Coverage-preserving deficit unit test</td><td><code>{state.transformerCoveragePreservingDeficitUnitTest}</code></td></tr>
+    <tr><td>Coverage-preserving deficit QA</td><td><code>{state.transformerCoveragePreservingDeficitQa}</code></td></tr>
+    <tr><td>Coverage-preserving deficit heldout</td><td><code>{state.transformerCoveragePreservingDeficitHeldout}</code></td></tr>
+    <tr><td>Coverage-preserving deficit history</td><td><code>{state.transformerCoveragePreservingDeficitHistory}</code></td></tr>
+    <tr><td>Coverage-preserving deficit status</td><td><code>{state.transformerCoveragePreservingDeficitStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -697,12 +704,21 @@ v0.42 promoted checkpoint.
   predicted diversity `4/8`, but QA/heldout target-token coverage regressed to
   `0.125`, so the trained snapshots remained ineligible. This rejects deficit
   pressure by itself.
+- `runs/transformer-answer-v0.65-fullstack-coverage-preserving-deficit-smoke-dim4-context80/`
+  adds `branch-balanced-context-coverage-preserving-deficit-unlikelihood`,
+  which balances missing-target deficit pressure with preservation anchors for
+  target tokens currently represented in replay predictions. Focused tests
+  pass and verify both effects in isolation. The full-stack screen completed
+  `50/50` direct steps and restored from step `0`. Step `50` improved QA
+  average target rank to `7.75`, heldout average target rank to `7.125`, and
+  top-5 coverage to `0.5`, but both profiles collapsed to one predicted target
+  token with target-token coverage `0.125`. This rejects current-prediction
+  preservation as implemented.
 
 The next transformer repair should keep the context-coverage audit and
-profile-wise coverage floor, but combine deficit pressure with an explicit
-coverage-preserving constraint. v0.64 shows that deficit pressure can crack a
-top-1 branch, but it still trades away target-token coverage before it becomes
-promotable.
+profile-wise coverage floor, but make the training constraint profile-aware.
+v0.65 shows that anchoring currently represented target tokens can improve rank
+while over-preserving the represented token and regressing coverage diversity.
 
 The v0.42 self-improvement run passed:
 
