@@ -23,6 +23,7 @@ an evaluation artifact, and a docs update.
 | [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 implementation sequence for experiment registry, replay extraction, verifier checks, and candidate quarantine. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea

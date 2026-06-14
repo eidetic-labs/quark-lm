@@ -42,6 +42,9 @@ provenance, and the goal framework itself.
 - Public documentation is part of self-improvement: README, Docusaurus docs,
   and marketing pages must update with promoted releases whenever they describe
   current product state, commands, evals, evidence, or roadmap commitments.
+- Research planning is part of self-improvement: new objective modes should be
+  preceded by a stated hypothesis, allowed data boundary, planned artifacts,
+  acceptance gates, and promotion decision criteria.
 - Eventual self-improvement should not depend on an external model shaping the
   learner. Near-term guidance may use deterministic, auditable rules over
   QuarkLM's own reports; the long-term target is repair proposal and selection
@@ -86,6 +89,10 @@ provenance, and the goal framework itself.
     profile-isolation tests. v0.68 shows the constraint working: profile-aware
     rank gains are rejected when they erase target-token coverage or branch
     diversity.
+19. Follow the v0.69 forward research plan before adding more direct-answer
+    objective modes: add experiment registry, replay extraction, corpus hygiene,
+    candidate quarantine, deterministic verifier checks, recipe boundaries, and
+    constraint-first promotion gates.
 
 ## Weight Update Policy
 

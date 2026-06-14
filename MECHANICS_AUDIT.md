@@ -170,6 +170,12 @@ sharper: profile-aware target sets are necessary, but the next trainer repair
 also needs explicit anti-collapse preservation inside those profile-local
 constraints.
 
+v0.69 adds `FORWARD_RESEARCH_PLAN.md`, which expands this audit into a
+cross-referenced implementation strategy. The new decision is to build
+experiment registry, replay extraction, corpus hygiene, candidate quarantine,
+deterministic verifier checks, recipe boundaries, and constraint-first
+promotion before adding another direct-answer objective mode.
+
 ## Decision
 
 v0.66 should be treated as an open-source mechanics audit and gap-setting
@@ -178,4 +184,6 @@ the profile-aware replay-plan surface without copying outside code or diluting
 the closed-world training boundary. v0.68 should be treated as rejected
 full-stack repair evidence: it proves the gate can block non-promotable rank
 gains, and it points the next implementation toward anti-collapse preservation
-inside the profile-aware plan.
+inside the profile-aware plan. v0.69 should be treated as forward strategy
+evidence: it pauses objective churn until the self-improvement operating system
+around the trainer is explicit and tested.

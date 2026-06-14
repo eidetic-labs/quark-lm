@@ -53,6 +53,14 @@ coverage deficits and represented-target preservation are computed per profile,
 and profile-aware screens emit a replay-plan artifact before training. See
 [Open-source mechanics audit](./open-source-mechanics-audit.md).
 
+The v0.69 forward research plan extends that audit with a deeper
+cross-reference between papers, public implementation mechanics, and the current
+QuarkLM codebase. Its decision is to build the self-improvement operating
+system before more objective modes: experiment registry, corpus governance,
+candidate quarantine, deterministic verifier checks, replay extraction,
+training recipes, and constraint-first promotion gates. See
+[Forward research plan](./forward-research-plan.md).
+
 ## Paper Map
 
 | Area | Representative work | QuarkLM implication |
@@ -155,6 +163,10 @@ loops become fragile.
 - Begin designing a closed-world verifier lane. It can start deterministic and
   rule-based, then later become a from-scratch model only after its judgments
   can be audited against admitted sources.
+- Implement the v0.69 forward plan before adding another direct-answer
+  objective mode: experiment registry, replay extraction, corpus hygiene,
+  candidate quarantine, verifier checks, training recipes, and constraint-first
+  promotion.
 
 ## Defer
 

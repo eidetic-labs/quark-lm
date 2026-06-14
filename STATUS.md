@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.68 profile-aware full-stack repair evidence; promoted
+**Active version:** v0.69 forward research plan; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -58,6 +58,10 @@ Working tagline: Big idea. Tiny package.
 - Open-source mechanics audit guidance for trainer boundaries, profile-aware
   replay, checkpoint scoring, tokenizer artifacts, and candidate lesson
   acceptance without copying outside code or importing outside training data.
+- Forward research plan for implementing the self-improvement operating system:
+  experiment registry, corpus governance, candidate quarantine, deterministic
+  verifier checks, replay extraction, training recipes, and constraint-first
+  promotion gates before the next objective mode.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -120,6 +124,16 @@ shape, but best-snapshot scoring restored step `0`. Training improved rank
 evidence at step `40`, yet it collapsed QA and heldout target-token coverage to
 `0.125` with predicted diversity `1/8`, so the gate correctly rejected the
 trained snapshots.
+
+v0.69 records the forward research plan in `FORWARD_RESEARCH_PLAN.md` and
+`sites/docs/docs/learn/forward-research-plan.md`. The plan cross-references
+papers and public implementation mechanics from continual learning, replay,
+self-generated data, self-feedback, verifier-style rewards, model collapse,
+small-data training, transparent open models, data hygiene, and trainer recipe
+systems. The implementation decision is to pause further direct-answer objective
+churn until QuarkLM has experiment registry, replay extraction, corpus hygiene,
+candidate quarantine, closed-world verifier checks, training recipes, and
+constraint-first promotion gates.
 
 ## Latest Evidence
 

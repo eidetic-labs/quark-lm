@@ -65,6 +65,15 @@ target rank to `6.5` and top-5 coverage to `0.625`, but target-token coverage
 fell to `0.125` and predicted diversity collapsed to `1/8`. The gate correctly
 rejects that rank gain as non-promotable.
 
+v0.69 adds `FORWARD_RESEARCH_PLAN.md` and a matching Docusaurus Learn page for
+the next implementation phase. The deeper review cross-references continual
+learning, replay, self-generated data, model-collapse, data hygiene, small
+model training, transparent open-model practice, and public trainer mechanics.
+Its decision is to pause direct-answer objective churn until QuarkLM has an
+experiment registry, replay extraction, corpus hygiene reports, candidate
+quarantine, closed-world verifier checks, recipe boundaries, and
+constraint-first promotion gates.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

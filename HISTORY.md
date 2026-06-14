@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.69
+
+- Added forward research plan and implementation sequence.
+
 ## v0.68
 
 - Recorded profile-aware full-stack repair rejection evidence.
