@@ -1279,6 +1279,54 @@ class TinyTransformerLM:
             parameter.data -= learning_rate * clipped_grad
         return loss.data
 
+    def train_step_with_branch_rank_margin(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        margin_weight: float,
+        hard_negative_count: int,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        loss = Scalar(0.0)
+        for context, target, predicted in branches:
+            logits = self._forward_scalars(context)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                loss = loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                loss = loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            hard_negatives = [
+                index
+                for index in sorted(
+                    range(self.config.vocab_size),
+                    key=lambda item: logits[item].data,
+                    reverse=True,
+                )
+                if index != target
+            ]
+            if hard_negative_count > 0:
+                hard_negatives = hard_negatives[:hard_negative_count]
+            if margin_weight > 0.0 and hard_negatives:
+                per_negative_weight = margin_weight / len(hard_negatives)
+                target_logit = logits[target]
+                for hard_negative in hard_negatives:
+                    gap = logits[hard_negative] - target_logit + 1.0
+                    loss = loss + (
+                        (Scalar(1.0) + gap.exp()).log() * per_negative_weight
+                    )
+        loss = loss / max(len(branches), 1)
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
     def generate(
         self,
         tokenizer: CharTokenizer,
@@ -2220,6 +2268,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-representation-contrast-unlikelihood",
             "branch-balanced-representation-contrast-unlikelihood",
             "branch-output-binding-unlikelihood",
+            "branch-rank-margin-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
@@ -4108,6 +4157,52 @@ def train_direct_answer_branch_output_binding_unlikelihood(
     )
 
 
+def train_direct_answer_branch_rank_margin_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    margin_weight: float,
+    branch_position: int,
+    batch_size: int,
+    hard_negative_count: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_rank_margin(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        margin_weight,
+        hard_negative_count,
+        params=params,
+    )
+
+
 def train_direct_answer_branch_contrast_unlikelihood(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -5945,6 +6040,24 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_contrast_weight,
                     args.direct_answer_branch_position,
                     args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
                     direct_answer_terminator,
                     direct_params,
                 )

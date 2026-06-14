@@ -335,6 +335,17 @@ Current transformer answer-lesson run:
   `0.25`, but target-token coverage stayed `0.0`, top-3 coverage ended `0.0`,
   and both profiles still collapsed to wrong `"l"`/`"j"` predictions. This is
   rejected repair evidence, with rank-aware restore kept as a guardrail.
+- `branch-rank-margin-unlikelihood` now trains each branch target against the
+  model's own top wrong tokens, using `--direct-answer-hard-negatives` as the
+  hard-negative count. The longer bounded v0.47 screen
+  `runs/transformer-answer-v0.47-rank-margin-steps50-smoke-dim4-context80/`
+  ran `50/50` direct steps, restored the rank-aware best snapshot from step
+  `40`, lowered train loss `7.3649 -> 6.1629`, and improved QA average target
+  rank `17.375 -> 9.0`. QA target-token coverage rose to `0.125`, top-3
+  coverage rose to `0.25`, and top-5 coverage rose to `0.5`. This is the
+  strongest branch-rank movement so far, but it is still rejected for promotion
+  because predicted diversity stayed `1/8` and the branch remained collapsed to
+  wrong `"n"`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

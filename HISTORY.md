@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.47
+
+- Added branch-rank margin repair against top wrong branch tokens.
+
 ## v0.46
 
 - Added branch-output binding and rank-aware branch snapshot scoring.

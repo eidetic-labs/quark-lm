@@ -96,6 +96,15 @@ and QA/heldout top-5 coverage reached `0.25`, but target-token coverage stayed
 branch tokens. The repair is rejected for promotion, while rank-aware restore
 remains a useful guardrail.
 
+`runs/transformer-answer-v0.47-rank-margin-steps50-smoke-dim4-context80/`
+adds `branch-rank-margin-unlikelihood`, which pushes each branch target above
+the model's own top wrong tokens. The run completed `50/50` direct steps and
+restored the rank-aware best snapshot from step `40`. QA average target rank
+improved from `17.375` to `9.0`, target-token coverage rose to `0.125`, top-3
+coverage rose to `0.25`, and top-5 coverage rose to `0.5`. This is the
+strongest rank-lift evidence so far, but prediction diversity stayed `1/8` and
+QA/heldout remained collapsed to wrong `"n"`, so it is not promotion evidence.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

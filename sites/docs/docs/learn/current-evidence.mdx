@@ -125,6 +125,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Output-binding QA</td><td><code>{state.transformerOutputBindingQa}</code></td></tr>
     <tr><td>Output-binding heldout</td><td><code>{state.transformerOutputBindingHeldout}</code></td></tr>
     <tr><td>Output-binding status</td><td><code>{state.transformerOutputBindingStatus}</code></td></tr>
+    <tr><td>Latest rank-margin run</td><td><code>{state.transformerLatestRankMarginRun}</code></td></tr>
+    <tr><td>Rank-margin mode</td><td><code>{state.transformerRankMarginMode}</code></td></tr>
+    <tr><td>Rank-margin QA</td><td><code>{state.transformerRankMarginQa}</code></td></tr>
+    <tr><td>Rank-margin heldout</td><td><code>{state.transformerRankMarginHeldout}</code></td></tr>
+    <tr><td>Rank-margin status</td><td><code>{state.transformerRankMarginStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -445,6 +450,14 @@ v0.42 promoted checkpoint.
   Target-token coverage stayed `0.0`, top-3 coverage ended `0.0`, and the
   branch prediction still collapsed to wrong tokens, so the repair is rejected
   for promotion.
+- `runs/transformer-answer-v0.47-rank-margin-steps50-smoke-dim4-context80/`
+  adds `branch-rank-margin-unlikelihood`, which pushes each branch target above
+  the model's own top wrong tokens. The screen ran `50/50` direct steps,
+  restored the rank-aware best snapshot from step `40`, and improved QA average
+  target rank `17.375 -> 9.0`. QA target-token coverage rose to `0.125`, top-3
+  coverage rose to `0.25`, and top-5 coverage rose to `0.5`. It is still
+  rejected because predicted diversity stayed `1/8` and QA/heldout remained
+  collapsed to wrong `"n"`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under
