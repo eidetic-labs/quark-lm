@@ -136,3 +136,11 @@ repair transformer evidence under `runs/transformer-answer-v0.40-branch-context3
 Candidate discrimination stayed at `37/219`, answer-target NLL improved to
 `2.5427`, and strict raw greedy exact answers remained `0/219` with a repeated
 `"ten"` loop.
+
+v0.41 kept corpus sources unchanged from v0.40, passed the archived
+self-improvement run on `attempt-001`, rejected a full-dose branch-contrast
+pilot, and added sparse branch-repair/contrast transformer evidence under
+`runs/transformer-answer-v0.41-branch-repair-contrast50-context32/`. Candidate
+discrimination stayed at `37/219`, answer-target NLL improved to `2.4734`, and
+strict raw greedy exact answers remained `0/219` with a repeated `"te"`/`"e"`
+loop.

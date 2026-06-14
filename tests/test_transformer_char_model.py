@@ -31,6 +31,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_generated_prefix_recovery,
     direct_answer_sequence_repair_errors,
     direct_answer_branch_repair_error,
+    direct_answer_branch_context,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -45,6 +46,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_sequence_repair_unlikelihood,
     train_direct_answer_loop_escape_unlikelihood,
     train_direct_answer_branch_repair_unlikelihood,
+    train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_lesson,
     train_answer_char,
     train_answer_mixed_step,
@@ -904,6 +906,91 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(position, 1)
         self.assertGreater(before, after)
 
+    def test_direct_answer_branch_contrast_separates_prompt_branches(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tokenizer = CharTokenizer.train(
+            near.prompt + near.target + green.prompt + green.target + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=36,
+            )
+        )
+        near_branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            near,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        green_branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            green,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(near_branch)
+        self.assertIsNotNone(green_branch)
+        near_context, near_target, _near_position = near_branch  # type: ignore[misc]
+        green_context, green_target, _green_position = green_branch  # type: ignore[misc]
+        near_lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        before_target = model.nll(near_context, near_target) + model.nll(
+            green_context,
+            green_target,
+        )
+        near_probs = model.predict(near_context)
+        green_probs = model.predict(green_context)
+        before_margin = (
+            near_probs[near_target]
+            - near_probs[green_target]
+            + green_probs[green_target]
+            - green_probs[near_target]
+        )
+        rng = random.Random(14)
+
+        for _ in range(96):
+            train_direct_answer_branch_contrast_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                [green],
+                near_lesson,
+                rng,
+                learning_rate=0.05,
+                negative_weight=1.0,
+                contrast_weight=1.0,
+                branch_position=1,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_target = model.nll(near_context, near_target) + model.nll(
+            green_context,
+            green_target,
+        )
+        near_probs = model.predict(near_context)
+        green_probs = model.predict(green_context)
+        after_margin = (
+            near_probs[near_target]
+            - near_probs[green_target]
+            + green_probs[green_target]
+            - green_probs[near_target]
+        )
+        self.assertEqual(tokenizer.itos[near_target], "n")
+        self.assertEqual(tokenizer.itos[green_target], "g")
+        self.assertGreater(before_target, after_target)
+        self.assertGreater(after_margin, before_margin)
+
     def test_direct_answer_modes_include_rollout_and_hybrid(self) -> None:
         for mode in (
             "rollout-unlikelihood",
@@ -925,6 +1012,9 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-sequence-loop-escape-unlikelihood",
             "branch-repair-unlikelihood",
             "periodic-branch-repair-unlikelihood",
+            "branch-contrast-unlikelihood",
+            "periodic-branch-contrast-unlikelihood",
+            "periodic-branch-repair-contrast-unlikelihood",
         ):
             args = parse_args(
                 [
@@ -937,6 +1027,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "4",
                     "--direct-answer-positive-weight",
                     "1.5",
+                    "--direct-answer-contrast-weight",
+                    "1.25",
                     "--direct-answer-recovery-steps",
                     "2",
                     "--direct-answer-branch-position",
@@ -948,6 +1040,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_mode, mode)
             self.assertEqual(args.direct_answer_rollout_interval, 4)
             self.assertEqual(args.direct_answer_positive_weight, 1.5)
+            self.assertEqual(args.direct_answer_contrast_weight, 1.25)
             self.assertEqual(args.direct_answer_recovery_steps, 2)
             self.assertEqual(args.direct_answer_branch_position, 1)
             self.assertEqual(args.direct_answer_sequence_interval, 6)

@@ -1224,9 +1224,77 @@ pools, and corpus diffs.
   learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
   glossary `38/38`
 
-The next improvement target is teaching prompt-conditioned answer branching so
-the direct transformer stops choosing a global repeated sequence while
-preserving the `37/219` candidate-discrimination gain and v0.40 target-loss
+`runs/transformer-answer-v0.41-branch-contrast-context32/`:
+
+- added `train_step_with_branch_contrast`
+- added `direct_answer_branch_context`
+- added `train_direct_answer_branch_contrast_unlikelihood`
+- added `branch-contrast-unlikelihood` and
+  `periodic-branch-contrast-unlikelihood` direct-answer modes
+- added `--direct-answer-contrast-weight`
+- this run used branch contrast as every direct-answer update
+- checkpoint:
+  `runs/transformer-answer-v0.41-branch-contrast-context32/transformer_answer.json`
+- this run is preserved as rejected evidence
+- direct answer target loss regressed from `3.3496` to `4.4673`
+- average transformer answer target NLL regressed from `3.5828` to `4.3931`
+- transformer-only eval-scoped candidate accuracy regressed `15/219 -> 16/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- failure mode collapsed to repeated `"a"` output
+- lesson: prompt contrast is useful as an objective, but full-dose contrast
+  overwhelms the target distribution in the current tiny transformer
+
+`runs/transformer-answer-v0.41-branch-repair-contrast50-context32/`:
+
+- added `periodic-branch-repair-contrast-unlikelihood`
+- selected evidence keeps branch repair as the base update and injects branch
+  contrast every `50` direct-answer steps
+- checkpoint:
+  `runs/transformer-answer-v0.41-branch-repair-contrast50-context32/transformer_answer.json`
+- uses the corpus-trained `CharTokenizer`; no pretrained tokenizer, pretrained
+  weights, or external embeddings
+- transformer trained for `80` target-loss answer-lesson steps from random
+  initialization
+- direct answer phase trained for `1000` steps on `9144` weighted direct-answer
+  examples
+- direct answer mode was `periodic-branch-repair-contrast-unlikelihood`
+- negative weight was `1.0`
+- positive weight was `1.0`
+- contrast weight was `1.0`
+- branch position was `1`
+- contrast interval was `50`
+- context size was `32`
+- average transformer answer target NLL moved from `3.5828` to `2.4734`
+- direct answer target loss moved from `3.3496` to `2.3315`
+- transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- current failure mode changed to repeated `"te"`/`"e"` loops
+- v0.41 improves scored target distribution beyond v0.40 while preserving
+  candidate discrimination, but branch probabilities remain nearly prompt-
+  independent under greedy decoding
+
+`runs/self-improve-v0.41/`:
+
+- kept corpus sources unchanged from v0.40 at `12` admitted facts
+- standard self-improvement cycle passed on archived `attempt-001`
+- forgetting audit compared against `runs/self-improve-v0.40/` and passed
+- protected prompt leakage, exact eval audit, and promotion gate passed
+- report and standalone `self_diagnosis.json` record `uses_external_model:
+  false`, zero blockers, and recommendation `promote_or_expand_corpus`
+- generated probe counts: admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- learned answer model trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- generative answer decoder trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+
+The next improvement target is strengthening prompt-conditioned representation
+so the direct transformer stops choosing a global repeated sequence while
+preserving the `37/219` candidate-discrimination gain and v0.41 target-loss
 gains; then continuing admitted-memory batches, completing the Python
 package/import migration to QuarkLM naming, turning more of the deterministic
 self-diagnosis and repair policy into admitted-corpus-trained behavior, and

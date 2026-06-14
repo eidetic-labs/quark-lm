@@ -53,12 +53,13 @@ The current promoted run is <code>{state.currentRun}</code>.
   </tbody>
 </table>
 
-## v0.40 Summary
+## v0.41 Summary
 
-QuarkLM v0.40 keeps the admitted corpus unchanged from v0.39 and adds branch
-repair to the direct transformer path. The stable self-improvement run is
-`runs/self-improve-v0.40/`; the current transformer answer-lesson run is
-`runs/transformer-answer-v0.40-branch-context32/`.
+QuarkLM v0.41 keeps the admitted corpus unchanged from v0.40 and adds sparse
+prompt-contrast branch repair to the direct transformer path. The stable
+self-improvement run is `runs/self-improve-v0.41/`; the current transformer
+answer-lesson run is
+`runs/transformer-answer-v0.41-branch-repair-contrast50-context32/`.
 
 The current corpus remains at `12` admitted facts. Direct admission probes pass
 `48/48`, admission paraphrase probes pass `84/84`, and glossary probes pass
@@ -72,19 +73,21 @@ model, vocabulary, or embeddings.
 
 Transformer direct-answer evidence:
 
-- transformer checkpoint: `runs/transformer-answer-v0.40-branch-context32/transformer_answer.json`
+- transformer checkpoint: `runs/transformer-answer-v0.41-branch-repair-contrast50-context32/transformer_answer.json`
 - v0.31 generator checkpoint retained for comparison: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_generator.json`
 - selector checkpoint: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_selector.json`
 - training steps: `80`
 - context size: `32`
 - direct answer steps: `1000`
-- direct answer mode: `branch-repair-unlikelihood`
+- direct answer mode: `periodic-branch-repair-contrast-unlikelihood`
 - direct answer negative weight: `1.0`
 - direct answer positive weight: `1.0`
+- direct answer contrast weight: `1.0`
 - branch position: `1`
+- contrast interval: `50`
 - direct answer training examples: `9144`
-- answer target NLL: `3.5828 -> 2.5427`
-- direct answer target loss: `3.3496 -> 2.3935`
+- answer target NLL: `3.5828 -> 2.4734`
+- direct answer target loss: `3.3496 -> 2.3315`
 - raw direct greedy exact answers: `0/219 -> 0/219`
 - transformer-only eval-scoped candidate accuracy: `15/219 -> 37/219`
 - selector-emitted exact answers: `18/219 -> 219/219`
@@ -98,24 +101,25 @@ Transformer direct-answer evidence:
 - generator uses answer candidates: `false`
 
 That is a real movement toward raw transformer answering with a clear boundary.
-v0.40 preserves v0.33's transformer-only candidate discrimination while adding
-branch repair at the first answer content character after the leading answer
-space. The direct path improves answer-target NLL versus v0.39, but raw greedy
-completions still fail exact answer generation: the dominant failure moved from
-a repeated `" t"` loop to a repeated `"ten"` loop. The next structured repair
-should make the branch prompt-conditioned, not merely stronger in aggregate.
+v0.41 preserves v0.33's transformer-only candidate discrimination while adding
+sparse contrast between admitted prompts with different branch targets. The
+direct path improves answer-target NLL versus v0.40, but raw greedy completions
+still fail exact answer generation: the dominant failure moved from a repeated
+`"ten"` loop to a repeated `"te"`/`"e"` loop. The next structured repair should
+strengthen the transformer's prompt representation rather than only adding more
+branch pressure.
 v0.31's auxiliary no-candidate generator remains the best exact no-candidate
 answer evidence. The current reliable response gate still belongs to the
 responder, learned answer classifier, and generative answer decoder.
 
-The v0.40 self-improvement run passed:
+The v0.41 self-improvement run passed:
 
 - direct admission-probe audit
 - admission-paraphrase audit
 - glossary-probe audit
 - exact eval audit
 - promotion gate
-- forgetting audit against v0.39
+- forgetting audit against v0.40
 - protected prompt leakage audit
 - responder exact evals
 - learned answer classifier exact evals
@@ -124,7 +128,7 @@ The v0.40 self-improvement run passed:
 
 Admission probes now pass `48/48` direct records and `84/84` paraphrase records.
 Glossary probes now pass `38/38` records. The passing attempt is archived at
-`runs/self-improve-v0.40/attempts/attempt-001/` before the top-level latest
+`runs/self-improve-v0.41/attempts/attempt-001/` before the top-level latest
 report is updated.
 
 v0.23 added attempt archives. A deliberately undertrained attempt failed at

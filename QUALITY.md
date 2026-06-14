@@ -1,6 +1,6 @@
 # Engineering Quality
 
-Last reviewed for QuarkLM v0.40 on 2026-06-14.
+Last reviewed for QuarkLM v0.41 on 2026-06-14.
 
 This project should improve its codebase with the same discipline it applies to
 model behavior. A change is not promoted only because it works once; it should
@@ -84,6 +84,11 @@ training boundary.
   output, candidate discrimination, direct loss, answer NLL, and final failure
   pattern. Better branch likelihood is not enough if the model still chooses a
   prompt-independent repeated sequence.
+- Branch-contrast direct runs must record contrast weight, contrast interval,
+  branch position, exact greedy output, candidate discrimination, direct loss,
+  answer NLL, and final failure pattern. Full-dose contrast and sparse contrast
+  must be compared separately because contrast can improve target likelihood or
+  collapse the output distribution depending on dosage.
 - Tokenizer changes must be trained only from admitted corpus text and must not
   import pretrained vocabularies.
 - README, STATUS, GOAL, and QUALITY must be reviewed and updated for every
