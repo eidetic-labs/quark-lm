@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.51
+
+- Added full transformer foundation-stack mechanics and smoke evidence.
+
 ## v0.50
 
 - Added balanced branch top-k softmax repair screening.

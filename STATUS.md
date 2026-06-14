@@ -131,6 +131,17 @@ top-5 coverage reached `0.5`. The screen is stronger than v0.49 and comparable
 to v0.48 on top-k coverage, but it is still rejected because QA and heldout
 remain collapsed to one wrong top-1 branch token.
 
+`runs/transformer-v0.51-foundation-stack-smoke/` is the latest transformer
+foundation-stack evidence. v0.51 adds optimizer state and scheduling
+mechanics, gradient accumulation, checkpoint-resume validation, v2 checkpoint
+metadata, multi-head attention, RMSNorm, gated MLPs, tied output embeddings,
+rotary-position support, cache-aware generation metadata, sampling controls,
+token-level traces, and replayable eval sample JSONL before the next
+direct-answer repair run. The all-switch smoke completed `2/2` language-model
+steps with AdamW, wrote `optimizer_state.json`, saved a
+`quarklm-transformer-v2` checkpoint, and produced traced eval artifacts. This
+is mechanics-readiness evidence, not a promoted responder checkpoint.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

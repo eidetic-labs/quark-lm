@@ -124,6 +124,12 @@ loss weight.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
+v0.51 adds opt-in foundation-stack controls before the next repair objective:
+`--optimizer adamw`, `--gradient-accumulation-steps`, warmup/decay schedule
+flags, `--resume-checkpoint`, `--resume-optimizer`, `--attention-heads`,
+`--use-rms-norm`, `--use-gated-mlp`, `--tie-output-embeddings`,
+`--use-rotary-positions`, `--use-kv-cache-path`, generation sampling controls,
+and eval `--samples-jsonl` trace artifacts.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
@@ -710,6 +716,21 @@ Latest top-k softmax branch repair smoke:
 | Final heldout target-token coverage | `0.0 -> 0.125` |
 | Final heldout top-3/top-5 target coverage | `0.125 -> 0.375` / `0.125 -> 0.5` |
 | Promotion status | rejected top-k softmax rank-lift evidence |
+
+Latest foundation-stack smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-v0.51-foundation-stack-smoke/` |
+| Checkpoint format | `quarklm-transformer-v2` |
+| Optimizer | `adamw` with saved `optimizer_state.json` |
+| Schedule / accumulation | warmup `1`, decay `2`, gradient accumulation `2` |
+| Architecture switches | `--attention-heads 2`, `--use-rms-norm`, `--use-gated-mlp`, `--tie-output-embeddings`, `--use-rotary-positions` |
+| Runtime switches | `--use-kv-cache-path`, eval `--use-kv-cache`, top-k/top-p/temperature/repetition controls |
+| Eval artifacts | `eval.json` and replayable `eval_samples.jsonl` with token traces |
+| Steps | `2/2` language-model smoke steps |
+| Validation status | mechanics smoke completed; transformer tests pass |
+| Promotion status | foundation mechanics evidence only |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

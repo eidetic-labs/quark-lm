@@ -375,6 +375,18 @@ Current transformer answer-lesson run:
   coverage with a tighter target margin, but prediction diversity still stayed
   `1/8` with wrong `"u"` top-1 branch choices, so it remains rejected repair
   evidence.
+- v0.51 implements a full transformer foundation stack before the next
+  direct-answer repair run: dependency-free AdamW/SGD optimizer state,
+  gradient accumulation, warmup/decay scheduling, checkpoint resume validation,
+  v2 checkpoint metadata, multi-head attention, RMSNorm, gated MLPs, tied output
+  embeddings, rotary-position support, cache-aware generation metadata,
+  top-k/top-p/temperature/repetition controls, token-level generation traces,
+  and replayable eval sample JSONL. The tiny all-switch smoke
+  `runs/transformer-v0.51-foundation-stack-smoke/` ran `2/2` language-model
+  steps with AdamW and wrote `optimizer_state.json`, a
+  `quarklm-transformer-v2` checkpoint, `eval.json`, and
+  `eval_samples.jsonl`. This is mechanics evidence, not model-quality
+  promotion evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

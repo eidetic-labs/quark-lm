@@ -55,9 +55,15 @@ class TransformerConfig:
     feedforward_dim: int = 16
     seed: int = 17
     num_layers: int = 1
+    attention_heads: int = 1
     use_layer_norm: bool = False
     use_pre_layer_norm: bool = False
+    use_rms_norm: bool = False
     layer_norm_epsilon: float = 1e-5
+    use_gated_mlp: bool = False
+    tie_output_embeddings: bool = False
+    use_rotary_positions: bool = False
+    use_kv_cache_path: bool = False
     use_context_mean: bool = False
     use_context_projection: bool = False
     use_prompt_prefix_projection: bool = False
@@ -66,11 +72,234 @@ class TransformerConfig:
     use_prompt_attention_summary: bool = False
 
 
+@dataclass
+class OptimizationConfig:
+    optimizer: str = "sgd"
+    gradient_clip: float = 5.0
+    weight_decay: float = 0.0
+    beta1: float = 0.9
+    beta2: float = 0.999
+    epsilon: float = 1e-8
+    warmup_steps: int = 0
+    decay_steps: int = 0
+    min_learning_rate: float = 0.0
+    gradient_accumulation_steps: int = 1
+
+
+@dataclass
+class GenerationConfig:
+    temperature: float = 0.0
+    top_k: int = 0
+    top_p: float = 1.0
+    repetition_penalty: float = 1.0
+    trace_top_tokens: int = 5
+    use_kv_cache: bool = False
+
+
+class ScalarOptimizer:
+    def __init__(
+        self,
+        config: OptimizationConfig | None = None,
+        update_count: int = 0,
+        first_moment: list[float] | None = None,
+        second_moment: list[float] | None = None,
+        gradient_buffer: list[float] | None = None,
+        pending_accumulation: int = 0,
+    ) -> None:
+        self.config = config or OptimizationConfig()
+        self.update_count = update_count
+        self.first_moment = first_moment or []
+        self.second_moment = second_moment or []
+        self.gradient_buffer = gradient_buffer or []
+        self.pending_accumulation = pending_accumulation
+        validate_optimization_config(self.config)
+
+    def effective_learning_rate(self, base_learning_rate: float, next_step: int | None = None) -> float:
+        step = self.update_count + 1 if next_step is None else next_step
+        learning_rate = base_learning_rate
+        if self.config.warmup_steps > 0:
+            learning_rate *= min(1.0, step / self.config.warmup_steps)
+        if self.config.decay_steps > 0 and step > self.config.warmup_steps:
+            decay_step = min(step - self.config.warmup_steps, self.config.decay_steps)
+            decay_fraction = decay_step / self.config.decay_steps
+            learning_rate = learning_rate - (
+                learning_rate - self.config.min_learning_rate
+            ) * decay_fraction
+        return max(learning_rate, self.config.min_learning_rate)
+
+    def apply(self, params: list[Scalar], base_learning_rate: float) -> float:
+        self._ensure_slots(len(params))
+        for index, parameter in enumerate(params):
+            self.gradient_buffer[index] += self._clipped_grad(parameter)
+        self.pending_accumulation += 1
+        if self.pending_accumulation < self.config.gradient_accumulation_steps:
+            return self.effective_learning_rate(base_learning_rate)
+        accumulated_grads = [
+            value / self.pending_accumulation
+            for value in self.gradient_buffer
+        ]
+        self.gradient_buffer = [0.0 for _ in params]
+        self.pending_accumulation = 0
+        self.update_count += 1
+        learning_rate = self.effective_learning_rate(base_learning_rate, self.update_count)
+        if self.config.optimizer == "sgd":
+            self._apply_sgd(params, accumulated_grads, learning_rate)
+        elif self.config.optimizer == "adamw":
+            self._apply_adamw(params, accumulated_grads, learning_rate)
+        else:
+            raise ValueError(f"unsupported optimizer: {self.config.optimizer}")
+        return learning_rate
+
+    def _ensure_slots(self, param_count: int) -> None:
+        if len(self.first_moment) != param_count:
+            self.first_moment = [0.0 for _ in range(param_count)]
+        if len(self.second_moment) != param_count:
+            self.second_moment = [0.0 for _ in range(param_count)]
+        if len(self.gradient_buffer) != param_count:
+            self.gradient_buffer = [0.0 for _ in range(param_count)]
+
+    def _clipped_grad(self, parameter: Scalar) -> float:
+        clip = self.config.gradient_clip
+        if clip <= 0.0:
+            return parameter.grad
+        return max(min(parameter.grad, clip), -clip)
+
+    def _apply_sgd(
+        self,
+        params: list[Scalar],
+        grads: list[float],
+        learning_rate: float,
+    ) -> None:
+        for parameter, grad in zip(params, grads):
+            if self.config.weight_decay > 0.0:
+                grad += self.config.weight_decay * parameter.data
+            parameter.data -= learning_rate * grad
+
+    def _apply_adamw(
+        self,
+        params: list[Scalar],
+        grads: list[float],
+        learning_rate: float,
+    ) -> None:
+        beta1 = self.config.beta1
+        beta2 = self.config.beta2
+        beta1_correction = 1.0 - beta1**self.update_count
+        beta2_correction = 1.0 - beta2**self.update_count
+        for index, (parameter, grad) in enumerate(zip(params, grads)):
+            self.first_moment[index] = beta1 * self.first_moment[index] + (1.0 - beta1) * grad
+            self.second_moment[index] = (
+                beta2 * self.second_moment[index] + (1.0 - beta2) * grad * grad
+            )
+            first_unbiased = self.first_moment[index] / beta1_correction
+            second_unbiased = self.second_moment[index] / beta2_correction
+            if self.config.weight_decay > 0.0:
+                parameter.data -= learning_rate * self.config.weight_decay * parameter.data
+            parameter.data -= (
+                learning_rate
+                * first_unbiased
+                / (math.sqrt(second_unbiased) + self.config.epsilon)
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "version": 1,
+            "config": asdict(self.config),
+            "update_count": self.update_count,
+            "param_count": len(self.first_moment),
+            "first_moment": self.first_moment,
+            "second_moment": self.second_moment,
+            "gradient_buffer": self.gradient_buffer,
+            "pending_accumulation": self.pending_accumulation,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "ScalarOptimizer":
+        return cls(
+            OptimizationConfig(**payload.get("config", {})),
+            update_count=int(payload.get("update_count", 0)),
+            first_moment=[float(value) for value in payload.get("first_moment", [])],
+            second_moment=[float(value) for value in payload.get("second_moment", [])],
+            gradient_buffer=[float(value) for value in payload.get("gradient_buffer", [])],
+            pending_accumulation=int(payload.get("pending_accumulation", 0)),
+        )
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "optimizer": self.config.optimizer,
+            "update_count": self.update_count,
+            "param_count": len(self.first_moment),
+            "pending_accumulation": self.pending_accumulation,
+            "last_learning_rate": (
+                self.effective_learning_rate(1.0, self.update_count)
+                if self.update_count
+                else None
+            ),
+            "gradient_clip": self.config.gradient_clip,
+            "weight_decay": self.config.weight_decay,
+            "warmup_steps": self.config.warmup_steps,
+            "decay_steps": self.config.decay_steps,
+            "gradient_accumulation_steps": self.config.gradient_accumulation_steps,
+        }
+
+
+def validate_transformer_config(config: TransformerConfig) -> None:
+    if config.vocab_size <= 0:
+        raise ValueError("vocab_size must be positive")
+    if config.context_size <= 0:
+        raise ValueError("context_size must be positive")
+    if config.embedding_dim <= 0:
+        raise ValueError("embedding_dim must be positive")
+    if config.feedforward_dim <= 0:
+        raise ValueError("feedforward_dim must be positive")
+    if config.num_layers <= 0:
+        raise ValueError("num_layers must be positive")
+    if config.attention_heads <= 0:
+        raise ValueError("attention_heads must be positive")
+    if config.embedding_dim % config.attention_heads != 0:
+        raise ValueError("embedding_dim must be divisible by attention_heads")
+    if config.layer_norm_epsilon <= 0.0:
+        raise ValueError("layer_norm_epsilon must be positive")
+
+
+def validate_optimization_config(config: OptimizationConfig) -> None:
+    if config.optimizer not in {"sgd", "adamw"}:
+        raise ValueError("optimizer must be 'sgd' or 'adamw'")
+    if config.gradient_clip < 0.0:
+        raise ValueError("gradient_clip must be non-negative")
+    if config.weight_decay < 0.0:
+        raise ValueError("weight_decay must be non-negative")
+    if not 0.0 <= config.beta1 < 1.0:
+        raise ValueError("beta1 must be in [0, 1)")
+    if not 0.0 <= config.beta2 < 1.0:
+        raise ValueError("beta2 must be in [0, 1)")
+    if config.epsilon <= 0.0:
+        raise ValueError("epsilon must be positive")
+    if config.warmup_steps < 0 or config.decay_steps < 0:
+        raise ValueError("warmup and decay steps must be non-negative")
+    if config.min_learning_rate < 0.0:
+        raise ValueError("min_learning_rate must be non-negative")
+    if config.gradient_accumulation_steps <= 0:
+        raise ValueError("gradient_accumulation_steps must be positive")
+
+
+def validate_generation_config(config: GenerationConfig) -> None:
+    if config.temperature < 0.0:
+        raise ValueError("temperature must be non-negative")
+    if config.top_k < 0:
+        raise ValueError("top_k must be non-negative")
+    if not 0.0 < config.top_p <= 1.0:
+        raise ValueError("top_p must be in (0, 1]")
+    if config.repetition_penalty <= 0.0:
+        raise ValueError("repetition_penalty must be positive")
+    if config.trace_top_tokens <= 0:
+        raise ValueError("trace_top_tokens must be positive")
+
+
 class TinyTransformerLM:
     def __init__(self, config: TransformerConfig, weights: dict[str, Any]) -> None:
-        if config.num_layers < 1:
-            raise ValueError("transformer must have at least one layer")
+        validate_transformer_config(config)
         self.config = config
+        dim = config.embedding_dim
         self.token_embeddings = matrix_to_scalars(weights["token_embeddings"])
         self.position_embeddings = matrix_to_scalars(weights["position_embeddings"])
         self.wq = matrix_to_scalars(weights["wq"])
@@ -83,11 +312,19 @@ class TinyTransformerLM:
         self.bo = vector_to_scalars(weights["bo"])
         self.w1 = matrix_to_scalars(weights["w1"])
         self.b1 = vector_to_scalars(weights["b1"])
+        self.w_gate = matrix_to_scalars(
+            weights.get(
+                "w_gate",
+                [[0.0 for _ in range(config.feedforward_dim)] for _ in range(dim)],
+            )
+        )
+        self.b_gate = vector_to_scalars(
+            weights.get("b_gate", [0.0 for _ in range(config.feedforward_dim)])
+        )
         self.w2 = matrix_to_scalars(weights["w2"])
         self.b2 = vector_to_scalars(weights["b2"])
         self.wout = matrix_to_scalars(weights["wout"])
         self.bout = vector_to_scalars(weights["bout"])
-        dim = config.embedding_dim
         self.context_projection_w = matrix_to_scalars(
             weights.get(
                 "context_projection_w",
@@ -150,12 +387,14 @@ class TinyTransformerLM:
             raise ValueError(
                 f"checkpoint has {len(self.extra_blocks)} extra transformer layers, "
                 f"config expects {expected_extra_layers}"
-            )
+        )
         self.blocks = [self._first_block()] + self.extra_blocks
         self.freeze_lower_layers_for_updates = False
+        self.active_optimizer: ScalarOptimizer | None = None
 
     @classmethod
     def init_random(cls, config: TransformerConfig) -> "TinyTransformerLM":
+        validate_transformer_config(config)
         rng = random.Random(config.seed)
 
         def rand(scale: float) -> float:
@@ -177,6 +416,11 @@ class TinyTransformerLM:
                 "bo": [0.0 for _ in range(dim)],
                 "w1": [[rand(scale) for _ in range(ff_dim)] for _ in range(dim)],
                 "b1": [0.0 for _ in range(ff_dim)],
+                "w_gate": [
+                    [rand(scale) if config.use_gated_mlp else 0.0 for _ in range(ff_dim)]
+                    for _ in range(dim)
+                ],
+                "b_gate": [0.0 for _ in range(ff_dim)],
                 "w2": [
                     [rand(1.0 / math.sqrt(ff_dim)) for _ in range(dim)]
                     for _ in range(ff_dim)
@@ -236,6 +480,8 @@ class TinyTransformerLM:
             "b1": self.b1,
             "w2": self.w2,
             "b2": self.b2,
+            "w_gate": self.w_gate,
+            "b_gate": self.b_gate,
             "ln1_gain": self.ln1_gain,
             "ln1_bias": self.ln1_bias,
             "ln2_gain": self.ln2_gain,
@@ -255,6 +501,15 @@ class TinyTransformerLM:
             "bo": vector_to_scalars(payload["bo"]),
             "w1": matrix_to_scalars(payload["w1"]),
             "b1": vector_to_scalars(payload["b1"]),
+            "w_gate": matrix_to_scalars(
+                payload.get(
+                    "w_gate",
+                    [[0.0 for _ in range(self.config.feedforward_dim)] for _ in range(dim)],
+                )
+            ),
+            "b_gate": vector_to_scalars(
+                payload.get("b_gate", [0.0 for _ in range(self.config.feedforward_dim)])
+            ),
             "w2": matrix_to_scalars(payload["w2"]),
             "b2": vector_to_scalars(payload["b2"]),
             "ln1_gain": vector_to_scalars(payload.get("ln1_gain", [1.0 for _ in range(dim)])),
@@ -275,6 +530,8 @@ class TinyTransformerLM:
             "bo": vector_to_floats(block["bo"]),
             "w1": matrix_to_floats(block["w1"]),
             "b1": vector_to_floats(block["b1"]),
+            "w_gate": matrix_to_floats(block["w_gate"]),
+            "b_gate": vector_to_floats(block["b_gate"]),
             "w2": matrix_to_floats(block["w2"]),
             "b2": vector_to_floats(block["b2"]),
             "ln1_gain": vector_to_floats(block["ln1_gain"]),
@@ -303,10 +560,14 @@ class TinyTransformerLM:
             self.b1,
             self.w2,
             self.b2,
-            self.wout,
             self.bout,
         ]:
             params.extend(flatten_scalars(item))
+        if self.config.use_gated_mlp:
+            for item in [self.w_gate, self.b_gate]:
+                params.extend(flatten_scalars(item))
+        if not self.config.tie_output_embeddings:
+            params.extend(flatten_scalars(self.wout))
         if self.config.use_context_projection:
             for item in [self.context_projection_w, self.context_projection_b]:
                 params.extend(flatten_scalars(item))
@@ -351,6 +612,9 @@ class TinyTransformerLM:
                 block["b2"],
             ]:
                 params.extend(flatten_scalars(item))
+            if self.config.use_gated_mlp:
+                for item in [block["w_gate"], block["b_gate"]]:
+                    params.extend(flatten_scalars(item))
             if self._uses_block_layer_norm_parameters():
                 for item in [
                     block["ln1_gain"],
@@ -379,10 +643,14 @@ class TinyTransformerLM:
             top_block["b1"],
             top_block["w2"],
             top_block["b2"],
-            self.wout,
             self.bout,
         ]:
             params.extend(flatten_scalars(item))
+        if self.config.use_gated_mlp:
+            for item in [top_block["w_gate"], top_block["b_gate"]]:
+                params.extend(flatten_scalars(item))
+        if not self.config.tie_output_embeddings:
+            params.extend(flatten_scalars(self.wout))
         if self.config.use_context_projection:
             for item in [self.context_projection_w, self.context_projection_b]:
                 params.extend(flatten_scalars(item))
@@ -418,8 +686,29 @@ class TinyTransformerLM:
                 params.extend(flatten_scalars(item))
         return params
 
+    def _output_weights_scalars(self) -> list[list[Scalar]]:
+        if not self.config.tie_output_embeddings:
+            return self.wout
+        return [
+            [self.token_embeddings[token_id][dim] for token_id in range(self.config.vocab_size)]
+            for dim in range(self.config.embedding_dim)
+        ]
+
+    def _output_weights_floats(self) -> list[list[float]]:
+        if not self.config.tie_output_embeddings:
+            return matrix_to_floats(self.wout)
+        token_embeddings = matrix_to_floats(self.token_embeddings)
+        return [
+            [token_embeddings[token_id][dim] for token_id in range(self.config.vocab_size)]
+            for dim in range(self.config.embedding_dim)
+        ]
+
     def _forward_scalars(self, context: list[int]) -> list[Scalar]:
-        return linear_scalars(self._final_hidden_scalars(context), self.wout, self.bout)
+        return linear_scalars(
+            self._final_hidden_scalars(context),
+            self._output_weights_scalars(),
+            self.bout,
+        )
 
     def _final_hidden_scalars(self, context: list[int]) -> list[Scalar]:
         if len(context) != self.config.context_size:
@@ -464,7 +753,7 @@ class TinyTransformerLM:
     def _forward_floats(self, context: list[int]) -> list[float]:
         return linear_floats(
             self.final_hidden(context),
-            matrix_to_floats(self.wout),
+            self._output_weights_floats(),
             vector_to_floats(self.bout),
         )
 
@@ -497,6 +786,12 @@ class TinyTransformerLM:
     def _finalize_hidden_scalars(self, hidden: list[Scalar]) -> list[Scalar]:
         if not self.config.use_pre_layer_norm:
             return hidden
+        if self.config.use_rms_norm:
+            return rms_norm_scalars(
+                hidden,
+                self.final_ln_gain,
+                self.config.layer_norm_epsilon,
+            )
         return layer_norm_scalars(
             hidden,
             self.final_ln_gain,
@@ -507,6 +802,12 @@ class TinyTransformerLM:
     def _finalize_hidden_floats(self, hidden: list[float]) -> list[float]:
         if not self.config.use_pre_layer_norm:
             return hidden
+        if self.config.use_rms_norm:
+            return rms_norm_floats(
+                hidden,
+                vector_to_floats(self.final_ln_gain),
+                self.config.layer_norm_epsilon,
+            )
         return layer_norm_floats(
             hidden,
             vector_to_floats(self.final_ln_gain),
@@ -524,19 +825,11 @@ class TinyTransformerLM:
         q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
-        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        if self.config.use_rotary_positions:
+            q = self._apply_rotary_scalars(q)
+            k = self._apply_rotary_scalars(k)
         last_position = self.config.context_size - 1
-        scores = [
-            dot_scalars(q[last_position], k[past]) * scale
-            for past in range(self.config.context_size)
-        ]
-        weights = softmax_scalars(scores)
-        attended = []
-        for dim in range(self.config.embedding_dim):
-            total = Scalar(0.0)
-            for past, weight in enumerate(weights):
-                total = total + weight * v[past][dim]
-            attended.append(total)
+        attended = self._causal_attention_scalars(q, k, v, last_position)
         projected = linear_scalars(attended, block["wo"], block["bo"])
         hidden = [
             x[last_position][dim] + projected[dim]
@@ -639,17 +932,12 @@ class TinyTransformerLM:
         q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
-        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        if self.config.use_rotary_positions:
+            q = self._apply_rotary_scalars(q)
+            k = self._apply_rotary_scalars(k)
         outputs = []
         for position in range(self.config.context_size):
-            scores = [dot_scalars(q[position], k[past]) * scale for past in range(position + 1)]
-            weights = softmax_scalars(scores)
-            attended = []
-            for dim in range(self.config.embedding_dim):
-                total = Scalar(0.0)
-                for past, weight in enumerate(weights):
-                    total = total + weight * v[past][dim]
-                attended.append(total)
+            attended = self._causal_attention_scalars(q, k, v, position)
             projected = linear_scalars(attended, block["wo"], block["bo"])
             hidden = [
                 x[position][dim] + projected[dim]
@@ -670,10 +958,25 @@ class TinyTransformerLM:
                 block["ln2_bias"],
                 self.config.layer_norm_epsilon,
             )
+            if self.config.use_rms_norm:
+                ff_input = rms_norm_scalars(
+                    hidden,
+                    block["ln2_gain"],
+                    self.config.layer_norm_epsilon,
+                )
             ff_hidden = [
                 value.tanh()
                 for value in linear_scalars(ff_input, block["w1"], block["b1"])
             ]
+            if self.config.use_gated_mlp:
+                ff_gate = [
+                    value.tanh()
+                    for value in linear_scalars(ff_input, block["w_gate"], block["b_gate"])
+                ]
+                ff_hidden = [
+                    hidden_value * gate_value
+                    for hidden_value, gate_value in zip(ff_hidden, ff_gate)
+                ]
             ff_out = linear_scalars(ff_hidden, block["w2"], block["b2"])
             return [
                 hidden[dim] + ff_out[dim]
@@ -686,7 +989,22 @@ class TinyTransformerLM:
                 block["ln1_bias"],
                 self.config.layer_norm_epsilon,
             )
+        if self.config.use_rms_norm:
+            hidden = rms_norm_scalars(
+                hidden,
+                block["ln1_gain"],
+                self.config.layer_norm_epsilon,
+            )
         ff_hidden = [value.tanh() for value in linear_scalars(hidden, block["w1"], block["b1"])]
+        if self.config.use_gated_mlp:
+            ff_gate = [
+                value.tanh()
+                for value in linear_scalars(hidden, block["w_gate"], block["b_gate"])
+            ]
+            ff_hidden = [
+                hidden_value * gate_value
+                for hidden_value, gate_value in zip(ff_hidden, ff_gate)
+            ]
         ff_out = linear_scalars(ff_hidden, block["w2"], block["b2"])
         block_out = [
             hidden[dim] + ff_out[dim]
@@ -706,6 +1024,15 @@ class TinyTransformerLM:
         x: list[list[Scalar]],
         block: dict[str, Any],
     ) -> list[list[Scalar]]:
+        if self.config.use_rms_norm and self.config.use_pre_layer_norm:
+            return [
+                rms_norm_scalars(
+                    row,
+                    block["ln1_gain"],
+                    self.config.layer_norm_epsilon,
+                )
+                for row in x
+            ]
         if not self.config.use_pre_layer_norm:
             return x
         return [
@@ -728,17 +1055,11 @@ class TinyTransformerLM:
         q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
-        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        if self.config.use_rotary_positions:
+            q = self._apply_rotary_floats(q)
+            k = self._apply_rotary_floats(k)
         last_position = self.config.context_size - 1
-        scores = [
-            dot_floats(q[last_position], k[past]) * scale
-            for past in range(self.config.context_size)
-        ]
-        weights = softmax_floats(scores)
-        attended = [
-            sum(weight * v[past][dim] for past, weight in enumerate(weights))
-            for dim in range(self.config.embedding_dim)
-        ]
+        attended = self._causal_attention_floats(q, k, v, last_position)
         projected = linear_floats(attended, block["wo"], block["bo"])
         hidden = [
             x[last_position][dim] + projected[dim]
@@ -846,15 +1167,12 @@ class TinyTransformerLM:
         q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
-        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        if self.config.use_rotary_positions:
+            q = self._apply_rotary_floats(q)
+            k = self._apply_rotary_floats(k)
         outputs = []
         for position in range(self.config.context_size):
-            scores = [dot_floats(q[position], k[past]) * scale for past in range(position + 1)]
-            weights = softmax_floats(scores)
-            attended = [
-                sum(weight * v[past][dim] for past, weight in enumerate(weights))
-                for dim in range(self.config.embedding_dim)
-            ]
+            attended = self._causal_attention_floats(q, k, v, position)
             projected = linear_floats(attended, block["wo"], block["bo"])
             hidden = [
                 x[position][dim] + projected[dim]
@@ -875,10 +1193,25 @@ class TinyTransformerLM:
                 block["ln2_bias"],
                 self.config.layer_norm_epsilon,
             )
+            if self.config.use_rms_norm:
+                ff_input = rms_norm_floats(
+                    hidden,
+                    block["ln2_gain"],
+                    self.config.layer_norm_epsilon,
+                )
             ff_hidden = [
                 math.tanh(value)
                 for value in linear_floats(ff_input, block["w1"], block["b1"])
             ]
+            if self.config.use_gated_mlp:
+                ff_gate = [
+                    math.tanh(value)
+                    for value in linear_floats(ff_input, block["w_gate"], block["b_gate"])
+                ]
+                ff_hidden = [
+                    hidden_value * gate_value
+                    for hidden_value, gate_value in zip(ff_hidden, ff_gate)
+                ]
             ff_out = linear_floats(ff_hidden, block["w2"], block["b2"])
             return [
                 hidden[dim] + ff_out[dim]
@@ -891,7 +1224,22 @@ class TinyTransformerLM:
                 block["ln1_bias"],
                 self.config.layer_norm_epsilon,
             )
+        if self.config.use_rms_norm:
+            hidden = rms_norm_floats(
+                hidden,
+                block["ln1_gain"],
+                self.config.layer_norm_epsilon,
+            )
         ff_hidden = [math.tanh(value) for value in linear_floats(hidden, block["w1"], block["b1"])]
+        if self.config.use_gated_mlp:
+            ff_gate = [
+                math.tanh(value)
+                for value in linear_floats(hidden, block["w_gate"], block["b_gate"])
+            ]
+            ff_hidden = [
+                hidden_value * gate_value
+                for hidden_value, gate_value in zip(ff_hidden, ff_gate)
+            ]
         ff_out = linear_floats(ff_hidden, block["w2"], block["b2"])
         block_out = [
             hidden[dim] + ff_out[dim]
@@ -911,6 +1259,15 @@ class TinyTransformerLM:
         x: list[list[float]],
         block: dict[str, Any],
     ) -> list[list[float]]:
+        if self.config.use_rms_norm and self.config.use_pre_layer_norm:
+            return [
+                rms_norm_floats(
+                    row,
+                    block["ln1_gain"],
+                    self.config.layer_norm_epsilon,
+                )
+                for row in x
+            ]
         if not self.config.use_pre_layer_norm:
             return x
         return [
@@ -923,12 +1280,112 @@ class TinyTransformerLM:
             for row in x
         ]
 
+    def _causal_attention_scalars(
+        self,
+        q: list[list[Scalar]],
+        k: list[list[Scalar]],
+        v: list[list[Scalar]],
+        position: int,
+    ) -> list[Scalar]:
+        head_dim = self.config.embedding_dim // self.config.attention_heads
+        attended: list[Scalar] = []
+        for head in range(self.config.attention_heads):
+            start = head * head_dim
+            end = start + head_dim
+            scale = 1.0 / math.sqrt(head_dim)
+            scores = [
+                dot_scalars(q[position][start:end], k[past][start:end]) * scale
+                for past in range(position + 1)
+            ]
+            weights = softmax_scalars(scores)
+            for dim in range(start, end):
+                total = Scalar(0.0)
+                for past, weight in enumerate(weights):
+                    total = total + weight * v[past][dim]
+                attended.append(total)
+        return attended
+
+    def _causal_attention_floats(
+        self,
+        q: list[list[float]],
+        k: list[list[float]],
+        v: list[list[float]],
+        position: int,
+    ) -> list[float]:
+        head_dim = self.config.embedding_dim // self.config.attention_heads
+        attended: list[float] = []
+        for head in range(self.config.attention_heads):
+            start = head * head_dim
+            end = start + head_dim
+            scale = 1.0 / math.sqrt(head_dim)
+            scores = [
+                dot_floats(q[position][start:end], k[past][start:end]) * scale
+                for past in range(position + 1)
+            ]
+            weights = softmax_floats(scores)
+            for dim in range(start, end):
+                attended.append(
+                    sum(weight * v[past][dim] for past, weight in enumerate(weights))
+                )
+        return attended
+
+    def _apply_rotary_scalars(self, rows: list[list[Scalar]]) -> list[list[Scalar]]:
+        head_dim = self.config.embedding_dim // self.config.attention_heads
+        rotated: list[list[Scalar]] = []
+        for position, row in enumerate(rows):
+            output = row[:]
+            for head in range(self.config.attention_heads):
+                start = head * head_dim
+                for offset in range(0, head_dim - 1, 2):
+                    index = start + offset
+                    angle = position / (10000.0 ** (offset / max(head_dim, 1)))
+                    cos_value = math.cos(angle)
+                    sin_value = math.sin(angle)
+                    left = row[index]
+                    right = row[index + 1]
+                    output[index] = left * cos_value - right * sin_value
+                    output[index + 1] = left * sin_value + right * cos_value
+            rotated.append(output)
+        return rotated
+
+    def _apply_rotary_floats(self, rows: list[list[float]]) -> list[list[float]]:
+        head_dim = self.config.embedding_dim // self.config.attention_heads
+        rotated: list[list[float]] = []
+        for position, row in enumerate(rows):
+            output = row[:]
+            for head in range(self.config.attention_heads):
+                start = head * head_dim
+                for offset in range(0, head_dim - 1, 2):
+                    index = start + offset
+                    angle = position / (10000.0 ** (offset / max(head_dim, 1)))
+                    cos_value = math.cos(angle)
+                    sin_value = math.sin(angle)
+                    left = row[index]
+                    right = row[index + 1]
+                    output[index] = left * cos_value - right * sin_value
+                    output[index + 1] = left * sin_value + right * cos_value
+            rotated.append(output)
+        return rotated
+
     def predict(self, context: list[int]) -> list[float]:
         return softmax_floats(self._forward_floats(context))
 
     def nll(self, context: list[int], target: int) -> float:
         probs = self.predict(context)
         return -math.log(max(probs[target], 1e-12))
+
+    def apply_gradients(
+        self,
+        params: list[Scalar],
+        learning_rate: float,
+    ) -> float:
+        optimizer = self.active_optimizer
+        if optimizer is not None:
+            return optimizer.apply(params, learning_rate)
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return learning_rate
 
     def train_step(
         self,
@@ -941,9 +1398,7 @@ class TinyTransformerLM:
         zero_grad(params)
         loss = cross_entropy_scalars(self._forward_scalars(context), target)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_unlikelihood(
@@ -962,9 +1417,7 @@ class TinyTransformerLM:
         if negative != target and negative_weight > 0.0:
             loss = loss + (-(Scalar(1.0) - probs[negative] + 1e-12).log()) * negative_weight
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_unlikelihood_and_positive(
@@ -989,9 +1442,7 @@ class TinyTransformerLM:
             positive_probs = softmax_scalars(self._forward_scalars(positive_context))
             loss = loss + (-positive_probs[positive_target].log()) * positive_weight
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_contrast(
@@ -1019,9 +1470,7 @@ class TinyTransformerLM:
                     -(Scalar(1.0) - contrast_probs[target] + 1e-12).log()
                 ) * negative_weight * contrast_weight
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_batch_contrast(
@@ -1053,9 +1502,7 @@ class TinyTransformerLM:
                     ) * per_negative_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_diversity(
@@ -1092,9 +1539,7 @@ class TinyTransformerLM:
                     ) * per_target_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_target_softmax(
@@ -1130,9 +1575,7 @@ class TinyTransformerLM:
                 ) * target_softmax_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_target_margin(
@@ -1170,9 +1613,7 @@ class TinyTransformerLM:
                     loss = loss + (Scalar(1.0) + gap.exp()).log() * per_target_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_representation_contrast(
@@ -1217,9 +1658,7 @@ class TinyTransformerLM:
             if contrast_pairs:
                 loss = loss + (contrast_loss / contrast_pairs) * representation_weight
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_output_binding(
@@ -1274,9 +1713,7 @@ class TinyTransformerLM:
             if contrast_pairs:
                 loss = loss + (contrast_loss / contrast_pairs) * binding_weight
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_rank_margin(
@@ -1322,9 +1759,7 @@ class TinyTransformerLM:
                     )
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def train_step_with_branch_topk_softmax(
@@ -1369,9 +1804,7 @@ class TinyTransformerLM:
                 loss = loss + (-candidate_probs[0].log()) * candidate_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
-        for parameter in params:
-            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-            parameter.data -= learning_rate * clipped_grad
+        self.apply_gradients(params, learning_rate)
         return loss.data
 
     def generate(
@@ -1381,26 +1814,110 @@ class TinyTransformerLM:
         max_new_chars: int,
         temperature: float = 0.0,
         stop_at: str | None = None,
+        top_k: int = 0,
+        top_p: float = 1.0,
+        repetition_penalty: float = 1.0,
     ) -> str:
+        config = GenerationConfig(
+            temperature=temperature,
+            top_k=top_k,
+            top_p=top_p,
+            repetition_penalty=repetition_penalty,
+        )
+        return self.generate_with_trace(
+            tokenizer,
+            prompt,
+            max_new_chars,
+            config,
+            stop_at=stop_at,
+        )["text"]
+
+    def generate_with_trace(
+        self,
+        tokenizer: CharTokenizer,
+        prompt: str,
+        max_new_chars: int,
+        config: GenerationConfig | None = None,
+        stop_at: str | None = None,
+    ) -> dict[str, Any]:
+        config = config or GenerationConfig()
+        validate_generation_config(config)
         ids = tokenizer.encode(prompt)
         generated: list[int] = []
         rng = random.Random(self.config.seed + len(prompt))
+        trace: list[dict[str, Any]] = []
+        cache_enabled = config.use_kv_cache or self.config.use_kv_cache_path
+        cache_events: list[dict[str, Any]] = []
         for _ in range(max_new_chars):
             context = make_context(ids, self.config.context_size, tokenizer.pad_id)
+            if cache_enabled:
+                cache_events.append(
+                    {
+                        "context_length": len(context),
+                        "source_token_count": len(ids),
+                        "sliding_window": len(ids) > self.config.context_size,
+                    }
+                )
             probs = self.predict(context)
-            if temperature <= 0:
-                next_id = max(range(len(probs)), key=lambda index: probs[index])
+            filtered_probs = generation_distribution(
+                probs,
+                generated,
+                config,
+            )
+            if config.temperature <= 0:
+                next_id = max(
+                    range(len(filtered_probs)),
+                    key=lambda index: filtered_probs[index],
+                )
             else:
-                next_id = sample_from_probs(probs, temperature, rng)
+                next_id = sample_from_probs(filtered_probs, 1.0, rng)
+            top_tokens = sorted(
+                range(len(filtered_probs)),
+                key=lambda index: filtered_probs[index],
+                reverse=True,
+            )[: config.trace_top_tokens]
+            trace.append(
+                {
+                    "step": len(generated) + 1,
+                    "context": tokenizer.decode(context),
+                    "token_id": next_id,
+                    "token": tokenizer.itos[next_id],
+                    "probability": filtered_probs[next_id],
+                    "raw_probability": probs[next_id],
+                    "top_tokens": [
+                        {
+                            "token_id": token_id,
+                            "token": tokenizer.itos[token_id],
+                            "probability": filtered_probs[token_id],
+                            "raw_probability": probs[token_id],
+                        }
+                        for token_id in top_tokens
+                    ],
+                }
+            )
             ids.append(next_id)
             if stop_at is not None and tokenizer.itos[next_id] == stop_at:
                 break
             generated.append(next_id)
-        return tokenizer.decode(generated)
+        return {
+            "text": tokenizer.decode(generated),
+            "trace": trace,
+            "generation_config": asdict(config),
+            "cache": {
+                "enabled": cache_enabled,
+                "mode": "rolling-context-kv-aware" if cache_enabled else "disabled",
+                "events": cache_events,
+            },
+        }
 
-    def to_dict(self, tokenizer: CharTokenizer | None = None) -> dict[str, Any]:
+    def to_dict(
+        self,
+        tokenizer: CharTokenizer | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "architecture": "tiny-decoder-only-transformer",
+            "checkpoint_format": "quarklm-transformer-v2",
             "config": asdict(self.config),
             "weights": {
                 "token_embeddings": matrix_to_floats(self.token_embeddings),
@@ -1415,6 +1932,8 @@ class TinyTransformerLM:
                 "bo": vector_to_floats(self.bo),
                 "w1": matrix_to_floats(self.w1),
                 "b1": vector_to_floats(self.b1),
+                "w_gate": matrix_to_floats(self.w_gate),
+                "b_gate": vector_to_floats(self.b_gate),
                 "w2": matrix_to_floats(self.w2),
                 "b2": vector_to_floats(self.b2),
                 "wout": matrix_to_floats(self.wout),
@@ -1449,6 +1968,8 @@ class TinyTransformerLM:
                 ],
             },
         }
+        if metadata is not None:
+            payload["metadata"] = metadata
         if tokenizer is not None:
             payload["tokenizer"] = tokenizer.to_dict()
         return payload
@@ -1462,10 +1983,15 @@ class TinyTransformerLM:
             tokenizer = CharTokenizer.from_dict(payload["tokenizer"])
         return model, tokenizer
 
-    def save(self, path: Path, tokenizer: CharTokenizer | None = None) -> None:
+    def save(
+        self,
+        path: Path,
+        tokenizer: CharTokenizer | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8") as handle:
-            json.dump(self.to_dict(tokenizer), handle)
+            json.dump(self.to_dict(tokenizer, metadata), handle)
             handle.write("\n")
 
     @classmethod
@@ -2052,6 +2578,37 @@ def layer_norm_floats(
     ]
 
 
+def rms_norm_scalars(
+    values: list[Scalar],
+    gain: list[Scalar],
+    epsilon: float,
+) -> list[Scalar]:
+    count = max(len(values), 1)
+    mean_square = Scalar(0.0)
+    for value in values:
+        mean_square = mean_square + value * value
+    mean_square = mean_square / count
+    scale = (mean_square + epsilon).pow(-0.5)
+    return [
+        value * scale * gain[index]
+        for index, value in enumerate(values)
+    ]
+
+
+def rms_norm_floats(
+    values: list[float],
+    gain: list[float],
+    epsilon: float,
+) -> list[float]:
+    count = max(len(values), 1)
+    mean_square = sum(value * value for value in values) / count
+    scale = 1.0 / math.sqrt(mean_square + epsilon)
+    return [
+        value * scale * gain[index]
+        for index, value in enumerate(values)
+    ]
+
+
 def dot_scalars(left: list[Scalar], right: list[Scalar]) -> Scalar:
     total = Scalar(0.0)
     for left_value, right_value in zip(left, right):
@@ -2096,6 +2653,58 @@ def sample_from_probs(probs: list[float], temperature: float, rng: random.Random
     return len(probs) - 1
 
 
+def generation_distribution(
+    probs: list[float],
+    generated_ids: list[int],
+    config: GenerationConfig,
+) -> list[float]:
+    adjusted = list(probs)
+    if config.repetition_penalty != 1.0:
+        generated = set(generated_ids)
+        for token_id in generated:
+            adjusted[token_id] = adjusted[token_id] / config.repetition_penalty
+    if config.top_k > 0 and config.top_k < len(adjusted):
+        keep = set(
+            sorted(
+                range(len(adjusted)),
+                key=lambda index: adjusted[index],
+                reverse=True,
+            )[: config.top_k]
+        )
+        adjusted = [
+            value if index in keep else 0.0
+            for index, value in enumerate(adjusted)
+        ]
+    if config.top_p < 1.0:
+        ranked = sorted(
+            range(len(adjusted)),
+            key=lambda index: adjusted[index],
+            reverse=True,
+        )
+        keep: set[int] = set()
+        cumulative = 0.0
+        for index in ranked:
+            keep.add(index)
+            cumulative += adjusted[index]
+            if cumulative >= config.top_p:
+                break
+        adjusted = [
+            value if index in keep else 0.0
+            for index, value in enumerate(adjusted)
+        ]
+    if config.temperature > 0.0 and config.temperature != 1.0:
+        adjusted = [
+            pow(max(value, 1e-12), 1.0 / config.temperature)
+            if value > 0.0
+            else 0.0
+            for value in adjusted
+        ]
+    total = sum(adjusted)
+    if total <= 0.0:
+        return probs
+    return [value / total for value in adjusted]
+
+
 def average_nll(
     model: TinyTransformerLM,
     ids: list[int],
@@ -2133,6 +2742,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--embedding-dim", type=int, default=8)
     train_parser.add_argument("--feedforward-dim", type=int, default=16)
     train_parser.add_argument("--num-layers", type=int, default=1)
+    train_parser.add_argument("--attention-heads", type=int, default=1)
     train_parser.add_argument("--use-layer-norm", action="store_true")
     train_parser.add_argument(
         "--use-pre-layer-norm",
@@ -2142,7 +2752,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "apply a final layer norm before the language-model head."
         ),
     )
+    train_parser.add_argument("--use-rms-norm", action="store_true")
     train_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
+    train_parser.add_argument("--use-gated-mlp", action="store_true")
+    train_parser.add_argument("--tie-output-embeddings", action="store_true")
+    train_parser.add_argument("--use-rotary-positions", action="store_true")
+    train_parser.add_argument("--use-kv-cache-path", action="store_true")
     train_parser.add_argument(
         "--use-context-mean",
         action="store_true",
@@ -2192,11 +2807,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--seed", type=int, default=17)
     train_parser.add_argument("--eval-every", type=int, default=20)
     train_parser.add_argument("--valid-limit", type=int, default=256)
+    train_parser.add_argument("--optimizer", choices=["sgd", "adamw"], default="sgd")
+    train_parser.add_argument("--gradient-clip", type=float, default=5.0)
+    train_parser.add_argument("--weight-decay", type=float, default=0.0)
+    train_parser.add_argument("--adam-beta1", type=float, default=0.9)
+    train_parser.add_argument("--adam-beta2", type=float, default=0.999)
+    train_parser.add_argument("--adam-epsilon", type=float, default=1e-8)
+    train_parser.add_argument("--warmup-steps", type=int, default=0)
+    train_parser.add_argument("--decay-steps", type=int, default=0)
+    train_parser.add_argument("--min-learning-rate", type=float, default=0.0)
+    train_parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
+    train_parser.add_argument("--resume-checkpoint", type=Path, default=None)
+    train_parser.add_argument("--resume-optimizer", type=Path, default=None)
 
     eval_parser = subparsers.add_parser("eval", help="evaluate the tiny transformer")
     eval_parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
     eval_parser.add_argument("--max-new-chars", type=int, default=24)
     eval_parser.add_argument("--json", type=Path, default=None)
+    eval_parser.add_argument("--samples-jsonl", type=Path, default=None)
+    eval_parser.add_argument("--temperature", type=float, default=0.0)
+    eval_parser.add_argument("--top-k", type=int, default=0)
+    eval_parser.add_argument("--top-p", type=float, default=1.0)
+    eval_parser.add_argument("--repetition-penalty", type=float, default=1.0)
+    eval_parser.add_argument("--trace-top-tokens", type=int, default=5)
+    eval_parser.add_argument("--use-kv-cache", action="store_true")
     eval_parser.add_argument(
         "--probe",
         action="append",
@@ -2389,6 +3023,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--embedding-dim", type=int, default=8)
     answer_parser.add_argument("--feedforward-dim", type=int, default=16)
     answer_parser.add_argument("--num-layers", type=int, default=1)
+    answer_parser.add_argument("--attention-heads", type=int, default=1)
     answer_parser.add_argument("--use-layer-norm", action="store_true")
     answer_parser.add_argument(
         "--use-pre-layer-norm",
@@ -2398,7 +3033,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "apply a final layer norm before the language-model head."
         ),
     )
+    answer_parser.add_argument("--use-rms-norm", action="store_true")
     answer_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
+    answer_parser.add_argument("--use-gated-mlp", action="store_true")
+    answer_parser.add_argument("--tie-output-embeddings", action="store_true")
+    answer_parser.add_argument("--use-rotary-positions", action="store_true")
+    answer_parser.add_argument("--use-kv-cache-path", action="store_true")
     answer_parser.add_argument(
         "--use-context-mean",
         action="store_true",
@@ -2448,6 +3088,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--seed", type=int, default=17)
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
+    answer_parser.add_argument("--temperature", type=float, default=0.0)
+    answer_parser.add_argument("--top-k", type=int, default=0)
+    answer_parser.add_argument("--top-p", type=float, default=1.0)
+    answer_parser.add_argument("--repetition-penalty", type=float, default=1.0)
+    answer_parser.add_argument("--trace-top-tokens", type=int, default=5)
+    answer_parser.add_argument("--use-kv-cache", action="store_true")
+    answer_parser.add_argument("--optimizer", choices=["sgd", "adamw"], default="sgd")
+    answer_parser.add_argument("--gradient-clip", type=float, default=5.0)
+    answer_parser.add_argument("--weight-decay", type=float, default=0.0)
+    answer_parser.add_argument("--adam-beta1", type=float, default=0.9)
+    answer_parser.add_argument("--adam-beta2", type=float, default=0.999)
+    answer_parser.add_argument("--adam-epsilon", type=float, default=1e-8)
+    answer_parser.add_argument("--warmup-steps", type=int, default=0)
+    answer_parser.add_argument("--decay-steps", type=int, default=0)
+    answer_parser.add_argument("--min-learning-rate", type=float, default=0.0)
+    answer_parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
+    answer_parser.add_argument("--resume-checkpoint", type=Path, default=None)
+    answer_parser.add_argument("--resume-optimizer", type=Path, default=None)
     answer_parser.add_argument(
         "--candidate-scope",
         choices=["all", "eval"],
@@ -2462,23 +3120,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
-    ensure_curriculum(args.corpus, args.valid)
-    train_text = args.corpus.read_text(encoding="utf-8")
-    valid_text = args.valid.read_text(encoding="utf-8")
-    tokenizer = CharTokenizer.train(train_text)
-    train_ids = tokenizer.encode(train_text)
-    valid_ids = tokenizer.encode(valid_text)
-    config = TransformerConfig(
-        vocab_size=tokenizer.vocab_size,
+def transformer_config_from_args(args: argparse.Namespace, vocab_size: int) -> TransformerConfig:
+    return TransformerConfig(
+        vocab_size=vocab_size,
         context_size=args.context_size,
         embedding_dim=args.embedding_dim,
         feedforward_dim=args.feedforward_dim,
         seed=args.seed,
         num_layers=args.num_layers,
+        attention_heads=args.attention_heads,
         use_layer_norm=args.use_layer_norm,
         use_pre_layer_norm=args.use_pre_layer_norm,
+        use_rms_norm=args.use_rms_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
+        use_gated_mlp=args.use_gated_mlp,
+        tie_output_embeddings=args.tie_output_embeddings,
+        use_rotary_positions=args.use_rotary_positions,
+        use_kv_cache_path=args.use_kv_cache_path,
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
         use_prompt_prefix_projection=args.use_prompt_prefix_projection,
@@ -2486,7 +3144,111 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         prompt_position_projection_scale=args.prompt_position_projection_scale,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
-    model = TinyTransformerLM.init_random(config)
+
+
+def optimization_config_from_args(args: argparse.Namespace) -> OptimizationConfig:
+    return OptimizationConfig(
+        optimizer=args.optimizer,
+        gradient_clip=args.gradient_clip,
+        weight_decay=args.weight_decay,
+        beta1=args.adam_beta1,
+        beta2=args.adam_beta2,
+        epsilon=args.adam_epsilon,
+        warmup_steps=args.warmup_steps,
+        decay_steps=args.decay_steps,
+        min_learning_rate=args.min_learning_rate,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+    )
+
+
+def generation_config_from_args(args: argparse.Namespace) -> GenerationConfig:
+    return GenerationConfig(
+        temperature=args.temperature,
+        top_k=args.top_k,
+        top_p=args.top_p,
+        repetition_penalty=args.repetition_penalty,
+        trace_top_tokens=args.trace_top_tokens,
+        use_kv_cache=args.use_kv_cache,
+    )
+
+
+def load_optimizer_state(
+    path: Path | None,
+    config: OptimizationConfig,
+) -> ScalarOptimizer:
+    if path is None:
+        return ScalarOptimizer(config)
+    with path.open("r", encoding="utf-8") as handle:
+        optimizer = ScalarOptimizer.from_dict(json.load(handle))
+    if asdict(optimizer.config) != asdict(config):
+        raise ValueError("resume optimizer config does not match requested optimizer config")
+    return optimizer
+
+
+def save_optimizer_state(path: Path, optimizer: ScalarOptimizer) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(optimizer.to_dict(), handle, indent=2, sort_keys=True)
+        handle.write("\n")
+
+
+def initialize_transformer_for_training(
+    args: argparse.Namespace,
+    tokenizer: CharTokenizer,
+) -> tuple[TinyTransformerLM, dict[str, Any]]:
+    if args.resume_checkpoint is None:
+        config = transformer_config_from_args(args, tokenizer.vocab_size)
+        return TinyTransformerLM.init_random(config), {"resumed": False}
+    model, checkpoint_tokenizer = TinyTransformerLM.load(args.resume_checkpoint)
+    if checkpoint_tokenizer is None:
+        raise ValueError("resume checkpoint does not contain a tokenizer")
+    if checkpoint_tokenizer.to_dict() != tokenizer.to_dict():
+        raise ValueError("resume checkpoint tokenizer does not match admitted training tokenizer")
+    requested_config = transformer_config_from_args(args, tokenizer.vocab_size)
+    if asdict(model.config) != asdict(requested_config):
+        raise ValueError("resume checkpoint config does not match requested transformer config")
+    return model, {
+        "resumed": True,
+        "resume_checkpoint": str(args.resume_checkpoint),
+    }
+
+
+def transformer_run_metadata(
+    args: argparse.Namespace,
+    tokenizer: CharTokenizer,
+    optimizer: ScalarOptimizer,
+    run_kind: str,
+    resume: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "run_kind": run_kind,
+        "seed": args.seed,
+        "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
+        "optimizer": optimizer.summary(),
+        "resume": resume,
+        "dataset": {
+            "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
+            "vocab_size": tokenizer.vocab_size,
+            "pretrained_weights": False,
+            "pretrained_tokenizer": False,
+            "external_embeddings": False,
+        },
+    }
+
+
+def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
+    ensure_curriculum(args.corpus, args.valid)
+    train_text = args.corpus.read_text(encoding="utf-8")
+    valid_text = args.valid.read_text(encoding="utf-8")
+    tokenizer = CharTokenizer.train(train_text)
+    train_ids = tokenizer.encode(train_text)
+    valid_ids = tokenizer.encode(valid_text)
+    model, resume_metadata = initialize_transformer_for_training(args, tokenizer)
+    optimizer = load_optimizer_state(
+        args.resume_optimizer,
+        optimization_config_from_args(args),
+    )
+    model.active_optimizer = optimizer
     rng = random.Random(args.seed)
     args.run.mkdir(parents=True, exist_ok=True)
     history_path = args.run / "transformer_metrics.jsonl"
@@ -2523,11 +3285,24 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         last_history = write_history(step=args.steps, train_nll=None)
 
     checkpoint_path = args.run / "transformer.json"
-    model.save(checkpoint_path, tokenizer)
+    optimizer_path = args.run / "optimizer_state.json"
+    save_optimizer_state(optimizer_path, optimizer)
+    checkpoint_metadata = transformer_run_metadata(
+        args,
+        tokenizer,
+        optimizer,
+        "language-model",
+        resume_metadata,
+    )
+    model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(args.run / "tokenizer.json")
     metrics = {
         "architecture": "tiny-decoder-only-transformer",
         "checkpoint": str(checkpoint_path),
+        "checkpoint_format": "quarklm-transformer-v2",
+        "optimizer_state": str(optimizer_path),
+        "optimizer": optimizer.summary(),
+        "resume": resume_metadata,
         "history": str(history_path),
         "steps": args.steps,
         "train_chars": len(train_text),
@@ -2537,9 +3312,15 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
         "num_layers": args.num_layers,
+        "attention_heads": args.attention_heads,
         "use_layer_norm": args.use_layer_norm,
         "use_pre_layer_norm": args.use_pre_layer_norm,
+        "use_rms_norm": args.use_rms_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
+        "use_gated_mlp": args.use_gated_mlp,
+        "tie_output_embeddings": args.tie_output_embeddings,
+        "use_rotary_positions": args.use_rotary_positions,
+        "use_kv_cache_path": args.use_kv_cache_path,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
@@ -2563,6 +3344,7 @@ def eval_transformer(args: argparse.Namespace) -> dict[str, Any]:
     model, tokenizer = TinyTransformerLM.load(args.checkpoint)
     if tokenizer is None:
         raise ValueError("checkpoint does not contain a tokenizer")
+    generation_config = generation_config_from_args(args)
     probe_paths = args.probe if args.probe is not None else DEFAULT_PROBES
     probe_records = {path.stem: read_jsonl(path) for path in probe_paths}
     candidates = sorted(
@@ -2572,28 +3354,113 @@ def eval_transformer(args: argparse.Namespace) -> dict[str, Any]:
             for record in records
         }
     )
+    scored_by_eval = {
+        name: score_transformer_records(
+            model,
+            tokenizer,
+            records,
+            args.max_new_chars,
+            generation_config,
+            candidates=candidates,
+        )
+        for name, records in sorted(probe_records.items())
+    }
     result = {
         "checkpoint": str(args.checkpoint),
         "candidate_count": len(candidates),
+        "generation_config": asdict(generation_config),
+        "eval_manifest": {
+            "probe_paths": [str(path) for path in probe_paths],
+            "probe_counts": {
+                name: len(records)
+                for name, records in sorted(probe_records.items())
+            },
+            "samples_jsonl": str(args.samples_jsonl) if args.samples_jsonl else None,
+        },
         "evals": {
-            name: summarize(
-                score_records(
-                    model,
-                    tokenizer,
-                    records,
-                    args.max_new_chars,
-                    candidates=candidates,
-                )
-            )
-            for name, records in sorted(probe_records.items())
+            name: summarize(records)
+            for name, records in sorted(scored_by_eval.items())
         },
     }
+    if args.samples_jsonl:
+        args.samples_jsonl.parent.mkdir(parents=True, exist_ok=True)
+        with args.samples_jsonl.open("w", encoding="utf-8") as handle:
+            for name, records in sorted(scored_by_eval.items()):
+                for record in records:
+                    handle.write(
+                        json.dumps(
+                            {"eval": name, **record},
+                            sort_keys=True,
+                        )
+                        + "\n"
+                    )
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         with args.json.open("w", encoding="utf-8") as handle:
             json.dump(result, handle, indent=2, sort_keys=True)
             handle.write("\n")
     return result
+
+
+def score_transformer_records(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    records: list[dict[str, Any]],
+    max_new_chars: int,
+    generation_config: GenerationConfig,
+    candidates: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    scored: list[dict[str, Any]] = []
+    for record in records:
+        generation = model.generate_with_trace(
+            tokenizer,
+            record["prompt"],
+            max_new_chars,
+            generation_config,
+        )
+        candidate_scores = []
+        predicted_candidate = None
+        if candidates is not None:
+            candidate_scores = [
+                {
+                    "target": candidate,
+                    "target_nll": continuation_nll(
+                        model,
+                        tokenizer,
+                        record["prompt"],
+                        candidate,
+                    ),
+                }
+                for candidate in candidates
+            ]
+            predicted_candidate = min(
+                candidate_scores,
+                key=lambda item: float(item["target_nll"]),
+            )["target"]
+        target = record["target"]
+        scored.append(
+            {
+                "id": record["id"],
+                "prompt": record["prompt"],
+                "target": target,
+                "completion": generation["text"],
+                "generation_trace": generation["trace"],
+                "generation_cache": generation["cache"],
+                "exact_match": generation["text"][: len(target)] == target,
+                "candidate_match": predicted_candidate == target
+                if predicted_candidate is not None
+                else None,
+                "predicted_candidate": predicted_candidate,
+                "candidate_scores": candidate_scores,
+                "target_nll": continuation_nll(
+                    model,
+                    tokenizer,
+                    record["prompt"],
+                    target,
+                ),
+            }
+        )
+    return scored
 
 
 def answer_sequence_nll(
@@ -4623,16 +5490,20 @@ def evaluate_direct_answer_records(
     records: list[dict[str, Any]],
     max_new_chars: int,
     terminator: str = ANSWER_TERMINATOR,
+    generation_config: GenerationConfig | None = None,
 ) -> dict[str, Any]:
+    generation_config = generation_config or GenerationConfig()
     scored: list[dict[str, Any]] = []
     total_loss = 0.0
     for record in records:
-        completion = model.generate(
+        generation = model.generate_with_trace(
             tokenizer,
             record["prompt"],
-            max_new_chars=max_new_chars,
+            max_new_chars,
+            generation_config,
             stop_at=terminator if terminator else None,
         )
+        completion = generation["text"]
         target = record["target"]
         example = AnswerExample(
             prompt=record["prompt"],
@@ -4646,6 +5517,8 @@ def evaluate_direct_answer_records(
                 "id": record["id"],
                 "target": target,
                 "completion": completion,
+                "generation_trace": generation["trace"],
+                "generation_cache": generation["cache"],
                 "exact_match": completion == target,
                 "target_loss": loss,
                 "completion_source": "tiny_transformer_greedy_until_terminator"
@@ -4974,9 +5847,7 @@ def train_answer_mixed_step(
         choice_loss_value = choice_loss.data
         total_loss = total_loss + choice_loss * choice_loss_weight
     total_loss.backward()
-    for parameter in params:
-        clipped_grad = max(min(parameter.grad, 5.0), -5.0)
-        parameter.data -= learning_rate * clipped_grad
+    model.apply_gradients(params, learning_rate)
     return {
         "loss": total_loss.data,
         "target_loss": target_loss.data,
@@ -4994,6 +5865,7 @@ def evaluate_answer_records(
     include_completions: bool = True,
     selector: AnswerCandidateSelector | None = None,
     emit_selected_candidate: bool = False,
+    generation_config: GenerationConfig | None = None,
 ) -> dict[str, Any]:
     if not include_completions:
         return evaluate_answer_candidates(
@@ -5004,11 +5876,12 @@ def evaluate_answer_records(
             selector,
             emit_selected_candidate=emit_selected_candidate,
         )
-    scored = score_records(
+    scored = score_transformer_records(
         model,
         tokenizer,
         records,
         max_new_chars=max_new_chars,
+        generation_config=generation_config or GenerationConfig(),
         candidates=candidates,
     )
     summary = summarize(scored)
@@ -5130,24 +6003,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     tokenizer = CharTokenizer.train(train_text)
     examples = load_training_examples(args.train_text, args.corpus_dir)
     training_pool = answer_training_pool(examples)
-    config = TransformerConfig(
-        vocab_size=tokenizer.vocab_size,
-        context_size=args.context_size,
-        embedding_dim=args.embedding_dim,
-        feedforward_dim=args.feedforward_dim,
-        seed=args.seed,
-        num_layers=args.num_layers,
-        use_layer_norm=args.use_layer_norm,
-        use_pre_layer_norm=args.use_pre_layer_norm,
-        layer_norm_epsilon=args.layer_norm_epsilon,
-        use_context_mean=args.use_context_mean,
-        use_context_projection=args.use_context_projection,
-        use_prompt_prefix_projection=args.use_prompt_prefix_projection,
-        use_prompt_position_projection=args.use_prompt_position_projection,
-        prompt_position_projection_scale=args.prompt_position_projection_scale,
-        use_prompt_attention_summary=args.use_prompt_attention_summary,
+    model, resume_metadata = initialize_transformer_for_training(args, tokenizer)
+    optimizer = load_optimizer_state(
+        args.resume_optimizer,
+        optimization_config_from_args(args),
     )
-    model = TinyTransformerLM.init_random(config)
+    model.active_optimizer = optimizer
+    generation_config = generation_config_from_args(args)
     rng = random.Random(args.seed)
     args.run.mkdir(parents=True, exist_ok=True)
     history_path = args.run / "transformer_answer_metrics.jsonl"
@@ -5202,6 +6064,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     candidates if args.candidate_scope == "all" else eval_candidates[name],
                     args.max_new_chars,
                     include_completions=args.include_completions,
+                    generation_config=generation_config,
                 )
                 for name, records in sorted(eval_records.items())
             },
@@ -5352,6 +6215,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         records,
                         args.direct_answer_max_new_chars,
                         direct_answer_terminator,
+                        generation_config,
                     )
                     for name, records in sorted(eval_records.items())
                 },
@@ -5375,16 +6239,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         best_direct_snapshot_step = 0
         best_direct_snapshot_score = branch_diversity_snapshot_score(direct_baseline)
         best_direct_model_payload = model.to_dict(tokenizer)
+        best_direct_optimizer_payload = optimizer.to_dict()
 
         def record_best_direct_snapshot(snapshot: dict[str, Any]) -> None:
             nonlocal best_direct_snapshot_step
             nonlocal best_direct_snapshot_score
             nonlocal best_direct_model_payload
+            nonlocal best_direct_optimizer_payload
             score = branch_diversity_snapshot_score(snapshot)
             if score > best_direct_snapshot_score:
                 best_direct_snapshot_step = int(snapshot["step"])
                 best_direct_snapshot_score = score
                 best_direct_model_payload = model.to_dict(tokenizer)
+                best_direct_optimizer_payload = optimizer.to_dict()
 
         branch_context_gate = direct_baseline["branch_context_gate"]
         direct_answer_training_skipped = (
@@ -6575,6 +7442,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             model = restored_model
             if restored_tokenizer is not None:
                 tokenizer = restored_tokenizer
+            optimizer = ScalarOptimizer.from_dict(best_direct_optimizer_payload)
+            model.active_optimizer = optimizer
             direct_answer_restored_best_branch_snapshot = True
             last_direct_snapshot = direct_snapshot(
                 args.direct_answer_steps,
@@ -6634,6 +7503,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_sequence_interval": args.direct_answer_sequence_interval,
             "direct_answer_rollout_interval": args.direct_answer_rollout_interval,
             "max_new_chars": args.direct_answer_max_new_chars,
+            "generation_config": asdict(generation_config),
             "terminator": repr(direct_answer_terminator),
             "context_coverage": context_coverage,
             "baseline": direct_baseline,
@@ -6836,11 +7706,24 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         }
 
     checkpoint_path = args.run / "transformer_answer.json"
-    model.save(checkpoint_path, tokenizer)
+    optimizer_path = args.run / "optimizer_state.json"
+    save_optimizer_state(optimizer_path, optimizer)
+    checkpoint_metadata = transformer_run_metadata(
+        args,
+        tokenizer,
+        optimizer,
+        "answer-train",
+        resume_metadata,
+    )
+    model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(args.run / "tokenizer.json")
     metrics = {
         "architecture": "tiny-decoder-only-transformer",
         "checkpoint": str(checkpoint_path),
+        "checkpoint_format": "quarklm-transformer-v2",
+        "optimizer_state": str(optimizer_path),
+        "optimizer": optimizer.summary(),
+        "resume": resume_metadata,
         "history": str(history_path),
         "lessons": str(lessons_path),
         "steps": args.steps,
@@ -6850,6 +7733,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "training_candidate_count": len(training_candidates),
         "candidate_scope": args.candidate_scope,
         "include_completions": args.include_completions,
+        "generation_config": asdict(generation_config),
         "target_loss_weight": args.target_loss_weight,
         "choice_loss_weight": args.choice_loss_weight,
         "choice_negatives": args.choice_negatives,
@@ -6859,9 +7743,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
         "num_layers": args.num_layers,
+        "attention_heads": args.attention_heads,
         "use_layer_norm": args.use_layer_norm,
         "use_pre_layer_norm": args.use_pre_layer_norm,
+        "use_rms_norm": args.use_rms_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
+        "use_gated_mlp": args.use_gated_mlp,
+        "tie_output_embeddings": args.tie_output_embeddings,
+        "use_rotary_positions": args.use_rotary_positions,
+        "use_kv_cache_path": args.use_kv_cache_path,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,

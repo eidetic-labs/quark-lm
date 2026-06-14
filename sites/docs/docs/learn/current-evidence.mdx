@@ -145,6 +145,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Top-k softmax QA</td><td><code>{state.transformerTopKSoftmaxQa}</code></td></tr>
     <tr><td>Top-k softmax heldout</td><td><code>{state.transformerTopKSoftmaxHeldout}</code></td></tr>
     <tr><td>Top-k softmax status</td><td><code>{state.transformerTopKSoftmaxStatus}</code></td></tr>
+    <tr><td>Latest foundation-stack run</td><td><code>{state.transformerLatestFoundationStackRun}</code></td></tr>
+    <tr><td>Foundation-stack mode</td><td><code>{state.transformerFoundationStackMode}</code></td></tr>
+    <tr><td>Foundation-stack smoke</td><td><code>{state.transformerFoundationStackSmoke}</code></td></tr>
+    <tr><td>Foundation-stack artifacts</td><td><code>{state.transformerFoundationStackArtifacts}</code></td></tr>
+    <tr><td>Foundation-stack status</td><td><code>{state.transformerFoundationStackStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -493,6 +498,14 @@ v0.42 promoted checkpoint.
   top-5 coverage reached `0.5`. This recovers rank/top-k evidence after v0.49,
   but prediction diversity stayed `1/8` and top-1 branch choices remained
   wrong, so it is rejected repair evidence.
+- `runs/transformer-v0.51-foundation-stack-smoke/` verifies the full
+  transformer foundation stack before the next direct-answer repair run. It ran
+  `2/2` language-model steps with AdamW, gradient accumulation, two attention
+  heads, RMSNorm, gated MLPs, tied output embeddings, rotary positions, and
+  cache-aware generation metadata. The run wrote a
+  `quarklm-transformer-v2` checkpoint, `optimizer_state.json`, `eval.json`, and
+  replayable `eval_samples.jsonl` traces. This is mechanics-readiness evidence,
+  not model-quality promotion evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under

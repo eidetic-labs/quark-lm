@@ -15,6 +15,9 @@ from closed_world_lm.tokenizer import CharTokenizer
 from closed_world_lm.answer_model import AnswerExample
 from closed_world_lm.transformer_char_model import (
     AnswerCandidateSelector,
+    GenerationConfig,
+    OptimizationConfig,
+    ScalarOptimizer,
     TransformerGuidedAnswerGenerator,
     TinyTransformerLM,
     TransformerConfig,
@@ -50,7 +53,11 @@ from closed_world_lm.transformer_char_model import (
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
+    generation_distribution,
+    score_transformer_records,
     exclude_scalars,
+    save_optimizer_state,
+    load_optimizer_state,
     sampled_choice_candidates,
     train_direct_answer_first_error,
     train_direct_answer_first_error_unlikelihood,
@@ -107,6 +114,149 @@ class TransformerCharModelTest(unittest.TestCase):
         after = model.nll(context, target)
 
         self.assertGreater(before, after)
+
+    def test_adamw_optimizer_accumulates_gradients_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=53,
+        )
+        model = TinyTransformerLM.init_random(config)
+        optimizer = ScalarOptimizer(
+            OptimizationConfig(
+                optimizer="adamw",
+                gradient_accumulation_steps=2,
+                warmup_steps=2,
+                decay_steps=2,
+                min_learning_rate=0.001,
+            )
+        )
+        model.active_optimizer = optimizer
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        target = ids[4]
+        before = model.nll(context, target)
+
+        model.train_step(context, target, learning_rate=0.02)
+        self.assertEqual(optimizer.update_count, 0)
+        self.assertEqual(optimizer.pending_accumulation, 1)
+        model.train_step(context, target, learning_rate=0.02)
+        self.assertEqual(optimizer.update_count, 1)
+        self.assertEqual(optimizer.pending_accumulation, 0)
+        self.assertGreater(before, model.nll(context, target))
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "optimizer.json"
+            save_optimizer_state(path, optimizer)
+            loaded = load_optimizer_state(path, optimizer.config)
+
+        self.assertEqual(loaded.update_count, optimizer.update_count)
+        self.assertEqual(loaded.config.optimizer, "adamw")
+        self.assertEqual(len(loaded.first_moment), len(optimizer.first_moment))
+
+    def test_v051_architecture_options_forward_and_round_trip(self) -> None:
+        text = "abcd abcd\n"
+        tokenizer = CharTokenizer.train(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=54,
+            attention_heads=2,
+            use_pre_layer_norm=True,
+            use_rms_norm=True,
+            use_gated_mlp=True,
+            tie_output_embeddings=True,
+            use_rotary_positions=True,
+            use_kv_cache_path=True,
+        )
+        model = TinyTransformerLM.init_random(config)
+        context = context_before(tokenizer.encode(text), 4, config.context_size, tokenizer.pad_id)
+        probs = model.predict(context)
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer, {"test": "v0.51"})
+            loaded, loaded_tokenizer = TinyTransformerLM.load(path)
+
+        self.assertAlmostEqual(sum(probs), 1.0)
+        self.assertTrue(loaded.config.tie_output_embeddings)
+        self.assertEqual(loaded.config.attention_heads, 2)
+        self.assertIsNotNone(loaded_tokenizer)
+
+    def test_generation_controls_emit_trace_and_cache_metadata(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=55,
+                use_kv_cache_path=True,
+            )
+        )
+        generation = model.generate_with_trace(
+            tokenizer,
+            "abc",
+            3,
+            GenerationConfig(
+                temperature=0.7,
+                top_k=2,
+                top_p=0.9,
+                repetition_penalty=1.1,
+                trace_top_tokens=2,
+                use_kv_cache=True,
+            ),
+        )
+
+        self.assertLessEqual(len(generation["trace"]), 3)
+        self.assertTrue(generation["cache"]["enabled"])
+        self.assertLessEqual(len(generation["trace"][0]["top_tokens"]), 2)
+
+    def test_generation_distribution_applies_top_k_and_repetition_penalty(self) -> None:
+        probs = generation_distribution(
+            [0.6, 0.3, 0.1],
+            [0],
+            GenerationConfig(top_k=2, repetition_penalty=3.0),
+        )
+
+        self.assertEqual(probs[2], 0.0)
+        self.assertGreater(probs[1], probs[0])
+        self.assertAlmostEqual(sum(probs), 1.0)
+
+    def test_transformer_eval_scoring_returns_replayable_trace_records(self) -> None:
+        example = {"id": "one", "prompt": "q:\na:", "target": " a."}
+        text = example["prompt"] + example["target"] + ANSWER_TERMINATOR
+        tokenizer = CharTokenizer.train(text)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=56,
+            )
+        )
+
+        records = score_transformer_records(
+            model,
+            tokenizer,
+            [example],
+            max_new_chars=2,
+            generation_config=GenerationConfig(trace_top_tokens=2),
+            candidates=[example["target"]],
+        )
+
+        self.assertEqual(records[0]["id"], "one")
+        self.assertIn("generation_trace", records[0])
+        self.assertIn("candidate_scores", records[0])
 
     def test_checkpoint_round_trip_includes_corpus_tokenizer(self) -> None:
         text = "abc abc\n"
@@ -3300,6 +3450,17 @@ class TransformerCharModelTest(unittest.TestCase):
                     "5",
                     "--direct-answer-hard-negatives",
                     "7",
+                    "--temperature",
+                    "0.8",
+                    "--top-k",
+                    "3",
+                    "--top-p",
+                    "0.75",
+                    "--repetition-penalty",
+                    "1.2",
+                    "--trace-top-tokens",
+                    "4",
+                    "--use-kv-cache",
                     "--direct-answer-snapshot-mode",
                     "branch-only",
                     "--direct-answer-train-top-layer-only",
@@ -3311,10 +3472,17 @@ class TransformerCharModelTest(unittest.TestCase):
                     "6",
                     "--num-layers",
                     "2",
+                    "--attention-heads",
+                    "2",
                     "--use-layer-norm",
                     "--use-pre-layer-norm",
+                    "--use-rms-norm",
                     "--layer-norm-epsilon",
                     "0.0001",
+                    "--use-gated-mlp",
+                    "--tie-output-embeddings",
+                    "--use-rotary-positions",
+                    "--use-kv-cache-path",
                     "--use-context-mean",
                     "--use-context-projection",
                     "--use-prompt-prefix-projection",
@@ -3322,6 +3490,26 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--prompt-position-projection-scale",
                     "12.5",
                     "--use-prompt-attention-summary",
+                    "--optimizer",
+                    "adamw",
+                    "--gradient-clip",
+                    "3.5",
+                    "--weight-decay",
+                    "0.01",
+                    "--adam-beta1",
+                    "0.8",
+                    "--adam-beta2",
+                    "0.95",
+                    "--adam-epsilon",
+                    "0.0000001",
+                    "--warmup-steps",
+                    "2",
+                    "--decay-steps",
+                    "7",
+                    "--min-learning-rate",
+                    "0.001",
+                    "--gradient-accumulation-steps",
+                    "2",
                 ]
             )
             self.assertEqual(args.direct_answer_mode, mode)
@@ -3333,6 +3521,12 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_branch_span, 3)
             self.assertEqual(args.direct_answer_branch_batch_size, 5)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
+            self.assertEqual(args.temperature, 0.8)
+            self.assertEqual(args.top_k, 3)
+            self.assertEqual(args.top_p, 0.75)
+            self.assertEqual(args.repetition_penalty, 1.2)
+            self.assertEqual(args.trace_top_tokens, 4)
+            self.assertTrue(args.use_kv_cache)
             self.assertEqual(args.direct_answer_snapshot_mode, "branch-only")
             self.assertTrue(args.direct_answer_train_top_layer_only)
             self.assertTrue(args.direct_answer_freeze_output_bias)
@@ -3340,9 +3534,15 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertTrue(args.direct_answer_require_branch_context_gate)
             self.assertTrue(args.skip_post_direct_snapshot)
             self.assertEqual(args.num_layers, 2)
+            self.assertEqual(args.attention_heads, 2)
             self.assertTrue(args.use_layer_norm)
             self.assertTrue(args.use_pre_layer_norm)
+            self.assertTrue(args.use_rms_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)
+            self.assertTrue(args.use_gated_mlp)
+            self.assertTrue(args.tie_output_embeddings)
+            self.assertTrue(args.use_rotary_positions)
+            self.assertTrue(args.use_kv_cache_path)
             self.assertTrue(args.use_context_mean)
             self.assertTrue(args.use_context_projection)
             self.assertTrue(args.use_prompt_prefix_projection)
@@ -3350,6 +3550,16 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.prompt_position_projection_scale, 12.5)
             self.assertTrue(args.use_prompt_attention_summary)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
+            self.assertEqual(args.optimizer, "adamw")
+            self.assertEqual(args.gradient_clip, 3.5)
+            self.assertEqual(args.weight_decay, 0.01)
+            self.assertEqual(args.adam_beta1, 0.8)
+            self.assertEqual(args.adam_beta2, 0.95)
+            self.assertEqual(args.adam_epsilon, 0.0000001)
+            self.assertEqual(args.warmup_steps, 2)
+            self.assertEqual(args.decay_steps, 7)
+            self.assertEqual(args.min_learning_rate, 0.001)
+            self.assertEqual(args.gradient_accumulation_steps, 2)
 
     def test_parse_train_args_accepts_context_mean(self) -> None:
         args = parse_args(
@@ -3360,9 +3570,20 @@ class TransformerCharModelTest(unittest.TestCase):
                 "--use-prompt-prefix-projection",
                 "--use-prompt-position-projection",
                 "--use-pre-layer-norm",
+                "--use-rms-norm",
                 "--prompt-position-projection-scale",
                 "4.0",
                 "--use-prompt-attention-summary",
+                "--attention-heads",
+                "2",
+                "--use-gated-mlp",
+                "--tie-output-embeddings",
+                "--use-rotary-positions",
+                "--use-kv-cache-path",
+                "--optimizer",
+                "adamw",
+                "--gradient-accumulation-steps",
+                "3",
             ]
         )
 
@@ -3371,8 +3592,44 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(args.use_prompt_prefix_projection)
         self.assertTrue(args.use_prompt_position_projection)
         self.assertTrue(args.use_pre_layer_norm)
+        self.assertTrue(args.use_rms_norm)
         self.assertEqual(args.prompt_position_projection_scale, 4.0)
         self.assertTrue(args.use_prompt_attention_summary)
+        self.assertEqual(args.attention_heads, 2)
+        self.assertTrue(args.use_gated_mlp)
+        self.assertTrue(args.tie_output_embeddings)
+        self.assertTrue(args.use_rotary_positions)
+        self.assertTrue(args.use_kv_cache_path)
+        self.assertEqual(args.optimizer, "adamw")
+        self.assertEqual(args.gradient_accumulation_steps, 3)
+
+    def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
+        args = parse_args(
+            [
+                "eval",
+                "--temperature",
+                "0.6",
+                "--top-k",
+                "4",
+                "--top-p",
+                "0.8",
+                "--repetition-penalty",
+                "1.3",
+                "--trace-top-tokens",
+                "3",
+                "--use-kv-cache",
+                "--samples-jsonl",
+                "samples.jsonl",
+            ]
+        )
+
+        self.assertEqual(args.temperature, 0.6)
+        self.assertEqual(args.top_k, 4)
+        self.assertEqual(args.top_p, 0.8)
+        self.assertEqual(args.repetition_penalty, 1.3)
+        self.assertEqual(args.trace_top_tokens, 3)
+        self.assertTrue(args.use_kv_cache)
+        self.assertEqual(args.samples_jsonl, Path("samples.jsonl"))
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
         record = {
