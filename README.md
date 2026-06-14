@@ -74,7 +74,12 @@ Current transformer answer-lesson run:
   (`runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/`) was
   interrupted before final direct-answer metrics because the full-block scalar
   autograd path was too slow for the regular loop. It produced only partial
-  JSONL history and is runtime evidence, not promotion evidence.
+  JSONL history and is runtime evidence, not promotion evidence. A follow-up
+  optimized the final transformer layer to compute only the last state and
+  proved equivalence against full-stack logits, but
+  `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/` was
+  still interrupted before final metrics; the intermediate full-state layer is
+  still too expensive for direct-answer repair updates.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

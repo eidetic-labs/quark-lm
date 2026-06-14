@@ -106,7 +106,12 @@ architecture option, but the first two-layer context-32 screen at
 `runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` was interrupted
 before final direct-answer metrics because the full-block scalar autograd path
 was too slow for the regular loop. The partial JSONL history remains runtime
-evidence only.
+evidence only. A follow-up optimized the final layer of stacked transformers to
+compute only the final state and added equivalence coverage against full-stack
+logits, but
+`runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/` still
+interrupted before final metrics because the intermediate full-state layer and
+positive-context repair update remain too expensive.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

@@ -174,5 +174,8 @@ only `37/219` candidates and regressed answer NLL with a long `"neeee"` greedy
 loop. Multi-layer transformer support was added as a tested architecture option,
 but `runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` was
 interrupted before final direct-answer metrics because the full-block scalar
-autograd path was too slow for the regular loop. None of these runs were
-promoted.
+autograd path was too slow for the regular loop. The final stacked layer was
+then optimized to compute only the last state with logit-equivalence coverage,
+but `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/`
+was still interrupted before final metrics because intermediate full-state
+training remains too expensive. None of these runs were promoted.

@@ -169,6 +169,47 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_multi_layer_final_block_matches_full_stack_logits(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=11,
+            num_layers=2,
+        )
+        model = TinyTransformerLM.init_random(config)
+        context = context_before(tokenizer.encode(text), 4, config.context_size, tokenizer.pad_id)
+        optimized = model._forward_floats(context)
+        token_embeddings = [[value.data for value in row] for row in model.token_embeddings]
+        position_embeddings = [[value.data for value in row] for row in model.position_embeddings]
+        full_stack = model._forward_full_block_floats(
+            [
+                [
+                    token_embeddings[token_id][dim] + position_embeddings[position][dim]
+                    for dim in range(config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
+            ],
+            model._block_to_floats(model.blocks[0]),
+        )
+        full_stack = model._forward_full_block_floats(
+            full_stack,
+            model._block_to_floats(model.blocks[1]),
+        )
+        manual = []
+        for output_index, bias in enumerate([value.data for value in model.bout]):
+            total = bias
+            for input_index, value in enumerate(full_stack[-1]):
+                total += value * model.wout[input_index][output_index].data
+            manual.append(total)
+
+        self.assertEqual(len(optimized), len(manual))
+        for left, right in zip(optimized, manual):
+            self.assertAlmostEqual(left, right)
+
     def test_generate_uses_character_tokenizer(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)

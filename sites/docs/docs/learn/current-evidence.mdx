@@ -148,6 +148,11 @@ v0.42 promoted checkpoint.
   direct-answer metrics because two-layer full-block scalar autograd was too
   slow for the regular loop. The partial JSONL history is runtime evidence, not
   promotion evidence.
+- `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/`
+  tested the optimized stacked path where the final layer computes only the
+  last state. The optimization is covered by logit-equivalence tests, but the
+  run was still interrupted before final metrics because the intermediate
+  full-state layer remains too expensive for direct-answer repair updates.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

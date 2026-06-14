@@ -276,9 +276,9 @@ class TinyTransformerLM:
         if self.config.num_layers == 1:
             block_out = self._forward_final_block_scalars(x, self.blocks[0])
         else:
-            for block in self.blocks:
+            for block in self.blocks[:-1]:
                 x = self._forward_full_block_scalars(x, block)
-            block_out = x[-1]
+            block_out = self._forward_final_block_scalars(x, self.blocks[-1])
         return linear_scalars(block_out, self.wout, self.bout)
 
     def _forward_floats(self, context: list[int]) -> list[float]:
@@ -301,9 +301,9 @@ class TinyTransformerLM:
         if self.config.num_layers == 1:
             block_out = self._forward_final_block_floats(x, float_blocks[0])
         else:
-            for block in float_blocks:
+            for block in float_blocks[:-1]:
                 x = self._forward_full_block_floats(x, block)
-            block_out = x[-1]
+            block_out = self._forward_final_block_floats(x, float_blocks[-1])
         return linear_floats(block_out, wout, bout)
 
     def _forward_final_block_scalars(

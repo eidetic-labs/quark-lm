@@ -111,6 +111,10 @@ training boundary.
   candidate discrimination, direct loss, answer NLL, and final failure pattern.
   An interrupted run with partial JSONL history is runtime evidence only, not a
   promotion candidate.
+- Depth runtime optimizations must prove logit equivalence against the
+  unoptimized full-stack path when they change which layer positions are
+  computed. Passing equivalence tests does not make a run promotable without a
+  complete final metrics artifact.
 - Normalization changes must record whether layer normalization was enabled,
   the epsilon value, context coverage, exact greedy output, candidate
   discrimination, direct loss, answer NLL, and final failure pattern. A more
