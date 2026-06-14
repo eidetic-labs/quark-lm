@@ -22,6 +22,19 @@ This is not yet a useful assistant. It is a first closed-world language model lo
 glossary, simple grammar, tiny stories, question-answer lessons, training, and
 closed-world probes.
 
+## Research Grounding
+
+QuarkLM is closest to continual learning, lifelong pretraining, replay, and
+self-improvement research, but applies those ideas under a stricter boundary:
+no pretrained weights, no pretrained tokenizer, no external embeddings, and no
+training text outside the admitted corpus. Self-generated text may propose
+lessons, probes, or repairs, but it cannot become training data until it is
+verified against admitted sources and included in a versioned curriculum.
+
+The Docusaurus Learn section now includes a paper-backed research grounding page
+that records what QuarkLM should adopt next, what should be deferred, and which
+claims should stay framed as project goals rather than proven novelty.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

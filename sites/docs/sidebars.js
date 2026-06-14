@@ -8,6 +8,7 @@ const sidebars = {
       items: [
         'learn/language-model',
         'learn/self-improvement-loop',
+        'learn/research-grounding',
         'learn/current-evidence',
       ],
     },

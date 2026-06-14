@@ -51,8 +51,31 @@ Working tagline: Big idea. Tiny package.
   standalone static marketing page at `quark-lm.eidetic-labs.com`, with
   GitHub Actions deployment scaffolds. The marketing site is not Docusaurus.
 - SOLID-aligned quality guidance in `QUALITY.md`.
+- Paper-grounded research guidance for continual learning, replay,
+  self-generated candidate lessons, retrieval rails, model editing boundaries,
+  transformer architecture, and tokenizer timing.
 - Source probes for known, unknown, held-out, paraphrase, ownership, self,
   learning, admission, admission-paraphrase, and glossary answers.
+
+## Research Grounding
+
+QuarkLM's current research posture is documented in
+`sites/docs/docs/learn/research-grounding.md`. The project is adjacent to
+continual learning and lifelong pretraining, but its stricter claim is that
+model weights and tokenizer state should be trained only from admitted,
+ledgered data. Research on replay, catastrophic forgetting, STaR-style
+self-generated rationales, self-rewarded models, RAG, and model editing informs
+the roadmap without relaxing that boundary.
+
+The practical near-term guidance is:
+
+- make replay a first-class training primitive;
+- keep corpus admission separate from model belief;
+- verify self-generated lessons before admission or training;
+- promote only through retention, forgetting, leakage, unknown-policy, and
+  branch-diversity gates;
+- defer model editing and self-rewarded grading until locality, side effects,
+  and verifier quality are measurable inside the closed world.
 
 ## Latest Evidence
 

@@ -43,3 +43,16 @@ The current diagnosis layer is intentionally rule-based. It is not the final
 form of autonomous improvement, but it establishes the interface: QuarkLM should
 learn from its own reports, name what changed, and propose the next repair
 without another model shaping that decision.
+
+## Research Guardrails
+
+The self-improvement loop is guided by continual learning, lifelong
+pretraining, replay, self-generated reasoning, and model-editing research, but
+QuarkLM applies those ideas under a stricter data boundary. A generated repair
+or lesson is only a candidate until a deterministic verifier accepts it against
+admitted sources. Weight updates still come from versioned corpus-derived
+curriculum, and every admitted batch must preserve prior accepted behavior
+through forgetting checks or replay.
+
+See [Research grounding](./research-grounding.md) for the current paper map and
+the design rules it implies.

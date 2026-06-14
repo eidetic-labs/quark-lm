@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -36,6 +37,23 @@ class SitesTest(unittest.TestCase):
         for section in ("Learn", "Build", "Operate", "Secure"):
             self.assertIn(section, docs_config)
             self.assertIn(section.lower(), sidebar)
+
+    def test_sidebar_doc_links_exist(self) -> None:
+        sidebar = (ROOT / "sites" / "docs" / "sidebars.js").read_text(encoding="utf-8")
+        doc_ids = [
+            match
+            for match in re.findall(r"'([^']+)'", sidebar)
+            if "/" in match and not match.startswith("@")
+        ]
+
+        self.assertGreater(len(doc_ids), 0)
+        for doc_id in doc_ids:
+            md_path = ROOT / "sites" / "docs" / "docs" / f"{doc_id}.md"
+            mdx_path = ROOT / "sites" / "docs" / "docs" / f"{doc_id}.mdx"
+            self.assertTrue(
+                md_path.exists() or mdx_path.exists(),
+                f"Missing Docusaurus doc for sidebar id {doc_id!r}",
+            )
 
 
 if __name__ == "__main__":
