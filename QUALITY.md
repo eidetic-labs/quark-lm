@@ -89,10 +89,21 @@ training boundary.
   answer NLL, and final failure pattern. Full-dose contrast and sparse contrast
   must be compared separately because contrast can improve target likelihood or
   collapse the output distribution depending on dosage.
+- Hard-negative branch-contrast runs must additionally record the sampled
+  hard-negative count and whether the selected contrast came from the model's
+  current branch confusion. A higher candidate count is not sufficient for
+  promotion if direct loss, answer NLL, or greedy failure pattern regresses.
+- Prompt context-coverage audits must be recorded for transformer answer runs
+  when context size changes. Complete semantic-template coverage is necessary
+  evidence for longer-context experiments, but it is not a promotion claim
+  unless answer metrics also beat the current promoted run.
 - Capacity changes must record embedding dimension, feed-forward dimension,
   runtime tradeoffs, exact greedy output, candidate discrimination, direct loss,
   answer NLL, and final failure pattern. Wider random models may improve scored
   likelihood without solving prompt-conditioned greedy answers.
+- Transformer runtime improvements must be behavior-preserving or covered by
+  tests, and their measured effect should be documented when they make longer
+  self-improvement runs feasible.
 - Tokenizer changes must be trained only from admitted corpus text and must not
   import pretrained vocabularies.
 - README, STATUS, GOAL, and QUALITY must be reviewed and updated for every

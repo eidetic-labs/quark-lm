@@ -32,6 +32,8 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_sequence_repair_errors,
     direct_answer_branch_repair_error,
     direct_answer_branch_context,
+    direct_answer_hard_branch_contrast,
+    audit_prompt_context_coverage,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -47,6 +49,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_loop_escape_unlikelihood,
     train_direct_answer_branch_repair_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
+    train_direct_answer_hard_branch_contrast_unlikelihood,
     train_direct_answer_lesson,
     train_answer_char,
     train_answer_mixed_step,
@@ -906,6 +909,23 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(position, 1)
         self.assertGreater(before, after)
 
+    def test_prompt_context_coverage_marks_truncated_semantic_prompt(self) -> None:
+        records = [
+            {
+                "id": "color-teacher-tree",
+                "prompt": "which color belongs to teacher tree\nanswer:",
+                "target": " green.",
+            }
+        ]
+        narrow = audit_prompt_context_coverage(records, context_size=32)
+        wide = audit_prompt_context_coverage(records, context_size=64)
+
+        self.assertEqual(narrow["semantic_records"], 1)
+        self.assertEqual(narrow["missing"], 1)
+        self.assertIn("intent:color", narrow["missing_records"][0]["missing_features"])
+        self.assertEqual(wide["covered"], 1)
+        self.assertEqual(wide["missing_records"], [])
+
     def test_direct_answer_branch_contrast_separates_prompt_branches(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -991,6 +1011,72 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before_target, after_target)
         self.assertGreater(after_margin, before_margin)
 
+    def test_direct_answer_hard_branch_contrast_selects_confused_branch(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=37,
+            )
+        )
+        model.bout[tokenizer.stoi["t"]].data = 4.0
+        model.bout[tokenizer.stoi["g"]].data = 1.0
+        contrast = direct_answer_hard_branch_contrast(
+            model,
+            tokenizer,
+            near,
+            [green, tree],
+            random.Random(15),
+            branch_position=1,
+            hard_negative_count=0,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(contrast)
+        context, target_id, _contrast_context, contrast_target = contrast  # type: ignore[misc]
+        before_wrong = model.predict(context)[contrast_target]
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+
+        for _ in range(24):
+            train_direct_answer_hard_branch_contrast_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                [green, tree],
+                lesson,
+                random.Random(16),
+                learning_rate=0.05,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                contrast_weight=1.0,
+                branch_position=1,
+                hard_negative_count=0,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_wrong = model.predict(context)[contrast_target]
+        self.assertEqual(tokenizer.itos[target_id], "n")
+        self.assertEqual(tokenizer.itos[contrast_target], "t")
+        self.assertGreater(before_wrong, after_wrong)
+
     def test_direct_answer_modes_include_rollout_and_hybrid(self) -> None:
         for mode in (
             "rollout-unlikelihood",
@@ -1014,7 +1100,10 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-repair-unlikelihood",
             "branch-contrast-unlikelihood",
             "periodic-branch-contrast-unlikelihood",
+            "hard-branch-contrast-unlikelihood",
+            "periodic-hard-branch-contrast-unlikelihood",
             "periodic-branch-repair-contrast-unlikelihood",
+            "periodic-hard-branch-repair-contrast-unlikelihood",
         ):
             args = parse_args(
                 [
@@ -1033,6 +1122,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "2",
                     "--direct-answer-branch-position",
                     "1",
+                    "--direct-answer-hard-negatives",
+                    "7",
                     "--direct-answer-sequence-interval",
                     "6",
                 ]
@@ -1043,6 +1134,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_contrast_weight, 1.25)
             self.assertEqual(args.direct_answer_recovery_steps, 2)
             self.assertEqual(args.direct_answer_branch_position, 1)
+            self.assertEqual(args.direct_answer_hard_negatives, 7)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:

@@ -25,6 +25,7 @@ from .answer_model import (
     answer_training_pool,
     feature_names,
     load_training_examples,
+    semantic_feature_names,
     write_lessons,
 )
 from .curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
@@ -149,32 +150,27 @@ class TinyTransformerLM:
         k = [linear_scalars(row, self.wk, self.bk) for row in x]
         v = [linear_scalars(row, self.wv, self.bv) for row in x]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
-        attended: list[list[Scalar]] = []
-        for position in range(self.config.context_size):
-            scores = [dot_scalars(q[position], k[past]) * scale for past in range(position + 1)]
-            weights = softmax_scalars(scores)
-            row = []
-            for dim in range(self.config.embedding_dim):
-                total = Scalar(0.0)
-                for past, weight in enumerate(weights):
-                    total = total + weight * v[past][dim]
-                row.append(total)
-            attended.append(row)
-        projected = [linear_scalars(row, self.wo, self.bo) for row in attended]
+        last_position = self.config.context_size - 1
+        scores = [dot_scalars(q[last_position], k[past]) * scale for past in range(self.config.context_size)]
+        weights = softmax_scalars(scores)
+        attended = []
+        for dim in range(self.config.embedding_dim):
+            total = Scalar(0.0)
+            for past, weight in enumerate(weights):
+                total = total + weight * v[past][dim]
+            attended.append(total)
+        projected = linear_scalars(attended, self.wo, self.bo)
         hidden = [
-            [x[position][dim] + projected[position][dim] for dim in range(self.config.embedding_dim)]
-            for position in range(self.config.context_size)
+            x[last_position][dim] + projected[dim]
+            for dim in range(self.config.embedding_dim)
         ]
-        ff_hidden = [
-            [value.tanh() for value in linear_scalars(row, self.w1, self.b1)]
-            for row in hidden
-        ]
-        ff_out = [linear_scalars(row, self.w2, self.b2) for row in ff_hidden]
+        ff_hidden = [value.tanh() for value in linear_scalars(hidden, self.w1, self.b1)]
+        ff_out = linear_scalars(ff_hidden, self.w2, self.b2)
         block_out = [
-            [hidden[position][dim] + ff_out[position][dim] for dim in range(self.config.embedding_dim)]
-            for position in range(self.config.context_size)
+            hidden[dim] + ff_out[dim]
+            for dim in range(self.config.embedding_dim)
         ]
-        return linear_scalars(block_out[-1], self.wout, self.bout)
+        return linear_scalars(block_out, self.wout, self.bout)
 
     def _forward_floats(self, context: list[int]) -> list[float]:
         if len(context) != self.config.context_size:
@@ -208,29 +204,25 @@ class TinyTransformerLM:
         k = [linear_floats(row, wk, bk) for row in x]
         v = [linear_floats(row, wv, bv) for row in x]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
-        attended: list[list[float]] = []
-        for position in range(self.config.context_size):
-            scores = [dot_floats(q[position], k[past]) * scale for past in range(position + 1)]
-            weights = softmax_floats(scores)
-            row = []
-            for dim in range(self.config.embedding_dim):
-                row.append(sum(weight * v[past][dim] for past, weight in enumerate(weights)))
-            attended.append(row)
-        projected = [linear_floats(row, wo, bo) for row in attended]
+        last_position = self.config.context_size - 1
+        scores = [dot_floats(q[last_position], k[past]) * scale for past in range(self.config.context_size)]
+        weights = softmax_floats(scores)
+        attended = [
+            sum(weight * v[past][dim] for past, weight in enumerate(weights))
+            for dim in range(self.config.embedding_dim)
+        ]
+        projected = linear_floats(attended, wo, bo)
         hidden = [
-            [x[position][dim] + projected[position][dim] for dim in range(self.config.embedding_dim)]
-            for position in range(self.config.context_size)
+            x[last_position][dim] + projected[dim]
+            for dim in range(self.config.embedding_dim)
         ]
-        ff_hidden = [
-            [math.tanh(value) for value in linear_floats(row, w1, b1)]
-            for row in hidden
-        ]
-        ff_out = [linear_floats(row, w2, b2) for row in ff_hidden]
+        ff_hidden = [math.tanh(value) for value in linear_floats(hidden, w1, b1)]
+        ff_out = linear_floats(ff_hidden, w2, b2)
         block_out = [
-            [hidden[position][dim] + ff_out[position][dim] for dim in range(self.config.embedding_dim)]
-            for position in range(self.config.context_size)
+            hidden[dim] + ff_out[dim]
+            for dim in range(self.config.embedding_dim)
         ]
-        return linear_floats(block_out[-1], wout, bout)
+        return linear_floats(block_out, wout, bout)
 
     def predict(self, context: list[int]) -> list[float]:
         return softmax_floats(self._forward_floats(context))
@@ -1124,7 +1116,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-repair-unlikelihood",
             "branch-contrast-unlikelihood",
             "periodic-branch-contrast-unlikelihood",
+            "hard-branch-contrast-unlikelihood",
+            "periodic-hard-branch-contrast-unlikelihood",
             "periodic-branch-repair-contrast-unlikelihood",
+            "periodic-hard-branch-repair-contrast-unlikelihood",
         ],
         default="first-error",
         help="Direct transformer update policy for greedy answer completion.",
@@ -1134,6 +1129,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--direct-answer-contrast-weight", type=float, default=1.0)
     answer_parser.add_argument("--direct-answer-recovery-steps", type=int, default=3)
     answer_parser.add_argument("--direct-answer-branch-position", type=int, default=1)
+    answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
     answer_parser.add_argument("--direct-answer-sequence-interval", type=int, default=50)
     answer_parser.add_argument("--direct-answer-rollout-interval", type=int, default=5)
     answer_parser.add_argument(
@@ -1314,6 +1310,7 @@ def answer_sequence_loss_scalars(
 
 DirectAnswerLesson = list[tuple[list[int], int]]
 DirectAnswerRepair = tuple[list[int], int, int, int]
+DirectAnswerBranchContrast = tuple[list[int], int, list[int], int]
 
 
 def answer_completion_text(target: str, terminator: str = ANSWER_TERMINATOR) -> str:
@@ -1589,17 +1586,19 @@ def direct_answer_branch_repair_error(
     branch_position: int,
     terminator: str = ANSWER_TERMINATOR,
 ) -> DirectAnswerRepair | None:
-    if branch_position < 0:
+    branch = direct_answer_branch_context(
+        model,
+        tokenizer,
+        example,
+        branch_position,
+        terminator,
+    )
+    if branch is None:
         return None
-    ids = tokenizer.encode(example.prompt)
-    target_ids = tokenizer.encode(answer_completion_text(example.target, terminator))
-    if branch_position >= len(target_ids):
-        return None
-    ids.extend(target_ids[:branch_position])
-    context = make_context(ids, model.config.context_size, tokenizer.pad_id)
+    context, target_id, position = branch
     probs = model.predict(context)
     predicted_id = max(range(len(probs)), key=lambda index: probs[index])
-    return context, target_ids[branch_position], predicted_id, branch_position
+    return context, target_id, predicted_id, position
 
 
 def direct_answer_branch_context(
@@ -1609,17 +1608,72 @@ def direct_answer_branch_context(
     branch_position: int,
     terminator: str = ANSWER_TERMINATOR,
 ) -> tuple[list[int], int, int] | None:
-    repair = direct_answer_branch_repair_error(
+    if branch_position < 0:
+        return None
+    ids = tokenizer.encode(example.prompt)
+    target_ids = tokenizer.encode(answer_completion_text(example.target, terminator))
+    if branch_position >= len(target_ids):
+        return None
+    ids.extend(target_ids[:branch_position])
+    context = make_context(ids, model.config.context_size, tokenizer.pad_id)
+    return context, target_ids[branch_position], branch_position
+
+
+def direct_answer_hard_branch_contrast(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    hard_negative_count: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> DirectAnswerBranchContrast | None:
+    branch = direct_answer_branch_context(
         model,
         tokenizer,
         example,
         branch_position,
         terminator,
     )
-    if repair is None:
+    if branch is None:
         return None
-    context, target_id, _predicted_id, position = repair
-    return context, target_id, position
+    context, target_id, _position = branch
+    if not branch_examples:
+        return None
+    if hard_negative_count <= 0 or hard_negative_count >= len(branch_examples):
+        candidates = branch_examples[:]
+        rng.shuffle(candidates)
+    else:
+        candidates = rng.sample(branch_examples, hard_negative_count)
+
+    probs = model.predict(context)
+    best_score: float | None = None
+    best_contrast: tuple[list[int], int] | None = None
+    for contrast_example in candidates:
+        if contrast_example == example:
+            continue
+        contrast = direct_answer_branch_context(
+            model,
+            tokenizer,
+            contrast_example,
+            branch_position,
+            terminator,
+        )
+        if contrast is None:
+            continue
+        contrast_context, contrast_target, _contrast_position = contrast
+        if contrast_target == target_id:
+            continue
+        contrast_probs = model.predict(contrast_context)
+        score = probs[contrast_target] + contrast_probs[target_id]
+        if best_score is None or score > best_score:
+            best_score = score
+            best_contrast = (contrast_context, contrast_target)
+    if best_contrast is None:
+        return None
+    contrast_context, contrast_target = best_contrast
+    return context, target_id, contrast_context, contrast_target
 
 
 def direct_answer_balanced_repair_error(
@@ -1935,6 +1989,59 @@ def train_direct_answer_branch_contrast_unlikelihood(
     )
 
 
+def train_direct_answer_hard_branch_contrast_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    contrast_weight: float,
+    branch_position: int,
+    hard_negative_count: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    contrast = direct_answer_hard_branch_contrast(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        hard_negative_count,
+        terminator,
+    )
+    if contrast is None:
+        return train_direct_answer_branch_repair_unlikelihood(
+            model,
+            tokenizer,
+            example,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            negative_weight,
+            positive_weight,
+            branch_position,
+            terminator,
+            params=params,
+        )
+    context, target_id, contrast_context, contrast_target = contrast
+    return model.train_step_with_branch_contrast(
+        context,
+        target_id,
+        contrast_context,
+        contrast_target,
+        learning_rate,
+        negative_weight,
+        contrast_weight,
+        params=params,
+    )
+
+
 def train_direct_answer_repeat_loop_unlikelihood(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -2075,6 +2182,46 @@ def evaluate_direct_answer_records(
         "exact_rate": exact / len(scored) if scored else 0.0,
         "avg_target_loss": total_loss / len(scored) if scored else 0.0,
         "failed_records": failed,
+    }
+
+
+def audit_prompt_context_coverage(
+    records: list[dict[str, Any]],
+    context_size: int,
+    max_missing_records: int = 12,
+) -> dict[str, Any]:
+    audited = 0
+    covered = 0
+    missing_records: list[dict[str, Any]] = []
+    for record in records:
+        prompt = record["prompt"]
+        full_features = set(semantic_feature_names(prompt.lower()))
+        if not full_features:
+            continue
+        audited += 1
+        context_text = prompt[-context_size:]
+        context_features = set(semantic_feature_names(context_text.lower()))
+        missing_features = sorted(full_features - context_features)
+        if not missing_features:
+            covered += 1
+            continue
+        if len(missing_records) < max_missing_records:
+            missing_records.append(
+                {
+                    "id": record["id"],
+                    "prompt_length": len(prompt),
+                    "context_size": context_size,
+                    "context_text": context_text,
+                    "missing_features": missing_features,
+                }
+            )
+    missing = audited - covered
+    return {
+        "semantic_records": audited,
+        "covered": covered,
+        "missing": missing,
+        "covered_rate": covered / audited if audited else 1.0,
+        "missing_records": missing_records,
     }
 
 
@@ -2357,6 +2504,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     eval_records = {
         path.stem: read_jsonl(path)
         for path in DEFAULT_ANSWER_EVALS
+    }
+    context_coverage = {
+        name: audit_prompt_context_coverage(records, args.context_size)
+        for name, records in sorted(eval_records.items())
     }
     candidates = sorted(
         {
@@ -3006,6 +3157,54 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_terminator,
                         direct_params,
                     )
+            elif args.direct_answer_mode == "hard-branch-contrast-unlikelihood":
+                running_direct_loss += train_direct_answer_hard_branch_contrast_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-hard-branch-contrast-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_hard_branch_contrast_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_contrast_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_hard_negatives,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_first_error_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
             elif args.direct_answer_mode == "periodic-branch-repair-contrast-unlikelihood":
                 rollout_interval = max(1, args.direct_answer_rollout_interval)
                 if direct_step % rollout_interval == 0:
@@ -3020,6 +3219,39 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         args.direct_answer_negative_weight,
                         args.direct_answer_contrast_weight,
                         args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_branch_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+            elif args.direct_answer_mode == "periodic-hard-branch-repair-contrast-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_hard_branch_contrast_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_contrast_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_hard_negatives,
                         direct_answer_terminator,
                         direct_params,
                     )
@@ -3073,10 +3305,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_contrast_weight": args.direct_answer_contrast_weight,
             "direct_answer_recovery_steps": args.direct_answer_recovery_steps,
             "direct_answer_branch_position": args.direct_answer_branch_position,
+            "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
             "direct_answer_sequence_interval": args.direct_answer_sequence_interval,
             "direct_answer_rollout_interval": args.direct_answer_rollout_interval,
             "max_new_chars": args.direct_answer_max_new_chars,
             "terminator": repr(direct_answer_terminator),
+            "context_coverage": context_coverage,
             "baseline": direct_baseline,
             "final": last_direct_snapshot,
             "uses_answer_candidates": False,
@@ -3299,6 +3533,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "context_size": args.context_size,
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
+        "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,
         "direct_answer": direct_answer_metrics,

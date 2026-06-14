@@ -48,6 +48,19 @@ Current transformer answer-lesson run:
   v0.42 improves the scored target distribution without damaging candidate
   discrimination and reduces runaway looping, but still shows that raw greedy
   answer emission needs stronger prompt-conditioned representation.
+- Unpromoted v0.43 experiments added a faster final-position transformer
+  forward pass, explicit prompt context-coverage metrics, and an experimental
+  hard-negative branch-contrast mode. The hard-negative context-32 run
+  (`runs/transformer-answer-v0.43-hard-branch-contrast4-dim8-context32/`) kept
+  candidate accuracy at `37/219` but regressed direct loss to `2.4225`, answer
+  NLL to `2.5402`, and collapsed greedy output to a repeated `" a"` loop. The
+  context-80 run
+  (`runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`)
+  achieved full semantic template coverage (`219/219`) and the short `" t."`
+  failure, but still trailed v0.42 with direct loss `2.3122` and answer NLL
+  `2.4546`. A longer context-80 1500-step run reached `38/219` candidates but
+  regressed loss/NLL and greedy output, so v0.42 remains the promoted
+  transformer checkpoint.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

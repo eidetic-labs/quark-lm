@@ -74,7 +74,9 @@ provenance, and the goal framework itself.
 15. Train architecture prototypes, including the transformer learner, only from
     the admitted corpus and record their baseline/final metrics separately until
     they earn a promotion-gate role.
-16. Keep public-facing docs and marketing aligned with the promoted state. The
+16. Audit prompt context coverage for transformer answer runs so the loop can
+    distinguish missing input evidence from insufficient weight updates.
+17. Keep public-facing docs and marketing aligned with the promoted state. The
     Docusaurus docs site targets `docs.quark-lm.eidetic-labs.com`; the
     standalone static marketing page targets `quark-lm.eidetic-labs.com`; both
     have GitHub Actions deployment scaffolds.
@@ -109,6 +111,9 @@ continued. A weight update is acceptable only when:
     should be treated as evidence only for the behavior they actually show. A
     lower language-model loss is not a reliable-answer claim until answer evals
     pass.
+12. A context-size increase should record prompt coverage, runtime cost, direct
+    loss, answer NLL, exact greedy output, candidate accuracy, and failure
+    pattern before it is considered a model improvement.
 
 ## Reliability Strategy
 

@@ -152,3 +152,17 @@ transformer evidence under
 Candidate discrimination stayed at `37/219`, answer-target NLL improved to
 `2.4129`, and strict raw greedy exact answers remained `0/219` with the short
 wrong completion `" te."`.
+
+Post-v0.42 unpromoted transformer work kept corpus sources unchanged and added
+runtime, diagnosis, and rejected checkpoint evidence. The transformer forward
+pass now computes only the final position used by the language-model head.
+Answer-training artifacts now record prompt context-coverage metrics. The
+hard-negative context-32 run
+`runs/transformer-answer-v0.43-hard-branch-contrast4-dim8-context32/` preserved
+`37/219` candidate discrimination but regressed loss, NLL, and greedy output.
+The context-80 run
+`runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`
+covered all semantic eval templates (`219/219`) but still trailed v0.42 on
+direct loss and answer NLL. The 1500-step context-80 run reached `38/219`
+candidates but regressed other promotion metrics. None of these runs were
+promoted.

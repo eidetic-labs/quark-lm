@@ -79,6 +79,22 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 `" te."`, so prompt-conditioned greedy branching is still the current
 bottleneck.
 
+Unpromoted v0.43 work added three pieces of transformer-loop evidence without
+changing the promoted checkpoint. The forward pass now computes only the final
+position consumed by the language-model head, cutting the transformer unit-test
+runtime from roughly `13.9s` to `6.2s` on this machine. Transformer answer runs
+now record prompt context-coverage metrics, showing that context size `80`
+covers all current semantic eval templates (`219/219`) while context size `32`
+does not. The hard-negative branch-contrast pilot at
+`runs/transformer-answer-v0.43-hard-branch-contrast4-dim8-context32/` preserved
+`37/219` candidates but regressed direct loss to `2.4225`, answer NLL to
+`2.5402`, and greedy output to a repeated `" a"` loop. The full-context pilot at
+`runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`
+preserved `37/219` candidates with `219/219` coverage but still trailed v0.42
+on direct loss (`2.3122`) and answer NLL (`2.4546`). A 1500-step context-80 run
+reached `38/219` candidates but regressed loss, NLL, and greedy output, so it
+was not promoted.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

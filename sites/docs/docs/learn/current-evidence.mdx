@@ -114,6 +114,32 @@ v0.31's auxiliary no-candidate generator remains the best exact no-candidate
 answer evidence. The current reliable response gate still belongs to the
 responder, learned answer classifier, and generative answer decoder.
 
+## Unpromoted v0.43 Findings
+
+v0.43 development added transformer-loop improvements, but did not replace the
+v0.42 promoted checkpoint.
+
+- The transformer forward pass now computes only the final position consumed by
+  the language-model head, preserving the next-character objective while making
+  longer-context experiments practical.
+- Transformer answer artifacts now include prompt context-coverage metrics. A
+  context size of `80` covers all current semantic eval templates (`219/219`),
+  while context size `32` drops complete template coverage for many prompts.
+- `runs/transformer-answer-v0.43-hard-branch-contrast4-dim8-context32/`
+  preserved candidate accuracy at `37/219`, but regressed direct loss to
+  `2.4225`, answer NLL to `2.5402`, and collapsed greedy output to a repeated
+  `" a"` loop.
+- `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`
+  achieved full context coverage and the shorter failure `" t."`, but still
+  trailed v0.42 with direct loss `2.3122` and answer NLL `2.4546`.
+- `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80-1500/`
+  reached `38/219` candidates, but regressed direct loss, answer NLL, and greedy
+  output. It remains archived evidence rather than a promoted release.
+
+The next transformer repair should use the context-coverage audit as a gate,
+but it must also improve prompt-conditioned greedy generation instead of only
+making more prompt text visible.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit
