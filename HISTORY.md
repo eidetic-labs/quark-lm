@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.58
+
+- Added branch target-replay coverage repair and rejected full-stack evidence.
+
 ## v0.57
 
 - Added branch target-diversity repair and rejected full-stack evidence.

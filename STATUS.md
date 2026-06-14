@@ -224,6 +224,22 @@ with wrong `"a"` top-1 collapse. The next repair should preserve eval-wide
 target-token coverage directly, likely through replay or diversity scoring tied
 to heldout branch profiles rather than batch-local target sharing alone.
 
+`runs/transformer-answer-v0.58-fullstack-target-replay-coverage-smoke-dim4-context80/`
+implements that replay-shaped repair with
+`branch-balanced-target-replay-coverage-unlikelihood`: the sampled branch batch
+still trains unlikelihood, but target-set mass and target-share balance use the
+broader admitted branch training pool at the same branch position. The focused
+tests pass, including a regression where the sampled batch omits some pool
+targets and training raises both replay target-set mass and the weakest missing
+target share. The full-stack screen still rejects the mechanism: it completed
+`50/50` direct steps and best-snapshot scoring restored step `0`. Training
+snapshots improved QA average target rank as far as `6.875` and QA top-5
+coverage to `0.5`, while admissions top-5 reached `0.5417`; however,
+target-token coverage still hit `0.0` during training and QA/heldout top-1
+predictions collapsed to one wrong branch token by step `50`. The next repair
+should make replay context-owned, not merely pool-owned, so broad target mass
+cannot be satisfied by the same target distribution on every branch context.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

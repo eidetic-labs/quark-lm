@@ -185,6 +185,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Target-diversity heldout</td><td><code>{state.transformerTargetDiversityHeldout}</code></td></tr>
     <tr><td>Target-diversity history</td><td><code>{state.transformerTargetDiversityHistory}</code></td></tr>
     <tr><td>Target-diversity status</td><td><code>{state.transformerTargetDiversityStatus}</code></td></tr>
+    <tr><td>Latest target-replay coverage run</td><td><code>{state.transformerLatestTargetReplayCoverageRun}</code></td></tr>
+    <tr><td>Target-replay coverage mode</td><td><code>{state.transformerTargetReplayCoverageMode}</code></td></tr>
+    <tr><td>Target-replay coverage unit test</td><td><code>{state.transformerTargetReplayCoverageUnitTest}</code></td></tr>
+    <tr><td>Target-replay coverage QA</td><td><code>{state.transformerTargetReplayCoverageQa}</code></td></tr>
+    <tr><td>Target-replay coverage heldout</td><td><code>{state.transformerTargetReplayCoverageHeldout}</code></td></tr>
+    <tr><td>Target-replay coverage history</td><td><code>{state.transformerTargetReplayCoverageHistory}</code></td></tr>
+    <tr><td>Target-replay coverage status</td><td><code>{state.transformerTargetReplayCoverageStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -588,13 +595,25 @@ v0.42 promoted checkpoint.
   rank to `10.0`, but target-token coverage again collapsed to `0.0` with
   wrong `"a"` top-1 predictions. This rejects batch-local target sharing as a
   sufficient eval-wide anti-collapse repair.
+- `runs/transformer-answer-v0.58-fullstack-target-replay-coverage-smoke-dim4-context80/`
+  extends the repair from batch-local target sharing to closed-world replay
+  targets with `branch-balanced-target-replay-coverage-unlikelihood`, positive
+  target CE disabled, and hard wrong-token competition. The focused transformer
+  test verifies that replay target-set mass and weakest missing-target share can
+  both improve when the sampled branch batch omits some admitted pool targets.
+  The full-stack screen completed `50/50` direct steps and restored from step
+  `0`: training snapshots improved QA average target rank as far as `6.875`
+  and top-5 coverage to `0.5`, but target-token coverage still hit `0.0`
+  during training and QA/heldout top-1 predictions collapsed to wrong `"n"` by
+  step `50`. This rejects pool-owned replay coverage as a sufficient
+  context-specific target-ownership repair.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should preserve eval-wide target-token coverage directly, likely through
-replay or branch-profile-aware scoring, before sharpening exact target
-selection. The repair must improve prompt-conditioned branch diversity instead
-of only making more prompt text visible, balancing branch targets, raising
-hidden distance, lowering branch loss, or trading coverage away for rank.
+but it should bind replay pressure to branch contexts before sharpening exact
+target selection. The repair must improve prompt-conditioned branch diversity
+instead of only making more prompt text visible, balancing branch targets,
+raising hidden distance, lowering branch loss, or trading coverage away for
+rank.
 
 The v0.42 self-improvement run passed:
 

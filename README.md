@@ -460,6 +460,21 @@ Current transformer answer-lesson run:
   batch-local target diversity as a sufficient eval-wide anti-collapse repair;
   the next repair needs coverage preservation tied to eval profiles or replay,
   not only within-batch target sharing.
+- v0.58 extends that idea to closed-world replay with
+  `branch-balanced-target-replay-coverage-unlikelihood`: it computes replay
+  target IDs from the admitted branch training pool at the configured branch
+  position, then trains target-set mass and target-share balance against that
+  broader pool rather than only the sampled batch. The focused transformer test
+  proves the objective can lift replay mass and weakest missing-target share
+  when the sampled batch omits some pool targets. The full-stack screen
+  `runs/transformer-answer-v0.58-fullstack-target-replay-coverage-smoke-dim4-context80/`
+  completed `50/50` direct steps, but best-snapshot scoring restored step `0`.
+  Training improved QA average target rank as far as `6.875` and top-5
+  coverage to `0.5`, but target-token coverage still hit `0.0` during training
+  and top-1 predictions collapsed to one wrong branch token by step `50`. This
+  rejects pool-level replay coverage as implemented; the next repair needs
+  replay that preserves context-specific target ownership instead of only
+  equalizing broad target-token mass.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

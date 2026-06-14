@@ -1990,6 +1990,78 @@ class TinyTransformerLM:
         self.apply_gradients(params, learning_rate)
         return loss.data
 
+    def train_step_with_branch_target_replay_coverage(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        replay_targets: list[int],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        replay_weight: float,
+        hard_negative_count: int,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        replay_targets = sorted(
+            {target for target in replay_targets if 0 <= target < self.config.vocab_size}
+        )
+        if not replay_targets:
+            replay_targets = sorted({target for _context, target, _predicted in branches})
+        replay_target_set = set(replay_targets)
+        branch_loss = Scalar(0.0)
+        coverage_loss = Scalar(0.0)
+        target_share_sums = [Scalar(0.0) for _target in replay_targets]
+        for context, target, predicted in branches:
+            logits = self._forward_scalars(context)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                branch_loss = branch_loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                branch_loss = branch_loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            if replay_weight > 0.0 and replay_targets:
+                hard_candidates = [
+                    index
+                    for index in sorted(
+                        range(self.config.vocab_size),
+                        key=lambda item: logits[item].data,
+                        reverse=True,
+                    )
+                    if index not in replay_target_set
+                ]
+                if hard_negative_count > 0:
+                    hard_candidates = hard_candidates[:hard_negative_count]
+                candidate_ids = [*replay_targets, *hard_candidates]
+                candidate_logits = [
+                    logits[candidate_id] for candidate_id in candidate_ids
+                ]
+                candidate_probs = softmax_scalars(candidate_logits)
+                target_set_mass = Scalar(0.0)
+                for offset, candidate_id in enumerate(candidate_ids):
+                    if candidate_id in replay_target_set:
+                        target_set_mass = target_set_mass + candidate_probs[offset]
+                coverage_loss = coverage_loss + (-(target_set_mass + 1e-12).log())
+                for offset, _replay_target in enumerate(replay_targets):
+                    target_share_sums[offset] = target_share_sums[offset] + (
+                        candidate_probs[offset] / (target_set_mass + 1e-12)
+                    )
+        loss = branch_loss / max(len(branches), 1)
+        if replay_weight > 0.0 and replay_targets:
+            coverage_loss = coverage_loss / max(len(branches), 1)
+            target_balance_loss = Scalar(0.0)
+            for target_share_sum in target_share_sums:
+                average_target_share = target_share_sum / max(len(branches), 1)
+                target_balance_loss = target_balance_loss + (
+                    -(average_target_share + 1e-12).log()
+                )
+            target_balance_loss = target_balance_loss / max(len(replay_targets), 1)
+            loss = loss + ((coverage_loss + target_balance_loss) / 2.0) * replay_weight
+        loss.backward()
+        self.apply_gradients(params, learning_rate)
+        return loss.data
+
     def train_step_with_branch_rank_margin(
         self,
         branches: list[tuple[list[int], int, int]],
@@ -3231,6 +3303,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-balanced-target-set-coverage-unlikelihood",
             "branch-target-diversity-unlikelihood",
             "branch-balanced-target-diversity-unlikelihood",
+            "branch-target-replay-coverage-unlikelihood",
+            "branch-balanced-target-replay-coverage-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
@@ -4448,6 +4522,29 @@ def direct_answer_branch_context(
     return context, target_ids[branch_position], branch_position
 
 
+def direct_answer_branch_target_ids(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    branch_examples: list[AnswerExample],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[int]:
+    target_ids: set[int] = set()
+    for candidate in branch_examples:
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            candidate,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            continue
+        _context, target_id, _position = branch
+        target_ids.add(target_id)
+    return sorted(target_ids)
+
+
 def direct_answer_branch_span_position(
     tokenizer: CharTokenizer,
     example: AnswerExample,
@@ -5557,6 +5654,66 @@ def train_direct_answer_branch_target_diversity_unlikelihood(
         negative_weight,
         positive_weight,
         diversity_weight,
+        hard_negative_count,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_target_replay_coverage_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    replay_weight: float,
+    branch_position: int,
+    batch_size: int,
+    hard_negative_count: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+    balance_targets: bool = False,
+) -> float:
+    batch_builder = (
+        direct_answer_target_balanced_branch_diversity_batch
+        if balance_targets
+        else direct_answer_branch_diversity_batch
+    )
+    branches = batch_builder(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    replay_targets = direct_answer_branch_target_ids(
+        model,
+        tokenizer,
+        branch_examples,
+        branch_position,
+        terminator,
+    )
+    return model.train_step_with_branch_target_replay_coverage(
+        branches,
+        replay_targets,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        replay_weight,
         hard_negative_count,
         params=params,
     )
@@ -7635,6 +7792,43 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 )
             elif args.direct_answer_mode == "branch-balanced-target-diversity-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_target_diversity_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-target-replay-coverage-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_target_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "branch-balanced-target-replay-coverage-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_target_replay_coverage_unlikelihood(
                     model,
                     tokenizer,
                     example,
