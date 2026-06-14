@@ -28,6 +28,8 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_rollout_error,
     direct_answer_early_stop_error,
     direct_answer_repeat_loop_error,
+    direct_answer_generated_prefix_recovery,
+    direct_answer_sequence_repair_errors,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -38,6 +40,8 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_early_stop_unlikelihood,
     train_direct_answer_repeat_loop_unlikelihood,
     train_direct_answer_balanced_repair_unlikelihood,
+    train_direct_answer_generated_prefix_recovery_unlikelihood,
+    train_direct_answer_sequence_repair_unlikelihood,
     train_direct_answer_lesson,
     train_answer_char,
     train_answer_mixed_step,
@@ -641,6 +645,155 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before_positive, after_positive)
         self.assertGreater(before_negative, after_negative)
 
+    def test_direct_answer_generated_prefix_recovery_trains_after_bad_prefix(self) -> None:
+        example = AnswerExample(prompt="q:\na:", target=" near.", source="qa:place")
+        tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=6,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=31,
+            )
+        )
+        space_id = tokenizer.stoi[" "]
+        model.bout[space_id].data = 5.0
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        recovery = direct_answer_generated_prefix_recovery(
+            model,
+            tokenizer,
+            example,
+            recovery_steps=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(recovery)
+        context, target_id, predicted_id, position, recovery_lesson = recovery  # type: ignore[misc]
+        recovery_context, recovery_target = recovery_lesson[0]
+        before_repair_negative = model.predict(context)[predicted_id]
+        before_recovery = model.nll(recovery_context, recovery_target)
+        rng = random.Random(10)
+
+        for _ in range(24):
+            train_direct_answer_generated_prefix_recovery_unlikelihood(
+                model,
+                tokenizer,
+                example,
+                lesson,
+                rng,
+                learning_rate=0.08,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                recovery_steps=1,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after_repair_negative = model.predict(context)[predicted_id]
+        after_recovery = model.nll(recovery_context, recovery_target)
+        self.assertEqual(tokenizer.itos[target_id], "n")
+        self.assertEqual(tokenizer.itos[predicted_id], " ")
+        self.assertEqual(position, 1)
+        self.assertEqual(tokenizer.itos[recovery_target], "n")
+        self.assertGreater(before_repair_negative, after_repair_negative)
+        self.assertGreater(before_recovery, after_recovery)
+
+    def test_direct_answer_sequence_repair_collects_teacher_forced_errors(self) -> None:
+        example = AnswerExample(prompt="q:\na:", target=" near.", source="qa:place")
+        tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=6,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=32,
+            )
+        )
+        space_id = tokenizer.stoi[" "]
+        model.bout[space_id].data = 5.0
+
+        repairs = direct_answer_sequence_repair_errors(
+            model,
+            tokenizer,
+            example,
+            ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(
+            [
+                position
+                for _context, _target_id, _predicted_id, position in repairs
+            ],
+            [1, 2, 3, 4, 5, 6],
+        )
+        self.assertTrue(
+            all(
+                predicted_id == space_id
+                for _context, _target_id, predicted_id, _position in repairs
+            )
+        )
+
+    def test_direct_answer_sequence_repair_reduces_sampled_errors(self) -> None:
+        example = AnswerExample(prompt="q:\na:", target=" near.", source="qa:place")
+        tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=6,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=33,
+            )
+        )
+        space_id = tokenizer.stoi[" "]
+        model.bout[space_id].data = 5.0
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        positive_lesson = [lesson[2]]
+        positive_context, positive_target = positive_lesson[0]
+        repairs = direct_answer_sequence_repair_errors(
+            model,
+            tokenizer,
+            example,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(11)
+
+        before_negative = sum(
+            model.predict(context)[predicted_id]
+            for context, _target_id, predicted_id, _position in repairs
+        )
+        before_positive = model.nll(positive_context, positive_target)
+        for _ in range(40):
+            train_direct_answer_sequence_repair_unlikelihood(
+                model,
+                tokenizer,
+                example,
+                positive_lesson,
+                rng,
+                learning_rate=0.08,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                terminator=ANSWER_TERMINATOR,
+            )
+        after_negative = sum(
+            model.predict(context)[predicted_id]
+            for context, _target_id, predicted_id, _position in repairs
+        )
+        after_positive = model.nll(positive_context, positive_target)
+
+        self.assertGreater(before_negative, after_negative)
+        self.assertGreater(before_positive, after_positive)
+
     def test_direct_answer_modes_include_rollout_and_hybrid(self) -> None:
         for mode in (
             "rollout-unlikelihood",
@@ -653,6 +806,10 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-repeat-loop-unlikelihood",
             "balanced-repair-unlikelihood",
             "periodic-balanced-repair-unlikelihood",
+            "generated-prefix-recovery-unlikelihood",
+            "periodic-generated-prefix-recovery-unlikelihood",
+            "sequence-repair-unlikelihood",
+            "periodic-sequence-repair-unlikelihood",
         ):
             args = parse_args(
                 [
@@ -665,11 +822,14 @@ class TransformerCharModelTest(unittest.TestCase):
                     "4",
                     "--direct-answer-positive-weight",
                     "1.5",
+                    "--direct-answer-recovery-steps",
+                    "2",
                 ]
             )
             self.assertEqual(args.direct_answer_mode, mode)
             self.assertEqual(args.direct_answer_rollout_interval, 4)
             self.assertEqual(args.direct_answer_positive_weight, 1.5)
+            self.assertEqual(args.direct_answer_recovery_steps, 2)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
         record = {

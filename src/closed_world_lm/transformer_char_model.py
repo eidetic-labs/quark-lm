@@ -1083,12 +1083,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-repeat-loop-unlikelihood",
             "balanced-repair-unlikelihood",
             "periodic-balanced-repair-unlikelihood",
+            "generated-prefix-recovery-unlikelihood",
+            "periodic-generated-prefix-recovery-unlikelihood",
+            "sequence-repair-unlikelihood",
+            "periodic-sequence-repair-unlikelihood",
         ],
         default="first-error",
         help="Direct transformer update policy for greedy answer completion.",
     )
     answer_parser.add_argument("--direct-answer-negative-weight", type=float, default=0.5)
     answer_parser.add_argument("--direct-answer-positive-weight", type=float, default=1.0)
+    answer_parser.add_argument("--direct-answer-recovery-steps", type=int, default=3)
     answer_parser.add_argument("--direct-answer-rollout-interval", type=int, default=5)
     answer_parser.add_argument(
         "--direct-answer-terminator",
@@ -1267,6 +1272,7 @@ def answer_sequence_loss_scalars(
 
 
 DirectAnswerLesson = list[tuple[list[int], int]]
+DirectAnswerRepair = tuple[list[int], int, int, int]
 
 
 def answer_completion_text(target: str, terminator: str = ANSWER_TERMINATOR) -> str:
@@ -1476,6 +1482,65 @@ def direct_answer_repeat_loop_error(
     return None
 
 
+def direct_answer_generated_prefix_recovery(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    recovery_steps: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> tuple[list[int], int, int, int, DirectAnswerLesson] | None:
+    ids = tokenizer.encode(example.prompt)
+    target_ids = tokenizer.encode(answer_completion_text(example.target, terminator))
+    for position, target_id in enumerate(target_ids):
+        context = make_context(ids, model.config.context_size, tokenizer.pad_id)
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        if predicted_id != target_id:
+            recovery: DirectAnswerLesson = []
+            recovery_ids = ids + [predicted_id]
+            for offset in range(max(1, recovery_steps)):
+                target_position = position + offset
+                if target_position >= len(target_ids):
+                    break
+                recovery.append(
+                    (
+                        make_context(
+                            recovery_ids,
+                            model.config.context_size,
+                            tokenizer.pad_id,
+                        ),
+                        target_ids[target_position],
+                    )
+                )
+                recovery_ids.append(target_ids[target_position])
+            if recovery:
+                return context, target_id, predicted_id, position, recovery
+            return None
+        ids.append(predicted_id)
+        if terminator and tokenizer.itos[predicted_id] == terminator:
+            break
+    return None
+
+
+def direct_answer_sequence_repair_errors(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[DirectAnswerRepair]:
+    ids = tokenizer.encode(example.prompt)
+    target_ids = tokenizer.encode(answer_completion_text(example.target, terminator))
+    repairs: list[DirectAnswerRepair] = []
+    for position, target_id in enumerate(target_ids):
+        context = make_context(ids, model.config.context_size, tokenizer.pad_id)
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        if predicted_id != target_id:
+            repairs.append((context, target_id, predicted_id, position))
+        ids.append(target_id)
+    return repairs
+
+
 def direct_answer_balanced_repair_error(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -1547,6 +1612,89 @@ def train_direct_answer_balanced_repair_unlikelihood(
             params=params,
         )
     context, target_id, predicted_id, _position = repair
+    return model.train_step_with_unlikelihood_and_positive(
+        context,
+        target_id,
+        predicted_id,
+        positive_context,
+        positive_target,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_generated_prefix_recovery_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    recovery_steps: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    repair = direct_answer_generated_prefix_recovery(
+        model,
+        tokenizer,
+        example,
+        recovery_steps,
+        terminator,
+    )
+    if repair is None:
+        return train_direct_answer_balanced_repair_unlikelihood(
+            model,
+            tokenizer,
+            example,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            negative_weight,
+            positive_weight,
+            terminator,
+            params=params,
+        )
+    context, target_id, predicted_id, _position, recovery_lesson = repair
+    positive_context, positive_target = recovery_lesson[rng.randrange(len(recovery_lesson))]
+    return model.train_step_with_unlikelihood_and_positive(
+        context,
+        target_id,
+        predicted_id,
+        positive_context,
+        positive_target,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_sequence_repair_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    repairs = direct_answer_sequence_repair_errors(model, tokenizer, example, terminator)
+    positive_context, positive_target = fallback_lesson[rng.randrange(len(fallback_lesson))]
+    if not repairs:
+        return model.train_step(
+            positive_context,
+            positive_target,
+            learning_rate,
+            params=params,
+        )
+    context, target_id, predicted_id, _position = repairs[rng.randrange(len(repairs))]
     return model.train_step_with_unlikelihood_and_positive(
         context,
         target_id,
@@ -2382,6 +2530,88 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_terminator,
                         direct_params,
                     )
+            elif args.direct_answer_mode == "generated-prefix-recovery-unlikelihood":
+                running_direct_loss += train_direct_answer_generated_prefix_recovery_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_recovery_steps,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-generated-prefix-recovery-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_generated_prefix_recovery_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_recovery_steps,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_first_error_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+            elif args.direct_answer_mode == "sequence-repair-unlikelihood":
+                running_direct_loss += train_direct_answer_sequence_repair_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-sequence-repair-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_sequence_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_first_error_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
             else:
                 running_direct_loss += train_direct_answer_lesson(
                     model,
@@ -2415,6 +2645,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_mode": args.direct_answer_mode,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,
             "direct_answer_positive_weight": args.direct_answer_positive_weight,
+            "direct_answer_recovery_steps": args.direct_answer_recovery_steps,
             "direct_answer_rollout_interval": args.direct_answer_rollout_interval,
             "max_new_chars": args.direct_answer_max_new_chars,
             "terminator": repr(direct_answer_terminator),

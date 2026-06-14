@@ -121,3 +121,10 @@ transformer evidence under
 `runs/transformer-answer-v0.38-periodic-balanced50-context32/`. Candidate
 discrimination stayed at `37/219`, answer-target NLL improved to `2.8552`, and
 strict raw greedy exact answers remained `0/219` with a repeated `" t"` loop.
+
+v0.39 kept corpus sources unchanged from v0.38, passed the archived
+self-improvement run on `attempt-001`, rejected two generated-prefix recovery
+pilots, and added periodic sequence-repair transformer evidence under
+`runs/transformer-answer-v0.39-periodic-sequence50-context32/`. Candidate
+discrimination stayed at `37/219`, answer-target NLL improved to `2.8257`, and
+strict raw greedy exact answers remained `0/219` with a repeated `" t"` loop.

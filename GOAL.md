@@ -1071,11 +1071,76 @@ pools, and corpus diffs.
   learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
   glossary `38/38`
 
-The next improvement target is adding sequence-level generated-prefix recovery
-training so raw greedy decoding learns to continue after its own imperfect
-prefixes while preserving the `37/219` candidate-discrimination gain and v0.38
-target-loss gains; then continuing
-admitted-memory batches, completing the Python package/import migration to
-QuarkLM naming, turning more of the deterministic self-diagnosis and repair
-policy into admitted-corpus-trained behavior, and folding the decoder's
-reliability back into the broader free-form language model.
+`runs/transformer-answer-v0.39-periodic-recovery50-context32/` and
+`runs/transformer-answer-v0.39-periodic-recovery200-context32/`:
+
+- added `direct_answer_generated_prefix_recovery`
+- added `train_direct_answer_generated_prefix_recovery_unlikelihood`
+- added `generated-prefix-recovery-unlikelihood` and
+  `periodic-generated-prefix-recovery-unlikelihood` direct-answer modes
+- added `--direct-answer-recovery-steps`
+- both runs are preserved as rejected evidence
+- interval `50` damaged candidate discrimination (`15/219 -> 17/219`) and
+  ended in repeated `"afo"`-style loops
+- interval `200` preserved candidate discrimination (`15/219 -> 37/219`) but
+  produced worse direct loss and answer NLL than v0.38, ending in repeated
+  `" a"` loops
+- lesson: training after corrupted generated prefixes can move the failure loop
+  without improving exact greedy answers or scored target distribution
+
+`runs/transformer-answer-v0.39-periodic-sequence50-context32/`:
+
+- added `direct_answer_sequence_repair_errors`
+- added `train_direct_answer_sequence_repair_unlikelihood`
+- added `sequence-repair-unlikelihood` and
+  `periodic-sequence-repair-unlikelihood` direct-answer modes
+- selected evidence keeps most direct updates on first-error unlikelihood and
+  injects teacher-forced sequence repair every `50` direct-answer steps
+- checkpoint:
+  `runs/transformer-answer-v0.39-periodic-sequence50-context32/transformer_answer.json`
+- uses the corpus-trained `CharTokenizer`; no pretrained tokenizer, pretrained
+  weights, or external embeddings
+- transformer trained for `80` target-loss answer-lesson steps from random
+  initialization
+- direct answer phase trained for `1000` steps on `9144` weighted direct-answer
+  examples
+- direct answer mode was `periodic-sequence-repair-unlikelihood`
+- negative weight was `1.0`
+- positive weight was `1.0`
+- sequence repair interval was `50`
+- context size was `32`
+- average transformer answer target NLL moved from `3.5828` to `2.8257`
+- direct answer target loss moved from `3.3496` to `2.9793`
+- transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- current failure mode remained repeated `" t"` loops
+- v0.39 improves scored target distribution beyond v0.38 while preserving
+  candidate discrimination, but raw greedy emission still needs repeat-loop
+  escape training
+
+`runs/self-improve-v0.39/`:
+
+- kept corpus sources unchanged from v0.38 at `12` admitted facts
+- standard self-improvement cycle passed on archived `attempt-001`
+- forgetting audit compared against `runs/self-improve-v0.38/` and passed
+- protected prompt leakage, exact eval audit, and promotion gate passed
+- report and standalone `self_diagnosis.json` record `uses_external_model:
+  false`, zero blockers, and recommendation `promote_or_expand_corpus`
+- generated probe counts: admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- learned answer model trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- generative answer decoder trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+
+The next improvement target is breaking the direct transformer's repeated-token
+greedy loop while preserving the `37/219` candidate-discrimination gain and
+v0.39 target-loss gains; then continuing admitted-memory batches, completing
+the Python package/import migration to QuarkLM naming, turning more of the
+deterministic self-diagnosis and repair policy into admitted-corpus-trained
+behavior, and folding the decoder's reliability back into the broader
+free-form language model.

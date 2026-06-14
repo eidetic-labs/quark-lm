@@ -53,13 +53,13 @@ The current promoted run is <code>{state.currentRun}</code>.
   </tbody>
 </table>
 
-## v0.38 Summary
+## v0.39 Summary
 
-QuarkLM v0.38 keeps the admitted corpus unchanged from v0.37 and adds a
-balanced positive/negative repair schedule to the direct transformer path. The
-stable self-improvement run is `runs/self-improve-v0.38/`; the current
+QuarkLM v0.39 keeps the admitted corpus unchanged from v0.38 and adds a
+teacher-forced sequence-repair schedule to the direct transformer path. The
+stable self-improvement run is `runs/self-improve-v0.39/`; the current
 transformer answer-lesson run is
-`runs/transformer-answer-v0.38-periodic-balanced50-context32/`.
+`runs/transformer-answer-v0.39-periodic-sequence50-context32/`.
 
 The current corpus remains at `12` admitted facts. Direct admission probes pass
 `48/48`, admission paraphrase probes pass `84/84`, and glossary probes pass
@@ -73,19 +73,19 @@ model, vocabulary, or embeddings.
 
 Transformer direct-answer evidence:
 
-- transformer checkpoint: `runs/transformer-answer-v0.38-periodic-balanced50-context32/transformer_answer.json`
+- transformer checkpoint: `runs/transformer-answer-v0.39-periodic-sequence50-context32/transformer_answer.json`
 - v0.31 generator checkpoint retained for comparison: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_generator.json`
 - selector checkpoint: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_selector.json`
 - training steps: `80`
 - context size: `32`
 - direct answer steps: `1000`
-- direct answer mode: `periodic-balanced-repair-unlikelihood`
+- direct answer mode: `periodic-sequence-repair-unlikelihood`
 - direct answer negative weight: `1.0`
 - direct answer positive weight: `1.0`
-- balanced repair interval: `50`
+- sequence repair interval: `50`
 - direct answer training examples: `9144`
-- answer target NLL: `3.5828 -> 2.8552`
-- direct answer target loss: `3.3496 -> 3.0399`
+- answer target NLL: `3.5828 -> 2.8257`
+- direct answer target loss: `3.3496 -> 2.9793`
 - raw direct greedy exact answers: `0/219 -> 0/219`
 - transformer-only eval-scoped candidate accuracy: `15/219 -> 37/219`
 - selector-emitted exact answers: `18/219 -> 219/219`
@@ -99,25 +99,26 @@ Transformer direct-answer evidence:
 - generator uses answer candidates: `false`
 
 That is a real movement toward raw transformer answering with a clear boundary.
-v0.38 preserves v0.33's transformer-only candidate discrimination while adding
-a balanced repair that pairs self-generated negative signals with
-teacher-forced admitted continuations. The direct path improves answer-target
-NLL versus v0.37 and keeps the failure pattern at a repeated `" t"` loop, but
-raw greedy completions still fail exact answer generation. The next structured
-repair should teach multi-token recovery after generated prefixes, not only
-single-step repair.
+v0.39 preserves v0.33's transformer-only candidate discrimination while adding
+sequence repair that samples the model's greedy mistakes across the correct
+admitted target prefix and pairs the repair with teacher-forced continuation
+pressure. The direct path improves answer-target NLL versus v0.38 and keeps the
+failure pattern at a repeated `" t"` loop, but raw greedy completions still fail
+exact answer generation. The next structured repair should teach the direct
+transformer to escape repeated-token loops without sacrificing the new target
+loss gains.
 v0.31's auxiliary no-candidate generator remains the best exact no-candidate
 answer evidence. The current reliable response gate still belongs to the
 responder, learned answer classifier, and generative answer decoder.
 
-The v0.38 self-improvement run passed:
+The v0.39 self-improvement run passed:
 
 - direct admission-probe audit
 - admission-paraphrase audit
 - glossary-probe audit
 - exact eval audit
 - promotion gate
-- forgetting audit against v0.37
+- forgetting audit against v0.38
 - protected prompt leakage audit
 - responder exact evals
 - learned answer classifier exact evals
@@ -126,7 +127,7 @@ The v0.38 self-improvement run passed:
 
 Admission probes now pass `48/48` direct records and `84/84` paraphrase records.
 Glossary probes now pass `38/38` records. The passing attempt is archived at
-`runs/self-improve-v0.38/attempts/attempt-001/` before the top-level latest
+`runs/self-improve-v0.39/attempts/attempt-001/` before the top-level latest
 report is updated.
 
 v0.23 added attempt archives. A deliberately undertrained attempt failed at

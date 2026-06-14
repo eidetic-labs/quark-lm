@@ -1,6 +1,6 @@
 # Engineering Quality
 
-Last reviewed for QuarkLM v0.38 on 2026-06-14.
+Last reviewed for QuarkLM v0.39 on 2026-06-14.
 
 This project should improve its codebase with the same discipline it applies to
 model behavior. A change is not promoted only because it works once; it should
@@ -76,6 +76,10 @@ training boundary.
 - Balanced direct runs must record positive weight, negative weight, interval,
   exact greedy output, and scored target metrics because stronger positive
   pressure can still regress candidate discrimination.
+- Sequence-repair direct runs must record whether repairs are teacher-forced or
+  generated-prefix-based, plus exact greedy output, candidate discrimination,
+  direct loss, and final failure pattern. A lower loss is not enough if greedy
+  emission regresses or loops are hidden.
 - Tokenizer changes must be trained only from admitted corpus text and must not
   import pretrained vocabularies.
 - README, STATUS, GOAL, and QUALITY must be reviewed and updated for every
