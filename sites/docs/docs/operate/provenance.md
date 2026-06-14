@@ -144,3 +144,11 @@ pilot, and added sparse branch-repair/contrast transformer evidence under
 discrimination stayed at `37/219`, answer-target NLL improved to `2.4734`, and
 strict raw greedy exact answers remained `0/219` with a repeated `"te"`/`"e"`
 loop.
+
+v0.42 kept corpus sources unchanged from v0.41, passed the archived
+self-improvement run on `attempt-001`, and widened the sparse branch-contrast
+transformer evidence under
+`runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/`.
+Candidate discrimination stayed at `37/219`, answer-target NLL improved to
+`2.4129`, and strict raw greedy exact answers remained `0/219` with the short
+wrong completion `" te."`.

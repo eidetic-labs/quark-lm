@@ -1,6 +1,6 @@
 # Engineering Quality
 
-Last reviewed for QuarkLM v0.41 on 2026-06-14.
+Last reviewed for QuarkLM v0.42 on 2026-06-14.
 
 This project should improve its codebase with the same discipline it applies to
 model behavior. A change is not promoted only because it works once; it should
@@ -89,6 +89,10 @@ training boundary.
   answer NLL, and final failure pattern. Full-dose contrast and sparse contrast
   must be compared separately because contrast can improve target likelihood or
   collapse the output distribution depending on dosage.
+- Capacity changes must record embedding dimension, feed-forward dimension,
+  runtime tradeoffs, exact greedy output, candidate discrimination, direct loss,
+  answer NLL, and final failure pattern. Wider random models may improve scored
+  likelihood without solving prompt-conditioned greedy answers.
 - Tokenizer changes must be trained only from admitted corpus text and must not
   import pretrained vocabularies.
 - README, STATUS, GOAL, and QUALITY must be reviewed and updated for every

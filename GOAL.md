@@ -1292,11 +1292,62 @@ pools, and corpus diffs.
   learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
   glossary `38/38`
 
+`runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/`:
+
+- selected evidence keeps the v0.41 sparse branch-repair/contrast objective and
+  widens the from-scratch transformer from embedding/feed-forward dimensions
+  `4/8` to `8/16`
+- checkpoint:
+  `runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/transformer_answer.json`
+- uses the corpus-trained `CharTokenizer`; no pretrained tokenizer, pretrained
+  weights, or external embeddings
+- transformer trained for `80` target-loss answer-lesson steps from random
+  initialization
+- direct answer phase trained for `1000` steps on `9144` weighted direct-answer
+  examples
+- direct answer mode was `periodic-branch-repair-contrast-unlikelihood`
+- negative weight was `1.0`
+- positive weight was `1.0`
+- contrast weight was `1.0`
+- branch position was `1`
+- contrast interval was `50`
+- context size was `32`
+- embedding dimension was `8`
+- feed-forward dimension was `16`
+- average transformer answer target NLL moved from `3.5850` to `2.4129`
+- direct answer target loss moved from `3.4278` to `2.2708`
+- transformer-only eval-scoped candidate accuracy moved `15/219 -> 37/219`
+- raw direct greedy exact answers stayed `0/219 -> 0/219`
+- current failure mode changed to the short wrong completion `" te."`
+- v0.42 improves scored target distribution beyond v0.41 and reduces runaway
+  greedy looping, but branch probabilities remain nearly prompt-independent
+- operational note: the wider pure-Python scalar-autodiff run is noticeably
+  slower, so future capacity increases should be measured against runtime cost
+
+`runs/self-improve-v0.42/`:
+
+- kept corpus sources unchanged from v0.41 at `12` admitted facts
+- standard self-improvement cycle passed on archived `attempt-001`
+- forgetting audit compared against `runs/self-improve-v0.41/` and passed
+- protected prompt leakage, exact eval audit, and promotion gate passed
+- report and standalone `self_diagnosis.json` record `uses_external_model:
+  false`, zero blockers, and recommendation `promote_or_expand_corpus`
+- generated probe counts: admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- learned answer model trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+- generative answer decoder trained exact rates: QA `8/8`, unknown `4/4`,
+  held-out `8/8`, paraphrase `8/8`, owner `10/10`, self `7/7`,
+  learning `4/4`, admissions `48/48`, admission paraphrases `84/84`,
+  glossary `38/38`
+
 The next improvement target is strengthening prompt-conditioned representation
-so the direct transformer stops choosing a global repeated sequence while
-preserving the `37/219` candidate-discrimination gain and v0.41 target-loss
-gains; then continuing admitted-memory batches, completing the Python
-package/import migration to QuarkLM naming, turning more of the deterministic
-self-diagnosis and repair policy into admitted-corpus-trained behavior, and
-folding the decoder's reliability back into the broader free-form language
-model.
+so the direct transformer emits target-specific answers instead of the short
+global wrong answer `" te."`, while preserving the `37/219` candidate-
+discrimination gain and v0.42 target-loss gains; then continuing admitted-
+memory batches, completing the Python package/import migration to QuarkLM
+naming, turning more of the deterministic self-diagnosis and repair policy into
+admitted-corpus-trained behavior, and folding the decoder's reliability back
+into the broader free-form language model.

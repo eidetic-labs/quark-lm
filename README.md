@@ -24,31 +24,30 @@ closed-world probes.
 
 ## Latest Evidence
 
-Current promoted run: `runs/self-improve-v0.41/`.
+Current promoted run: `runs/self-improve-v0.42/`.
 Current transformer answer-lesson run:
-`runs/transformer-answer-v0.41-branch-repair-contrast50-context32/`.
+`runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/`.
 
-- v0.41 keeps the admitted corpus unchanged from v0.40 at `12` admitted facts.
-- The v0.41 self-improvement cycle passed on archived `attempt-001`, with
-  forgetting compared against `runs/self-improve-v0.40/`.
+- v0.42 keeps the admitted corpus unchanged from v0.41 at `12` admitted facts.
+- The v0.42 self-improvement cycle passed on archived `attempt-001`, with
+  forgetting compared against `runs/self-improve-v0.41/`.
 - Admission-probe audit passed: direct probes `48/48`, paraphrase probes
   `84/84`, no missing, extra, or mismatched ids.
 - Glossary-probe audit passed: glossary probes `38/38`, no missing, extra, or
   mismatched ids.
-- v0.41 adds sparse prompt-contrast branch repair for direct transformer answer
-  training. Most updates use branch repair at the first answer content
-  character; every fiftieth update contrasts that branch with another admitted
-  prompt whose branch target differs.
-- The current v0.41 direct-transformer run trained `80` target-loss steps plus
+- v0.42 keeps sparse prompt-contrast branch repair and widens the from-scratch
+  transformer from embedding/feed-forward dimensions `4/8` to `8/16`. This is
+  still random initialization with the corpus-trained character tokenizer.
+- The current v0.42 direct-transformer run trained `80` target-loss steps plus
   `1000` sparse branch-repair/contrast direct answer steps at context size
-  `32`. Direct answer target loss moved `3.3496 -> 2.3315`, transformer answer
-  target NLL moved `3.5828 -> 2.4734`, and eval-scoped transformer-only
+  `32`. Direct answer target loss moved `3.4278 -> 2.2708`, transformer answer
+  target NLL moved `3.5850 -> 2.4129`, and eval-scoped transformer-only
   candidate accuracy moved `15/219 -> 37/219`.
 - Raw direct greedy transformer exact remained `0/219 -> 0/219`; completions
-  moved from the repeated `"ten"` loop to a repeated `"te"`/`"e"` loop. v0.41
-  improves the scored target distribution without damaging candidate
-  discrimination, but still shows that raw greedy answer emission needs a
-  stronger prompt-conditioned representation, not only sparse contrast pressure.
+  moved from the repeated `"te"`/`"e"` loop to the short wrong answer `" te."`.
+  v0.42 improves the scored target distribution without damaging candidate
+  discrimination and reduces runaway looping, but still shows that raw greedy
+  answer emission needs stronger prompt-conditioned representation.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -63,7 +62,7 @@ Current transformer answer-lesson run:
   `corpus/admissions.jsonl` and audited in the run report.
 - Self and learning evals expanded to `7/7` and `4/4`, including questions about
   self-diagnosis source, external model shaping, and repair-action selection.
-- Forgetting audit passed against `runs/self-improve-v0.40/`.
+- Forgetting audit passed against `runs/self-improve-v0.41/`.
 - Protected prompt leakage audit passed.
 - Learned eval summaries now retain `failed_records` so failed cycles are
   diagnosable from report artifacts.
@@ -116,7 +115,9 @@ PYTHONPATH=src python3 -m closed_world_lm.transformer_char_model answer-train \
   --direct-answer-positive-weight 1.0 \
   --direct-answer-contrast-weight 1.0 \
   --direct-answer-branch-position 1 \
-  --direct-answer-rollout-interval 50
+  --direct-answer-rollout-interval 50 \
+  --embedding-dim 8 \
+  --feedforward-dim 16
 ```
 
 The `closed_world_lm` module name is still the stable command path during this
@@ -274,7 +275,7 @@ When adding new admissions, compare the new run to the last promoted report:
 ```bash
 PYTHONPATH=src python3 -m closed_world_lm.self_improve answer-cycle \
   --run runs/self-improve-next \
-  --compare-report runs/self-improve-v0.41/self_improvement_report.json
+  --compare-report runs/self-improve-v0.42/self_improvement_report.json
 ```
 
 The forgetting audit compares responder, answer-classifier, and answer-decoder
@@ -331,9 +332,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Strengthen prompt-conditioned representation so the direct transformer stops
-   choosing a global repeated sequence while preserving the `37/219` candidate
-   discrimination and v0.41 target-loss gains.
+5. Strengthen prompt-conditioned representation so the direct transformer emits
+   target-specific answers instead of a short global wrong answer, while
+   preserving the `37/219` candidate discrimination and v0.42 target-loss gains.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character
