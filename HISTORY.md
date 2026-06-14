@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.68
+
+- Recorded profile-aware full-stack repair rejection evidence.
+
 ## v0.67
 
 - Added profile-aware replay plans and bounded smoke evidence.

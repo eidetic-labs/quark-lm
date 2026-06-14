@@ -83,8 +83,9 @@ provenance, and the goal framework itself.
 18. Use open-source and paper research as reference material only. v0.66 adds
     an open-source mechanics audit, and v0.67 implements the first
     profile-aware replay-plan mechanics with replay-plan artifacts and
-    profile-isolation tests. The next full-stack transformer repair run should
-    use those artifacts as constraints, not as promotion evidence by itself.
+    profile-isolation tests. v0.68 shows the constraint working: profile-aware
+    rank gains are rejected when they erase target-token coverage or branch
+    diversity.
 
 ## Weight Update Policy
 

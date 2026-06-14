@@ -1071,6 +1071,29 @@ Latest profile-aware replay-plan smoke:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | mechanics-readiness evidence only; profile-aware plan exists, but model quality is not promoted |
 
+Latest profile-aware full-stack repair screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood` |
+| Replay plan artifact | `direct_answer_replay_plan.json` |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Foundation stack | AdamW, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` after restore |
+| Final QA average target rank | `13.25` after restore |
+| Final QA target-token coverage | `0.25` after restore |
+| Training snapshot note | step `40` improved QA average target rank to `6.5` and top-5 coverage to `0.625`, but QA target-token coverage regressed to `0.125` and predicted diversity collapsed to `1/8` |
+| Final heldout average target rank | `13.375` after restore |
+| Training heldout note | step `40` improved heldout average target rank to `6.875` and top-5 coverage to `0.5`, but target-token coverage regressed to `0.125` and predicted diversity collapsed to `1/8` |
+| Promotion status | rejected; profile-aware rank gains still trade away coverage and diversity |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1168,6 +1191,8 @@ The v0.66 open-source mechanics audit reframes the current blocker as trainer
 mechanics rather than another global branch loss. v0.67 implements the first
 profile-aware replay-plan surface: branch records carry source/profile keys,
 deficits and preservation are computed per profile, and the plan is written as
-a run artifact before training. The next full-stack transformer repair should
-use that plan as a constraint and reject snapshots that improve rank by erasing
-per-profile coverage.
+a run artifact before training.
+v0.68 proves that constraint is doing useful work: profile-aware training moved
+correct targets upward in the ranked list, but only by collapsing target-token
+coverage and branch diversity, so the snapshot gate restored baseline. The next
+trainer change needs anti-collapse preservation inside the profile-aware plan.

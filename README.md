@@ -57,6 +57,14 @@ wrote a replay plan for `9144` branch records across `21` profiles and passed
 the branch-context gate. It is mechanics-readiness evidence, not promoted
 model-quality evidence.
 
+v0.68 spends that machinery on the comparable full-stack repair screen. The run
+`runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`
+completed `50/50` direct steps with the profile-aware preserving-deficit mode,
+but best-snapshot scoring restored step `0`. Step `40` improved QA average
+target rank to `6.5` and top-5 coverage to `0.625`, but target-token coverage
+fell to `0.125` and predicted diversity collapsed to `1/8`. The gate correctly
+rejects that rank gain as non-promotable.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -592,6 +600,16 @@ Current transformer answer-lesson run:
   `qa:place` at `0.5` and `qa:color` at `0.0`. The branch-diversity target
   still failed `0/9` multi-target profiles, so this is mechanics-readiness
   evidence, not promotion evidence.
+- v0.68 runs the comparable full-stack screen with
+  `branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood`.
+  The context gate passed, the replay plan again covered `9144` branch records
+  across `21` profiles, and `50/50` direct steps completed with `7` JSONL rows.
+  Training step `40` lifted QA average target rank to `6.5` and top-5 coverage
+  to `0.625`, while heldout rank improved to `6.875`; however, QA/heldout
+  target-token coverage regressed to `0.125` and predicted diversity collapsed
+  to `1/8`. Best-snapshot scoring restored step `0`, so this is rejected
+  evidence and the next repair needs explicit anti-collapse preservation inside
+  the profile-aware plan.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -884,9 +902,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Run the next transformer repair through the v0.67 profile-aware replay plan
-   and require it to improve target coverage without erasing per-profile
-   coverage or branch-diversity gates.
+5. Add an anti-collapse preservation mechanism inside the profile-aware replay
+   plan so rank gains cannot come from reducing profile target-token coverage
+   or branch diversity.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

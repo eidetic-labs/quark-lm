@@ -249,6 +249,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Profile-aware replay gate</td><td><code>{state.transformerProfileAwareReplayGate}</code></td></tr>
     <tr><td>Profile-aware replay smoke</td><td><code>{state.transformerProfileAwareReplaySmoke}</code></td></tr>
     <tr><td>Profile-aware replay status</td><td><code>{state.transformerProfileAwareReplayStatus}</code></td></tr>
+    <tr><td>Latest profile-aware full-stack run</td><td><code>{state.transformerLatestProfileAwareFullStackRun}</code></td></tr>
+    <tr><td>Profile-aware full-stack mode</td><td><code>{state.transformerProfileAwareFullStackMode}</code></td></tr>
+    <tr><td>Profile-aware full-stack plan</td><td><code>{state.transformerProfileAwareFullStackPlan}</code></td></tr>
+    <tr><td>Profile-aware full-stack QA</td><td><code>{state.transformerProfileAwareFullStackQa}</code></td></tr>
+    <tr><td>Profile-aware full-stack heldout</td><td><code>{state.transformerProfileAwareFullStackHeldout}</code></td></tr>
+    <tr><td>Profile-aware full-stack history</td><td><code>{state.transformerProfileAwareFullStackHistory}</code></td></tr>
+    <tr><td>Profile-aware full-stack status</td><td><code>{state.transformerProfileAwareFullStackStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -737,11 +744,21 @@ v0.42 promoted checkpoint.
   `qa:color` at `0.0`. It ran one branch-only direct step and restored from
   step `0`; branch diversity still failed `0/9` multi-target profiles. This is
   mechanics-readiness evidence, not model-quality promotion evidence.
+- `runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`
+  spends that replay plan on the comparable full-stack repair screen. The run
+  completed `50/50` direct steps, wrote `7` direct-answer JSONL rows, passed
+  the branch-context gate, and used a replay plan for `9144` branch records
+  across `21` profiles. Training step `40` improved QA average target rank to
+  `6.5` and top-5 coverage to `0.625`; heldout average rank improved to
+  `6.875` with top-5 coverage `0.5`. Those rank gains came with QA/heldout
+  target-token coverage regressing to `0.125` and predicted diversity
+  collapsing to `1/8`, so best-snapshot scoring restored step `0`. This is
+  rejected evidence.
 
 The next transformer repair should keep the context-coverage audit,
-profile-wise coverage floor, and v0.67 replay-plan artifact, then spend a
-full-stack run measuring whether profile-aware preservation improves target
-coverage without erasing branch diversity.
+profile-wise coverage floor, and replay-plan artifact, but add anti-collapse
+preservation inside profile-local constraints so rank gains cannot come from
+erasing target-token coverage or branch diversity.
 
 The v0.42 self-improvement run passed:
 

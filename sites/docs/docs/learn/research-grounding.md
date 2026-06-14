@@ -144,12 +144,11 @@ loops become fragile.
   candidate/original ratios, and rare-record coverage.
 - Teach the self-diagnosis layer to emit candidate lessons and candidate probes
   that are verified before admission.
-- Continue the transformer repair with the v0.67 profile-aware replay plan:
-  branch records now carry profiles, deficits and preservation are profile
-  local, and the plan artifact exposes profile coverage floors before training.
-- Require the next direct-answer full-stack repair to use that replay-plan
-  artifact as a constraint and reject snapshots that improve rank while
-  sacrificing per-profile target coverage.
+- Continue the transformer repair with anti-collapse preservation inside the
+  profile-aware replay plan: v0.68 shows profile-local rank pressure can still
+  sacrifice target-token coverage and branch diversity.
+- Keep using the replay-plan artifact as a constraint and reject snapshots that
+  improve rank while sacrificing per-profile target coverage.
 - Keep branch-diversity and target-coverage gates in the transformer path,
   because the current failure is collapse under weight updates, not lack of
   loss movement.

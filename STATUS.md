@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.67 profile-aware replay-plan mechanics; promoted
+**Active version:** v0.68 profile-aware full-stack repair evidence; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -88,9 +88,9 @@ The practical near-term guidance is:
   branch-diversity gates;
 - train the transformer from coverage deficits, not only from already-covered
   branch targets;
-- use the v0.67 replay-plan artifact to gate profile-aware full-stack
-  direct-answer repair runs and reject any snapshot that improves rank by
-  erasing profile coverage;
+- use profile-aware replay-plan artifacts to gate full-stack direct-answer
+  repair runs and reject any snapshot that improves rank by erasing profile
+  coverage or branch diversity;
 - defer model editing and self-rewarded grading until locality, side effects,
   and verifier quality are measurable inside the closed world.
 
@@ -111,6 +111,15 @@ completed one gated direct step, wrote a replay plan for `9144` branch records
 across `21` profiles, and confirmed that `qa:place` and `qa:color` can expose
 different coverage floors in the same artifact. This is mechanics-readiness
 evidence, not promotion evidence.
+
+v0.68 spends that mechanism on the comparable full-stack direct-answer repair
+screen. The run
+`runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`
+completed `50/50` direct steps and wrote the same profile-aware replay-plan
+shape, but best-snapshot scoring restored step `0`. Training improved rank
+evidence at step `40`, yet it collapsed QA and heldout target-token coverage to
+`0.125` with predicted diversity `1/8`, so the gate correctly rejected the
+trained snapshots.
 
 ## Latest Evidence
 
@@ -375,6 +384,16 @@ bounded smoke completed one gated branch-only direct step, wrote a plan for
 such as `qa:place` at `0.5` and `qa:color` at `0.0`. The branch-diversity
 target still failed `0/9` multi-target profiles, so this is
 mechanics-readiness evidence, not promotion evidence.
+
+`runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`
+uses that profile-aware plan in the comparable full-stack repair screen. The
+context gate passed, the replay plan covered `9144` branch records across `21`
+profiles, and `50/50` direct steps completed with `7` direct-answer JSONL rows.
+Step `40` improved QA average target rank to `6.5` and top-5 coverage to
+`0.625`; heldout average rank improved to `6.875` with top-5 coverage `0.5`.
+Those gains came with QA/heldout target-token coverage regressing to `0.125`
+and predicted diversity collapsing to `1/8`, so best-snapshot scoring restored
+step `0`. This rejects profile-aware preservation as sufficient by itself.
 
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final

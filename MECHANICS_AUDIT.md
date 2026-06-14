@@ -157,16 +157,25 @@ The bounded smoke run
 `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
 is mechanics-readiness evidence. It wrote a replay plan for `9144` branch
 records across `21` profiles and passed the branch-context gate, but it ran
-only one direct step and still failed branch-diversity promotion checks. The
-next full-stack repair run should use this profile-aware plan as a constraint
-and then measure whether training improves target coverage without sacrificing
-profile coverage.
+only one direct step and still failed branch-diversity promotion checks. That
+made the next full-stack repair run measurable against the profile-aware plan
+instead of another global loss term.
+
+v0.68 runs that full-stack screen at
+`runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`.
+It completed `50/50` direct steps and improved QA rank evidence at step `40`,
+but the trained snapshots still collapsed target-token coverage and branch
+diversity. Best-snapshot scoring restored step `0`, so the audit lesson is
+sharper: profile-aware target sets are necessary, but the next trainer repair
+also needs explicit anti-collapse preservation inside those profile-local
+constraints.
 
 ## Decision
 
 v0.66 should be treated as an open-source mechanics audit and gap-setting
 version. v0.67 should be treated as mechanics-readiness evidence: it implements
 the profile-aware replay-plan surface without copying outside code or diluting
-the closed-world training boundary. The next implementation should spend a
-full-stack repair run against that profile-aware plan and reject any checkpoint
-that improves rank by erasing profile coverage.
+the closed-world training boundary. v0.68 should be treated as rejected
+full-stack repair evidence: it proves the gate can block non-promotable rank
+gains, and it points the next implementation toward anti-collapse preservation
+inside the profile-aware plan.

@@ -60,8 +60,13 @@ The bounded smoke run
 `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
 wrote `direct_answer_replay_plan.json` for `9144` branch records across `21`
 profiles and passed the branch-context gate. It is mechanics-readiness evidence
-only: the next full-stack repair run still has to prove that profile-aware
-training improves target coverage without sacrificing branch-diversity gates.
+only: it made the next full-stack repair run measurable against profile-aware
+constraints instead of another global replay target set.
+
+v0.68 runs that full-stack screen. It improves QA and heldout target rank during
+training, but the gains come with target-token coverage and predicted diversity
+regressions, so best-snapshot scoring restores step `0`. The next mechanics
+move is anti-collapse preservation inside profile-local replay constraints.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
