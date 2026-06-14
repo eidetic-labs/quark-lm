@@ -252,5 +252,13 @@ corpus sources. The context-80 gated branch-only screen
 `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
 passed the required gate across all `219/219` semantic records, ran all `5`
 requested direct-answer steps, and recorded skipped greedy evals while retaining
-branch profiles and branch-context gate evidence. None of these runs were
-promoted.
+branch profiles and branch-context gate evidence. Two dim8 context-80
+branch-only follow-up screens then tested the best prior sparse repair/contrast
+policy and branch-batch contrast under complete branch context. The
+repair/contrast screen
+`runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/`
+ran all `100` requested direct steps and lowered interval train loss, but final
+QA branch prediction collapsed to all `"a"`. The branch-batch screen
+`runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/` ran all
+`50` requested direct steps and lowered interval train loss further, but also
+collapsed QA branch prediction to all `"a"`. None of these runs were promoted.

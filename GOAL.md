@@ -1664,11 +1664,35 @@ pools, and corpus diffs.
   any promotion candidate still needs a full direct-answer snapshot with greedy
   completion evals
 
+`runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/`:
+
+- tested branch-only snapshots with the best prior sparse repair/contrast
+  policy at context size `80` and embedding/feed-forward dimensions `8/16`
+- required branch-context gate passed with `219/219` semantic branch coverage
+  and no ambiguous contexts
+- screen requested `100` direct-answer steps and recorded `actual_steps: 100`
+- interval train loss moved `6.7890 -> 6.4326`
+- QA branch prediction collapsed from all space at baseline to all `"a"` at the
+  final snapshot, with final QA branch accuracy `0/8`
+- rejected as screening evidence: loss improved, but prompt-specific branch
+  separation did not
+
+`runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/`:
+
+- tested branch-batch contrast under the same complete context-80 branch gate
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- interval train loss moved `3.4614 -> 3.1976`
+- QA branch prediction still collapsed to all `"a"` at the final snapshot, with
+  final QA branch accuracy `0/8`
+- rejected as screening evidence: branch-batch lowers loss more cheaply, but
+  still does not create prompt-specific branch choices
+
 The next improvement target is strengthening prompt-conditioned representation
-so the direct transformer emits target-specific answers instead of the short
-global wrong answer `" te."`, while preserving the `37/219` candidate-
-discrimination gain and v0.42 target-loss gains; then continuing admitted-
-memory batches, completing the Python package/import migration to QuarkLM
-naming, turning more of the deterministic self-diagnosis and repair policy into
+and branch diversity so the direct transformer emits target-specific answers
+instead of collapsing to a single global branch token or the short global wrong
+answer `" te."`, while preserving the `37/219` candidate-discrimination gain
+and v0.42 target-loss gains; then continuing admitted-memory batches,
+completing the Python package/import migration to QuarkLM naming, turning more
+of the deterministic self-diagnosis and repair policy into
 admitted-corpus-trained behavior, and folding the decoder's reliability back
 into the broader free-form language model.

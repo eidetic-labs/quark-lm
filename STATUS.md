@@ -214,6 +214,21 @@ passed the required gate across all `219/219` semantic records, recorded
 screening cheaper and auditable, but it is not promoted quality evidence because
 greedy completion evals were intentionally skipped.
 
+Two dim8 context-80 branch-only follow-up screens used that cheaper evidence
+path to test whether the best prior sparse repair/contrast policy or
+branch-batch contrast could create prompt-specific branches once the visible
+context was complete. The periodic repair/contrast screen at
+`runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/`
+passed the required gate, ran `100/100` direct steps, and lowered interval train
+loss `6.7890 -> 6.4326`, but final QA branch prediction collapsed from all
+space to all `"a"` with final QA branch accuracy `0/8`. The branch-batch screen
+at `runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/`
+passed the same gate, ran `50/50` direct steps, and lowered interval train loss
+`3.4614 -> 3.1976`, but QA branch prediction still collapsed to all `"a"` with
+final QA branch accuracy `0/8`. These are rejected screening results: complete
+context and lower branch loss are still insufficient without a prompt-specific
+branch signal.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

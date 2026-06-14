@@ -104,6 +104,9 @@ training boundary.
   screening, but they must record the snapshot mode and `evals_skipped: true`.
   Treat them as efficiency evidence only until a follow-up full snapshot run
   records greedy completion evals, branch profiles, and gate evidence together.
+  A branch-only screen that lowers loss while predicting one token across a
+  multi-target eval set is rejected screening evidence, not model-quality
+  progress.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

@@ -242,18 +242,18 @@ Latest branch-context gate smoke:
 
 Latest branch-only snapshot smoke:
 
-| Signal | Value |
-| --- | --- |
-| Run | `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/` |
-| Context size | `80` |
-| Snapshot mode | `branch-only` |
-| Required gate | `true` |
-| Gate status | passed, `219/219` semantic records covered |
-| Requested direct steps | `5` |
-| Actual direct steps | `5` |
-| JSONL greedy evals skipped | `true` |
-| Retained diagnostics | branch profiles, branch-context coverage, branch-context gate |
-| Promotion status | screening efficiency evidence only |
+| Signal | Initial smoke | Repair/contrast screen | Branch-batch screen |
+| --- | --- | --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/` | `runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/` | `runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/` |
+| Context size | `80` | `80` | `80` |
+| Embedding/feed-forward dim | `4/8` | `8/16` | `8/16` |
+| Snapshot mode | `branch-only` | `branch-only` | `branch-only` |
+| Required gate | passed, `219/219` semantic records covered | passed, `219/219` semantic records covered | passed, `219/219` semantic records covered |
+| Requested/actual direct steps | `5/5` | `100/100` | `50/50` |
+| JSONL greedy evals skipped | `true` | `true` | `true` |
+| QA branch profile | all `"x"` to all `"r"`; `1/8` final | all space to all `"a"`; `0/8` final | all space to all `"a"`; `0/8` final |
+| Direct loss signal | smoke only | interval train loss `6.7890 -> 6.4326` | interval train loss `3.4614 -> 3.1976` |
+| Promotion status | screening efficiency evidence only | rejected screening evidence | rejected screening evidence |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
@@ -293,4 +293,8 @@ that distinction for direct-answer screens: unsafe context-16 branch repair can
 be skipped and recorded, while complete context-80 branch repair is allowed to
 run. The branch-only snapshot mode keeps those longer-context screens practical
 by skipping greedy completion evals while still recording the branch diagnostics
-and gate evidence needed for the next decision.
+and gate evidence needed for the next decision. The first dim8 follow-ups show
+that lower branch loss and complete branch context are still not enough: both
+repair/contrast and branch-batch contrast collapse QA branch prediction to one
+global token. A full greedy-eval promotion snapshot is not warranted until a
+screen improves prompt-specific branch diversity.

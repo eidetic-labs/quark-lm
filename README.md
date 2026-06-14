@@ -178,6 +178,18 @@ Current transformer answer-lesson run:
   passed the required gate across all `219/219` semantic records, ran all `5`
   requested branch-repair direct steps, and recorded `evals_skipped: true`.
   This is screening efficiency evidence, not promoted model quality evidence.
+  Two dim8 context-80 follow-up screens used that mode to test the best prior
+  sparse repair/contrast policy and branch-batch contrast without paying for
+  full greedy snapshots. The periodic repair/contrast screen
+  `runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/`
+  ran `100/100` direct steps and reduced interval train loss
+  `6.7890 -> 6.4326`, but final QA branch prediction collapsed to all `"a"`.
+  The branch-batch screen
+  `runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/`
+  ran `50/50` direct steps and reduced interval train loss `3.4614 -> 3.1976`,
+  but also collapsed QA branch prediction to all `"a"`. Neither screen earns a
+  full promotion snapshot; the next transformer step needs a stronger
+  prompt-specific branch signal, not another loss-only branch objective.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
