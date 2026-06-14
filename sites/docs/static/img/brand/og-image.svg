@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0A0A0A"/>
+  <g opacity="0.18" stroke="#B4ACE6">
+    <path d="M0 520h1200M0 450h1200M0 380h1200M0 310h1200M0 240h1200M0 170h1200M0 100h1200"/>
+    <path d="M120 0v630M260 0v630M400 0v630M540 0v630M680 0v630M820 0v630M960 0v630M1100 0v630"/>
+  </g>
+  <g transform="translate(110 122)">
+    <path d="M84 0 142 34v68l-58 34-58-34V34L84 0Z" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round"/>
+    <path d="M84 31 118 91H50L84 31Z" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linejoin="round"/>
+    <circle cx="84" cy="31" r="18" fill="#B4ACE6" stroke="#0A0A0A" stroke-width="5"/>
+    <circle cx="118" cy="91" r="18" fill="#818CF8" stroke="#0A0A0A" stroke-width="5"/>
+    <circle cx="50" cy="91" r="18" fill="#7C72C7" stroke="#0A0A0A" stroke-width="5"/>
+    <circle cx="84" cy="70" r="7" fill="#FFFFFF"/>
+  </g>
+  <text x="110" y="330" fill="#FFFFFF" font-family="Poppins, Arial, sans-serif" font-size="84" font-weight="700">QuarkLM</text>
+  <text x="110" y="405" fill="#B4ACE6" font-family="Poppins, Arial, sans-serif" font-size="42" font-weight="500">Big idea. Tiny package.</text>
+  <text x="110" y="500" fill="#E5E5E5" font-family="Poppins, Arial, sans-serif" font-size="28">Closed-world language model. Random weights. Audited learning.</text>
+</svg>

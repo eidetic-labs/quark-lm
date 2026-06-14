@@ -1,0 +1,134 @@
+---
+title: Current Evidence
+description: Latest promoted QuarkLM run and evidence.
+---
+
+import state from '../../../shared/current-state.json';
+
+# Current Evidence
+
+The current promoted run is <code>{state.currentRun}</code>.
+
+<table>
+  <thead>
+    <tr>
+      <th>Signal</th>
+      <th>Current value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Product name</td><td><code>{state.productName}</code></td></tr>
+    <tr><td>Package / repository slug</td><td><code>{state.repositorySlug}</code></td></tr>
+    <tr><td>Current version</td><td><code>{state.currentVersion}</code></td></tr>
+    <tr><td>Admitted facts</td><td><code>{state.admittedFacts}</code></td></tr>
+    <tr><td>Direct admission probes</td><td><code>{state.directAdmissionProbes}</code></td></tr>
+    <tr><td>Admission paraphrase probes</td><td><code>{state.admissionParaphraseProbes}</code></td></tr>
+    <tr><td>Glossary probes</td><td><code>{state.glossaryProbes}</code></td></tr>
+    <tr><td>QA exact</td><td><code>{state.qaExact}</code></td></tr>
+    <tr><td>Admissions exact</td><td><code>{state.admissionsExact}</code></td></tr>
+    <tr><td>Admission paraphrases exact</td><td><code>{state.admissionParaphrasesExact}</code></td></tr>
+    <tr><td>Glossary exact</td><td><code>{state.glossaryExact}</code></td></tr>
+    <tr><td>Self exact</td><td><code>{state.selfExact}</code></td></tr>
+    <tr><td>Learning exact</td><td><code>{state.learningExact}</code></td></tr>
+    <tr><td>Forgetting audit</td><td><code>{state.forgettingAudit}</code></td></tr>
+    <tr><td>Prompt leakage audit</td><td><code>{state.promptLeakageAudit}</code></td></tr>
+    <tr><td>Exact eval audit</td><td><code>{state.exactEvalAudit}</code></td></tr>
+    <tr><td>Promotion gate</td><td><code>{state.promotionGate}</code></td></tr>
+    <tr><td>Self-diagnosis</td><td><code>{state.selfDiagnosis}</code></td></tr>
+    <tr><td>Self-diagnosis external model</td><td><code>{String(state.selfDiagnosisExternalModel)}</code></td></tr>
+    <tr><td>Self-diagnosis recommendation</td><td><code>{state.selfDiagnosisRecommendation}</code></td></tr>
+    <tr><td>Attempt archive</td><td><code>{state.attemptArchive}</code></td></tr>
+    <tr><td>Transformer run</td><td><code>{state.transformerRun}</code></td></tr>
+    <tr><td>Transformer validation NLL</td><td><code>{state.transformerValidNll}</code></td></tr>
+    <tr><td>Transformer exact</td><td><code>{state.transformerExact}</code></td></tr>
+    <tr><td>Transformer candidate accuracy</td><td><code>{state.transformerCandidate}</code></td></tr>
+    <tr><td>Direct transformer exact</td><td><code>{state.transformerDirectExact}</code></td></tr>
+    <tr><td>Direct transformer loss</td><td><code>{state.transformerDirectLoss}</code></td></tr>
+    <tr><td>Direct transformer mode</td><td><code>{state.transformerDirectMode}</code></td></tr>
+    <tr><td>Direct transformer failure pattern</td><td><code>{state.transformerDirectFailurePattern}</code></td></tr>
+    <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
+    <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
+    <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
+    <tr><td>Tokenizer</td><td><code>{state.tokenizer}</code></td></tr>
+  </tbody>
+</table>
+
+## v0.38 Summary
+
+QuarkLM v0.38 keeps the admitted corpus unchanged from v0.37 and adds a
+balanced positive/negative repair schedule to the direct transformer path. The
+stable self-improvement run is `runs/self-improve-v0.38/`; the current
+transformer answer-lesson run is
+`runs/transformer-answer-v0.38-periodic-balanced50-context32/`.
+
+The current corpus remains at `12` admitted facts. Direct admission probes pass
+`48/48`, admission paraphrase probes pass `84/84`, and glossary probes pass
+`38/38`.
+
+The transformer is a tiny decoder-only language model built in the Python
+standard library. It uses learned token and position embeddings, one causal
+self-attention block, a feed-forward block, and QuarkLM's corpus-trained
+character tokenizer. It starts from random weights and imports no pretrained
+model, vocabulary, or embeddings.
+
+Transformer direct-answer evidence:
+
+- transformer checkpoint: `runs/transformer-answer-v0.38-periodic-balanced50-context32/transformer_answer.json`
+- v0.31 generator checkpoint retained for comparison: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_generator.json`
+- selector checkpoint: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_selector.json`
+- training steps: `80`
+- context size: `32`
+- direct answer steps: `1000`
+- direct answer mode: `periodic-balanced-repair-unlikelihood`
+- direct answer negative weight: `1.0`
+- direct answer positive weight: `1.0`
+- balanced repair interval: `50`
+- direct answer training examples: `9144`
+- answer target NLL: `3.5828 -> 2.8552`
+- direct answer target loss: `3.3496 -> 3.0399`
+- raw direct greedy exact answers: `0/219 -> 0/219`
+- transformer-only eval-scoped candidate accuracy: `15/219 -> 37/219`
+- selector-emitted exact answers: `18/219 -> 219/219`
+- selector eval-scoped candidate accuracy: `18/219 -> 219/219`
+- v0.31 generator exact answers without candidates: `0/219 -> 219/219`
+- pretrained weights: `false`
+- pretrained tokenizer: `false`
+- external embeddings: `false`
+- direct path uses answer candidates: `false`
+- direct path uses auxiliary weights: `false`
+- generator uses answer candidates: `false`
+
+That is a real movement toward raw transformer answering with a clear boundary.
+v0.38 preserves v0.33's transformer-only candidate discrimination while adding
+a balanced repair that pairs self-generated negative signals with
+teacher-forced admitted continuations. The direct path improves answer-target
+NLL versus v0.37 and keeps the failure pattern at a repeated `" t"` loop, but
+raw greedy completions still fail exact answer generation. The next structured
+repair should teach multi-token recovery after generated prefixes, not only
+single-step repair.
+v0.31's auxiliary no-candidate generator remains the best exact no-candidate
+answer evidence. The current reliable response gate still belongs to the
+responder, learned answer classifier, and generative answer decoder.
+
+The v0.38 self-improvement run passed:
+
+- direct admission-probe audit
+- admission-paraphrase audit
+- glossary-probe audit
+- exact eval audit
+- promotion gate
+- forgetting audit against v0.37
+- protected prompt leakage audit
+- responder exact evals
+- learned answer classifier exact evals
+- generative answer decoder exact evals
+- rule-based self-diagnosis with no external model
+
+Admission probes now pass `48/48` direct records and `84/84` paraphrase records.
+Glossary probes now pass `38/38` records. The passing attempt is archived at
+`runs/self-improve-v0.38/attempts/attempt-001/` before the top-level latest
+report is updated.
+
+v0.23 added attempt archives. A deliberately undertrained attempt failed at
+`runs/self-improve-v0.23/attempts/attempt-001/`, and the repaired passing
+attempt remains at `runs/self-improve-v0.23/attempts/attempt-002/`.

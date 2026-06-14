@@ -1,0 +1,12 @@
+/build/
+runs/
+*.pyc
+__pycache__/
+node_modules/
+/.docusaurus/
+sites/docs/.docusaurus/
+sites/docs/build/
+sites/marketing/build/
+/site-build/
+npm-debug.log*
+.DS_Store

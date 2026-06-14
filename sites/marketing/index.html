@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuarkLM · Big idea. Tiny package.</title>
+    <meta
+      name="description"
+      content="QuarkLM is a closed-world language model prototype from Eidetic Labs: random weights, admitted data, generated probes, and auditable self-improvement."
+    />
+    <meta property="og:title" content="QuarkLM — Big idea. Tiny package." />
+    <meta
+      property="og:description"
+      content="A closed-world language model prototype. Random weights. Admitted data. Audited learning."
+    />
+    <meta property="og:image" content="https://quark-lm.eidetic-labs.com/static/img/brand/og-image.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://quark-lm.eidetic-labs.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="/static/img/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script>
+      (() => {
+        const saved = localStorage.getItem('quarklm-theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = saved || (systemDark ? 'dark' : 'light');
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="QuarkLM home">
+        <span class="brand__mark" aria-hidden="true">
+          <img src="/static/img/brand/quarklm_mark.svg" alt="" width="32" height="32" />
+        </span>
+        <span class="brand__wordmark">QuarkLM</span>
+        <span class="brand__by">by Eidetic Labs</span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#model"><span aria-hidden="true">§01</span> Model</a>
+        <a href="#loop"><span aria-hidden="true">§02</span> Loop</a>
+        <a href="#evidence"><span aria-hidden="true">§03</span> Evidence</a>
+        <a href="#roadmap"><span aria-hidden="true">§04</span> Roadmap</a>
+      </nav>
+
+      <div class="header-controls">
+        <button class="theme-toggle" type="button" aria-label="Toggle theme" data-theme-toggle>
+          <span class="theme-toggle__thumb" aria-hidden="true"></span>
+          <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="currentColor" />
+            <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M12 2.6v2.4" />
+              <path d="M12 19v2.4" />
+              <path d="M2.6 12h2.4" />
+              <path d="M19 12h2.4" />
+              <path d="M5.2 5.2l1.7 1.7" />
+              <path d="M17.1 17.1l1.7 1.7" />
+              <path d="M5.2 18.8l1.7-1.7" />
+              <path d="M17.1 6.9l1.7-1.7" />
+            </g>
+          </svg>
+          <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
+          </svg>
+        </button>
+        <a class="header-action" href="https://docs.quark-lm.eidetic-labs.com">Docs</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__grid" aria-hidden="true"></div>
+        <div class="hero__copy">
+          <p class="eyebrow">
+            <span class="eyebrow__dot"></span>
+            By Eidetic Labs · Closed-world language model
+          </p>
+          <h1 id="hero-title">
+            <span>Big idea.</span>
+            <span class="accent">Tiny package.</span>
+          </h1>
+          <p class="hero__lede">
+            QuarkLM is a research prototype for language models that learn only from
+            their admitted dataset. No pretrained weights. No pretrained tokenizer. No
+            external embeddings. Just a tiny world, a corpus-trained tokenizer, versioned
+            weight updates, generated probes, and evidence that follows every promotion.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="https://docs.quark-lm.eidetic-labs.com">
+              Read the docs
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+            <a class="button button--ghost" href="https://github.com/eidetic-labs/quark-lm">
+              View source
+            </a>
+          </div>
+          <p class="hero__note">
+            <span aria-hidden="true">§</span>
+            Experimental scaffold. Not a production assistant. The point is auditable growth
+            from a closed corpus.
+          </p>
+        </div>
+
+        <aside class="hero__stage" aria-label="QuarkLM learning loop">
+          <svg class="quark-stage" viewBox="0 0 620 620" role="img" aria-labelledby="stage-title">
+            <title id="stage-title">QuarkLM closed-world learning loop</title>
+            <defs>
+              <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.16" />
+              </pattern>
+            </defs>
+            <rect width="620" height="620" fill="url(#grid)" />
+            <g class="stage-orbits" fill="none">
+              <circle cx="310" cy="310" r="236" />
+              <circle cx="310" cy="310" r="168" />
+              <circle cx="310" cy="310" r="96" />
+            </g>
+            <g class="stage-links">
+              <line x1="310" y1="310" x2="310" y2="78" />
+              <line x1="310" y1="310" x2="520" y2="214" />
+              <line x1="310" y1="310" x2="486" y2="456" />
+              <line x1="310" y1="310" x2="134" y2="456" />
+              <line x1="310" y1="310" x2="100" y2="214" />
+            </g>
+            <g class="stage-core" transform="translate(310 310)">
+              <path class="stage-shell" d="M0 -95 82 -47v94L0 95-82 47v-94L0 -95Z" />
+              <path class="stage-triad" d="M0 -46 48 38H-48L0 -46Z" />
+              <circle class="stage-quark stage-quark--top" cx="0" cy="-46" r="19" />
+              <circle class="stage-quark stage-quark--right" cx="48" cy="38" r="19" />
+              <circle class="stage-quark stage-quark--left" cx="-48" cy="38" r="19" />
+              <circle class="stage-nucleus" cx="0" cy="8" r="7" />
+            </g>
+            <g class="stage-nodes">
+              <g transform="translate(310 78)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">ADMIT</text></g>
+              <g transform="translate(520 214)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">TRAIN</text></g>
+              <g transform="translate(486 456)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">PROBE</text></g>
+              <g transform="translate(134 456)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">AUDIT</text></g>
+              <g transform="translate(100 214)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">DOCS</text></g>
+            </g>
+          </svg>
+        </aside>
+      </section>
+
+      <section class="premise" aria-label="QuarkLM premise">
+        <p class="premise__kicker">A small world with hard edges</p>
+        <h2>Instead of training on everything, train only on what was admitted.</h2>
+        <p>
+          QuarkLM explores whether a language model can grow from a deliberately tiny
+          corpus while preserving provenance. New facts become learnable only after they
+          are written into the admitted-memory log, converted into lessons, trained into
+          versioned weights, and checked by generated probes.
+        </p>
+      </section>
+
+      <section class="section" id="model" aria-labelledby="model-title">
+        <header class="section__head">
+          <p class="section__num" aria-hidden="true">§01</p>
+          <h2 id="model-title">The model starts small on purpose.</h2>
+          <p>
+            The prototype is a tiny stack of corpus generation, reliable response logic,
+            learned answer selection, generative answer decoding, and an experimental
+            from-scratch transformer.
+          </p>
+        </header>
+        <div class="cards cards--four">
+          <article class="card">
+            <p class="card__num">01</p>
+            <h3>Closed corpus</h3>
+            <p>Training text comes from glossary, grammar, story facts, and admitted memories named in the ledger.</p>
+          </article>
+          <article class="card">
+            <p class="card__num">02</p>
+            <h3>Random weights</h3>
+            <p>Learned components start from random initialization and write versioned checkpoints under runs.</p>
+          </article>
+          <article class="card">
+            <p class="card__num">03</p>
+            <h3>Operational self</h3>
+            <p>The model can know its dataset boundary, update process, and unknown policy without claiming subjectivity.</p>
+          </article>
+          <article class="card">
+            <p class="card__num">04</p>
+            <h3>Own tokenizer</h3>
+            <p>The current tokenizer learns characters from admitted text; future tokenizers must be corpus-derived too.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section--alt" id="loop" aria-labelledby="loop-title">
+        <header class="section__head section__head--split">
+          <div>
+            <p class="section__num" aria-hidden="true">§02</p>
+            <h2 id="loop-title">Self-improvement means measured change.</h2>
+          </div>
+          <p>
+            QuarkLM does not silently mutate. It admits data, regenerates lessons, trains
+            fresh weights, evaluates, audits, and promotes only with evidence.
+          </p>
+        </header>
+        <ol class="workflow">
+          <li><span>01</span><h3>Admit</h3><p>New knowledge enters through `corpus/admissions.jsonl`.</p></li>
+          <li><span>02</span><h3>Generate</h3><p>Curriculum and probes are derived from ledgered corpus files.</p></li>
+          <li><span>03</span><h3>Train</h3><p>Classifier, decoder, and transformer weights update from random initialization.</p></li>
+          <li><span>04</span><h3>Audit</h3><p>Forgetting, prompt leakage, provenance, and generated probes must pass.</p></li>
+          <li><span>05</span><h3>Diagnose</h3><p>The report recommends the next action without using an external model.</p></li>
+          <li><span>06</span><h3>Publish</h3><p>Docs and marketing update when they reference current state.</p></li>
+        </ol>
+      </section>
+
+      <section class="section" id="evidence" aria-labelledby="evidence-title">
+        <header class="section__head">
+          <p class="section__num" aria-hidden="true">§03</p>
+          <h2 id="evidence-title">Current evidence: v0.38.</h2>
+          <p>
+            The latest promoted run is `runs/self-improve-v0.38/`. It keeps the
+            admitted world stable, adds periodic balanced direct transformer
+            evidence, and preserves audited release discipline.
+          </p>
+        </header>
+        <div class="evidence-grid">
+          <div class="evidence"><span>Admission probes</span><strong>48/48 · 84/84</strong><p>Direct and paraphrase probes generated from admitted memory.</p></div>
+          <div class="evidence"><span>Glossary probes</span><strong>38/38</strong><p>Definition probes generated from admitted glossary words.</p></div>
+          <div class="evidence"><span>Transformer candidate</span><strong>37/219</strong><p>Balanced repair improves target loss while preserving discrimination.</p></div>
+          <div class="evidence"><span>Self-diagnosis</span><strong>no external model</strong><p>Rule-based report diagnosis found zero blockers on v0.38.</p></div>
+          <div class="evidence"><span>No-candidate generator</span><strong>219/219</strong><p>v0.31 auxiliary generator still proves exact answers without a candidate set.</p></div>
+          <div class="evidence"><span>Promotion gate</span><strong>passed</strong><p>Exact eval, forgetting, probe, and leakage audits all passed.</p></div>
+        </div>
+      </section>
+
+      <section class="section section--deep" id="roadmap" aria-labelledby="roadmap-title">
+        <p class="section__num" aria-hidden="true">§04</p>
+        <h2 id="roadmap-title">Where QuarkLM goes next.</h2>
+        <div class="roadmap">
+          <article>
+            <h3>Package migration</h3>
+            <p>Move the Python import path from `closed_world_lm` toward QuarkLM naming without breaking run artifacts.</p>
+          </article>
+          <article>
+            <h3>Release-synced docs</h3>
+            <p>Keep technical docs and this marketing page aligned with promoted evidence.</p>
+          </article>
+          <article>
+            <h3>Larger learning batches</h3>
+            <p>Admit more memory while preserving anti-forgetting checks and generated eval coverage.</p>
+          </article>
+          <article>
+            <h3>Transformer maturity</h3>
+            <p>Grow the from-scratch transformer until it beats the character MLP and starts passing answer probes.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta" aria-labelledby="cta-title">
+        <p class="eyebrow"><span class="eyebrow__dot"></span>QuarkLM · research prototype</p>
+        <h2 id="cta-title">Tiny enough to audit. Serious enough to improve.</h2>
+        <div class="cta__actions">
+          <a class="button button--primary" href="https://docs.quark-lm.eidetic-labs.com">Read the docs</a>
+          <a class="button button--ghost" href="https://github.com/eidetic-labs/quark-lm">GitHub</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__brand">
+        <img src="/static/img/brand/quarklm_mark.svg" alt="" width="24" height="24" />
+        <span>QuarkLM · by Eidetic Labs</span>
+      </div>
+      <nav class="site-footer__nav" aria-label="Footer">
+        <a href="https://docs.quark-lm.eidetic-labs.com">Docs</a>
+        <a href="https://github.com/eidetic-labs/quark-lm">GitHub</a>
+        <a href="https://eidetic-labs.com">Eidetic Labs</a>
+      </nav>
+      <p class="site-footer__meta">© 2026 Eidetic Labs. QuarkLM is an experimental closed-world learner.</p>
+    </footer>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

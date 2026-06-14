@@ -1,0 +1,4 @@
+{"id": "learning-new-data", "prompt": "question: what happens when you learn something new?\nanswer:", "target": " it becomes training data after corpus admission."}
+{"id": "learning-admission", "prompt": "question: when is something learned?\nanswer:", "target": " after it is admitted into the corpus."}
+{"id": "learning-weight-update", "prompt": "question: what changes after new training data is admitted?\nanswer:", "target": " weights are updated by training."}
+{"id": "learning-repair-action", "prompt": "question: how is the next repair action chosen?\nanswer:", "target": " from report evidence."}

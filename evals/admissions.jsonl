@@ -1,0 +1,48 @@
+{"id": "admission-place-teacher-tree", "prompt": "question: where is teacher's tree?\nanswer:", "target": " near the garden."}
+{"id": "admission-color-teacher-tree", "prompt": "question: what color is teacher's tree?\nanswer:", "target": " green."}
+{"id": "admission-owner-teacher-tree", "prompt": "question: who has the tree?\nanswer:", "target": " teacher."}
+{"id": "admission-status-teacher-tree", "prompt": "question: is teacher's tree part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-child-bag", "prompt": "question: where is child's bag?\nanswer:", "target": " near the shelf."}
+{"id": "admission-color-child-bag", "prompt": "question: what color is child's bag?\nanswer:", "target": " yellow."}
+{"id": "admission-owner-child-bag", "prompt": "question: who has the bag?\nanswer:", "target": " child."}
+{"id": "admission-status-child-bag", "prompt": "question: is child's bag part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-ivy-stone", "prompt": "question: where is ivy's stone?\nanswer:", "target": " under the table."}
+{"id": "admission-color-ivy-stone", "prompt": "question: what color is ivy's stone?\nanswer:", "target": " blue."}
+{"id": "admission-owner-ivy-stone", "prompt": "question: who has the stone?\nanswer:", "target": " ivy."}
+{"id": "admission-status-ivy-stone", "prompt": "question: is ivy's stone part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-noah-shell", "prompt": "question: where is noah's shell?\nanswer:", "target": " near the shelf."}
+{"id": "admission-color-noah-shell", "prompt": "question: what color is noah's shell?\nanswer:", "target": " yellow."}
+{"id": "admission-owner-noah-shell", "prompt": "question: who has the shell?\nanswer:", "target": " noah."}
+{"id": "admission-status-noah-shell", "prompt": "question: is noah's shell part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-ava-coin", "prompt": "question: where is ava's coin?\nanswer:", "target": " in the box."}
+{"id": "admission-color-ava-coin", "prompt": "question: what color is ava's coin?\nanswer:", "target": " red."}
+{"id": "admission-owner-ava-coin", "prompt": "question: who has the coin?\nanswer:", "target": " ava."}
+{"id": "admission-status-ava-coin", "prompt": "question: is ava's coin part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-omar-drum", "prompt": "question: where is omar's drum?\nanswer:", "target": " on the table."}
+{"id": "admission-color-omar-drum", "prompt": "question: what color is omar's drum?\nanswer:", "target": " blue."}
+{"id": "admission-owner-omar-drum", "prompt": "question: who has the drum?\nanswer:", "target": " omar."}
+{"id": "admission-status-omar-drum", "prompt": "question: is omar's drum part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-mia-ring", "prompt": "question: where is mia's ring?\nanswer:", "target": " in the box."}
+{"id": "admission-color-mia-ring", "prompt": "question: what color is mia's ring?\nanswer:", "target": " green."}
+{"id": "admission-owner-mia-ring", "prompt": "question: who has the ring?\nanswer:", "target": " mia."}
+{"id": "admission-status-mia-ring", "prompt": "question: is mia's ring part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-leo-kite", "prompt": "question: where is leo's kite?\nanswer:", "target": " near the garden."}
+{"id": "admission-color-leo-kite", "prompt": "question: what color is leo's kite?\nanswer:", "target": " red."}
+{"id": "admission-owner-leo-kite", "prompt": "question: who has the kite?\nanswer:", "target": " leo."}
+{"id": "admission-status-leo-kite", "prompt": "question: is leo's kite part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-nina-bell", "prompt": "question: where is nina's bell?\nanswer:", "target": " on the table."}
+{"id": "admission-color-nina-bell", "prompt": "question: what color is nina's bell?\nanswer:", "target": " yellow."}
+{"id": "admission-owner-nina-bell", "prompt": "question: who has the bell?\nanswer:", "target": " nina."}
+{"id": "admission-status-nina-bell", "prompt": "question: is nina's bell part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-sara-marble", "prompt": "question: where is sara's marble?\nanswer:", "target": " in the box."}
+{"id": "admission-color-sara-marble", "prompt": "question: what color is sara's marble?\nanswer:", "target": " blue."}
+{"id": "admission-owner-sara-marble", "prompt": "question: who has the marble?\nanswer:", "target": " sara."}
+{"id": "admission-status-sara-marble", "prompt": "question: is sara's marble part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-milo-spoon", "prompt": "question: where is milo's spoon?\nanswer:", "target": " on the table."}
+{"id": "admission-color-milo-spoon", "prompt": "question: what color is milo's spoon?\nanswer:", "target": " green."}
+{"id": "admission-owner-milo-spoon", "prompt": "question: who has the spoon?\nanswer:", "target": " milo."}
+{"id": "admission-status-milo-spoon", "prompt": "question: is milo's spoon part of your training data?\nanswer:", "target": " yes."}
+{"id": "admission-place-ruth-ribbon", "prompt": "question: where is ruth's ribbon?\nanswer:", "target": " near the shelf."}
+{"id": "admission-color-ruth-ribbon", "prompt": "question: what color is ruth's ribbon?\nanswer:", "target": " red."}
+{"id": "admission-owner-ruth-ribbon", "prompt": "question: who has the ribbon?\nanswer:", "target": " ruth."}
+{"id": "admission-status-ruth-ribbon", "prompt": "question: is ruth's ribbon part of your training data?\nanswer:", "target": " yes."}

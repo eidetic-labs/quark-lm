@@ -1,0 +1,12 @@
+{"id": "learned-teacher-tree", "person": "teacher", "object": "tree", "color": "green", "relation": "near", "container": "garden", "admission": "I learned something new, and now it is part of my training data."}
+{"id": "learned-child-bag", "person": "child", "object": "bag", "color": "yellow", "relation": "near", "container": "shelf", "admission": "I learned something new, and now it is part of my training data."}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "blue", "container": "table", "id": "learned-ivy-stone", "object": "stone", "person": "ivy", "relation": "under"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "yellow", "container": "shelf", "id": "learned-noah-shell", "object": "shell", "person": "noah", "relation": "near"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "red", "container": "box", "id": "learned-ava-coin", "object": "coin", "person": "ava", "relation": "in"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "blue", "container": "table", "id": "learned-omar-drum", "object": "drum", "person": "omar", "relation": "on"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "green", "container": "box", "id": "learned-mia-ring", "object": "ring", "person": "mia", "relation": "in"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "red", "container": "garden", "id": "learned-leo-kite", "object": "kite", "person": "leo", "relation": "near"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "yellow", "container": "table", "id": "learned-nina-bell", "object": "bell", "person": "nina", "relation": "on"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "blue", "container": "box", "id": "learned-sara-marble", "object": "marble", "person": "sara", "relation": "in"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "green", "container": "table", "id": "learned-milo-spoon", "object": "spoon", "person": "milo", "relation": "on"}
+{"admission": "I learned something new, and now it is part of my training data.", "color": "red", "container": "shelf", "id": "learned-ruth-ribbon", "object": "ribbon", "person": "ruth", "relation": "near"}

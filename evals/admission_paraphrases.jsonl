@@ -1,0 +1,84 @@
+{"id": "admission-para-place-tell-teacher-tree", "prompt": "tell me the place of teacher tree\nanswer:", "target": " near the garden."}
+{"id": "admission-para-place-ask-teacher-tree", "prompt": "ask: place for teacher tree\nanswer:", "target": " near the garden."}
+{"id": "admission-para-color-belongs-teacher-tree", "prompt": "which color belongs to teacher tree\nanswer:", "target": " green."}
+{"id": "admission-para-color-ask-teacher-tree", "prompt": "ask: color for teacher tree\nanswer:", "target": " green."}
+{"id": "admission-para-owner-belongs-teacher-tree", "prompt": "which person has tree\nanswer:", "target": " teacher."}
+{"id": "admission-para-owner-ask-teacher-tree", "prompt": "ask: owner for tree\nanswer:", "target": " teacher."}
+{"id": "admission-para-status-tag-teacher-tree", "prompt": "training data: teacher tree\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-child-bag", "prompt": "tell me the place of child bag\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-place-ask-child-bag", "prompt": "ask: place for child bag\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-color-belongs-child-bag", "prompt": "which color belongs to child bag\nanswer:", "target": " yellow."}
+{"id": "admission-para-color-ask-child-bag", "prompt": "ask: color for child bag\nanswer:", "target": " yellow."}
+{"id": "admission-para-owner-belongs-child-bag", "prompt": "which person has bag\nanswer:", "target": " child."}
+{"id": "admission-para-owner-ask-child-bag", "prompt": "ask: owner for bag\nanswer:", "target": " child."}
+{"id": "admission-para-status-tag-child-bag", "prompt": "training data: child bag\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-ivy-stone", "prompt": "tell me the place of ivy stone\nanswer:", "target": " under the table."}
+{"id": "admission-para-place-ask-ivy-stone", "prompt": "ask: place for ivy stone\nanswer:", "target": " under the table."}
+{"id": "admission-para-color-belongs-ivy-stone", "prompt": "which color belongs to ivy stone\nanswer:", "target": " blue."}
+{"id": "admission-para-color-ask-ivy-stone", "prompt": "ask: color for ivy stone\nanswer:", "target": " blue."}
+{"id": "admission-para-owner-belongs-ivy-stone", "prompt": "which person has stone\nanswer:", "target": " ivy."}
+{"id": "admission-para-owner-ask-ivy-stone", "prompt": "ask: owner for stone\nanswer:", "target": " ivy."}
+{"id": "admission-para-status-tag-ivy-stone", "prompt": "training data: ivy stone\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-noah-shell", "prompt": "tell me the place of noah shell\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-place-ask-noah-shell", "prompt": "ask: place for noah shell\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-color-belongs-noah-shell", "prompt": "which color belongs to noah shell\nanswer:", "target": " yellow."}
+{"id": "admission-para-color-ask-noah-shell", "prompt": "ask: color for noah shell\nanswer:", "target": " yellow."}
+{"id": "admission-para-owner-belongs-noah-shell", "prompt": "which person has shell\nanswer:", "target": " noah."}
+{"id": "admission-para-owner-ask-noah-shell", "prompt": "ask: owner for shell\nanswer:", "target": " noah."}
+{"id": "admission-para-status-tag-noah-shell", "prompt": "training data: noah shell\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-ava-coin", "prompt": "tell me the place of ava coin\nanswer:", "target": " in the box."}
+{"id": "admission-para-place-ask-ava-coin", "prompt": "ask: place for ava coin\nanswer:", "target": " in the box."}
+{"id": "admission-para-color-belongs-ava-coin", "prompt": "which color belongs to ava coin\nanswer:", "target": " red."}
+{"id": "admission-para-color-ask-ava-coin", "prompt": "ask: color for ava coin\nanswer:", "target": " red."}
+{"id": "admission-para-owner-belongs-ava-coin", "prompt": "which person has coin\nanswer:", "target": " ava."}
+{"id": "admission-para-owner-ask-ava-coin", "prompt": "ask: owner for coin\nanswer:", "target": " ava."}
+{"id": "admission-para-status-tag-ava-coin", "prompt": "training data: ava coin\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-omar-drum", "prompt": "tell me the place of omar drum\nanswer:", "target": " on the table."}
+{"id": "admission-para-place-ask-omar-drum", "prompt": "ask: place for omar drum\nanswer:", "target": " on the table."}
+{"id": "admission-para-color-belongs-omar-drum", "prompt": "which color belongs to omar drum\nanswer:", "target": " blue."}
+{"id": "admission-para-color-ask-omar-drum", "prompt": "ask: color for omar drum\nanswer:", "target": " blue."}
+{"id": "admission-para-owner-belongs-omar-drum", "prompt": "which person has drum\nanswer:", "target": " omar."}
+{"id": "admission-para-owner-ask-omar-drum", "prompt": "ask: owner for drum\nanswer:", "target": " omar."}
+{"id": "admission-para-status-tag-omar-drum", "prompt": "training data: omar drum\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-mia-ring", "prompt": "tell me the place of mia ring\nanswer:", "target": " in the box."}
+{"id": "admission-para-place-ask-mia-ring", "prompt": "ask: place for mia ring\nanswer:", "target": " in the box."}
+{"id": "admission-para-color-belongs-mia-ring", "prompt": "which color belongs to mia ring\nanswer:", "target": " green."}
+{"id": "admission-para-color-ask-mia-ring", "prompt": "ask: color for mia ring\nanswer:", "target": " green."}
+{"id": "admission-para-owner-belongs-mia-ring", "prompt": "which person has ring\nanswer:", "target": " mia."}
+{"id": "admission-para-owner-ask-mia-ring", "prompt": "ask: owner for ring\nanswer:", "target": " mia."}
+{"id": "admission-para-status-tag-mia-ring", "prompt": "training data: mia ring\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-leo-kite", "prompt": "tell me the place of leo kite\nanswer:", "target": " near the garden."}
+{"id": "admission-para-place-ask-leo-kite", "prompt": "ask: place for leo kite\nanswer:", "target": " near the garden."}
+{"id": "admission-para-color-belongs-leo-kite", "prompt": "which color belongs to leo kite\nanswer:", "target": " red."}
+{"id": "admission-para-color-ask-leo-kite", "prompt": "ask: color for leo kite\nanswer:", "target": " red."}
+{"id": "admission-para-owner-belongs-leo-kite", "prompt": "which person has kite\nanswer:", "target": " leo."}
+{"id": "admission-para-owner-ask-leo-kite", "prompt": "ask: owner for kite\nanswer:", "target": " leo."}
+{"id": "admission-para-status-tag-leo-kite", "prompt": "training data: leo kite\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-nina-bell", "prompt": "tell me the place of nina bell\nanswer:", "target": " on the table."}
+{"id": "admission-para-place-ask-nina-bell", "prompt": "ask: place for nina bell\nanswer:", "target": " on the table."}
+{"id": "admission-para-color-belongs-nina-bell", "prompt": "which color belongs to nina bell\nanswer:", "target": " yellow."}
+{"id": "admission-para-color-ask-nina-bell", "prompt": "ask: color for nina bell\nanswer:", "target": " yellow."}
+{"id": "admission-para-owner-belongs-nina-bell", "prompt": "which person has bell\nanswer:", "target": " nina."}
+{"id": "admission-para-owner-ask-nina-bell", "prompt": "ask: owner for bell\nanswer:", "target": " nina."}
+{"id": "admission-para-status-tag-nina-bell", "prompt": "training data: nina bell\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-sara-marble", "prompt": "tell me the place of sara marble\nanswer:", "target": " in the box."}
+{"id": "admission-para-place-ask-sara-marble", "prompt": "ask: place for sara marble\nanswer:", "target": " in the box."}
+{"id": "admission-para-color-belongs-sara-marble", "prompt": "which color belongs to sara marble\nanswer:", "target": " blue."}
+{"id": "admission-para-color-ask-sara-marble", "prompt": "ask: color for sara marble\nanswer:", "target": " blue."}
+{"id": "admission-para-owner-belongs-sara-marble", "prompt": "which person has marble\nanswer:", "target": " sara."}
+{"id": "admission-para-owner-ask-sara-marble", "prompt": "ask: owner for marble\nanswer:", "target": " sara."}
+{"id": "admission-para-status-tag-sara-marble", "prompt": "training data: sara marble\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-milo-spoon", "prompt": "tell me the place of milo spoon\nanswer:", "target": " on the table."}
+{"id": "admission-para-place-ask-milo-spoon", "prompt": "ask: place for milo spoon\nanswer:", "target": " on the table."}
+{"id": "admission-para-color-belongs-milo-spoon", "prompt": "which color belongs to milo spoon\nanswer:", "target": " green."}
+{"id": "admission-para-color-ask-milo-spoon", "prompt": "ask: color for milo spoon\nanswer:", "target": " green."}
+{"id": "admission-para-owner-belongs-milo-spoon", "prompt": "which person has spoon\nanswer:", "target": " milo."}
+{"id": "admission-para-owner-ask-milo-spoon", "prompt": "ask: owner for spoon\nanswer:", "target": " milo."}
+{"id": "admission-para-status-tag-milo-spoon", "prompt": "training data: milo spoon\nanswer:", "target": " yes."}
+{"id": "admission-para-place-tell-ruth-ribbon", "prompt": "tell me the place of ruth ribbon\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-place-ask-ruth-ribbon", "prompt": "ask: place for ruth ribbon\nanswer:", "target": " near the shelf."}
+{"id": "admission-para-color-belongs-ruth-ribbon", "prompt": "which color belongs to ruth ribbon\nanswer:", "target": " red."}
+{"id": "admission-para-color-ask-ruth-ribbon", "prompt": "ask: color for ruth ribbon\nanswer:", "target": " red."}
+{"id": "admission-para-owner-belongs-ruth-ribbon", "prompt": "which person has ribbon\nanswer:", "target": " ruth."}
+{"id": "admission-para-owner-ask-ruth-ribbon", "prompt": "ask: owner for ribbon\nanswer:", "target": " ruth."}
+{"id": "admission-para-status-tag-ruth-ribbon", "prompt": "training data: ruth ribbon\nanswer:", "target": " yes."}

@@ -1,0 +1,28 @@
+{
+  "name": "quark-lm-sites",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QuarkLM documentation and marketing surfaces.",
+  "scripts": {
+    "docs:start": "docusaurus start sites/docs --host 127.0.0.1",
+    "docs:build": "docusaurus build sites/docs",
+    "docs:serve": "python3 -m http.server 3000 --bind 127.0.0.1 --directory sites/docs/build",
+    "marketing:build": "node scripts/build-marketing.mjs",
+    "marketing:serve": "npm run marketing:build && python3 -m http.server 3001 --bind 127.0.0.1 --directory sites/marketing/build",
+    "sites:build": "npm run docs:build && npm run marketing:build"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.1",
+    "@docusaurus/preset-classic": "3.10.1",
+    "clsx": "2.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.1"
+  },
+  "overrides": {
+    "serialize-javascript": "7.0.5",
+    "uuid": "11.1.1"
+  }
+}

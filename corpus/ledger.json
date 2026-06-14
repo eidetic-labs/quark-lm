@@ -1,0 +1,104 @@
+{
+  "project": "quark-lm",
+  "version": "0.1.0",
+  "purity_boundary": {
+    "pretrained_weights": false,
+    "pretrained_tokenizer": false,
+    "external_embeddings": false,
+    "outside_web_or_model_synthesis": false,
+    "training_data_policy": "Only generated curriculum derived from allowed source files in this ledger may be used for training."
+  },
+  "sources": [
+    {
+      "id": "glossary-v0",
+      "path": "corpus/glossary.json",
+      "kind": "human-authored nursery glossary",
+      "allowed_for_curriculum_generation": true,
+      "allowed_for_training": true
+    },
+    {
+      "id": "grammar-v0",
+      "path": "corpus/grammar.json",
+      "kind": "human-authored nursery grammar and story facts",
+      "allowed_for_curriculum_generation": true,
+      "allowed_for_training": true
+    },
+    {
+      "id": "admissions-v0",
+      "path": "corpus/admissions.jsonl",
+      "kind": "admitted learning event log",
+      "allowed_for_curriculum_generation": true,
+      "allowed_for_training": true
+    },
+    {
+      "id": "known-probes-v0",
+      "path": "evals/qa.jsonl",
+      "kind": "source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "unknown-probes-v0",
+      "path": "evals/unknowns.jsonl",
+      "kind": "source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "heldout-probes-v0",
+      "path": "evals/heldout.jsonl",
+      "kind": "held-out source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "paraphrase-probes-v0",
+      "path": "evals/paraphrases.jsonl",
+      "kind": "paraphrase source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "owner-probes-v0",
+      "path": "evals/owner.jsonl",
+      "kind": "ownership source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "self-probes-v0",
+      "path": "evals/self.jsonl",
+      "kind": "operational self source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "learning-probes-v0",
+      "path": "evals/learning.jsonl",
+      "kind": "self-improvement source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "admission-probes-v0",
+      "path": "evals/admissions.jsonl",
+      "kind": "admitted-memory source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "admission-paraphrase-probes-v0",
+      "path": "evals/admission_paraphrases.jsonl",
+      "kind": "admitted-memory paraphrase source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    },
+    {
+      "id": "glossary-probes-v0",
+      "path": "evals/glossary.jsonl",
+      "kind": "glossary definition source probe set",
+      "allowed_for_curriculum_generation": false,
+      "allowed_for_training": false
+    }
+  ]
+}

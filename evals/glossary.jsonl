@@ -1,0 +1,38 @@
+{"id": "glossary-meaning-self", "prompt": "question: what does self mean?\nanswer:", "target": " this learner as a system."}
+{"id": "glossary-define-self", "prompt": "define self\nanswer:", "target": " this learner as a system."}
+{"id": "glossary-meaning-model", "prompt": "question: what does model mean?\nanswer:", "target": " a learner with weights."}
+{"id": "glossary-define-model", "prompt": "define model\nanswer:", "target": " a learner with weights."}
+{"id": "glossary-meaning-dataset", "prompt": "question: what does dataset mean?\nanswer:", "target": " data used for learning."}
+{"id": "glossary-define-dataset", "prompt": "define dataset\nanswer:", "target": " data used for learning."}
+{"id": "glossary-meaning-corpus", "prompt": "question: what does corpus mean?\nanswer:", "target": " the admitted training data."}
+{"id": "glossary-define-corpus", "prompt": "define corpus\nanswer:", "target": " the admitted training data."}
+{"id": "glossary-meaning-training", "prompt": "question: what does training mean?\nanswer:", "target": " changing weights using data."}
+{"id": "glossary-define-training", "prompt": "define training\nanswer:", "target": " changing weights using data."}
+{"id": "glossary-meaning-weights", "prompt": "question: what does weights mean?\nanswer:", "target": " numbers changed by training."}
+{"id": "glossary-define-weights", "prompt": "define weights\nanswer:", "target": " numbers changed by training."}
+{"id": "glossary-meaning-learn", "prompt": "question: what does learn mean?\nanswer:", "target": " add knowledge through training."}
+{"id": "glossary-define-learn", "prompt": "define learn\nanswer:", "target": " add knowledge through training."}
+{"id": "glossary-meaning-unknown", "prompt": "question: what does unknown mean?\nanswer:", "target": " not known in this world."}
+{"id": "glossary-define-unknown", "prompt": "define unknown\nanswer:", "target": " not known in this world."}
+{"id": "glossary-meaning-language", "prompt": "question: what does language mean?\nanswer:", "target": " words in order."}
+{"id": "glossary-define-language", "prompt": "define language\nanswer:", "target": " words in order."}
+{"id": "glossary-meaning-stone", "prompt": "question: what does stone mean?\nanswer:", "target": " a small object from the ground."}
+{"id": "glossary-define-stone", "prompt": "define stone\nanswer:", "target": " a small object from the ground."}
+{"id": "glossary-meaning-shell", "prompt": "question: what does shell mean?\nanswer:", "target": " a small object from water."}
+{"id": "glossary-define-shell", "prompt": "define shell\nanswer:", "target": " a small object from water."}
+{"id": "glossary-meaning-coin", "prompt": "question: what does coin mean?\nanswer:", "target": " a small round object."}
+{"id": "glossary-define-coin", "prompt": "define coin\nanswer:", "target": " a small round object."}
+{"id": "glossary-meaning-drum", "prompt": "question: what does drum mean?\nanswer:", "target": " a round object."}
+{"id": "glossary-define-drum", "prompt": "define drum\nanswer:", "target": " a round object."}
+{"id": "glossary-meaning-ring", "prompt": "question: what does ring mean?\nanswer:", "target": " a small round object worn on a hand."}
+{"id": "glossary-define-ring", "prompt": "define ring\nanswer:", "target": " a small round object worn on a hand."}
+{"id": "glossary-meaning-kite", "prompt": "question: what does kite mean?\nanswer:", "target": " an object that can fly on a string."}
+{"id": "glossary-define-kite", "prompt": "define kite\nanswer:", "target": " an object that can fly on a string."}
+{"id": "glossary-meaning-bell", "prompt": "question: what does bell mean?\nanswer:", "target": " an object that can make a sound."}
+{"id": "glossary-define-bell", "prompt": "define bell\nanswer:", "target": " an object that can make a sound."}
+{"id": "glossary-meaning-marble", "prompt": "question: what does marble mean?\nanswer:", "target": " a small round object."}
+{"id": "glossary-define-marble", "prompt": "define marble\nanswer:", "target": " a small round object."}
+{"id": "glossary-meaning-spoon", "prompt": "question: what does spoon mean?\nanswer:", "target": " an object used for eating."}
+{"id": "glossary-define-spoon", "prompt": "define spoon\nanswer:", "target": " an object used for eating."}
+{"id": "glossary-meaning-ribbon", "prompt": "question: what does ribbon mean?\nanswer:", "target": " a long soft strip."}
+{"id": "glossary-define-ribbon", "prompt": "define ribbon\nanswer:", "target": " a long soft strip."}

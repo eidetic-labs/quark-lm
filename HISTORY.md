@@ -1,0 +1,32 @@
+# QuarkLM History
+
+## Git Baseline
+
+Git tracking begins at QuarkLM v0.38.
+
+The project existed before this repository was initialized. Earlier work is not
+represented as real git commits because no git history existed at the time. The
+pre-git record is preserved through:
+
+- `GOAL.md`, which records the version-by-version research narrative.
+- `STATUS.md`, which summarizes the current promoted state.
+- `README.md`, which records current usage, evidence, and next milestones.
+- `QUALITY.md`, which records the promotion and documentation discipline.
+- `runs/`, which contains local training artifacts, checkpoints, metrics, and
+  self-improvement reports for the pre-git experiments.
+
+The first real git commit should be treated as the public v0.38 baseline, not as
+the beginning of the research itself.
+
+## Contributor Expectations
+
+From v0.38 onward, project history should be ordinary git history:
+
+- each promoted version gets a real commit;
+- each promoted version gets a tag;
+- release notes and docs move with the code;
+- failed attempts remain documented evidence instead of being rewritten away;
+- run artifacts may remain outside git when they are too large for a healthy
+  source repository, but their metrics and paths should be recorded in docs.
+
+This preserves the origin story without fabricating synthetic commits.

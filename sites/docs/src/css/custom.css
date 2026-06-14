@@ -1,0 +1,95 @@
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ifm-font-family-base: Poppins, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --ifm-heading-font-family: Poppins, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --ifm-color-primary: #7c72c7;
+  --ifm-color-primary-dark: #665bbd;
+  --ifm-color-primary-darker: #5d52b7;
+  --ifm-color-primary-darkest: #4f46a0;
+  --ifm-color-primary-light: #9188d1;
+  --ifm-color-primary-lighter: #a39bd9;
+  --ifm-color-primary-lightest: #eae6f8;
+  --ifm-navbar-height: 68px;
+  --ifm-global-radius: 6px;
+  --ifm-code-font-size: 92%;
+  --ifm-footer-background-color: #ffffff;
+  --ifm-footer-color: #4a4a4a;
+  --ifm-footer-link-color: #0a0a0a;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme='dark'] {
+  --ifm-background-color: #070912;
+  --ifm-background-surface-color: #0c1020;
+  --ifm-navbar-background-color: rgba(7, 9, 18, 0.88);
+  --ifm-footer-background-color: #070912;
+  --ifm-footer-color: #c8c8d0;
+  --ifm-footer-link-color: #ffffff;
+  --ifm-color-primary: #a78bfa;
+}
+
+html {
+  scroll-padding-top: var(--ifm-navbar-height);
+}
+
+.navbar {
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  backdrop-filter: blur(18px);
+}
+
+.navbar__title {
+  font-weight: 600;
+}
+
+.navbar__item,
+.navbar__link {
+  font-size: 0.92rem;
+}
+
+.navbar__items--right .navbar__link {
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 6px;
+  margin-left: 8px;
+  padding: 7px 10px;
+}
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-toc-border-color);
+}
+
+.theme-doc-markdown h1 {
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  letter-spacing: 0;
+}
+
+.theme-doc-markdown h2 {
+  letter-spacing: 0;
+}
+
+.theme-doc-markdown table {
+  display: table;
+  width: 100%;
+}

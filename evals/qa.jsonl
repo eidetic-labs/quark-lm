@@ -1,0 +1,8 @@
+{"id": "known-mia-ball-place", "prompt": "question: where is mia's ball?\nanswer:", "target": " under the box."}
+{"id": "known-mia-ball-color", "prompt": "question: what color is mia's ball?\nanswer:", "target": " red."}
+{"id": "known-noah-cup-place", "prompt": "question: where is noah's cup?\nanswer:", "target": " on the table."}
+{"id": "known-noah-cup-color", "prompt": "question: what color is noah's cup?\nanswer:", "target": " blue."}
+{"id": "known-ava-book-place", "prompt": "question: where is ava's book?\nanswer:", "target": " in the bag."}
+{"id": "known-ava-book-color", "prompt": "question: what color is ava's book?\nanswer:", "target": " green."}
+{"id": "known-leo-key-place", "prompt": "question: where is leo's key?\nanswer:", "target": " near the door."}
+{"id": "known-leo-key-color", "prompt": "question: what color is leo's key?\nanswer:", "target": " yellow."}

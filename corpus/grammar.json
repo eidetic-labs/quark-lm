@@ -1,0 +1,134 @@
+{
+  "version": "0.1.0",
+  "sentence_templates": [
+    {
+      "id": "color-object",
+      "template": "the {object} is {color}.",
+      "slots": {"object": "object", "color": "color"},
+      "limit": 24
+    },
+    {
+      "id": "size-animal",
+      "template": "the {animal} is {size}.",
+      "slots": {"animal": "animal", "size": "size"},
+      "limit": 12
+    },
+    {
+      "id": "person-sees-animal",
+      "template": "{person} sees the {animal}.",
+      "slots": {"person": "person", "animal": "animal"},
+      "limit": 16
+    },
+    {
+      "id": "person-likes-object",
+      "template": "{person} likes the {object}.",
+      "slots": {"person": "person", "object": "object"},
+      "limit": 20
+    },
+    {
+      "id": "object-relation-container",
+      "template": "the {object} is {relation} the {container}.",
+      "slots": {"object": "object", "relation": "relation", "container": "container"},
+      "limit": 32
+    },
+    {
+      "id": "animal-action-place",
+      "template": "the {animal} {motion} {relation} the {place}.",
+      "slots": {"animal": "animal", "motion": "motion", "relation": "relation", "place": "place"},
+      "limit": 24
+    }
+  ],
+  "slot_overrides": {
+    "motion": ["sits", "runs", "walks"]
+  },
+  "story_facts": [
+    {
+      "id": "mia-ball",
+      "person": "mia",
+      "object": "ball",
+      "color": "red",
+      "relation": "under",
+      "container": "box"
+    },
+    {
+      "id": "noah-cup",
+      "person": "noah",
+      "object": "cup",
+      "color": "blue",
+      "relation": "on",
+      "container": "table"
+    },
+    {
+      "id": "ava-book",
+      "person": "ava",
+      "object": "book",
+      "color": "green",
+      "relation": "in",
+      "container": "bag"
+    },
+    {
+      "id": "leo-key",
+      "person": "leo",
+      "object": "key",
+      "color": "yellow",
+      "relation": "near",
+      "container": "door"
+    },
+    {
+      "id": "ivy-map",
+      "person": "ivy",
+      "object": "map",
+      "color": "green",
+      "relation": "on",
+      "container": "shelf"
+    },
+    {
+      "id": "omar-pen",
+      "person": "omar",
+      "object": "pen",
+      "color": "blue",
+      "relation": "in",
+      "container": "box"
+    },
+    {
+      "id": "nina-hat",
+      "person": "nina",
+      "object": "hat",
+      "color": "yellow",
+      "relation": "under",
+      "container": "table"
+    },
+    {
+      "id": "eli-lamp",
+      "person": "eli",
+      "object": "lamp",
+      "color": "red",
+      "relation": "near",
+      "container": "door"
+    }
+  ],
+  "qa_lesson_ids": ["mia-ball", "noah-cup", "ava-book", "leo-key"],
+  "heldout_probe_ids": ["ivy-map", "omar-pen", "nina-hat", "eli-lamp"],
+  "unknown_facts": [
+    {"id": "unknown-noah-ball", "person": "noah", "object": "ball"},
+    {"id": "unknown-mia-cup", "person": "mia", "object": "cup"},
+    {"id": "unknown-ava-key", "person": "ava", "object": "key"},
+    {"id": "unknown-leo-book", "person": "leo", "object": "book"}
+  ],
+  "unknown_owner_objects": ["water", "plant"],
+  "self_facts": [
+    {"id": "self-kind", "slot": "kind", "answer": "a closed-world learner"},
+    {"id": "self-dataset", "slot": "dataset", "answer": "the admitted corpus"},
+    {"id": "self-pretrained-weights", "slot": "pretrained_weights", "answer": "no"},
+    {"id": "self-unknown-policy", "slot": "unknown_policy", "answer": "unknown"},
+    {"id": "self-improvement-method", "slot": "improvement_method", "answer": "by training on admitted lessons"},
+    {"id": "self-diagnosis-source", "slot": "diagnosis_source", "answer": "self-improvement reports"},
+    {"id": "self-external-model-shaping", "slot": "external_model_shaping", "answer": "no"}
+  ],
+  "learning_rules": [
+    {"id": "learning-new-data", "slot": "new_data", "answer": "it becomes training data after corpus admission"},
+    {"id": "learning-admission", "slot": "admission", "answer": "after it is admitted into the corpus"},
+    {"id": "learning-weight-update", "slot": "weight_update", "answer": "weights are updated by training"},
+    {"id": "learning-repair-action", "slot": "repair_action", "answer": "from report evidence"}
+  ]
+}

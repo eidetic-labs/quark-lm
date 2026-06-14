@@ -1,0 +1,54 @@
+/** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
+const sidebars = {
+  learn: [
+    {
+      type: 'category',
+      label: 'Learn',
+      link: { type: 'doc', id: 'learn/index' },
+      items: [
+        'learn/language-model',
+        'learn/self-improvement-loop',
+        'learn/current-evidence',
+      ],
+    },
+  ],
+  build: [
+    {
+      type: 'category',
+      label: 'Build',
+      link: { type: 'doc', id: 'build/index' },
+      items: [
+        'build/quickstart',
+        'build/admission-workflow',
+        'build/generated-probes',
+        'build/transformer',
+      ],
+    },
+  ],
+  operate: [
+    {
+      type: 'category',
+      label: 'Operate',
+      link: { type: 'doc', id: 'operate/index' },
+      items: [
+        'operate/release-discipline',
+        'operate/provenance',
+        'operate/docs-drift',
+      ],
+    },
+  ],
+  secure: [
+    {
+      type: 'category',
+      label: 'Secure',
+      link: { type: 'doc', id: 'secure/index' },
+      items: [
+        'secure/purity-boundary',
+        'secure/prompt-leakage',
+        'secure/unknown-policy',
+      ],
+    },
+  ],
+};
+
+module.exports = sidebars;
