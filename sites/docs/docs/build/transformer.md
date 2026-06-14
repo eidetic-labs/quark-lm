@@ -90,12 +90,18 @@ Use `--direct-answer-restore-best-branch-snapshot` to restore the best scored
 branch-diversity checkpoint before final metrics and checkpoint writing.
 Add `--use-prompt-position-projection` to test a zero-initialized
 position-specific projection of non-padding prompt-prefix positions.
+Add `--prompt-position-projection-scale` to scale that prompt-position
+projection residual before it is added to the final branch representation.
 Use `--direct-answer-mode branch-target-margin-unlikelihood` to add a smooth
 pairwise target-margin loss over the distinct branch targets in each batch.
 Direct-answer snapshots include `branch_representation_profiles` so runs can
 measure hidden-state pairwise distance before the output head.
 Use `--direct-answer-mode branch-representation-contrast-unlikelihood` to
 penalize nearly identical hidden states for different branch targets.
+Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
+QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
+must not import external weights, tokenizers, embeddings, datasets, or training
+text.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -459,6 +465,28 @@ Latest branch-representation capacity smoke:
 | Final QA different-target hidden distance | avg about `0.00209`, max about `0.00367` |
 | Promotion status | rejected capacity evidence |
 
+Latest prompt-position scale smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/` |
+| Mode | `branch-representation-contrast-unlikelihood` |
+| Representation option | `--use-prompt-position-projection` |
+| Prompt-position scale | `32.0` |
+| Representation contrast weight | `50.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Train loss | `55.3835 -> 50.8435` |
+| Prompt-position parameters moved | `1108/1284`, max absolute value about `0.07087` |
+| Restored best branch snapshot | yes, from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Final QA different-target hidden distance | restored avg about `0.01235`, max about `0.03610`; raw step-50 avg about `0.4115` before restore |
+| Promotion status | rejected prompt-signal scale evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -526,3 +554,8 @@ stronger prompt-conditioned representation path rather than another output-head
 loss alone.
 The dim-8 capacity screen increases measured hidden distance, but branch
 predictions still collapse globally, so width alone is not the missing repair.
+Prompt-position projection scaling shows the prompt residual can be made louder
+and the restored hidden-state distance can rise, but the branch prediction
+still collapses globally. Before adding another objective, the next transformer
+step should compare QuarkLM's architecture and trainer against proven
+open-source GPT structures while preserving the closed-world data boundary.

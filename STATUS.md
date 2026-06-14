@@ -366,6 +366,31 @@ target failed across all `9` multi-target profiles. This is rejected capacity
 evidence: more width gives more hidden distance, but not prompt-specific branch
 choices.
 
+A prompt-signal scale follow-up added `--prompt-position-projection-scale` so
+bounded screens can amplify the prompt-position projection residual without
+changing corpus data, tokenizer training, or initialization policy. The
+scale-32 context-80 smoke at
+`runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, ran `50/50` direct steps,
+moved `1108/1284` prompt-position projection parameters, and restored the final
+checkpoint from step `40`. The raw step-50 snapshot briefly pushed QA
+different-target hidden distance to about `0.4115`, and the restored checkpoint
+kept it above the prior dim-4 screen at about `0.01235`. QA still collapsed to
+all `"u"` with target-token coverage `0.125`, `predicted_unique` still `1/8`,
+and the branch-diversity target failed across all `9` multi-target profiles.
+This rejects prompt-signal volume as the whole fix: the model can separate
+hidden states more than before, but the output path still turns them into one
+global branch token.
+
+The next transformer checkpoint should include an open-source structure audit
+before another repair objective is added. `STRUCTURE_AUDIT.md` records the
+boundary: QuarkLM may study model/trainer/tokenizer/checkpoint patterns from
+open-source language-model projects, but must not import pretrained weights,
+pretrained tokenizer vocabularies, external embeddings, unledgered datasets, or
+training text. The audit target is to identify standard GPT stabilizers and
+training-loop structure QuarkLM is missing before the next branch-diversity
+repair.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

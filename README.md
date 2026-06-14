@@ -277,6 +277,22 @@ Current transformer answer-lesson run:
   hidden distance to about `0.00209`, but final QA still restored to all `"u"`
   with target-token coverage `0.125`, `predicted_unique` `1/8`, and diversity
   failure across all `9` multi-target profiles.
+- `--prompt-position-projection-scale` now allows bounded screens to amplify
+  the prompt-position projection residual without changing the closed-world
+  data boundary. The scale-32 representation-contrast smoke
+  `runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`
+  moved `1108/1284` prompt-position projection parameters and briefly pushed
+  QA different-target hidden distance as high as about `0.4115` before
+  restore. The best restored checkpoint came from step `40`, with QA hidden
+  distance about `0.01235`, but final QA still collapsed to all `"u"` with
+  target-token coverage `0.125`, `predicted_unique` `1/8`, and diversity
+  failure across all `9` multi-target profiles. This rejects "the prompt signal
+  is merely too quiet" as a complete explanation.
+- The next transformer work should pause objective churn for an open-source
+  structure audit. `STRUCTURE_AUDIT.md` records the allowed boundary: study
+  model/trainer/tokenizer/checkpoint patterns from projects such as minGPT,
+  nanoGPT, LitGPT, Hugging Face tokenizers, and LLM360, but never import their
+  pretrained weights, tokenizers, embeddings, datasets, or text.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -104,6 +104,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-representation capacity run</td><td><code>{state.transformerLatestBranchRepresentationCapacityRun}</code></td></tr>
     <tr><td>Branch-representation capacity mode</td><td><code>{state.transformerBranchRepresentationCapacityMode}</code></td></tr>
     <tr><td>Branch-representation capacity status</td><td><code>{state.transformerBranchRepresentationCapacityStatus}</code></td></tr>
+    <tr><td>Latest prompt-position scale run</td><td><code>{state.transformerLatestPromptPositionScaleRun}</code></td></tr>
+    <tr><td>Prompt-position scale mode</td><td><code>{state.transformerPromptPositionScaleMode}</code></td></tr>
+    <tr><td>Prompt-position scale status</td><td><code>{state.transformerPromptPositionScaleStatus}</code></td></tr>
+    <tr><td>Transformer structure audit</td><td><code>{state.transformerStructureAudit}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -381,10 +385,24 @@ v0.42 promoted checkpoint.
   step `10`, moved QA different-target hidden distance to about `0.00209`, and
   still restored to the same all-`"u"` QA collapse with target-token coverage
   `0.125`.
+- `runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`
+  added `--prompt-position-projection-scale 32.0` to test whether the prompt-
+  position residual was simply too quiet. The completed `50/50` step screen
+  moved `1108/1284` prompt-position projection parameters and restored from
+  step `40`; restored QA different-target hidden distance rose to about
+  `0.01235`, but QA still collapsed to all `"u"` with target-token coverage
+  `0.125`.
+- `STRUCTURE_AUDIT.md` now records the next transformer checkpoint: study
+  open-source model, trainer, tokenizer, checkpoint, and transparency patterns
+  before adding another repair objective, while keeping all external weights,
+  tokenizers, embeddings, datasets, and training text outside QuarkLM's
+  closed-world boundary.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it must also improve prompt-conditioned branch diversity instead of only
-making more prompt text visible or lowering branch loss.
+but it should first compare QuarkLM's transformer against standard GPT
+structure. The repair must improve prompt-conditioned branch diversity instead
+of only making more prompt text visible, raising hidden distance, or lowering
+branch loss.
 
 The v0.42 self-improvement run passed:
 

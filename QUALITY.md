@@ -152,6 +152,19 @@ training boundary.
   produces prompt-specific branch choices. Lower loss from a representation
   change is rejected evidence when branch accuracy regresses or the branch still
   collapses to one global token.
+- Prompt-signal scaling options, such as
+  `--prompt-position-projection-scale`, must prove that the scale applies only
+  to the intended residual path, record the scale value, hidden-distance
+  movement, projection-weight movement, branch-diversity status, and restored
+  snapshot step. A louder prompt residual is diagnostic only unless it produces
+  prompt-specific branch choices at the output.
+- Open-source structure audits may inform QuarkLM's model/trainer/tokenizer,
+  config, checkpoint, and evaluation organization, but they must keep the
+  closed-world boundary explicit. Do not import pretrained weights, pretrained
+  tokenizer vocabularies, external embeddings, unledgered datasets, unledgered
+  training text, or copied model implementations. Any adopted structure should
+  be reimplemented QuarkLM-native, covered by focused tests, and documented in
+  the evidence trail before it becomes the basis for another repair run.
 - Branch-span direct runs must record the start position, span, exact greedy
   output, candidate discrimination, direct loss, answer NLL, context coverage,
   and final failure pattern. Sweeping later answer positions is not a promotion

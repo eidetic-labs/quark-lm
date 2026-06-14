@@ -325,4 +325,15 @@ completed 40-step prompt-position context-80 smoke
 used embedding/feed-forward dimensions `8/16`, restored the final checkpoint
 from step `10`, and increased measured QA hidden distance; the final diversity
 target still failed across all `9` multi-target eval profiles.
+Prompt-position scale screening followed, still without changing corpus
+sources. The scale-32 context-80 smoke
+`runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`
+ran all `50` direct steps, moved `1108/1284` prompt-position projection
+parameters, restored the final checkpoint from step `40`, and increased
+restored QA hidden distance to about `0.01235`; the final diversity target
+still failed across all `9` multi-target eval profiles.
+The next checkpoint records an engineering-only open-source structure audit in
+`STRUCTURE_AUDIT.md`: QuarkLM may study model/trainer/tokenizer/checkpoint
+patterns, but no external weights, tokenizer vocabularies, embeddings,
+datasets, or training text enter the corpus or learned artifacts.
 None of these runs were promoted.

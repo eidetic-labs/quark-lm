@@ -1897,12 +1897,53 @@ pools, and corpus diffs.
 - rejected as capacity evidence: more hidden width improves measured separation
   without creating prompt-specific branch choices
 
-The next improvement target is strengthening prompt-conditioned representation
-and branch diversity so the direct transformer emits target-specific answers
-instead of collapsing to a single global branch token or the short global wrong
-answer `" te."`, while preserving the `37/219` candidate-discrimination gain
-and v0.42 target-loss gains; then continuing admitted-memory batches,
-completing the Python package/import migration to QuarkLM naming, turning more
-of the deterministic self-diagnosis and repair policy into
-admitted-corpus-trained behavior, and folding the decoder's reliability back
-into the broader free-form language model.
+`runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`:
+
+- added `--prompt-position-projection-scale`, a bounded scalar applied only to
+  the prompt-position projection residual before it is added to the final
+  branch representation
+- used scale `32.0`, embedding/feed-forward dimensions `4/8`,
+  prompt-position projection, frozen output bias, best branch snapshot
+  restoration, and `--direct-answer-contrast-weight 50.0`
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- train loss moved `55.3835 -> 50.8435`
+- `1108/1284` prompt-position projection parameters moved; max absolute
+  parameter value was about `0.07087`
+- the raw step-50 snapshot briefly reached QA different-target hidden distance
+  average about `0.4115`, but branch diversity still failed
+- final checkpoint restored from step `40`
+- restored QA different-target hidden distance averaged about `0.01235`, above
+  the earlier dim-4 representation-contrast screen's `0.00107`
+- final QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+  and `predicted_unique` still `1/8`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- rejected as prompt-signal scale evidence: making the prompt-position residual
+  louder can increase hidden separation, but the output path still maps
+  branch contexts to one global token
+
+Open-source structure audit checkpoint:
+
+- added `STRUCTURE_AUDIT.md` so QuarkLM can study open-source language-model
+  structure without violating the closed-world training boundary
+- allowed scope: model/trainer/tokenizer/checkpoint/eval organization,
+  config-driven recipes, batching structure, and transparency practice
+- prohibited scope: pretrained weights, pretrained tokenizer vocabularies,
+  external embeddings, unledgered datasets, unledgered training text, or copied
+  model implementations
+- next transformer work should compare QuarkLM's current transformer against
+  standard GPT structure before adding another direct-answer objective
+
+The next improvement target is a structural transformer audit that identifies
+which standard GPT stabilizers, tokenizer boundaries, trainer boundaries, or
+runtime batching conventions QuarkLM is missing, then strengthening
+prompt-conditioned branch diversity so the direct transformer emits
+target-specific answers instead of collapsing to a single global branch token
+or the short global wrong answer `" te."`, while preserving the `37/219`
+candidate-discrimination gain and v0.42 target-loss gains; then continuing
+admitted-memory batches, completing the Python package/import migration to
+QuarkLM naming, turning more of the deterministic self-diagnosis and repair
+policy into admitted-corpus-trained behavior, and folding the decoder's
+reliability back into the broader free-form language model.

@@ -61,6 +61,7 @@ class TransformerConfig:
     use_context_projection: bool = False
     use_prompt_prefix_projection: bool = False
     use_prompt_position_projection: bool = False
+    prompt_position_projection_scale: float = 1.0
     use_prompt_attention_summary: bool = False
 
 
@@ -551,7 +552,9 @@ class TinyTransformerLM:
                             )
                     projected_summary.append(total / len(prompt_positions) + bias)
                 hidden = [
-                    hidden[dim] + projected_summary[dim]
+                    hidden[dim]
+                    + projected_summary[dim]
+                    * self.config.prompt_position_projection_scale
                     for dim in range(self.config.embedding_dim)
                 ]
         if self.config.use_prompt_attention_summary:
@@ -720,7 +723,9 @@ class TinyTransformerLM:
                             total += value * position_weights[input_dim][output_dim]
                     projected_summary.append(total / len(prompt_positions) + bias)
                 hidden = [
-                    hidden[dim] + projected_summary[dim]
+                    hidden[dim]
+                    + projected_summary[dim]
+                    * self.config.prompt_position_projection_scale
                     for dim in range(self.config.embedding_dim)
                 ]
         if self.config.use_prompt_attention_summary:
@@ -1888,6 +1893,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     train_parser.add_argument(
+        "--prompt-position-projection-scale",
+        type=float,
+        default=1.0,
+        help=(
+            "Scale the prompt-position projection residual before adding it to "
+            "the final representation."
+        ),
+    )
+    train_parser.add_argument(
         "--use-prompt-attention-summary",
         action="store_true",
         help=(
@@ -2121,6 +2135,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     answer_parser.add_argument(
+        "--prompt-position-projection-scale",
+        type=float,
+        default=1.0,
+        help=(
+            "Scale the prompt-position projection residual before adding it to "
+            "the final representation."
+        ),
+    )
+    answer_parser.add_argument(
         "--use-prompt-attention-summary",
         action="store_true",
         help=(
@@ -2165,6 +2188,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         use_context_projection=args.use_context_projection,
         use_prompt_prefix_projection=args.use_prompt_prefix_projection,
         use_prompt_position_projection=args.use_prompt_position_projection,
+        prompt_position_projection_scale=args.prompt_position_projection_scale,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
@@ -2224,6 +2248,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
         "use_prompt_position_projection": args.use_prompt_position_projection,
+        "prompt_position_projection_scale": args.prompt_position_projection_scale,
         "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "baseline_valid_nll": baseline["valid_nll"],
         "final_valid_nll": last_history["valid_nll"],
@@ -4541,6 +4566,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         use_context_projection=args.use_context_projection,
         use_prompt_prefix_projection=args.use_prompt_prefix_projection,
         use_prompt_position_projection=args.use_prompt_position_projection,
+        prompt_position_projection_scale=args.prompt_position_projection_scale,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
@@ -6152,6 +6178,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
         "use_prompt_position_projection": args.use_prompt_position_projection,
+        "prompt_position_projection_scale": args.prompt_position_projection_scale,
         "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "context_coverage": context_coverage,
         "baseline": baseline,

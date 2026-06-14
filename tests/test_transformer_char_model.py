@@ -365,11 +365,47 @@ class TransformerCharModelTest(unittest.TestCase):
 
         weights = loaded.to_dict()["weights"]
         self.assertTrue(loaded.config.use_prompt_position_projection)
+        self.assertEqual(loaded.config.prompt_position_projection_scale, 1.0)
         self.assertIn("prompt_position_projection_w", weights)
         self.assertIn("prompt_position_projection_b", weights)
         self.assertTrue(any(abs(value) > 0.0 for value in projection_values))
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
+    def test_prompt_position_projection_scale_changes_nonzero_residual(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        base_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=19,
+            use_prompt_position_projection=True,
+        )
+        scaled_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=19,
+            use_prompt_position_projection=True,
+            prompt_position_projection_scale=3.0,
+        )
+        base = TinyTransformerLM.init_random(base_config)
+        scaled = TinyTransformerLM.init_random(scaled_config)
+        base.prompt_position_projection_b[0].data = 0.25
+        scaled.prompt_position_projection_b[0].data = 0.25
+        context = context_before(ids, 4, base_config.context_size, tokenizer.pad_id)
+
+        base_hidden = base.final_hidden(context)
+        scaled_hidden = scaled.final_hidden(context)
+        base_probs = base.predict(context)
+        scaled_probs = scaled.predict(context)
+
+        self.assertNotEqual(base_hidden, scaled_hidden)
+        self.assertNotEqual(base_probs, scaled_probs)
 
     def test_final_hidden_matches_forward_logits(self) -> None:
         text = "abc abc\n"
@@ -2677,6 +2713,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--use-context-projection",
                     "--use-prompt-prefix-projection",
                     "--use-prompt-position-projection",
+                    "--prompt-position-projection-scale",
+                    "12.5",
                     "--use-prompt-attention-summary",
                 ]
             )
@@ -2702,6 +2740,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertTrue(args.use_context_projection)
             self.assertTrue(args.use_prompt_prefix_projection)
             self.assertTrue(args.use_prompt_position_projection)
+            self.assertEqual(args.prompt_position_projection_scale, 12.5)
             self.assertTrue(args.use_prompt_attention_summary)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
 
@@ -2713,6 +2752,8 @@ class TransformerCharModelTest(unittest.TestCase):
                 "--use-context-projection",
                 "--use-prompt-prefix-projection",
                 "--use-prompt-position-projection",
+                "--prompt-position-projection-scale",
+                "4.0",
                 "--use-prompt-attention-summary",
             ]
         )
@@ -2721,6 +2762,7 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(args.use_context_projection)
         self.assertTrue(args.use_prompt_prefix_projection)
         self.assertTrue(args.use_prompt_position_projection)
+        self.assertEqual(args.prompt_position_projection_scale, 4.0)
         self.assertTrue(args.use_prompt_attention_summary)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
