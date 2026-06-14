@@ -212,5 +212,12 @@ branch-batch screen
 improved direct loss to `3.5252`, and the branch-repair screen
 `runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
 improved direct loss to `3.5310`; both regressed QA branch accuracy to `0/8`
-and collapsed the dominant prediction to all `"a"`. None of these runs were
-promoted.
+and collapsed the dominant prediction to all `"a"`. A learned context-projection
+option followed, again without changing corpus sources. The branch-repair
+screen
+`runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/`
+improved direct loss to `3.5217`, and the branch-batch screen
+`runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/`
+improved direct loss to `3.5252`; both moved their projection weights, regressed
+QA branch accuracy to `0/8`, and collapsed the dominant prediction to all
+`"a"`. None of these runs were promoted.

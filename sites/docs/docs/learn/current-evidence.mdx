@@ -211,6 +211,18 @@ v0.42 promoted checkpoint.
   accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions. This is
   rejected representation evidence: prompt averaging alone is not enough to
   produce prompt-specific branch choices.
+- `runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/`
+  added `--use-context-projection`, a zero-initialized trainable projection of
+  the mean-pooled context. It starts baseline-equivalent, moved all `20`
+  projection parameters during training, and improved direct loss
+  `3.5802 -> 3.5217`, but QA branch accuracy regressed `1/8 -> 0/8` and the
+  dominant prediction moved from all `"o"` to all `"a"`.
+- `runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/`
+  tested the same learned projection with sparse branch-batch contrast. It
+  moved all `20` projection parameters and improved direct loss
+  `3.5802 -> 3.5252`, but also regressed QA branch accuracy `1/8 -> 0/8` and
+  collapsed to all `"a"` predictions. This keeps learned context projection in
+  rejected representation evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

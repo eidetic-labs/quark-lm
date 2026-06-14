@@ -158,6 +158,17 @@ improved direct loss `3.5805 -> 3.5310`. Both regressed QA branch accuracy
 `1/8 -> 0/8` and collapsed to all `"a"` predictions, so context averaging is
 rejected representation evidence rather than a promoted transformer step.
 
+A follow-up representation screen added `--use-context-projection`, a
+zero-initialized trainable projection of the mean-pooled context. The
+branch-repair run at
+`runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/`
+moved all `20` projection parameters, improved direct loss
+`3.5802 -> 3.5217`, and the branch-batch comparison at
+`runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/`
+improved direct loss `3.5802 -> 3.5252`. Both regressed QA branch accuracy
+`1/8 -> 0/8` and collapsed to all `"a"` predictions, so learned prompt-summary
+projection is rejected representation evidence too.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

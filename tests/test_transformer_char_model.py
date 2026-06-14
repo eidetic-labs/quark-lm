@@ -63,6 +63,7 @@ from closed_world_lm.transformer_char_model import (
     train_answer_char,
     train_answer_mixed_step,
     direct_answer_lesson,
+    flatten_scalars,
     parse_args,
     transformer_direct_answer_training_pool,
     transformer_answer_generator_training_pool,
@@ -200,6 +201,58 @@ class TransformerCharModelTest(unittest.TestCase):
             loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
 
         self.assertTrue(loaded.config.use_context_mean)
+        self.assertGreater(before, after)
+        self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
+    def test_context_projection_starts_as_baseline_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        base_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=14,
+        )
+        projection_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=14,
+            use_context_projection=True,
+        )
+        baseline = TinyTransformerLM.init_random(base_config)
+        model = TinyTransformerLM.init_random(projection_config)
+        context = context_before(ids, 4, projection_config.context_size, tokenizer.pad_id)
+        target = ids[4]
+
+        for expected, actual in zip(baseline.predict(context), model.predict(context)):
+            self.assertAlmostEqual(expected, actual)
+
+        before = model.nll(context, target)
+        for _ in range(20):
+            model.train_step(context, target, learning_rate=0.02)
+        after = model.nll(context, target)
+        projection_values = [
+            value.data
+            for value in (
+                flatten_scalars(model.context_projection_w)
+                + flatten_scalars(model.context_projection_b)
+            )
+        ]
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer)
+            loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
+
+        weights = loaded.to_dict()["weights"]
+        self.assertTrue(loaded.config.use_context_projection)
+        self.assertIn("context_projection_w", weights)
+        self.assertIn("context_projection_b", weights)
+        self.assertTrue(any(abs(value) > 0.0 for value in projection_values))
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
@@ -1703,6 +1756,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--layer-norm-epsilon",
                     "0.0001",
                     "--use-context-mean",
+                    "--use-context-projection",
                 ]
             )
             self.assertEqual(args.direct_answer_mode, mode)
@@ -1720,12 +1774,14 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertTrue(args.use_layer_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)
             self.assertTrue(args.use_context_mean)
+            self.assertTrue(args.use_context_projection)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
 
     def test_parse_train_args_accepts_context_mean(self) -> None:
-        args = parse_args(["train", "--use-context-mean"])
+        args = parse_args(["train", "--use-context-mean", "--use-context-projection"])
 
         self.assertTrue(args.use_context_mean)
+        self.assertTrue(args.use_context_projection)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:
         record = {

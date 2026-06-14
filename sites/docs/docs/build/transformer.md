@@ -62,6 +62,9 @@ Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
 prompt-conditioned branch profiles and complete answer metrics.
+Add `--use-context-projection` to test a zero-initialized trainable projection
+of that context summary; it starts baseline-equivalent and must prove that its
+learned parameters improve branch profiles before it can be promoted.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -168,6 +171,25 @@ Latest representation-side smoke:
 | Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
 | Promotion status | rejected representation evidence |
 
+Latest learned-representation smoke:
+
+| Signal | Value |
+| --- | --- |
+| Selected run | `runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/` |
+| Comparison run | `runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/` |
+| Representation option | `--use-context-projection` |
+| Selected mode | `periodic-branch-repair-unlikelihood` |
+| Comparison mode | `periodic-branch-batch-contrast-unlikelihood` |
+| Steps | `5` target-loss + `20` direct-answer |
+| Post-direct candidate snapshot | skipped and recorded in metrics |
+| Projection parameter movement | all `20` parameters moved in both screens |
+| Selected direct answer loss | `3.5802 -> 3.5217` |
+| Comparison direct answer loss | `3.5802 -> 3.5252` |
+| Selected QA branch accuracy | `1/8 -> 0/8` |
+| Comparison QA branch accuracy | `1/8 -> 0/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
+| Promotion status | rejected representation evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -189,5 +211,8 @@ collapses globally and even loses the one initially correct QA branch.
 `--use-context-mean` then adds a mean-pooled context residual to the final
 hidden representation, but the bounded screens still collapse the QA branch to
 one wrong global token. The next repair needs a stronger prompt-conditioned
-representation signal than simple prompt averaging, not just suppression or
-batching of branch tokens.
+representation signal than simple prompt averaging. `--use-context-projection`
+then lets the model learn a zero-initialized projection of that context summary,
+and the projection weights do move during training, but the branch profile still
+collapses globally. The next repair needs prompt-specific discrimination, not
+just suppression, batching, or a trainable summary of the current context.

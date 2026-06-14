@@ -125,6 +125,18 @@ Current transformer answer-lesson run:
   accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so simple
   prompt averaging is rejected representation evidence rather than a promotion
   candidate.
+- A follow-up representation experiment added `--use-context-projection`, a
+  zero-initialized trainable projection of the mean-pooled context. It starts
+  equivalent to the baseline and lets QuarkLM's own training decide whether a
+  prompt summary should influence the final hidden state. The branch-repair
+  smoke
+  `runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/`
+  moved all `20` projection parameters, improved direct loss
+  `3.5802 -> 3.5217`, and the branch-batch smoke
+  `runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/`
+  improved direct loss `3.5802 -> 3.5252`. Both screens still regressed QA
+  branch accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so a
+  learned context projection is also rejected representation evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -264,6 +276,8 @@ prompt with a different branch target; `periodic-branch-repair-contrast-*`
 keeps branch repair as the base update and injects contrast every N steps.
 Add `--use-context-mean` to either transformer training command to test a
 mean-pooled prompt-context residual in the final transformer representation.
+Add `--use-context-projection` to test a zero-initialized trainable projection
+of that prompt-context summary.
 The direct transformer path is not yet part of the promotion gate for reliable
 answers.
 
