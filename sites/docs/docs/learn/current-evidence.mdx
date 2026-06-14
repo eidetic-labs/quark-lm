@@ -223,6 +223,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Target-balanced anchor heldout</td><td><code>{state.transformerTargetBalancedAnchorHeldout}</code></td></tr>
     <tr><td>Target-balanced anchor history</td><td><code>{state.transformerTargetBalancedAnchorHistory}</code></td></tr>
     <tr><td>Target-balanced anchor status</td><td><code>{state.transformerTargetBalancedAnchorStatus}</code></td></tr>
+    <tr><td>Latest coverage-deficit run</td><td><code>{state.transformerLatestCoverageDeficitRun}</code></td></tr>
+    <tr><td>Coverage-deficit mode</td><td><code>{state.transformerCoverageDeficitMode}</code></td></tr>
+    <tr><td>Coverage-deficit unit test</td><td><code>{state.transformerCoverageDeficitUnitTest}</code></td></tr>
+    <tr><td>Coverage-deficit QA</td><td><code>{state.transformerCoverageDeficitQa}</code></td></tr>
+    <tr><td>Coverage-deficit heldout</td><td><code>{state.transformerCoverageDeficitHeldout}</code></td></tr>
+    <tr><td>Coverage-deficit history</td><td><code>{state.transformerCoverageDeficitHistory}</code></td></tr>
+    <tr><td>Coverage-deficit status</td><td><code>{state.transformerCoverageDeficitStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -679,13 +686,23 @@ v0.42 promoted checkpoint.
   `0` under the v0.60 coverage floor. It avoided the hard `"i"` attractor, but
   QA/heldout target-token coverage still collapsed to `0.0` during training.
   This rejects target-balanced anchoring as sufficient.
+- `runs/transformer-answer-v0.64-fullstack-coverage-deficit-smoke-dim4-context80/`
+  adds `branch-balanced-context-coverage-deficit-unlikelihood`, which computes
+  replay target tokens that are absent from the current replay predictions and
+  adds target pressure only for those missing targets. The focused transformer
+  test verifies that the deficit term lifts a missing replay target above the
+  old context replay objective. The full-stack screen completed `50/50` direct
+  steps and restored from step `0` under the v0.60 coverage floor. Step `50`
+  cracked QA top-1 behavior enough to reach `1/8` branch accuracy and
+  predicted diversity `4/8`, but QA/heldout target-token coverage regressed to
+  `0.125`, so the trained snapshots remained ineligible. This rejects deficit
+  pressure by itself.
 
-The next transformer repair should use the context-coverage audit as a gate,
-but it should train directly from profile-level target-coverage deficits before
-sharpening exact target selection. The repair must improve prompt-conditioned
-branch diversity instead of only making more prompt text visible, balancing
-branch targets, raising hidden distance, lowering branch loss, or only
-anchoring branches that are already covered.
+The next transformer repair should keep the context-coverage audit and
+profile-wise coverage floor, but combine deficit pressure with an explicit
+coverage-preserving constraint. v0.64 shows that deficit pressure can crack a
+top-1 branch, but it still trades away target-token coverage before it becomes
+promotable.
 
 The v0.42 self-improvement run passed:
 

@@ -538,6 +538,19 @@ Current transformer answer-lesson run:
   snapshots remained ineligible under the v0.60 coverage floor. This rejects
   target-balanced anchoring as sufficient; the next repair should preserve
   coverage from profile-level deficits, not only from covered replay branches.
+- v0.64 adds `branch-balanced-context-coverage-deficit-unlikelihood`, which
+  computes replay target tokens missing from the current replay predictions and
+  adds extra target pressure only for those uncovered targets. The focused
+  transformer test proves that a missing replay target gains restricted
+  probability beyond the old context replay objective. The full-stack screen
+  `runs/transformer-answer-v0.64-fullstack-coverage-deficit-smoke-dim4-context80/`
+  completed `50/50` direct steps, wrote `7` JSONL rows, and restored step `0`
+  under the v0.60 coverage floor. Step `50` cracked QA branch behavior enough
+  to reach `1/8` branch accuracy and predicted diversity `4/8`, but QA and
+  heldout target-token coverage regressed to `0.125`, so trained snapshots
+  remained ineligible. This rejects deficit pressure by itself; the next repair
+  should combine deficit pressure with an explicit coverage-preserving
+  constraint.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

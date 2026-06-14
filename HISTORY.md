@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.64
+
+- Added coverage-deficit branch repair and rejected full-stack evidence.
+
 ## v0.63
 
 - Added paper-grounded self-improvement best-practice guidance.

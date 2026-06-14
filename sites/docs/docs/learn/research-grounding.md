@@ -130,9 +130,9 @@ loops become fragile.
   candidate/original ratios, and rare-record coverage.
 - Teach the self-diagnosis layer to emit candidate lessons and candidate probes
   that are verified before admission.
-- Make the next transformer repair deficit-driven: train from missing
-  target-token and profile coverage evidence rather than reinforcing branches
-  that are already covered.
+- Continue the transformer repair as coverage-preserving deficit training:
+  v0.64 shows missing-target pressure can crack top-1 branch behavior, but it
+  still needs an explicit target-token coverage constraint to become eligible.
 - Keep branch-diversity and target-coverage gates in the transformer path,
   because the current failure is collapse under weight updates, not lack of
   loss movement.

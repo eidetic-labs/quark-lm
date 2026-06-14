@@ -310,6 +310,19 @@ trained snapshots remained ineligible for restore. The next repair should use
 profile-level coverage deficits as the training signal, not only anchors from
 already-covered replay branches.
 
+`runs/transformer-answer-v0.64-fullstack-coverage-deficit-smoke-dim4-context80/`
+adds that first deficit-driven training mode with
+`branch-balanced-context-coverage-deficit-unlikelihood`: replay target tokens
+that are absent from current replay predictions receive extra target-vs-hard
+candidate pressure. The focused tests pass, including a regression that lifts a
+missing replay target above the old context replay objective. The full-stack
+screen completed `50/50` direct steps, wrote `7` direct-answer JSONL rows, and
+restored step `0` under the v0.60 coverage floor. Step `50` reached QA branch
+accuracy `1/8`, QA predicted diversity `4/8`, and QA average target rank
+`10.0`, but QA and heldout target-token coverage regressed to `0.125`, so the
+trained snapshots remained ineligible. The next repair should combine deficit
+pressure with an explicit coverage-preserving constraint.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

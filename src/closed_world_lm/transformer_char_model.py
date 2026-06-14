@@ -2074,6 +2074,7 @@ class TinyTransformerLM:
         params: list[Scalar] | None = None,
         preserve_covered_targets: bool = False,
         balance_covered_target_anchors: bool = False,
+        focus_uncovered_targets: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
@@ -2090,10 +2091,18 @@ class TinyTransformerLM:
         branch_loss = Scalar(0.0)
         replay_coverage_loss = Scalar(0.0)
         replay_ownership_loss = Scalar(0.0)
+        deficit_target_loss = Scalar(0.0)
+        deficit_target_count = 0
         covered_anchor_loss = Scalar(0.0)
         covered_anchor_count = 0
         covered_anchor_losses_by_target: dict[int, Scalar] = {}
         covered_anchor_counts_by_target: Counter[int] = Counter()
+        predicted_replay_targets = {
+            predicted
+            for _context, _target, predicted in replay_branches
+            if predicted in replay_target_set
+        }
+        deficit_targets = replay_target_set - predicted_replay_targets
         for context, target, predicted in branches:
             logits = self._forward_scalars(context)
             probs = softmax_scalars(logits)
@@ -2135,6 +2144,11 @@ class TinyTransformerLM:
             replay_ownership_loss = replay_ownership_loss + (
                 -(owned_target_share + 1e-12).log()
             )
+            if focus_uncovered_targets and target in deficit_targets:
+                deficit_target_loss = deficit_target_loss + (
+                    -(candidate_probs[target_offset] + 1e-12).log()
+                )
+                deficit_target_count += 1
             if preserve_covered_targets and predicted == target:
                 target_anchor_loss = -(candidate_probs[target_offset] + 1e-12).log()
                 covered_anchor_loss = covered_anchor_loss + target_anchor_loss
@@ -2150,6 +2164,10 @@ class TinyTransformerLM:
                 replay_coverage_loss / max(len(replay_branches), 1)
                 + replay_ownership_loss / max(len(replay_branches), 1)
             ) / 2.0
+            if focus_uncovered_targets and deficit_target_count:
+                replay_loss = replay_loss + (
+                    deficit_target_loss / max(deficit_target_count, 1)
+                )
             if (
                 preserve_covered_targets
                 and balance_covered_target_anchors
@@ -3428,6 +3446,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-balanced-context-coverage-anchor-unlikelihood",
             "branch-context-target-balanced-anchor-unlikelihood",
             "branch-balanced-context-target-balanced-anchor-unlikelihood",
+            "branch-context-coverage-deficit-unlikelihood",
+            "branch-balanced-context-coverage-deficit-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
@@ -5891,6 +5911,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     balance_targets: bool = False,
     preserve_covered_targets: bool = False,
     balance_covered_target_anchors: bool = False,
+    focus_uncovered_targets: bool = False,
 ) -> float:
     batch_builder = (
         direct_answer_target_balanced_branch_diversity_batch
@@ -5937,6 +5958,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         params=params,
         preserve_covered_targets=preserve_covered_targets,
         balance_covered_target_anchors=balance_covered_target_anchors,
+        focus_uncovered_targets=focus_uncovered_targets,
     )
 
 
@@ -8191,6 +8213,45 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     balance_targets=True,
                     preserve_covered_targets=True,
                     balance_covered_target_anchors=True,
+                )
+            elif args.direct_answer_mode == "branch-context-coverage-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    focus_uncovered_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-balanced-context-coverage-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
                 )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
