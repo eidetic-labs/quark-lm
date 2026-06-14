@@ -362,6 +362,19 @@ Current transformer answer-lesson run:
   stayed `0.125`, but average target rank regressed to `12.5`, top-3 coverage
   fell to `0.125`, and top-5 coverage fell to `0.25`. This rejects "just focus
   harder on one wrong token" as the next top-1 repair.
+- `branch-balanced-topk-softmax-unlikelihood` adds a restricted softmax over
+  each branch target plus the model's current top wrong tokens, using
+  `--direct-answer-hard-negatives` as the candidate count and
+  `--direct-answer-contrast-weight` as the candidate-softmax weight. The v0.50
+  screen
+  `runs/transformer-answer-v0.50-balanced-topk-softmax-w5-smoke-dim4-context80/`
+  restored the best branch snapshot from step `40`. QA average target rank
+  improved from `17.375` to `8.75`, target-token coverage stayed `0.125`,
+  top-3 coverage reached `0.375`, and top-5 coverage reached `0.5`. This is
+  stronger than the v0.49 top-one screen and roughly matches v0.48 top-k
+  coverage with a tighter target margin, but prediction diversity still stayed
+  `1/8` with wrong `"u"` top-1 branch choices, so it remains rejected repair
+  evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

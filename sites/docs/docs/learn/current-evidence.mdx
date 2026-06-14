@@ -140,6 +140,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Top-one rank-margin QA</td><td><code>{state.transformerTopOneRankMarginQa}</code></td></tr>
     <tr><td>Top-one rank-margin heldout</td><td><code>{state.transformerTopOneRankMarginHeldout}</code></td></tr>
     <tr><td>Top-one rank-margin status</td><td><code>{state.transformerTopOneRankMarginStatus}</code></td></tr>
+    <tr><td>Latest top-k softmax run</td><td><code>{state.transformerLatestTopKSoftmaxRun}</code></td></tr>
+    <tr><td>Top-k softmax mode</td><td><code>{state.transformerTopKSoftmaxMode}</code></td></tr>
+    <tr><td>Top-k softmax QA</td><td><code>{state.transformerTopKSoftmaxQa}</code></td></tr>
+    <tr><td>Top-k softmax heldout</td><td><code>{state.transformerTopKSoftmaxHeldout}</code></td></tr>
+    <tr><td>Top-k softmax status</td><td><code>{state.transformerTopKSoftmaxStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -480,6 +485,14 @@ v0.42 promoted checkpoint.
   restored from step `10`; QA target-token coverage stayed `0.125`, but average
   target rank regressed to `12.5`, top-3 coverage fell to `0.125`, and top-5
   coverage fell to `0.25`. This is rejected evidence.
+- `runs/transformer-answer-v0.50-balanced-topk-softmax-w5-smoke-dim4-context80/`
+  adds `branch-balanced-topk-softmax-unlikelihood`, where each correct branch
+  target competes in a restricted softmax against the model's current top wrong
+  tokens. It restored from step `40`; QA target-token coverage stayed `0.125`,
+  average target rank improved to `8.75`, top-3 coverage reached `0.375`, and
+  top-5 coverage reached `0.5`. This recovers rank/top-k evidence after v0.49,
+  but prediction diversity stayed `1/8` and top-1 branch choices remained
+  wrong, so it is rejected repair evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under

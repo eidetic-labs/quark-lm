@@ -113,6 +113,14 @@ target above the model's current top wrong tokens. The
 branch target is margined against.
 Use `--direct-answer-mode branch-balanced-rank-margin-unlikelihood` to apply
 the same rank-margin repair with target-balanced branch batches.
+Use `--direct-answer-mode branch-topk-softmax-unlikelihood` to train each
+branch target against a restricted softmax over the target and the model's
+current top wrong tokens. Use
+`--direct-answer-mode branch-balanced-topk-softmax-unlikelihood` for the same
+objective with target-balanced branch batches. The
+`--direct-answer-hard-negatives` value controls the top-wrong-token candidate
+count, and `--direct-answer-contrast-weight` controls the restricted-softmax
+loss weight.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -676,6 +684,32 @@ Latest top-one hard-negative rank-margin smoke:
 | Final heldout target-token coverage | `0.0 -> 0.125` |
 | Final heldout top-3/top-5 target coverage | `0.125 -> 0.125` / `0.125 -> 0.25` |
 | Promotion status | rejected top-one hard-negative evidence |
+
+Latest top-k softmax branch repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.50-balanced-topk-softmax-w5-smoke-dim4-context80/` |
+| Mode | `branch-balanced-topk-softmax-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Batch sampler | target-balanced branch batch |
+| Hard wrong tokens | `5` |
+| Restricted-softmax weight | `5.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, rank-aware `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Restored best branch snapshot | yes, restored from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | wrong `"u"` |
+| Final QA average target rank | `17.375 -> 8.75` |
+| Final QA target-token coverage | `0.0 -> 0.125` |
+| Final QA top-3/top-5 target coverage | `0.125 -> 0.375` / `0.125 -> 0.5` |
+| Final heldout average target rank | `17.25 -> 8.75` |
+| Final heldout target-token coverage | `0.0 -> 0.125` |
+| Final heldout top-3/top-5 target coverage | `0.125 -> 0.375` / `0.125 -> 0.5` |
+| Promotion status | rejected top-k softmax rank-lift evidence |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.50
+
+- Added balanced branch top-k softmax repair screening.
+
 ## v0.49
 
 - Recorded top-one hard-negative rank-margin screening evidence.

@@ -121,6 +121,16 @@ target rank regressed to `12.5`, top-3 coverage fell to `0.125`, and top-5
 coverage fell to `0.25`. The screen is rejected and points away from
 single-wrong-token pressure.
 
+`runs/transformer-answer-v0.50-balanced-topk-softmax-w5-smoke-dim4-context80/`
+tests `branch-balanced-topk-softmax-unlikelihood`, a target-balanced branch
+batch objective that makes the correct branch target compete in a restricted
+softmax against the model's current top wrong tokens. It restored the best
+branch snapshot from step `40`; QA target-token coverage stayed `0.125`, but
+average target rank improved to `8.75`, top-3 coverage reached `0.375`, and
+top-5 coverage reached `0.5`. The screen is stronger than v0.49 and comparable
+to v0.48 on top-k coverage, but it is still rejected because QA and heldout
+remain collapsed to one wrong top-1 branch token.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test
