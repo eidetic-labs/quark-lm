@@ -101,7 +101,12 @@ unpromoted evidence. A branch-span screen at
 `runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/` broadened
 branch repair to answer positions `1..3`; it preserved `37/219` candidates but
 regressed answer NLL to `2.7426` and produced a long `"neeee"` loop, so it was
-not promoted.
+not promoted. Multi-layer transformer support was added as an explicit
+architecture option, but the first two-layer context-32 screen at
+`runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` was interrupted
+before final direct-answer metrics because the full-block scalar autograd path
+was too slow for the regular loop. The partial JSONL history remains runtime
+evidence only.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

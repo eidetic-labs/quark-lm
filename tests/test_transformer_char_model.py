@@ -138,6 +138,37 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_multi_layer_transformer_trains_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=10,
+            num_layers=2,
+        )
+        model = TinyTransformerLM.init_random(config)
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        target = ids[4]
+        before = model.nll(context, target)
+        for _ in range(20):
+            model.train_step(context, target, learning_rate=0.02)
+        after = model.nll(context, target)
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer)
+            loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
+
+        weights = loaded.to_dict()["weights"]
+        self.assertEqual(loaded.config.num_layers, 2)
+        self.assertEqual(len(weights["extra_layers"]), 1)
+        self.assertGreater(before, after)
+        self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
     def test_generate_uses_character_tokenizer(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)
@@ -1306,6 +1337,8 @@ class TransformerCharModelTest(unittest.TestCase):
                     "7",
                     "--direct-answer-sequence-interval",
                     "6",
+                    "--num-layers",
+                    "2",
                     "--use-layer-norm",
                     "--layer-norm-epsilon",
                     "0.0001",
@@ -1319,6 +1352,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_branch_position, 1)
             self.assertEqual(args.direct_answer_branch_span, 3)
             self.assertEqual(args.direct_answer_hard_negatives, 7)
+            self.assertEqual(args.num_layers, 2)
             self.assertTrue(args.use_layer_norm)
             self.assertEqual(args.layer_norm_epsilon, 0.0001)
             self.assertEqual(args.direct_answer_sequence_interval, 6)

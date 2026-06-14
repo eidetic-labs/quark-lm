@@ -171,4 +171,8 @@ was added as a tested architecture flag, but the context-80 screen
 loops. Branch-span repair was added as a tested direct-answer policy, but
 `runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/` preserved
 only `37/219` candidates and regressed answer NLL with a long `"neeee"` greedy
-loop. None of these runs were promoted.
+loop. Multi-layer transformer support was added as a tested architecture option,
+but `runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` was
+interrupted before final direct-answer metrics because the full-block scalar
+autograd path was too slow for the regular loop. None of these runs were
+promoted.

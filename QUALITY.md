@@ -106,6 +106,11 @@ training boundary.
   runtime tradeoffs, exact greedy output, candidate discrimination, direct loss,
   answer NLL, and final failure pattern. Wider random models may improve scored
   likelihood without solving prompt-conditioned greedy answers.
+- Depth changes must record layer count, whether intermediate layers require
+  full causal state computation, runtime tradeoffs, exact greedy output,
+  candidate discrimination, direct loss, answer NLL, and final failure pattern.
+  An interrupted run with partial JSONL history is runtime evidence only, not a
+  promotion candidate.
 - Normalization changes must record whether layer normalization was enabled,
   the epsilon value, context coverage, exact greedy output, candidate
   discrimination, direct loss, answer NLL, and final failure pattern. A more

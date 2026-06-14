@@ -69,6 +69,12 @@ Current transformer answer-lesson run:
   repairing answer positions `1..3`; it preserved `37/219` candidates but
   regressed answer NLL to `2.7426` and produced a long `"neeee"` loop, so it
   also remains unpromoted evidence.
+  Multi-layer transformer support was added after that, but the first
+  two-layer context-32 screen
+  (`runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/`) was
+  interrupted before final direct-answer metrics because the full-block scalar
+  autograd path was too slow for the regular loop. It produced only partial
+  JSONL history and is runtime evidence, not promotion evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

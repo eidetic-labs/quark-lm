@@ -143,6 +143,11 @@ v0.42 promoted checkpoint.
   branch repair over answer positions `1..3`. It preserved `37/219` candidates,
   but answer NLL regressed to `2.7426` and greedy output became a long
   `"neeee"` loop, so it was not promoted.
+- `runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` tested the
+  new multi-layer transformer path. It was interrupted before final
+  direct-answer metrics because two-layer full-block scalar autograd was too
+  slow for the regular loop. The partial JSONL history is runtime evidence, not
+  promotion evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

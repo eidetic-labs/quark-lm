@@ -53,12 +53,15 @@ class TransformerConfig:
     embedding_dim: int = 8
     feedforward_dim: int = 16
     seed: int = 17
+    num_layers: int = 1
     use_layer_norm: bool = False
     layer_norm_epsilon: float = 1e-5
 
 
 class TinyTransformerLM:
     def __init__(self, config: TransformerConfig, weights: dict[str, Any]) -> None:
+        if config.num_layers < 1:
+            raise ValueError("transformer must have at least one layer")
         self.config = config
         self.token_embeddings = matrix_to_scalars(weights["token_embeddings"])
         self.position_embeddings = matrix_to_scalars(weights["position_embeddings"])
@@ -81,6 +84,17 @@ class TinyTransformerLM:
         self.ln1_bias = vector_to_scalars(weights.get("ln1_bias", [0.0 for _ in range(dim)]))
         self.ln2_gain = vector_to_scalars(weights.get("ln2_gain", [1.0 for _ in range(dim)]))
         self.ln2_bias = vector_to_scalars(weights.get("ln2_bias", [0.0 for _ in range(dim)]))
+        self.extra_blocks = [
+            self._block_from_dict(layer)
+            for layer in weights.get("extra_layers", [])
+        ]
+        expected_extra_layers = max(config.num_layers - 1, 0)
+        if len(self.extra_blocks) != expected_extra_layers:
+            raise ValueError(
+                f"checkpoint has {len(self.extra_blocks)} extra transformer layers, "
+                f"config expects {expected_extra_layers}"
+            )
+        self.blocks = [self._first_block()] + self.extra_blocks
 
     @classmethod
     def init_random(cls, config: TransformerConfig) -> "TinyTransformerLM":
@@ -92,6 +106,31 @@ class TinyTransformerLM:
         dim = config.embedding_dim
         ff_dim = config.feedforward_dim
         scale = 1.0 / math.sqrt(dim)
+
+        def block_weights() -> dict[str, Any]:
+            return {
+                "wq": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
+                "bq": [0.0 for _ in range(dim)],
+                "wk": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
+                "bk": [0.0 for _ in range(dim)],
+                "wv": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
+                "bv": [0.0 for _ in range(dim)],
+                "wo": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
+                "bo": [0.0 for _ in range(dim)],
+                "w1": [[rand(scale) for _ in range(ff_dim)] for _ in range(dim)],
+                "b1": [0.0 for _ in range(ff_dim)],
+                "w2": [
+                    [rand(1.0 / math.sqrt(ff_dim)) for _ in range(dim)]
+                    for _ in range(ff_dim)
+                ],
+                "b2": [0.0 for _ in range(dim)],
+                "ln1_gain": [1.0 for _ in range(dim)],
+                "ln1_bias": [0.0 for _ in range(dim)],
+                "ln2_gain": [1.0 for _ in range(dim)],
+                "ln2_bias": [0.0 for _ in range(dim)],
+            }
+
+        first_block = block_weights()
         weights = {
             "token_embeddings": [
                 [rand(0.08) for _ in range(dim)]
@@ -101,26 +140,76 @@ class TinyTransformerLM:
                 [rand(0.08) for _ in range(dim)]
                 for _ in range(config.context_size)
             ],
-            "wq": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
-            "bq": [0.0 for _ in range(dim)],
-            "wk": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
-            "bk": [0.0 for _ in range(dim)],
-            "wv": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
-            "bv": [0.0 for _ in range(dim)],
-            "wo": [[rand(scale) for _ in range(dim)] for _ in range(dim)],
-            "bo": [0.0 for _ in range(dim)],
-            "w1": [[rand(scale) for _ in range(ff_dim)] for _ in range(dim)],
-            "b1": [0.0 for _ in range(ff_dim)],
-            "w2": [[rand(1.0 / math.sqrt(ff_dim)) for _ in range(dim)] for _ in range(ff_dim)],
-            "b2": [0.0 for _ in range(dim)],
+            **first_block,
             "wout": [[rand(scale) for _ in range(config.vocab_size)] for _ in range(dim)],
             "bout": [0.0 for _ in range(config.vocab_size)],
-            "ln1_gain": [1.0 for _ in range(dim)],
-            "ln1_bias": [0.0 for _ in range(dim)],
-            "ln2_gain": [1.0 for _ in range(dim)],
-            "ln2_bias": [0.0 for _ in range(dim)],
+            "extra_layers": [
+                block_weights()
+                for _ in range(max(config.num_layers - 1, 0))
+            ],
         }
         return cls(config, weights)
+
+    def _first_block(self) -> dict[str, Any]:
+        return {
+            "wq": self.wq,
+            "bq": self.bq,
+            "wk": self.wk,
+            "bk": self.bk,
+            "wv": self.wv,
+            "bv": self.bv,
+            "wo": self.wo,
+            "bo": self.bo,
+            "w1": self.w1,
+            "b1": self.b1,
+            "w2": self.w2,
+            "b2": self.b2,
+            "ln1_gain": self.ln1_gain,
+            "ln1_bias": self.ln1_bias,
+            "ln2_gain": self.ln2_gain,
+            "ln2_bias": self.ln2_bias,
+        }
+
+    def _block_from_dict(self, payload: dict[str, Any]) -> dict[str, Any]:
+        dim = self.config.embedding_dim
+        return {
+            "wq": matrix_to_scalars(payload["wq"]),
+            "bq": vector_to_scalars(payload["bq"]),
+            "wk": matrix_to_scalars(payload["wk"]),
+            "bk": vector_to_scalars(payload["bk"]),
+            "wv": matrix_to_scalars(payload["wv"]),
+            "bv": vector_to_scalars(payload["bv"]),
+            "wo": matrix_to_scalars(payload["wo"]),
+            "bo": vector_to_scalars(payload["bo"]),
+            "w1": matrix_to_scalars(payload["w1"]),
+            "b1": vector_to_scalars(payload["b1"]),
+            "w2": matrix_to_scalars(payload["w2"]),
+            "b2": vector_to_scalars(payload["b2"]),
+            "ln1_gain": vector_to_scalars(payload.get("ln1_gain", [1.0 for _ in range(dim)])),
+            "ln1_bias": vector_to_scalars(payload.get("ln1_bias", [0.0 for _ in range(dim)])),
+            "ln2_gain": vector_to_scalars(payload.get("ln2_gain", [1.0 for _ in range(dim)])),
+            "ln2_bias": vector_to_scalars(payload.get("ln2_bias", [0.0 for _ in range(dim)])),
+        }
+
+    def _block_to_floats(self, block: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "wq": matrix_to_floats(block["wq"]),
+            "bq": vector_to_floats(block["bq"]),
+            "wk": matrix_to_floats(block["wk"]),
+            "bk": vector_to_floats(block["bk"]),
+            "wv": matrix_to_floats(block["wv"]),
+            "bv": vector_to_floats(block["bv"]),
+            "wo": matrix_to_floats(block["wo"]),
+            "bo": vector_to_floats(block["bo"]),
+            "w1": matrix_to_floats(block["w1"]),
+            "b1": vector_to_floats(block["b1"]),
+            "w2": matrix_to_floats(block["w2"]),
+            "b2": vector_to_floats(block["b2"]),
+            "ln1_gain": vector_to_floats(block["ln1_gain"]),
+            "ln1_bias": vector_to_floats(block["ln1_bias"]),
+            "ln2_gain": vector_to_floats(block["ln2_gain"]),
+            "ln2_bias": vector_to_floats(block["ln2_bias"]),
+        }
 
     def parameters(self) -> list[Scalar]:
         params: list[Scalar] = []
@@ -146,6 +235,30 @@ class TinyTransformerLM:
         if self.config.use_layer_norm:
             for item in [self.ln1_gain, self.ln1_bias, self.ln2_gain, self.ln2_bias]:
                 params.extend(flatten_scalars(item))
+        for block in self.extra_blocks:
+            for item in [
+                block["wq"],
+                block["bq"],
+                block["wk"],
+                block["bk"],
+                block["wv"],
+                block["bv"],
+                block["wo"],
+                block["bo"],
+                block["w1"],
+                block["b1"],
+                block["w2"],
+                block["b2"],
+            ]:
+                params.extend(flatten_scalars(item))
+            if self.config.use_layer_norm:
+                for item in [
+                    block["ln1_gain"],
+                    block["ln1_bias"],
+                    block["ln2_gain"],
+                    block["ln2_bias"],
+                ]:
+                    params.extend(flatten_scalars(item))
         return params
 
     def _forward_scalars(self, context: list[int]) -> list[Scalar]:
@@ -160,44 +273,12 @@ class TinyTransformerLM:
             ]
             for position, token_id in enumerate(context)
         ]
-        q = [linear_scalars(row, self.wq, self.bq) for row in x]
-        k = [linear_scalars(row, self.wk, self.bk) for row in x]
-        v = [linear_scalars(row, self.wv, self.bv) for row in x]
-        scale = 1.0 / math.sqrt(self.config.embedding_dim)
-        last_position = self.config.context_size - 1
-        scores = [dot_scalars(q[last_position], k[past]) * scale for past in range(self.config.context_size)]
-        weights = softmax_scalars(scores)
-        attended = []
-        for dim in range(self.config.embedding_dim):
-            total = Scalar(0.0)
-            for past, weight in enumerate(weights):
-                total = total + weight * v[past][dim]
-            attended.append(total)
-        projected = linear_scalars(attended, self.wo, self.bo)
-        hidden = [
-            x[last_position][dim] + projected[dim]
-            for dim in range(self.config.embedding_dim)
-        ]
-        if self.config.use_layer_norm:
-            hidden = layer_norm_scalars(
-                hidden,
-                self.ln1_gain,
-                self.ln1_bias,
-                self.config.layer_norm_epsilon,
-            )
-        ff_hidden = [value.tanh() for value in linear_scalars(hidden, self.w1, self.b1)]
-        ff_out = linear_scalars(ff_hidden, self.w2, self.b2)
-        block_out = [
-            hidden[dim] + ff_out[dim]
-            for dim in range(self.config.embedding_dim)
-        ]
-        if self.config.use_layer_norm:
-            block_out = layer_norm_scalars(
-                block_out,
-                self.ln2_gain,
-                self.ln2_bias,
-                self.config.layer_norm_epsilon,
-            )
+        if self.config.num_layers == 1:
+            block_out = self._forward_final_block_scalars(x, self.blocks[0])
+        else:
+            for block in self.blocks:
+                x = self._forward_full_block_scalars(x, block)
+            block_out = x[-1]
         return linear_scalars(block_out, self.wout, self.bout)
 
     def _forward_floats(self, context: list[int]) -> list[float]:
@@ -207,24 +288,8 @@ class TinyTransformerLM:
             )
         token_embeddings = matrix_to_floats(self.token_embeddings)
         position_embeddings = matrix_to_floats(self.position_embeddings)
-        wq = matrix_to_floats(self.wq)
-        bq = vector_to_floats(self.bq)
-        wk = matrix_to_floats(self.wk)
-        bk = vector_to_floats(self.bk)
-        wv = matrix_to_floats(self.wv)
-        bv = vector_to_floats(self.bv)
-        wo = matrix_to_floats(self.wo)
-        bo = vector_to_floats(self.bo)
-        w1 = matrix_to_floats(self.w1)
-        b1 = vector_to_floats(self.b1)
-        w2 = matrix_to_floats(self.w2)
-        b2 = vector_to_floats(self.b2)
         wout = matrix_to_floats(self.wout)
         bout = vector_to_floats(self.bout)
-        ln1_gain = vector_to_floats(self.ln1_gain)
-        ln1_bias = vector_to_floats(self.ln1_bias)
-        ln2_gain = vector_to_floats(self.ln2_gain)
-        ln2_bias = vector_to_floats(self.ln2_bias)
         x = [
             [
                 token_embeddings[token_id][dim] + position_embeddings[position][dim]
@@ -232,31 +297,162 @@ class TinyTransformerLM:
             ]
             for position, token_id in enumerate(context)
         ]
-        q = [linear_floats(row, wq, bq) for row in x]
-        k = [linear_floats(row, wk, bk) for row in x]
-        v = [linear_floats(row, wv, bv) for row in x]
+        float_blocks = [self._block_to_floats(block) for block in self.blocks]
+        if self.config.num_layers == 1:
+            block_out = self._forward_final_block_floats(x, float_blocks[0])
+        else:
+            for block in float_blocks:
+                x = self._forward_full_block_floats(x, block)
+            block_out = x[-1]
+        return linear_floats(block_out, wout, bout)
+
+    def _forward_final_block_scalars(
+        self,
+        x: list[list[Scalar]],
+        block: dict[str, Any],
+    ) -> list[Scalar]:
+        q = [linear_scalars(row, block["wq"], block["bq"]) for row in x]
+        k = [linear_scalars(row, block["wk"], block["bk"]) for row in x]
+        v = [linear_scalars(row, block["wv"], block["bv"]) for row in x]
         scale = 1.0 / math.sqrt(self.config.embedding_dim)
         last_position = self.config.context_size - 1
-        scores = [dot_floats(q[last_position], k[past]) * scale for past in range(self.config.context_size)]
+        scores = [
+            dot_scalars(q[last_position], k[past]) * scale
+            for past in range(self.config.context_size)
+        ]
+        weights = softmax_scalars(scores)
+        attended = []
+        for dim in range(self.config.embedding_dim):
+            total = Scalar(0.0)
+            for past, weight in enumerate(weights):
+                total = total + weight * v[past][dim]
+            attended.append(total)
+        projected = linear_scalars(attended, block["wo"], block["bo"])
+        hidden = [
+            x[last_position][dim] + projected[dim]
+            for dim in range(self.config.embedding_dim)
+        ]
+        return self._feed_forward_scalars(hidden, block)
+
+    def _forward_full_block_scalars(
+        self,
+        x: list[list[Scalar]],
+        block: dict[str, Any],
+    ) -> list[list[Scalar]]:
+        q = [linear_scalars(row, block["wq"], block["bq"]) for row in x]
+        k = [linear_scalars(row, block["wk"], block["bk"]) for row in x]
+        v = [linear_scalars(row, block["wv"], block["bv"]) for row in x]
+        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        outputs = []
+        for position in range(self.config.context_size):
+            scores = [dot_scalars(q[position], k[past]) * scale for past in range(position + 1)]
+            weights = softmax_scalars(scores)
+            attended = []
+            for dim in range(self.config.embedding_dim):
+                total = Scalar(0.0)
+                for past, weight in enumerate(weights):
+                    total = total + weight * v[past][dim]
+                attended.append(total)
+            projected = linear_scalars(attended, block["wo"], block["bo"])
+            hidden = [
+                x[position][dim] + projected[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
+            outputs.append(self._feed_forward_scalars(hidden, block))
+        return outputs
+
+    def _feed_forward_scalars(
+        self,
+        hidden: list[Scalar],
+        block: dict[str, Any],
+    ) -> list[Scalar]:
+        if self.config.use_layer_norm:
+            hidden = layer_norm_scalars(
+                hidden,
+                block["ln1_gain"],
+                block["ln1_bias"],
+                self.config.layer_norm_epsilon,
+            )
+        ff_hidden = [value.tanh() for value in linear_scalars(hidden, block["w1"], block["b1"])]
+        ff_out = linear_scalars(ff_hidden, block["w2"], block["b2"])
+        block_out = [
+            hidden[dim] + ff_out[dim]
+            for dim in range(self.config.embedding_dim)
+        ]
+        if self.config.use_layer_norm:
+            block_out = layer_norm_scalars(
+                block_out,
+                block["ln2_gain"],
+                block["ln2_bias"],
+                self.config.layer_norm_epsilon,
+            )
+        return block_out
+
+    def _forward_final_block_floats(
+        self,
+        x: list[list[float]],
+        block: dict[str, Any],
+    ) -> list[float]:
+        q = [linear_floats(row, block["wq"], block["bq"]) for row in x]
+        k = [linear_floats(row, block["wk"], block["bk"]) for row in x]
+        v = [linear_floats(row, block["wv"], block["bv"]) for row in x]
+        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        last_position = self.config.context_size - 1
+        scores = [
+            dot_floats(q[last_position], k[past]) * scale
+            for past in range(self.config.context_size)
+        ]
         weights = softmax_floats(scores)
         attended = [
             sum(weight * v[past][dim] for past, weight in enumerate(weights))
             for dim in range(self.config.embedding_dim)
         ]
-        projected = linear_floats(attended, wo, bo)
+        projected = linear_floats(attended, block["wo"], block["bo"])
         hidden = [
             x[last_position][dim] + projected[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        return self._feed_forward_floats(hidden, block)
+
+    def _forward_full_block_floats(
+        self,
+        x: list[list[float]],
+        block: dict[str, Any],
+    ) -> list[list[float]]:
+        q = [linear_floats(row, block["wq"], block["bq"]) for row in x]
+        k = [linear_floats(row, block["wk"], block["bk"]) for row in x]
+        v = [linear_floats(row, block["wv"], block["bv"]) for row in x]
+        scale = 1.0 / math.sqrt(self.config.embedding_dim)
+        outputs = []
+        for position in range(self.config.context_size):
+            scores = [dot_floats(q[position], k[past]) * scale for past in range(position + 1)]
+            weights = softmax_floats(scores)
+            attended = [
+                sum(weight * v[past][dim] for past, weight in enumerate(weights))
+                for dim in range(self.config.embedding_dim)
+            ]
+            projected = linear_floats(attended, block["wo"], block["bo"])
+            hidden = [
+                x[position][dim] + projected[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
+            outputs.append(self._feed_forward_floats(hidden, block))
+        return outputs
+
+    def _feed_forward_floats(
+        self,
+        hidden: list[float],
+        block: dict[str, Any],
+    ) -> list[float]:
         if self.config.use_layer_norm:
             hidden = layer_norm_floats(
                 hidden,
-                ln1_gain,
-                ln1_bias,
+                block["ln1_gain"],
+                block["ln1_bias"],
                 self.config.layer_norm_epsilon,
             )
-        ff_hidden = [math.tanh(value) for value in linear_floats(hidden, w1, b1)]
-        ff_out = linear_floats(ff_hidden, w2, b2)
+        ff_hidden = [math.tanh(value) for value in linear_floats(hidden, block["w1"], block["b1"])]
+        ff_out = linear_floats(ff_hidden, block["w2"], block["b2"])
         block_out = [
             hidden[dim] + ff_out[dim]
             for dim in range(self.config.embedding_dim)
@@ -264,11 +460,11 @@ class TinyTransformerLM:
         if self.config.use_layer_norm:
             block_out = layer_norm_floats(
                 block_out,
-                ln2_gain,
-                ln2_bias,
+                block["ln2_gain"],
+                block["ln2_bias"],
                 self.config.layer_norm_epsilon,
             )
-        return linear_floats(block_out, wout, bout)
+        return block_out
 
     def predict(self, context: list[int]) -> list[float]:
         return softmax_floats(self._forward_floats(context))
@@ -420,6 +616,10 @@ class TinyTransformerLM:
                 "ln1_bias": vector_to_floats(self.ln1_bias),
                 "ln2_gain": vector_to_floats(self.ln2_gain),
                 "ln2_bias": vector_to_floats(self.ln2_bias),
+                "extra_layers": [
+                    self._block_to_floats(block)
+                    for block in self.extra_blocks
+                ],
             },
         }
         if tokenizer is not None:
@@ -1100,6 +1300,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--context-size", type=int, default=16)
     train_parser.add_argument("--embedding-dim", type=int, default=8)
     train_parser.add_argument("--feedforward-dim", type=int, default=16)
+    train_parser.add_argument("--num-layers", type=int, default=1)
     train_parser.add_argument("--use-layer-norm", action="store_true")
     train_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     train_parser.add_argument("--seed", type=int, default=17)
@@ -1238,6 +1439,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--context-size", type=int, default=16)
     answer_parser.add_argument("--embedding-dim", type=int, default=8)
     answer_parser.add_argument("--feedforward-dim", type=int, default=16)
+    answer_parser.add_argument("--num-layers", type=int, default=1)
     answer_parser.add_argument("--use-layer-norm", action="store_true")
     answer_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     answer_parser.add_argument("--seed", type=int, default=17)
@@ -1270,6 +1472,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         embedding_dim=args.embedding_dim,
         feedforward_dim=args.feedforward_dim,
         seed=args.seed,
+        num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
     )
@@ -1323,6 +1526,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "context_size": args.context_size,
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
+        "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "baseline_valid_nll": baseline["valid_nll"],
@@ -2775,6 +2979,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         embedding_dim=args.embedding_dim,
         feedforward_dim=args.feedforward_dim,
         seed=args.seed,
+        num_layers=args.num_layers,
         use_layer_norm=args.use_layer_norm,
         layer_norm_epsilon=args.layer_norm_epsilon,
     )
@@ -3943,6 +4148,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "context_size": args.context_size,
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
+        "num_layers": args.num_layers,
         "use_layer_norm": args.use_layer_norm,
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "context_coverage": context_coverage,
