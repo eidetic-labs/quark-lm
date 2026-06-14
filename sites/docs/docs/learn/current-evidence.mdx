@@ -223,6 +223,18 @@ v0.42 promoted checkpoint.
   `3.5802 -> 3.5252`, but also regressed QA branch accuracy `1/8 -> 0/8` and
   collapsed to all `"a"` predictions. This keeps learned context projection in
   rejected representation evidence.
+- `runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/`
+  added `--use-prompt-attention-summary`, a trainable attention-pooled context
+  summary with a zero-initialized output projection. It moved all `20` output
+  projection parameters and improved direct loss `3.5802 -> 3.5217`, but QA
+  branch accuracy regressed `1/8 -> 0/8` and the dominant prediction moved from
+  all `"o"` to all `"a"`.
+- `runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`
+  tested the same prompt-attention summary with sparse branch-batch contrast.
+  It moved all `20` output projection parameters and improved direct loss
+  `3.5802 -> 3.5252`, but again regressed QA branch accuracy `1/8 -> 0/8` and
+  collapsed to all `"a"` predictions. This keeps trainable prompt attention in
+  rejected representation evidence.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

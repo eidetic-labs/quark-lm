@@ -137,6 +137,16 @@ Current transformer answer-lesson run:
   improved direct loss `3.5802 -> 3.5252`. Both screens still regressed QA
   branch accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so a
   learned context projection is also rejected representation evidence.
+- A stronger representation probe added `--use-prompt-attention-summary`, a
+  learned attention-pooled context summary with a zero-initialized output
+  projection. The branch-repair smoke
+  `runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/`
+  moved all `20` zero-initialized output projection parameters and improved
+  direct loss `3.5802 -> 3.5217`; the branch-batch smoke
+  `runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`
+  improved direct loss `3.5802 -> 3.5252`. Both screens still regressed QA
+  branch accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so
+  trainable prompt attention is also rejected representation evidence.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -278,6 +288,8 @@ Add `--use-context-mean` to either transformer training command to test a
 mean-pooled prompt-context residual in the final transformer representation.
 Add `--use-context-projection` to test a zero-initialized trainable projection
 of that prompt-context summary.
+Add `--use-prompt-attention-summary` to test a trainable attention-pooled
+summary of the current context through a zero-initialized output projection.
 The direct transformer path is not yet part of the promotion gate for reliable
 answers.
 

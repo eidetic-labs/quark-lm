@@ -1533,6 +1533,47 @@ pools, and corpus diffs.
 - this is also rejected representation evidence: distinct branch targets plus
   a learned context projection still collapse to one global branch token
 
+`runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/`:
+
+- added `--use-prompt-attention-summary`, an optional representation-side
+  transformer flag that learns an attention-pooled context summary and feeds it
+  through a zero-initialized output projection before the final feed-forward
+  path
+- the option is available on both `train` and `answer-train`, is saved in
+  `TransformerConfig`, stores `prompt_summary_query`, `prompt_summary_w`, and
+  `prompt_summary_b` in checkpoints, and is recorded in run metrics
+- zero output-projection initialization preserves baseline logits before
+  training, so the prompt-attention summary must earn influence through
+  admitted corpus-derived loss
+- rollout interval was `5`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- all `20` zero-initialized output projection parameters moved during the
+  screen; the largest absolute output projection parameter was about `0.0419`
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss improved `3.5802 -> 3.5217`
+- this is rejected representation evidence: trainable prompt attention moves
+  and lowers loss, but still fails to create prompt-specific first branches
+
+`runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`:
+
+- tested the same `--use-prompt-attention-summary` representation with sparse
+  branch-batch contrast instead of branch repair
+- branch batch size was `4`
+- rollout interval was `5`
+- smoke run trained for `5` target-loss steps and `20` direct-answer steps
+- post-direct candidate snapshot was intentionally skipped
+- all `20` zero-initialized output projection parameters moved during the
+  screen; the largest absolute output projection parameter was about `0.0998`
+- QA branch-position-1 profile counted `8` records
+- QA branch accuracy regressed `1/8 -> 0/8`
+- dominant QA branch prediction moved from all `"o"` to all `"a"`
+- average direct-answer target loss improved `3.5802 -> 3.5252`
+- this is also rejected representation evidence: branch batching plus
+  trainable prompt attention still collapses to one global first answer token
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

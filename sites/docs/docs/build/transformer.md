@@ -65,6 +65,9 @@ prompt-conditioned branch profiles and complete answer metrics.
 Add `--use-context-projection` to test a zero-initialized trainable projection
 of that context summary; it starts baseline-equivalent and must prove that its
 learned parameters improve branch profiles before it can be promoted.
+Add `--use-prompt-attention-summary` to test a trainable attention-pooled
+summary of the current context through a zero-initialized output projection.
+It is also diagnostic until branch profiles improve.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -190,6 +193,25 @@ Latest learned-representation smoke:
 | Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
 | Promotion status | rejected representation evidence |
 
+Latest prompt-attention representation smoke:
+
+| Signal | Value |
+| --- | --- |
+| Selected run | `runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/` |
+| Comparison run | `runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/` |
+| Representation option | `--use-prompt-attention-summary` |
+| Selected mode | `periodic-branch-repair-unlikelihood` |
+| Comparison mode | `periodic-branch-batch-contrast-unlikelihood` |
+| Steps | `5` target-loss + `20` direct-answer |
+| Post-direct candidate snapshot | skipped and recorded in metrics |
+| Output projection movement | all `20` zero-initialized parameters moved in both screens |
+| Selected direct answer loss | `3.5802 -> 3.5217` |
+| Comparison direct answer loss | `3.5802 -> 3.5252` |
+| Selected QA branch accuracy | `1/8 -> 0/8` |
+| Comparison QA branch accuracy | `1/8 -> 0/8` |
+| Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
+| Promotion status | rejected representation evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -214,5 +236,7 @@ one wrong global token. The next repair needs a stronger prompt-conditioned
 representation signal than simple prompt averaging. `--use-context-projection`
 then lets the model learn a zero-initialized projection of that context summary,
 and the projection weights do move during training, but the branch profile still
-collapses globally. The next repair needs prompt-specific discrimination, not
-just suppression, batching, or a trainable summary of the current context.
+collapses globally. `--use-prompt-attention-summary` makes the summary itself
+attention-pooled and trainable, but the bounded screens still collapse globally.
+The next repair needs prompt-specific discrimination, not just suppression,
+batching, or a trainable summary of the current context.

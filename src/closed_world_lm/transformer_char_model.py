@@ -59,6 +59,7 @@ class TransformerConfig:
     layer_norm_epsilon: float = 1e-5
     use_context_mean: bool = False
     use_context_projection: bool = False
+    use_prompt_attention_summary: bool = False
 
 
 class TinyTransformerLM:
@@ -91,6 +92,18 @@ class TinyTransformerLM:
         )
         self.context_projection_b = vector_to_scalars(
             weights.get("context_projection_b", [0.0 for _ in range(dim)])
+        )
+        self.prompt_summary_query = vector_to_scalars(
+            weights.get("prompt_summary_query", [0.0 for _ in range(dim)])
+        )
+        self.prompt_summary_w = matrix_to_scalars(
+            weights.get(
+                "prompt_summary_w",
+                [[0.0 for _ in range(dim)] for _ in range(dim)],
+            )
+        )
+        self.prompt_summary_b = vector_to_scalars(
+            weights.get("prompt_summary_b", [0.0 for _ in range(dim)])
         )
         self.ln1_gain = vector_to_scalars(weights.get("ln1_gain", [1.0 for _ in range(dim)]))
         self.ln1_bias = vector_to_scalars(weights.get("ln1_bias", [0.0 for _ in range(dim)]))
@@ -158,6 +171,9 @@ class TinyTransformerLM:
             "bout": [0.0 for _ in range(config.vocab_size)],
             "context_projection_w": [[0.0 for _ in range(dim)] for _ in range(dim)],
             "context_projection_b": [0.0 for _ in range(dim)],
+            "prompt_summary_query": [rand(scale) for _ in range(dim)],
+            "prompt_summary_w": [[0.0 for _ in range(dim)] for _ in range(dim)],
+            "prompt_summary_b": [0.0 for _ in range(dim)],
             "extra_layers": [
                 block_weights()
                 for _ in range(max(config.num_layers - 1, 0))
@@ -250,6 +266,13 @@ class TinyTransformerLM:
         if self.config.use_context_projection:
             for item in [self.context_projection_w, self.context_projection_b]:
                 params.extend(flatten_scalars(item))
+        if self.config.use_prompt_attention_summary:
+            for item in [
+                self.prompt_summary_query,
+                self.prompt_summary_w,
+                self.prompt_summary_b,
+            ]:
+                params.extend(flatten_scalars(item))
         if self.config.use_layer_norm:
             for item in [self.ln1_gain, self.ln1_bias, self.ln2_gain, self.ln2_bias]:
                 params.extend(flatten_scalars(item))
@@ -303,6 +326,13 @@ class TinyTransformerLM:
             params.extend(flatten_scalars(item))
         if self.config.use_context_projection:
             for item in [self.context_projection_w, self.context_projection_b]:
+                params.extend(flatten_scalars(item))
+        if self.config.use_prompt_attention_summary:
+            for item in [
+                self.prompt_summary_query,
+                self.prompt_summary_w,
+                self.prompt_summary_b,
+            ]:
                 params.extend(flatten_scalars(item))
         if self.config.use_layer_norm:
             for item in [
@@ -421,6 +451,28 @@ class TinyTransformerLM:
                 hidden[dim] + projected_summary[dim]
                 for dim in range(self.config.embedding_dim)
             ]
+        if self.config.use_prompt_attention_summary:
+            scores = [
+                dot_scalars(self.prompt_summary_query, row)
+                * (1.0 / math.sqrt(self.config.embedding_dim))
+                for row in x
+            ]
+            weights = softmax_scalars(scores)
+            attention_summary = []
+            for dim in range(self.config.embedding_dim):
+                total = Scalar(0.0)
+                for row, weight in zip(x, weights):
+                    total = total + weight * row[dim]
+                attention_summary.append(total)
+            projected_summary = linear_scalars(
+                attention_summary,
+                self.prompt_summary_w,
+                self.prompt_summary_b,
+            )
+            hidden = [
+                hidden[dim] + projected_summary[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
         return self._feed_forward_scalars(hidden, block)
 
     def _forward_full_block_scalars(
@@ -516,6 +568,29 @@ class TinyTransformerLM:
                 context_summary,
                 matrix_to_floats(self.context_projection_w),
                 vector_to_floats(self.context_projection_b),
+            )
+            hidden = [
+                hidden[dim] + projected_summary[dim]
+                for dim in range(self.config.embedding_dim)
+            ]
+        if self.config.use_prompt_attention_summary:
+            prompt_summary_query = vector_to_floats(self.prompt_summary_query)
+            scores = [
+                dot_floats(prompt_summary_query, row)
+                * (1.0 / math.sqrt(self.config.embedding_dim))
+                for row in x
+            ]
+            weights = softmax_floats(scores)
+            attention_summary = [
+                sum(weight * row[dim] for row, weight in zip(x, weights))
+                for dim in range(self.config.embedding_dim)
+            ]
+            prompt_summary_w = matrix_to_floats(self.prompt_summary_w)
+            prompt_summary_b = vector_to_floats(self.prompt_summary_b)
+            projected_summary = linear_floats(
+                attention_summary,
+                prompt_summary_w,
+                prompt_summary_b,
             )
             hidden = [
                 hidden[dim] + projected_summary[dim]
@@ -757,6 +832,9 @@ class TinyTransformerLM:
                 "bout": vector_to_floats(self.bout),
                 "context_projection_w": matrix_to_floats(self.context_projection_w),
                 "context_projection_b": vector_to_floats(self.context_projection_b),
+                "prompt_summary_query": vector_to_floats(self.prompt_summary_query),
+                "prompt_summary_w": matrix_to_floats(self.prompt_summary_w),
+                "prompt_summary_b": vector_to_floats(self.prompt_summary_b),
                 "ln1_gain": vector_to_floats(self.ln1_gain),
                 "ln1_bias": vector_to_floats(self.ln1_bias),
                 "ln2_gain": vector_to_floats(self.ln2_gain),
@@ -1461,6 +1539,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "context to the final transformer representation."
         ),
     )
+    train_parser.add_argument(
+        "--use-prompt-attention-summary",
+        action="store_true",
+        help=(
+            "Add a trainable attention-pooled context summary to the final "
+            "transformer representation through a zero-initialized projection."
+        ),
+    )
     train_parser.add_argument("--seed", type=int, default=17)
     train_parser.add_argument("--eval-every", type=int, default=20)
     train_parser.add_argument("--valid-limit", type=int, default=256)
@@ -1628,6 +1714,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "context to the final transformer representation."
         ),
     )
+    answer_parser.add_argument(
+        "--use-prompt-attention-summary",
+        action="store_true",
+        help=(
+            "Add a trainable attention-pooled context summary to the final "
+            "transformer representation through a zero-initialized projection."
+        ),
+    )
     answer_parser.add_argument("--seed", type=int, default=17)
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
@@ -1663,6 +1757,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         layer_norm_epsilon=args.layer_norm_epsilon,
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
+        use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -1719,6 +1814,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
+        "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "baseline_valid_nll": baseline["valid_nll"],
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
@@ -3453,6 +3549,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         layer_norm_epsilon=args.layer_norm_epsilon,
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
+        use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -4747,6 +4844,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "layer_norm_epsilon": args.layer_norm_epsilon,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
+        "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,

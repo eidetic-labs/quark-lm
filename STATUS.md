@@ -169,6 +169,17 @@ improved direct loss `3.5802 -> 3.5252`. Both regressed QA branch accuracy
 `1/8 -> 0/8` and collapsed to all `"a"` predictions, so learned prompt-summary
 projection is rejected representation evidence too.
 
+A stronger representation screen added `--use-prompt-attention-summary`, a
+trainable attention-pooled context summary with a zero-initialized output
+projection. The branch-repair run at
+`runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/`
+moved all `20` zero-initialized output projection parameters and improved
+direct loss `3.5802 -> 3.5217`; the branch-batch comparison at
+`runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`
+improved direct loss `3.5802 -> 3.5252`. Both regressed QA branch accuracy
+`1/8 -> 0/8` and collapsed to all `"a"` predictions, so prompt attention is
+also rejected representation evidence.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and
