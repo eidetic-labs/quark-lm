@@ -244,6 +244,14 @@ Current transformer answer-lesson run:
   loss `5.6649 -> 5.5679`, but it restored from step `40` to the same all-`"u"`
   QA collapse with target-token coverage `0.125` and `predicted_unique` still
   `1/8`.
+- `--use-prompt-position-projection` strengthens that idea with a separate
+  trainable projection for each context position before the final answer token.
+  The matching context-80 screen
+  `runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/`
+  moved `1108/1284` prompt-position projection parameters and again lowered
+  composite loss `5.6649 -> 5.5679`, but the final restored branch profile
+  stayed all `"u"` with target-token coverage `0.125` and `predicted_unique`
+  `1/8`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

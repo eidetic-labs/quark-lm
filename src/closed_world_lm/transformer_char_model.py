@@ -60,6 +60,7 @@ class TransformerConfig:
     use_context_mean: bool = False
     use_context_projection: bool = False
     use_prompt_prefix_projection: bool = False
+    use_prompt_position_projection: bool = False
     use_prompt_attention_summary: bool = False
 
 
@@ -102,6 +103,19 @@ class TinyTransformerLM:
         )
         self.prompt_prefix_projection_b = vector_to_scalars(
             weights.get("prompt_prefix_projection_b", [0.0 for _ in range(dim)])
+        )
+        self.prompt_position_projection_w = [
+            matrix_to_scalars(position_weights)
+            for position_weights in weights.get(
+                "prompt_position_projection_w",
+                [
+                    [[0.0 for _ in range(dim)] for _ in range(dim)]
+                    for _ in range(config.context_size)
+                ],
+            )
+        ]
+        self.prompt_position_projection_b = vector_to_scalars(
+            weights.get("prompt_position_projection_b", [0.0 for _ in range(dim)])
         )
         self.prompt_summary_query = vector_to_scalars(
             weights.get("prompt_summary_query", [0.0 for _ in range(dim)])
@@ -183,6 +197,11 @@ class TinyTransformerLM:
             "context_projection_b": [0.0 for _ in range(dim)],
             "prompt_prefix_projection_w": [[0.0 for _ in range(dim)] for _ in range(dim)],
             "prompt_prefix_projection_b": [0.0 for _ in range(dim)],
+            "prompt_position_projection_w": [
+                [[0.0 for _ in range(dim)] for _ in range(dim)]
+                for _ in range(config.context_size)
+            ],
+            "prompt_position_projection_b": [0.0 for _ in range(dim)],
             "prompt_summary_query": [rand(scale) for _ in range(dim)],
             "prompt_summary_w": [[0.0 for _ in range(dim)] for _ in range(dim)],
             "prompt_summary_b": [0.0 for _ in range(dim)],
@@ -284,6 +303,12 @@ class TinyTransformerLM:
                 self.prompt_prefix_projection_b,
             ]:
                 params.extend(flatten_scalars(item))
+        if self.config.use_prompt_position_projection:
+            for item in [
+                self.prompt_position_projection_w,
+                self.prompt_position_projection_b,
+            ]:
+                params.extend(flatten_scalars(item))
         if self.config.use_prompt_attention_summary:
             for item in [
                 self.prompt_summary_query,
@@ -349,6 +374,12 @@ class TinyTransformerLM:
             for item in [
                 self.prompt_prefix_projection_w,
                 self.prompt_prefix_projection_b,
+            ]:
+                params.extend(flatten_scalars(item))
+        if self.config.use_prompt_position_projection:
+            for item in [
+                self.prompt_position_projection_w,
+                self.prompt_position_projection_b,
             ]:
                 params.extend(flatten_scalars(item))
         if self.config.use_prompt_attention_summary:
@@ -496,6 +527,28 @@ class TinyTransformerLM:
                     hidden[dim] + projected_summary[dim]
                     for dim in range(self.config.embedding_dim)
                 ]
+        if self.config.use_prompt_position_projection:
+            prompt_positions = [
+                (position, row)
+                for position, row in enumerate(x[:last_position])
+                if context[position] != 0
+            ]
+            if prompt_positions:
+                projected_summary: list[Scalar] = []
+                for output_dim, bias in enumerate(self.prompt_position_projection_b):
+                    total = Scalar(0.0)
+                    for position, row in prompt_positions:
+                        position_weights = self.prompt_position_projection_w[position]
+                        for input_dim, value in enumerate(row):
+                            total = (
+                                total
+                                + value * position_weights[input_dim][output_dim]
+                            )
+                    projected_summary.append(total / len(prompt_positions) + bias)
+                hidden = [
+                    hidden[dim] + projected_summary[dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
         if self.config.use_prompt_attention_summary:
             scores = [
                 dot_scalars(self.prompt_summary_query, row)
@@ -635,6 +688,32 @@ class TinyTransformerLM:
                     matrix_to_floats(self.prompt_prefix_projection_w),
                     vector_to_floats(self.prompt_prefix_projection_b),
                 )
+                hidden = [
+                    hidden[dim] + projected_summary[dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+        if self.config.use_prompt_position_projection:
+            prompt_positions = [
+                (position, row)
+                for position, row in enumerate(x[:last_position])
+                if context[position] != 0
+            ]
+            if prompt_positions:
+                prompt_position_projection_w = [
+                    matrix_to_floats(position_weights)
+                    for position_weights in self.prompt_position_projection_w
+                ]
+                prompt_position_projection_b = vector_to_floats(
+                    self.prompt_position_projection_b
+                )
+                projected_summary = []
+                for output_dim, bias in enumerate(prompt_position_projection_b):
+                    total = 0.0
+                    for position, row in prompt_positions:
+                        position_weights = prompt_position_projection_w[position]
+                        for input_dim, value in enumerate(row):
+                            total += value * position_weights[input_dim][output_dim]
+                    projected_summary.append(total / len(prompt_positions) + bias)
                 hidden = [
                     hidden[dim] + projected_summary[dim]
                     for dim in range(self.config.embedding_dim)
@@ -980,6 +1059,13 @@ class TinyTransformerLM:
                 ),
                 "prompt_prefix_projection_b": vector_to_floats(
                     self.prompt_prefix_projection_b
+                ),
+                "prompt_position_projection_w": [
+                    matrix_to_floats(position_weights)
+                    for position_weights in self.prompt_position_projection_w
+                ],
+                "prompt_position_projection_b": vector_to_floats(
+                    self.prompt_position_projection_b
                 ),
                 "prompt_summary_query": vector_to_floats(self.prompt_summary_query),
                 "prompt_summary_w": matrix_to_floats(self.prompt_summary_w),
@@ -1702,6 +1788,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     train_parser.add_argument(
+        "--use-prompt-position-projection",
+        action="store_true",
+        help=(
+            "Add a trainable zero-initialized position-specific projection of "
+            "non-padding prompt prefix positions before the final token."
+        ),
+    )
+    train_parser.add_argument(
         "--use-prompt-attention-summary",
         action="store_true",
         help=(
@@ -1923,6 +2017,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     answer_parser.add_argument(
+        "--use-prompt-position-projection",
+        action="store_true",
+        help=(
+            "Add a trainable zero-initialized position-specific projection of "
+            "non-padding prompt prefix positions before the final token."
+        ),
+    )
+    answer_parser.add_argument(
         "--use-prompt-attention-summary",
         action="store_true",
         help=(
@@ -1966,6 +2068,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
         use_prompt_prefix_projection=args.use_prompt_prefix_projection,
+        use_prompt_position_projection=args.use_prompt_position_projection,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
@@ -2024,6 +2127,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
+        "use_prompt_position_projection": args.use_prompt_position_projection,
         "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "baseline_valid_nll": baseline["valid_nll"],
         "final_valid_nll": last_history["valid_nll"],
@@ -4179,6 +4283,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         use_context_mean=args.use_context_mean,
         use_context_projection=args.use_context_projection,
         use_prompt_prefix_projection=args.use_prompt_prefix_projection,
+        use_prompt_position_projection=args.use_prompt_position_projection,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
     )
     model = TinyTransformerLM.init_random(config)
@@ -5678,6 +5783,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
+        "use_prompt_position_projection": args.use_prompt_position_projection,
         "use_prompt_attention_summary": args.use_prompt_attention_summary,
         "context_coverage": context_coverage,
         "baseline": baseline,

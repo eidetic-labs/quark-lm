@@ -316,6 +316,58 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
 
+    def test_prompt_position_projection_starts_as_baseline_and_round_trips(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        base_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=18,
+        )
+        position_config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=18,
+            use_prompt_position_projection=True,
+        )
+        baseline = TinyTransformerLM.init_random(base_config)
+        model = TinyTransformerLM.init_random(position_config)
+        context = context_before(ids, 4, position_config.context_size, tokenizer.pad_id)
+        target = ids[4]
+
+        for expected, actual in zip(baseline.predict(context), model.predict(context)):
+            self.assertAlmostEqual(expected, actual)
+
+        before = model.nll(context, target)
+        for _ in range(20):
+            model.train_step(context, target, learning_rate=0.02)
+        after = model.nll(context, target)
+        projection_values = [
+            value.data
+            for value in (
+                flatten_scalars(model.prompt_position_projection_w)
+                + flatten_scalars(model.prompt_position_projection_b)
+            )
+        ]
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "transformer.json"
+            model.save(path, tokenizer)
+            loaded, _loaded_tokenizer = TinyTransformerLM.load(path)
+
+        weights = loaded.to_dict()["weights"]
+        self.assertTrue(loaded.config.use_prompt_position_projection)
+        self.assertIn("prompt_position_projection_w", weights)
+        self.assertIn("prompt_position_projection_b", weights)
+        self.assertTrue(any(abs(value) > 0.0 for value in projection_values))
+        self.assertGreater(before, after)
+        self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
     def test_prompt_attention_summary_starts_as_baseline_and_round_trips(self) -> None:
         text = "abc abc\n"
         tokenizer = CharTokenizer.train(text)
@@ -2390,6 +2442,7 @@ class TransformerCharModelTest(unittest.TestCase):
                     "--use-context-mean",
                     "--use-context-projection",
                     "--use-prompt-prefix-projection",
+                    "--use-prompt-position-projection",
                     "--use-prompt-attention-summary",
                 ]
             )
@@ -2414,6 +2467,7 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertTrue(args.use_context_mean)
             self.assertTrue(args.use_context_projection)
             self.assertTrue(args.use_prompt_prefix_projection)
+            self.assertTrue(args.use_prompt_position_projection)
             self.assertTrue(args.use_prompt_attention_summary)
             self.assertEqual(args.direct_answer_sequence_interval, 6)
 
@@ -2424,6 +2478,7 @@ class TransformerCharModelTest(unittest.TestCase):
                 "--use-context-mean",
                 "--use-context-projection",
                 "--use-prompt-prefix-projection",
+                "--use-prompt-position-projection",
                 "--use-prompt-attention-summary",
             ]
         )
@@ -2431,6 +2486,7 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(args.use_context_mean)
         self.assertTrue(args.use_context_projection)
         self.assertTrue(args.use_prompt_prefix_projection)
+        self.assertTrue(args.use_prompt_position_projection)
         self.assertTrue(args.use_prompt_attention_summary)
 
     def test_direct_answer_eval_reports_strict_exact_without_candidates(self) -> None:

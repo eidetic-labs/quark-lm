@@ -298,4 +298,10 @@ context-80 smoke
 passed the branch-context gate, moved all `20` prompt-prefix projection
 parameters, and restored the final checkpoint from step `40`; the final
 diversity target still failed across all `9` multi-target eval profiles.
+Prompt-position projection followed, still without changing corpus sources. The
+context-80 smoke
+`runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/`
+passed the branch-context gate, moved `1108/1284` prompt-position projection
+parameters, and restored the final checkpoint from step `40`; the final
+diversity target still failed across all `9` multi-target eval profiles.
 None of these runs were promoted.

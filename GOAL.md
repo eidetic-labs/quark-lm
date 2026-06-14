@@ -1804,6 +1804,28 @@ pools, and corpus diffs.
 - rejected as representation evidence: targeted prompt-prefix access is active
   but still insufficient for prompt-specific branch separation
 
+`runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/`:
+
+- added `--use-prompt-position-projection`, a zero-initialized trainable
+  position-specific projection over non-padding prompt-prefix positions before
+  the final answer token
+- unit coverage verifies that the projection starts baseline-equivalent, moves
+  under training, and round-trips through checkpoint serialization
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- output bias was frozen and best branch snapshot restoration was enabled
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- `1108/1284` prompt-position projection parameters moved; max absolute
+  parameter value was about `0.0942`
+- composite train loss moved `5.6649 -> 5.5679`
+- final checkpoint restored from step `40`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- final QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+  and `predicted_unique` still `1/8`
+- rejected as representation evidence: position-specific prompt access is
+  active but still insufficient for prompt-specific branch separation
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

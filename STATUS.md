@@ -311,6 +311,19 @@ across all `9` multi-target profiles. The final checkpoint restored from step
 targeted prompt-prefix access is active, but still not enough to separate
 prompt-specific branches.
 
+The next representation screen added `--use-prompt-position-projection`, which
+keeps a separate zero-initialized trainable projection for each non-padding
+prompt-prefix context position. The context-80 target-softmax restore-best
+smoke at
+`runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/`
+moved `1108/1284` prompt-position projection parameters and improved composite
+train loss `5.6649 -> 5.5679`, but the final branch-diversity target still
+failed across all `9` multi-target profiles. The final checkpoint restored from
+step `40`; QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+and `predicted_unique` still `1/8`. This is rejected representation evidence:
+position-specific prompt access also moves, but still does not produce
+prompt-specific branch choices.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

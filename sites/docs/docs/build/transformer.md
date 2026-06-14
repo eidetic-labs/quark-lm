@@ -88,6 +88,8 @@ restricted softmax over the distinct branch targets in each batch, making the
 right target compete directly against the other observed branch targets.
 Use `--direct-answer-restore-best-branch-snapshot` to restore the best scored
 branch-diversity checkpoint before final metrics and checkpoint writing.
+Add `--use-prompt-position-projection` to test a zero-initialized
+position-specific projection of non-padding prompt-prefix positions.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -371,6 +373,25 @@ Latest prompt-prefix projection smoke:
 | Final QA target-token coverage | `0.125` |
 | Promotion status | rejected representation evidence |
 
+Latest prompt-position projection smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/` |
+| Representation option | `--use-prompt-position-projection` |
+| Mode | `branch-target-softmax-unlikelihood` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Prompt-position projection movement | `1108/1284` parameters moved, max abs about `0.0942` |
+| Composite train loss | `5.6649 -> 5.5679` |
+| Restored best branch snapshot | yes, from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | rejected representation evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -427,3 +448,5 @@ branch state, but it still ends as a one-token collapse until the underlying
 representation separates prompts. Prompt-prefix projection gives the model a
 targeted trainable prompt path and the new parameters move, but the evidence
 still ends in the same all-`"u"` branch collapse.
+Prompt-position projection keeps position-specific prompt access and moves many
+more parameters, but the branch profile remains collapsed too.
