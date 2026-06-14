@@ -2269,6 +2269,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-balanced-representation-contrast-unlikelihood",
             "branch-output-binding-unlikelihood",
             "branch-rank-margin-unlikelihood",
+            "branch-balanced-rank-margin-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
@@ -4173,8 +4174,14 @@ def train_direct_answer_branch_rank_margin_unlikelihood(
     hard_negative_count: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    balance_targets: bool = False,
 ) -> float:
-    branches = direct_answer_branch_diversity_batch(
+    batch_builder = (
+        direct_answer_target_balanced_branch_diversity_batch
+        if balance_targets
+        else direct_answer_branch_diversity_batch
+    )
+    branches = batch_builder(
         model,
         tokenizer,
         example,
@@ -6060,6 +6067,25 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_hard_negatives,
                     direct_answer_terminator,
                     direct_params,
+                )
+            elif args.direct_answer_mode == "branch-balanced-rank-margin-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
                 )
             elif args.direct_answer_mode == "periodic-branch-representation-contrast-unlikelihood":
                 rollout_interval = max(1, args.direct_answer_rollout_interval)

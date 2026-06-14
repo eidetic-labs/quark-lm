@@ -346,6 +346,14 @@ Current transformer answer-lesson run:
   strongest branch-rank movement so far, but it is still rejected for promotion
   because predicted diversity stayed `1/8` and the branch remained collapsed to
   wrong `"n"`.
+- `branch-balanced-rank-margin-unlikelihood` combines target-balanced branch
+  batches with the same top-wrong-token rank margin. The v0.48 screen
+  `runs/transformer-answer-v0.48-balanced-rank-margin-smoke-dim4-context80/`
+  ran `50/50` direct steps and reached QA predicted diversity `2/8`, QA
+  target-token coverage `0.125`, average target rank `9.375`, top-3 coverage
+  `0.375`, and top-5 coverage `0.5`. It improved prompt-specific wrong-token
+  diversity versus v0.47, but it is still rejected because QA and heldout remain
+  wrong top-1 branch choices.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

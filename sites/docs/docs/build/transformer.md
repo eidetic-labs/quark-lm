@@ -111,6 +111,8 @@ Use `--direct-answer-mode branch-rank-margin-unlikelihood` to push each branch
 target above the model's current top wrong tokens. The
 `--direct-answer-hard-negatives` value controls how many top wrong tokens each
 branch target is margined against.
+Use `--direct-answer-mode branch-balanced-rank-margin-unlikelihood` to apply
+the same rank-margin repair with target-balanced branch batches.
 Best branch snapshot scoring uses target-rank/top-k evidence before generic
 wrong-token diversity, so restore prefers snapshots that move correct targets
 upward instead of merely changing the dominant wrong token.
@@ -621,6 +623,33 @@ Latest rank-margin repair smoke:
 | Final heldout top-3/top-5 target coverage | `0.125 -> 0.25` / `0.125 -> 0.375` |
 | Promotion status | rejected rank-lift evidence |
 
+Latest balanced rank-margin repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.48-balanced-rank-margin-smoke-dim4-context80/` |
+| Mode | `branch-balanced-rank-margin-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Batch sampler | target-balanced branch batch |
+| Hard wrong tokens | `5` |
+| Margin weight | `2.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, rank-aware `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Train loss | `7.2303 -> 6.3662` |
+| Restored best branch snapshot | no; step `50` was best by aggregate rank-aware score |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `2` |
+| Final QA dominant predictions | wrong `"a"`/`"n"` branch tokens |
+| Final QA average target rank | `17.375 -> 9.375` |
+| Final QA target-token coverage | `0.0 -> 0.125` |
+| Final QA top-3/top-5 target coverage | `0.125 -> 0.375` / `0.125 -> 0.5` |
+| Final heldout average target rank | `17.25 -> 9.625` |
+| Final heldout target-token coverage | `0.0 -> 0.125` |
+| Final heldout top-3/top-5 target coverage | `0.125 -> 0.25` / `0.125 -> 0.5` |
+| Promotion status | rejected balanced rank-lift evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -706,4 +735,6 @@ the top branch set, not only move it upward while the wrong tokens remain on
 top. Hard rank-margin repair is the first screen to make that movement clear:
 it lifts correct targets into the top five more often and improves target-token
 coverage, but it still leaves a single global wrong prediction. The next repair
-needs to convert rank lift into prompt-specific top-1 branch choices.
+needs to convert rank lift into prompt-specific top-1 branch choices. Target-
+balanced rank-margin adds some wrong-token diversity and better QA top-3
+coverage, but it still does not make correct target tokens win the branch.

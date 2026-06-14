@@ -105,6 +105,14 @@ coverage rose to `0.25`, and top-5 coverage rose to `0.5`. This is the
 strongest rank-lift evidence so far, but prediction diversity stayed `1/8` and
 QA/heldout remained collapsed to wrong `"n"`, so it is not promotion evidence.
 
+`runs/transformer-answer-v0.48-balanced-rank-margin-smoke-dim4-context80/`
+combines target-balanced branch batches with rank-margin repair. It completed
+`50/50` direct steps and reached QA predicted diversity `2/8`, average target
+rank `9.375`, target-token coverage `0.125`, top-3 coverage `0.375`, and top-5
+coverage `0.5`. It improves wrong-token diversity and top-3 coverage versus
+v0.47, but QA and heldout still choose wrong top-1 branch tokens, so it remains
+rejected evidence.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

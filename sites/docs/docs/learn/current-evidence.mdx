@@ -130,6 +130,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Rank-margin QA</td><td><code>{state.transformerRankMarginQa}</code></td></tr>
     <tr><td>Rank-margin heldout</td><td><code>{state.transformerRankMarginHeldout}</code></td></tr>
     <tr><td>Rank-margin status</td><td><code>{state.transformerRankMarginStatus}</code></td></tr>
+    <tr><td>Latest balanced rank-margin run</td><td><code>{state.transformerLatestBalancedRankMarginRun}</code></td></tr>
+    <tr><td>Balanced rank-margin mode</td><td><code>{state.transformerBalancedRankMarginMode}</code></td></tr>
+    <tr><td>Balanced rank-margin QA</td><td><code>{state.transformerBalancedRankMarginQa}</code></td></tr>
+    <tr><td>Balanced rank-margin heldout</td><td><code>{state.transformerBalancedRankMarginHeldout}</code></td></tr>
+    <tr><td>Balanced rank-margin status</td><td><code>{state.transformerBalancedRankMarginStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -458,6 +463,12 @@ v0.42 promoted checkpoint.
   coverage rose to `0.25`, and top-5 coverage rose to `0.5`. It is still
   rejected because predicted diversity stayed `1/8` and QA/heldout remained
   collapsed to wrong `"n"`.
+- `runs/transformer-answer-v0.48-balanced-rank-margin-smoke-dim4-context80/`
+  combines target-balanced branch batches with the same rank-margin repair. It
+  ran `50/50` direct steps and reached QA predicted diversity `2/8`, target-
+  token coverage `0.125`, average target rank `9.375`, top-3 coverage `0.375`,
+  and top-5 coverage `0.5`. It is still rejected because QA and heldout remain
+  wrong top-1 branch choices.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under

@@ -2260,6 +2260,83 @@ class TransformerCharModelTest(unittest.TestCase):
 
         self.assertLess(average_target_rank(), before_rank)
 
+    def test_balanced_branch_rank_margin_uses_target_balanced_batches(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=51,
+            )
+        )
+        model.bout[tokenizer.stoi["."]].data = 5.0
+        batch = direct_answer_target_balanced_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        def average_target_rank() -> float:
+            total = 0.0
+            for context, target, _predicted in batch:
+                probs = model.predict(context)
+                ranked = sorted(
+                    range(len(probs)),
+                    key=lambda index: probs[index],
+                    reverse=True,
+                )
+                total += ranked.index(target) + 1
+            return total / len(batch)
+
+        before_rank = average_target_rank()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_rank_margin_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.03,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                margin_weight=2.0,
+                branch_position=1,
+                batch_size=3,
+                hard_negative_count=5,
+                terminator=ANSWER_TERMINATOR,
+                balance_targets=True,
+            )
+
+        self.assertLess(average_target_rank(), before_rank)
+
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
         tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
@@ -3099,6 +3176,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-balanced-representation-contrast-unlikelihood",
             "branch-output-binding-unlikelihood",
             "branch-rank-margin-unlikelihood",
+            "branch-balanced-rank-margin-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",

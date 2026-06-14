@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.48
+
+- Added target-balanced branch-rank margin repair screening.
+
 ## v0.47
 
 - Added branch-rank margin repair against top wrong branch tokens.
