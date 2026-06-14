@@ -92,6 +92,10 @@ Add `--use-prompt-position-projection` to test a zero-initialized
 position-specific projection of non-padding prompt-prefix positions.
 Use `--direct-answer-mode branch-target-margin-unlikelihood` to add a smooth
 pairwise target-margin loss over the distinct branch targets in each batch.
+Direct-answer snapshots include `branch_representation_profiles` so runs can
+measure hidden-state pairwise distance before the output head.
+Use `--direct-answer-mode branch-representation-contrast-unlikelihood` to
+penalize nearly identical hidden states for different branch targets.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -413,6 +417,27 @@ Latest branch-target margin smoke:
 | Final QA target-token coverage | `0.125` |
 | Promotion status | rejected target-margin evidence |
 
+Latest branch-representation contrast smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/` |
+| Mode | `branch-representation-contrast-unlikelihood` |
+| Representation option | `--use-prompt-position-projection` |
+| Representation contrast weight | `50.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Snapshot diagnostic | `branch_representation_profiles` |
+| Train loss | `53.5827 -> 53.4342` |
+| Restored best branch snapshot | yes, from step `40` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"u"` |
+| Final QA target-token coverage | `0.125` |
+| Final QA different-target hidden distance | avg about `0.00107`, max about `0.00237` |
+| Promotion status | rejected representation-contrast evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -474,3 +499,7 @@ more parameters, but the branch profile remains collapsed too.
 Branch-target margin adds pairwise target separation on top of that prompt path
 and lowers bounded train loss, but the restored branch profile remains the same
 one-token collapse.
+Branch-representation contrast exposes that the hidden states themselves remain
+nearly indistinguishable at the answer branch, so the next repair needs a
+stronger prompt-conditioned representation path rather than another output-head
+loss alone.

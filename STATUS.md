@@ -337,6 +337,21 @@ multi-target profiles. This is rejected target-margin evidence: pairwise target
 separation improves the bounded loss but still does not stabilize
 prompt-specific branch choices.
 
+Direct-answer snapshots now include `branch_representation_profiles`, which
+measure pairwise hidden-state distance between branch contexts before the
+output head. A representation-contrast follow-up added
+`branch-representation-contrast-unlikelihood`, which penalizes nearly identical
+hidden states for different branch targets. The high-weight prompt-position
+context-80 smoke at
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`
+used `--direct-answer-contrast-weight 50.0`, passed the branch-context gate,
+froze output bias, ran `50/50` direct steps, and moved train loss
+`53.5827 -> 53.4342`. The final checkpoint restored from step `40`; QA stayed
+collapsed to all `"u"` with target-token coverage `0.125`, `predicted_unique`
+still `1/8`, and average different-target hidden distance only about
+`0.00107`. This is rejected representation-contrast evidence: the current
+hidden states remain nearly indistinguishable at the answer branch.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

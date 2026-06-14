@@ -1848,6 +1848,32 @@ pools, and corpus diffs.
 - rejected as target-margin evidence: pairwise target separation lowers the
   bounded loss but still does not stabilize prompt-specific branch choices
 
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`:
+
+- added `branch_representation_profiles` to direct-answer snapshots so each
+  run records hidden-state pairwise distances before the output head
+- added `branch-representation-contrast-unlikelihood`, which penalizes nearly
+  identical hidden states for branch contexts with different target tokens
+- unit coverage verifies that `final_hidden(context)` matches the output
+  logits, the representation profile reports hidden distances, and the
+  representation-contrast objective increases hidden distance on a tiny prompt
+  batch
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- output bias was frozen, prompt-position projection was enabled, best branch
+  snapshot restoration was enabled, and `--direct-answer-contrast-weight 50.0`
+  was used to test whether representation contrast was underweighted
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- train loss moved `53.5827 -> 53.4342`; the scale is dominated by the
+  high-weight representation term
+- final checkpoint restored from step `40`
+- final QA stayed collapsed to all `"u"` with target-token coverage `0.125`
+  and `predicted_unique` still `1/8`
+- final QA different-target hidden distance averaged about `0.00107`, only a
+  slight movement from the baseline `0.00097`
+- rejected as representation-contrast evidence: the model still has nearly
+  indistinguishable hidden states at the answer branch
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

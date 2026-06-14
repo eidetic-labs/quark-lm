@@ -33,6 +33,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_sequence_repair_errors,
     direct_answer_branch_repair_error,
     direct_answer_branch_context,
+    direct_answer_branch_representation_profile,
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
     direct_answer_branch_batch,
@@ -64,6 +65,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
+    train_direct_answer_branch_representation_contrast_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -368,6 +370,35 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertTrue(any(abs(value) > 0.0 for value in projection_values))
         self.assertGreater(before, after)
         self.assertAlmostEqual(sum(model.predict(context)), 1.0)
+
+    def test_final_hidden_matches_forward_logits(self) -> None:
+        text = "abc abc\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=4,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=19,
+                use_prompt_position_projection=True,
+            )
+        )
+        context = context_before(ids, 4, model.config.context_size, tokenizer.pad_id)
+
+        hidden = model.final_hidden(context)
+        expected_logits = model._forward_floats(context)
+        actual_logits = []
+        for output_index, bias in enumerate(model.bout):
+            total = bias.data
+            for input_index, value in enumerate(hidden):
+                total += value * model.wout[input_index][output_index].data
+            actual_logits.append(total)
+
+        self.assertEqual(len(hidden), model.config.embedding_dim)
+        for expected, actual in zip(expected_logits, actual_logits):
+            self.assertAlmostEqual(expected, actual)
 
     def test_prompt_attention_summary_starts_as_baseline_and_round_trips(self) -> None:
         text = "abc abc\n"
@@ -1635,6 +1666,127 @@ class TransformerCharModelTest(unittest.TestCase):
         after = restricted_logit_gap()
         self.assertGreater(after, before)
 
+    def test_branch_representation_profile_reports_hidden_distances(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        records = [
+            {"id": "near", "prompt": near.prompt, "target": near.target},
+            {"id": "green", "prompt": green.prompt, "target": green.target},
+            {"id": "tree", "prompt": tree.prompt, "target": tree.target},
+        ]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=47,
+            )
+        )
+
+        profile = direct_answer_branch_representation_profile(
+            model,
+            tokenizer,
+            records,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(profile["count"], 3)
+        self.assertEqual(profile["skipped"], 0)
+        self.assertEqual(profile["target_unique"], 3)
+        self.assertEqual(profile["different_target_pairwise_distance"]["count"], 3)
+        self.assertGreater(profile["different_target_pairwise_distance"]["avg"], 0.0)
+
+    def test_branch_representation_contrast_increases_hidden_distance(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=48,
+            )
+        )
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        def average_hidden_distance() -> float:
+            distances = []
+            for left_index, (left_context, left_target, _left_predicted) in enumerate(batch):
+                left_hidden = model.final_hidden(left_context)
+                for right_context, right_target, _right_predicted in batch[left_index + 1:]:
+                    if left_target == right_target:
+                        continue
+                    right_hidden = model.final_hidden(right_context)
+                    distances.append(
+                        sum(
+                            (left_value - right_value) ** 2
+                            for left_value, right_value in zip(left_hidden, right_hidden)
+                        )
+                    )
+            return sum(distances) / len(distances)
+
+        before = average_hidden_distance()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_representation_contrast_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.04,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                representation_weight=1.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after = average_hidden_distance()
+        self.assertGreater(after, before)
+
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
         tokenizer = CharTokenizer.train(example.prompt + example.target + ANSWER_TERMINATOR)
@@ -2470,6 +2622,8 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-target-softmax-unlikelihood",
             "branch-target-margin-unlikelihood",
             "periodic-branch-target-margin-unlikelihood",
+            "branch-representation-contrast-unlikelihood",
+            "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",

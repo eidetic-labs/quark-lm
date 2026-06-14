@@ -311,4 +311,12 @@ passed the branch-context gate, ran all `50` direct steps, moved train loss
 `4.8973 -> 4.7784`, moved `1108/1284` prompt-position projection parameters,
 and restored the final checkpoint from step `40`; the final diversity target
 still failed across all `9` multi-target eval profiles.
+Branch representation diagnostics and contrastive hidden-state training
+followed, still without changing corpus sources. The high-weight
+prompt-position context-80 smoke
+`runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`
+recorded hidden-state distance profiles, ran all `50` direct steps with
+`--direct-answer-contrast-weight 50.0`, and restored the final checkpoint from
+step `40`; the final diversity target still failed across all `9` multi-target
+eval profiles.
 None of these runs were promoted.

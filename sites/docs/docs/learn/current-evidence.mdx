@@ -98,6 +98,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest branch-target margin run</td><td><code>{state.transformerLatestBranchTargetMarginRun}</code></td></tr>
     <tr><td>Branch-target margin mode</td><td><code>{state.transformerBranchTargetMarginMode}</code></td></tr>
     <tr><td>Branch-target margin status</td><td><code>{state.transformerBranchTargetMarginStatus}</code></td></tr>
+    <tr><td>Latest branch-representation contrast run</td><td><code>{state.transformerLatestBranchRepresentationRun}</code></td></tr>
+    <tr><td>Branch-representation contrast mode</td><td><code>{state.transformerBranchRepresentationMode}</code></td></tr>
+    <tr><td>Branch-representation contrast status</td><td><code>{state.transformerBranchRepresentationStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -362,6 +365,13 @@ v0.42 promoted checkpoint.
   prompt-position projection parameters, but the final checkpoint restored
   from step `40` to the same all-`"u"` QA collapse with target-token coverage
   `0.125`.
+- `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`
+  added `branch_representation_profiles` and
+  `branch-representation-contrast-unlikelihood`. The high-weight
+  prompt-position context-80 screen used `--direct-answer-contrast-weight 50.0`
+  and moved QA different-target hidden distance only about
+  `0.00097 -> 0.00107` at the restored checkpoint; the final branch profile
+  still restored to the same all-`"u"` QA collapse.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

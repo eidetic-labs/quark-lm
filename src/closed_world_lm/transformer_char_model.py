@@ -400,6 +400,9 @@ class TinyTransformerLM:
         return params
 
     def _forward_scalars(self, context: list[int]) -> list[Scalar]:
+        return linear_scalars(self._final_hidden_scalars(context), self.wout, self.bout)
+
+    def _final_hidden_scalars(self, context: list[int]) -> list[Scalar]:
         if len(context) != self.config.context_size:
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
@@ -418,8 +421,7 @@ class TinyTransformerLM:
             for block in float_blocks:
                 x_float = self._forward_full_block_floats(x_float, block)
             x = matrix_to_scalars(x_float)
-            block_out = self._forward_final_block_scalars(x, self.blocks[-1], context)
-            return linear_scalars(block_out, self.wout, self.bout)
+            return self._forward_final_block_scalars(x, self.blocks[-1], context)
         x = [
             [
                 self.token_embeddings[token_id][dim] + self.position_embeddings[position][dim]
@@ -428,22 +430,26 @@ class TinyTransformerLM:
             for position, token_id in enumerate(context)
         ]
         if self.config.num_layers == 1:
-            block_out = self._forward_final_block_scalars(x, self.blocks[0], context)
+            return self._forward_final_block_scalars(x, self.blocks[0], context)
         else:
             for block in self.blocks[:-1]:
                 x = self._forward_full_block_scalars(x, block)
-            block_out = self._forward_final_block_scalars(x, self.blocks[-1], context)
-        return linear_scalars(block_out, self.wout, self.bout)
+            return self._forward_final_block_scalars(x, self.blocks[-1], context)
 
     def _forward_floats(self, context: list[int]) -> list[float]:
+        return linear_floats(
+            self.final_hidden(context),
+            matrix_to_floats(self.wout),
+            vector_to_floats(self.bout),
+        )
+
+    def final_hidden(self, context: list[int]) -> list[float]:
         if len(context) != self.config.context_size:
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
             )
         token_embeddings = matrix_to_floats(self.token_embeddings)
         position_embeddings = matrix_to_floats(self.position_embeddings)
-        wout = matrix_to_floats(self.wout)
-        bout = vector_to_floats(self.bout)
         x = [
             [
                 token_embeddings[token_id][dim] + position_embeddings[position][dim]
@@ -453,12 +459,11 @@ class TinyTransformerLM:
         ]
         float_blocks = [self._block_to_floats(block) for block in self.blocks]
         if self.config.num_layers == 1:
-            block_out = self._forward_final_block_floats(x, float_blocks[0], context)
+            return self._forward_final_block_floats(x, float_blocks[0], context)
         else:
             for block in float_blocks[:-1]:
                 x = self._forward_full_block_floats(x, block)
-            block_out = self._forward_final_block_floats(x, float_blocks[-1], context)
-        return linear_floats(block_out, wout, bout)
+            return self._forward_final_block_floats(x, float_blocks[-1], context)
 
     def _forward_final_block_scalars(
         self,
@@ -1041,6 +1046,53 @@ class TinyTransformerLM:
                     gap = logits[margin_target] - target_logit + 1.0
                     loss = loss + (Scalar(1.0) + gap.exp()).log() * per_target_weight
         loss = loss / max(len(branches), 1)
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
+    def train_step_with_branch_representation_contrast(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        representation_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_loss = Scalar(0.0)
+        hidden_by_target: list[tuple[list[Scalar], int]] = []
+        for context, target, predicted in branches:
+            hidden = self._final_hidden_scalars(context)
+            logits = linear_scalars(hidden, self.wout, self.bout)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                branch_loss = branch_loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                branch_loss = branch_loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            hidden_by_target.append((hidden, target))
+        loss = branch_loss / max(len(branches), 1)
+        if representation_weight > 0.0:
+            contrast_loss = Scalar(0.0)
+            contrast_pairs = 0
+            for left_index, (left_hidden, left_target) in enumerate(hidden_by_target):
+                for right_hidden, right_target in hidden_by_target[left_index + 1:]:
+                    if left_target == right_target:
+                        continue
+                    distance_sq = Scalar(0.0)
+                    for left_value, right_value in zip(left_hidden, right_hidden):
+                        delta = left_value - right_value
+                        distance_sq = distance_sq + delta * delta
+                    distance_sq = distance_sq / max(self.config.embedding_dim, 1)
+                    contrast_loss = contrast_loss + (-distance_sq).exp()
+                    contrast_pairs += 1
+            if contrast_pairs:
+                loss = loss + (contrast_loss / contrast_pairs) * representation_weight
         loss.backward()
         for parameter in params:
             clipped_grad = max(min(parameter.grad, 5.0), -5.0)
@@ -1966,6 +2018,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-target-softmax-unlikelihood",
             "branch-target-margin-unlikelihood",
             "periodic-branch-target-margin-unlikelihood",
+            "branch-representation-contrast-unlikelihood",
+            "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
@@ -2420,6 +2474,79 @@ def direct_answer_branch_profile(
             "missing_target_tokens": missing_target_tokens,
         },
         "failed_records": failed_records,
+    }
+
+
+def direct_answer_branch_representation_profile(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    records: list[dict[str, Any]],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> dict[str, Any]:
+    representations: list[tuple[str, list[float]]] = []
+    skipped = 0
+    for record in records:
+        example = AnswerExample(
+            prompt=record["prompt"],
+            target=record["target"],
+            source=f"eval:{record['id']}",
+        )
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            example,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            skipped += 1
+            continue
+        context, target_id, _position = branch
+        representations.append((tokenizer.itos[target_id], model.final_hidden(context)))
+
+    def summarize_distances(distances: list[float]) -> dict[str, Any]:
+        if not distances:
+            return {"count": 0, "min": 0.0, "avg": 0.0, "max": 0.0}
+        return {
+            "count": len(distances),
+            "min": min(distances),
+            "avg": sum(distances) / len(distances),
+            "max": max(distances),
+        }
+
+    all_distances: list[float] = []
+    same_target_distances: list[float] = []
+    different_target_distances: list[float] = []
+    for left_index, (left_target, left_hidden) in enumerate(representations):
+        for right_target, right_hidden in representations[left_index + 1:]:
+            distance = math.sqrt(
+                sum(
+                    (left_value - right_value) ** 2
+                    for left_value, right_value in zip(left_hidden, right_hidden)
+                )
+            )
+            all_distances.append(distance)
+            if left_target == right_target:
+                same_target_distances.append(distance)
+            else:
+                different_target_distances.append(distance)
+
+    target_tokens = Counter(target for target, _hidden in representations)
+    return {
+        "branch_position": branch_position,
+        "count": len(representations),
+        "skipped": skipped,
+        "target_unique": len(target_tokens),
+        "target_tokens": [
+            {"value": value, "count": count}
+            for value, count in target_tokens.most_common(12)
+        ],
+        "pairwise_distance": summarize_distances(all_distances),
+        "same_target_pairwise_distance": summarize_distances(same_target_distances),
+        "different_target_pairwise_distance": summarize_distances(
+            different_target_distances
+        ),
     }
 
 
@@ -3538,6 +3665,50 @@ def train_direct_answer_branch_target_margin_unlikelihood(
     )
 
 
+def train_direct_answer_branch_representation_contrast_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    representation_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_representation_contrast(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        representation_weight,
+        params=params,
+    )
+
+
 def train_direct_answer_branch_contrast_unlikelihood(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -4553,6 +4724,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 for name, records in sorted(eval_records.items())
             }
+            branch_representation_profiles = {
+                name: direct_answer_branch_representation_profile(
+                    model,
+                    tokenizer,
+                    records,
+                    args.direct_answer_branch_position,
+                    direct_answer_terminator,
+                )
+                for name, records in sorted(eval_records.items())
+            }
             record = {
                 "step": step,
                 "train_loss": train_loss,
@@ -4571,6 +4752,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     for name, records in sorted(eval_records.items())
                 },
                 "branch_profiles": branch_profiles,
+                "branch_representation_profiles": branch_representation_profiles,
                 "branch_diversity_target": summarize_branch_diversity_target(
                     branch_profiles
                 ),
@@ -5284,6 +5466,56 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 rollout_interval = max(1, args.direct_answer_rollout_interval)
                 if direct_step % rollout_interval == 0:
                     running_direct_loss += train_direct_answer_branch_target_margin_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_contrast_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_branch_batch_size,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_branch_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+            elif args.direct_answer_mode == "branch-representation-contrast-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_representation_contrast_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-branch-representation-contrast-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_branch_representation_contrast_unlikelihood(
                         model,
                         tokenizer,
                         example,

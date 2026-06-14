@@ -261,6 +261,15 @@ Current transformer answer-lesson run:
   profile stayed all `"u"` with target-token coverage `0.125`,
   `predicted_unique` `1/8`, and diversity failure across all `9` multi-target
   profiles.
+- Direct-answer snapshots now include `branch_representation_profiles`, which
+  measure hidden-state distance between branch contexts before the output head.
+  The high-weight representation-contrast screen
+  `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`
+  used `branch-representation-contrast-unlikelihood` with
+  `--direct-answer-contrast-weight 50.0`; QA different-target hidden distance
+  moved only about `0.00097 -> 0.00107` at the restored checkpoint, and the
+  final branch profile still collapsed to all `"u"` with `predicted_unique`
+  `1/8`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

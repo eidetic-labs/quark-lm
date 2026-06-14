@@ -114,6 +114,10 @@ training boundary.
 - Diversity-aware branch modes must be judged by `branch_diversity_target` and
   target-token coverage, not by moving collapse from one dominant token to
   another.
+- Direct-answer snapshots should retain `branch_representation_profiles` once
+  hidden-state diagnostics are present. A representation objective is not a
+  promotion unless hidden separation improves enough to change
+  prompt-conditioned branch diversity.
 - Direct-answer stabilizers that freeze global parameters, such as output-bias
   freezing, must record the frozen option, prove the excluded parameters stayed
   unchanged in unit coverage, and still be judged by branch diversity rather
