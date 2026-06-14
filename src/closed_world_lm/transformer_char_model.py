@@ -3275,6 +3275,124 @@ def audit_prompt_context_coverage(
     }
 
 
+def audit_direct_answer_branch_context_coverage(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    records: list[dict[str, Any]],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+    max_records: int = 12,
+) -> dict[str, Any]:
+    semantic_records = 0
+    covered = 0
+    skipped = 0
+    missing_records: list[dict[str, Any]] = []
+    context_records: dict[str, list[dict[str, Any]]] = {}
+    context_targets: dict[str, Counter[str]] = {}
+    target_counts: Counter[str] = Counter()
+
+    for record in records:
+        example = AnswerExample(
+            prompt=record["prompt"],
+            target=record["target"],
+            source=f"eval:{record['id']}",
+        )
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            example,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            skipped += 1
+            continue
+        context, target_id, position = branch
+        context_text = tokenizer.decode(context)
+        target_token = tokenizer.itos[target_id]
+        target_counts[target_token] += 1
+        context_records.setdefault(context_text, []).append(
+            {
+                "id": record["id"],
+                "target": record["target"],
+                "branch_position": position,
+                "target_token": target_token,
+            }
+        )
+        context_targets.setdefault(context_text, Counter())[target_token] += 1
+
+        full_features = set(semantic_feature_names(record["prompt"].lower()))
+        if not full_features:
+            continue
+        semantic_records += 1
+        context_features = set(semantic_feature_names(context_text.lower()))
+        missing_features = sorted(full_features - context_features)
+        if not missing_features:
+            covered += 1
+            continue
+        if len(missing_records) < max_records:
+            missing_records.append(
+                {
+                    "id": record["id"],
+                    "branch_position": position,
+                    "context_size": model.config.context_size,
+                    "context_text": context_text,
+                    "missing_features": missing_features,
+                    "target_token": target_token,
+                }
+            )
+
+    ambiguous_records: list[dict[str, Any]] = []
+    collision_contexts = 0
+    ambiguous_contexts = 0
+    max_context_reuse = 0
+    max_target_options = 0
+    for context_text, examples in context_records.items():
+        target_counter = context_targets[context_text]
+        max_context_reuse = max(max_context_reuse, len(examples))
+        max_target_options = max(max_target_options, len(target_counter))
+        if len(examples) > 1:
+            collision_contexts += 1
+        if len(target_counter) <= 1:
+            continue
+        ambiguous_contexts += 1
+        if len(ambiguous_records) < max_records:
+            ambiguous_records.append(
+                {
+                    "context_text": context_text,
+                    "count": len(examples),
+                    "target_tokens": [
+                        {"value": value, "count": count}
+                        for value, count in target_counter.most_common(12)
+                    ],
+                    "records": examples[:max_records],
+                }
+            )
+
+    count = sum(len(records_for_context) for records_for_context in context_records.values())
+    return {
+        "branch_position": branch_position,
+        "context_size": model.config.context_size,
+        "count": count,
+        "skipped": skipped,
+        "semantic_records": semantic_records,
+        "covered": covered,
+        "missing": semantic_records - covered,
+        "covered_rate": covered / semantic_records if semantic_records else 1.0,
+        "unique_contexts": len(context_records),
+        "collision_contexts": collision_contexts,
+        "ambiguous_contexts": ambiguous_contexts,
+        "max_context_reuse": max_context_reuse,
+        "max_target_options": max_target_options,
+        "target_tokens": [
+            {"value": value, "count": count}
+            for value, count in target_counts.most_common(12)
+        ],
+        "missing_records": missing_records,
+        "ambiguous_records": ambiguous_records,
+    }
+
+
 def answer_char_loss_scalars(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -3722,6 +3840,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 },
                 "branch_profiles": {
                     name: direct_answer_branch_profile(
+                        model,
+                        tokenizer,
+                        records,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                    )
+                    for name, records in sorted(eval_records.items())
+                },
+                "branch_context_coverage": {
+                    name: audit_direct_answer_branch_context_coverage(
                         model,
                         tokenizer,
                         records,

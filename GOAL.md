@@ -1574,6 +1574,50 @@ pools, and corpus diffs.
 - this is also rejected representation evidence: branch batching plus
   trainable prompt attention still collapses to one global first answer token
 
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`:
+
+- added direct-answer `branch_context_coverage` diagnostics to every direct
+  snapshot
+- the diagnostic records branch position, context size, visible context text,
+  semantic coverage, missing semantic features, context collisions, ambiguous
+  branch contexts, target-token counts, and examples
+- smoke run trained for `5` target-loss steps and `5` direct-answer branch
+  repair steps with the post-direct candidate snapshot skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch contexts had `0/8` semantic coverage
+- QA branch contexts had only `4` unique context windows for `8` records
+- QA branch contexts had `4` ambiguous windows, each with two different first
+  target tokens sharing the same visible context
+- first ambiguity: `"s ball?\nanswer: "` mapped both place target token `"u"`
+  and color target token `"r"`
+- this is diagnostic evidence that context-16 branch objectives can be
+  underdetermined by the visible branch context
+
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`:
+
+- smoke run trained for `5` target-loss steps and `5` direct-answer branch
+  repair steps with the post-direct candidate snapshot skipped
+- QA branch-position-1 profile counted `8` records
+- QA branch contexts had `8` unique context windows and `0` ambiguous windows
+- QA branch contexts still had `0/8` semantic coverage because prompt prefixes
+  such as `"question:"` were truncated
+- this is diagnostic evidence that context-32 removes literal QA branch
+  ambiguity but still lacks complete prompt semantics at the branch point
+
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`:
+
+- tiny smoke run trained for `1` target-loss step and `1` direct-answer branch
+  repair step with the post-direct candidate snapshot skipped
+- QA branch contexts had `8/8` semantic coverage, `8` unique context windows,
+  and `0` ambiguous windows
+- all current eval sets reached `219/219` semantic branch-context coverage
+  with `0` ambiguous branch contexts
+- direct greedy exact remained `0/219 -> 0/219`; direct target loss barely
+  moved `3.5846 -> 3.5842` because this was a one-step diagnostic screen
+- this is diagnostic evidence that efficient longer-context branch repair is
+  the next structured transformer target; another context-16 branch objective
+  alone is unlikely to solve prompt-specific branching
+
 The next improvement target is strengthening prompt-conditioned representation
 so the direct transformer emits target-specific answers instead of the short
 global wrong answer `" te."`, while preserving the `37/219` candidate-

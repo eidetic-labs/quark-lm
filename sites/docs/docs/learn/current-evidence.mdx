@@ -60,6 +60,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest representation screen</td><td><code>{state.transformerLatestRepresentationRun}</code></td></tr>
     <tr><td>Latest representation option</td><td><code>{state.transformerLatestRepresentationOption}</code></td></tr>
     <tr><td>Latest representation status</td><td><code>{state.transformerLatestRepresentationStatus}</code></td></tr>
+    <tr><td>Latest branch-context diagnostic</td><td><code>{state.transformerLatestBranchContextRun}</code></td></tr>
+    <tr><td>Branch context 16 QA</td><td><code>{state.transformerBranchContext16Qa}</code></td></tr>
+    <tr><td>Branch context 32 QA</td><td><code>{state.transformerBranchContext32Qa}</code></td></tr>
+    <tr><td>Branch context 80 all evals</td><td><code>{state.transformerBranchContext80AllEvals}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -235,6 +239,19 @@ v0.42 promoted checkpoint.
   `3.5802 -> 3.5252`, but again regressed QA branch accuracy `1/8 -> 0/8` and
   collapsed to all `"a"` predictions. This keeps trainable prompt attention in
   rejected representation evidence.
+- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`
+  added `branch_context_coverage` diagnostics to direct-answer snapshots. At
+  context size `16`, QA had `0/8` semantic coverage and `4` ambiguous branch
+  contexts; for example `"s ball?\nanswer: "` mapped both place and color first
+  target tokens.
+- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`
+  removed QA branch ambiguity (`0` ambiguous contexts), but still had `0/8`
+  semantic coverage at the branch point because the prompt prefix was
+  truncated.
+- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
+  reached complete branch-context coverage across all eval sets (`219/219`)
+  with zero ambiguous branch contexts. This is diagnostic evidence for
+  efficient longer-context branch repair.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only

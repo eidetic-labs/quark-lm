@@ -39,6 +39,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
+    audit_direct_answer_branch_context_coverage,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -729,6 +730,90 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(profile["failed_records"][0]["id"], "color")
         self.assertEqual(profile["failed_records"][0]["target_token"], " ")
         self.assertEqual(profile["failed_records"][0]["predicted_token"], ".")
+
+    def test_branch_context_coverage_marks_truncated_semantic_branch(self) -> None:
+        record = {
+            "id": "place",
+            "prompt": "question: where is mia's ball?\nanswer:",
+            "target": " under.",
+        }
+        tokenizer = CharTokenizer.train(record["prompt"] + record["target"] + ANSWER_TERMINATOR)
+        narrow = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=41,
+            )
+        )
+        wide = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=48,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=41,
+            )
+        )
+
+        narrow_audit = audit_direct_answer_branch_context_coverage(
+            narrow,
+            tokenizer,
+            [record],
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        wide_audit = audit_direct_answer_branch_context_coverage(
+            wide,
+            tokenizer,
+            [record],
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(narrow_audit["semantic_records"], 1)
+        self.assertEqual(narrow_audit["missing"], 1)
+        self.assertIn("intent:place", narrow_audit["missing_records"][0]["missing_features"])
+        self.assertEqual(wide_audit["covered"], 1)
+        self.assertEqual(wide_audit["missing_records"], [])
+
+    def test_branch_context_coverage_marks_ambiguous_context_collisions(self) -> None:
+        records = [
+            {"id": "one", "prompt": "q: one\na:", "target": " red."},
+            {"id": "two", "prompt": "q: two\na:", "target": " blue."},
+        ]
+        text = "".join(record["prompt"] + record["target"] for record in records)
+        tokenizer = CharTokenizer.train(text + ANSWER_TERMINATOR)
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=3,
+                embedding_dim=3,
+                feedforward_dim=5,
+                seed=42,
+            )
+        )
+
+        audit = audit_direct_answer_branch_context_coverage(
+            model,
+            tokenizer,
+            records,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(audit["count"], 2)
+        self.assertEqual(audit["unique_contexts"], 1)
+        self.assertEqual(audit["collision_contexts"], 1)
+        self.assertEqual(audit["ambiguous_contexts"], 1)
+        self.assertEqual(audit["max_context_reuse"], 2)
+        self.assertEqual(audit["max_target_options"], 2)
+        self.assertEqual(audit["ambiguous_records"][0]["context_text"], "a: ")
+        self.assertEqual(
+            audit["ambiguous_records"][0]["target_tokens"],
+            [{"value": "r", "count": 1}, {"value": "b", "count": 1}],
+        )
 
     def test_dominant_branch_prediction_finds_global_wrong_token(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")

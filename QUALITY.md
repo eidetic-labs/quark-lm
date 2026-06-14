@@ -90,6 +90,11 @@ training boundary.
   token distribution, average target probability, and target-vs-top margin.
   These profiles are diagnostic evidence for prompt-independent collapse and
   should guide repair policies before adding another training mode.
+- Direct-answer snapshots should also record branch-context coverage: visible
+  context text, semantic coverage, context collisions, target-token ambiguity,
+  and representative missing/ambiguous records. A branch repair screen with
+  ambiguous or semantically incomplete branch contexts is diagnostic evidence,
+  not proof that another objective can solve prompt-specific branching.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

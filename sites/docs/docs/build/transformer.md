@@ -212,6 +212,17 @@ Latest prompt-attention representation smoke:
 | Dominant QA branch prediction | all `"o"` -> all `"a"` in both screens |
 | Promotion status | rejected representation evidence |
 
+Latest branch-context coverage diagnostic:
+
+| Signal | Context 16 | Context 32 | Context 80 |
+| --- | --- | --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/` | `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/` | `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/` |
+| QA semantic coverage | `0/8` | `0/8` | `8/8` |
+| QA ambiguous branch contexts | `4` | `0` | `0` |
+| All-eval semantic coverage | `0/219` | `53/219` | `219/219` |
+| All-eval ambiguous branch contexts | `40` | `0` | `0` |
+| Promotion status | diagnostic only | diagnostic only | diagnostic only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -238,5 +249,11 @@ then lets the model learn a zero-initialized projection of that context summary,
 and the projection weights do move during training, but the branch profile still
 collapses globally. `--use-prompt-attention-summary` makes the summary itself
 attention-pooled and trainable, but the bounded screens still collapse globally.
-The next repair needs prompt-specific discrimination, not just suppression,
-batching, or a trainable summary of the current context.
+The branch-context coverage diagnostic explains why context-16 branch screens
+were partly underdetermined: QA had only four visible branch contexts for eight
+records, and those windows mapped to different first target tokens. Context-32
+removes literal QA ambiguity but still truncates semantic prompt features.
+Context-80 gives every current eval record complete semantic branch-context
+coverage with no ambiguity. The next repair needs efficient longer-context
+prompt-specific discrimination, not just suppression, batching, or a trainable
+summary of a truncated context.

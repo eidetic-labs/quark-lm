@@ -147,6 +147,19 @@ Current transformer answer-lesson run:
   improved direct loss `3.5802 -> 3.5252`. Both screens still regressed QA
   branch accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions, so
   trainable prompt attention is also rejected representation evidence.
+- A branch-context coverage diagnostic now records the exact context text,
+  semantic feature coverage, context collisions, and target-token ambiguity at
+  the direct-answer branch position. The context-16 smoke
+  `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`
+  showed QA branch contexts had `0/8` semantic coverage and `4` ambiguous
+  branch windows. The context-32 smoke
+  `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`
+  removed QA ambiguity but still had `0/8` semantic coverage. The tiny
+  context-80 smoke
+  `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
+  reached `219/219` semantic coverage across all eval sets with zero ambiguous
+  branch contexts. This points the next transformer work toward efficient
+  longer-context branch repair rather than another context-16 objective.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

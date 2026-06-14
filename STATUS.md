@@ -180,6 +180,20 @@ improved direct loss `3.5802 -> 3.5252`. Both regressed QA branch accuracy
 `1/8 -> 0/8` and collapsed to all `"a"` predictions, so prompt attention is
 also rejected representation evidence.
 
+Direct-answer snapshots now include branch-context coverage diagnostics: the
+visible branch context text, semantic feature coverage, context collisions, and
+target-token ambiguity. The context-16 screen at
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`
+showed QA branch contexts had `0/8` semantic coverage and `4` ambiguous branch
+windows. The context-32 screen at
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`
+removed QA ambiguity but still had `0/8` semantic coverage. The tiny
+context-80 screen at
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
+reached complete branch-context coverage across all eval sets (`219/219`) with
+zero ambiguous branch contexts. This makes efficient longer-context branch
+repair the next structured transformer target.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

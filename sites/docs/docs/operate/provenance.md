@@ -227,4 +227,15 @@ improved direct loss to `3.5217`, and the branch-batch screen
 `runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`
 improved direct loss to `3.5252`; both moved their zero-initialized output
 projection weights, regressed QA branch accuracy to `0/8`, and collapsed the
-dominant prediction to all `"a"`. None of these runs were promoted.
+dominant prediction to all `"a"`. Branch-context coverage diagnostics were then
+added to direct-answer snapshots without changing corpus sources. The context-16
+screen
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`
+showed QA branch contexts had `0/8` semantic coverage and `4` ambiguous branch
+windows. The context-32 screen
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`
+removed QA ambiguity but still had `0/8` semantic coverage. The context-80
+screen
+`runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
+reached complete branch-context coverage across all eval sets (`219/219`) with
+zero ambiguous branch contexts. None of these runs were promoted.
