@@ -164,5 +164,8 @@ The context-80 run
 `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`
 covered all semantic eval templates (`219/219`) but still trailed v0.42 on
 direct loss and answer NLL. The 1500-step context-80 run reached `38/219`
-candidates but regressed other promotion metrics. None of these runs were
-promoted.
+candidates but regressed other promotion metrics. Optional layer normalization
+was added as a tested architecture flag, but the context-80 screen
+`runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` preserved only
+`37/219` candidates and regressed answer NLL with repeated `" y"`/`"e"` greedy
+loops. None of these runs were promoted.

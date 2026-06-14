@@ -60,7 +60,10 @@ Current transformer answer-lesson run:
   failure, but still trailed v0.42 with direct loss `2.3122` and answer NLL
   `2.4546`. A longer context-80 1500-step run reached `38/219` candidates but
   regressed loss/NLL and greedy output, so v0.42 remains the promoted
-  transformer checkpoint.
+  transformer checkpoint. A layer-normalized context-80 screen
+  (`runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/`) also kept
+  `37/219` candidates with full context coverage, but regressed answer NLL to
+  `2.5881` and produced repeated `" y"`/`"e"` loops, so it was not promoted.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

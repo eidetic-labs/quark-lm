@@ -93,7 +93,11 @@ does not. The hard-negative branch-contrast pilot at
 preserved `37/219` candidates with `219/219` coverage but still trailed v0.42
 on direct loss (`2.3122`) and answer NLL (`2.4546`). A 1500-step context-80 run
 reached `38/219` candidates but regressed loss, NLL, and greedy output, so it
-was not promoted.
+was not promoted. A layer-normalized context-80 screen at
+`runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` preserved full
+coverage and `37/219` candidates but regressed answer NLL to `2.5881` and
+collapsed greedy output into repeated `" y"`/`"e"` loops, so it also remains
+unpromoted evidence.
 
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`

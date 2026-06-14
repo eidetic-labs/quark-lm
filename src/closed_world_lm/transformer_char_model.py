@@ -53,6 +53,8 @@ class TransformerConfig:
     embedding_dim: int = 8
     feedforward_dim: int = 16
     seed: int = 17
+    use_layer_norm: bool = False
+    layer_norm_epsilon: float = 1e-5
 
 
 class TinyTransformerLM:
@@ -74,6 +76,11 @@ class TinyTransformerLM:
         self.b2 = vector_to_scalars(weights["b2"])
         self.wout = matrix_to_scalars(weights["wout"])
         self.bout = vector_to_scalars(weights["bout"])
+        dim = config.embedding_dim
+        self.ln1_gain = vector_to_scalars(weights.get("ln1_gain", [1.0 for _ in range(dim)]))
+        self.ln1_bias = vector_to_scalars(weights.get("ln1_bias", [0.0 for _ in range(dim)]))
+        self.ln2_gain = vector_to_scalars(weights.get("ln2_gain", [1.0 for _ in range(dim)]))
+        self.ln2_bias = vector_to_scalars(weights.get("ln2_bias", [0.0 for _ in range(dim)]))
 
     @classmethod
     def init_random(cls, config: TransformerConfig) -> "TinyTransformerLM":
@@ -108,6 +115,10 @@ class TinyTransformerLM:
             "b2": [0.0 for _ in range(dim)],
             "wout": [[rand(scale) for _ in range(config.vocab_size)] for _ in range(dim)],
             "bout": [0.0 for _ in range(config.vocab_size)],
+            "ln1_gain": [1.0 for _ in range(dim)],
+            "ln1_bias": [0.0 for _ in range(dim)],
+            "ln2_gain": [1.0 for _ in range(dim)],
+            "ln2_bias": [0.0 for _ in range(dim)],
         }
         return cls(config, weights)
 
@@ -132,6 +143,9 @@ class TinyTransformerLM:
             self.bout,
         ]:
             params.extend(flatten_scalars(item))
+        if self.config.use_layer_norm:
+            for item in [self.ln1_gain, self.ln1_bias, self.ln2_gain, self.ln2_bias]:
+                params.extend(flatten_scalars(item))
         return params
 
     def _forward_scalars(self, context: list[int]) -> list[Scalar]:
@@ -164,12 +178,26 @@ class TinyTransformerLM:
             x[last_position][dim] + projected[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_layer_norm:
+            hidden = layer_norm_scalars(
+                hidden,
+                self.ln1_gain,
+                self.ln1_bias,
+                self.config.layer_norm_epsilon,
+            )
         ff_hidden = [value.tanh() for value in linear_scalars(hidden, self.w1, self.b1)]
         ff_out = linear_scalars(ff_hidden, self.w2, self.b2)
         block_out = [
             hidden[dim] + ff_out[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_layer_norm:
+            block_out = layer_norm_scalars(
+                block_out,
+                self.ln2_gain,
+                self.ln2_bias,
+                self.config.layer_norm_epsilon,
+            )
         return linear_scalars(block_out, self.wout, self.bout)
 
     def _forward_floats(self, context: list[int]) -> list[float]:
@@ -193,6 +221,10 @@ class TinyTransformerLM:
         b2 = vector_to_floats(self.b2)
         wout = matrix_to_floats(self.wout)
         bout = vector_to_floats(self.bout)
+        ln1_gain = vector_to_floats(self.ln1_gain)
+        ln1_bias = vector_to_floats(self.ln1_bias)
+        ln2_gain = vector_to_floats(self.ln2_gain)
+        ln2_bias = vector_to_floats(self.ln2_bias)
         x = [
             [
                 token_embeddings[token_id][dim] + position_embeddings[position][dim]
@@ -216,12 +248,26 @@ class TinyTransformerLM:
             x[last_position][dim] + projected[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_layer_norm:
+            hidden = layer_norm_floats(
+                hidden,
+                ln1_gain,
+                ln1_bias,
+                self.config.layer_norm_epsilon,
+            )
         ff_hidden = [math.tanh(value) for value in linear_floats(hidden, w1, b1)]
         ff_out = linear_floats(ff_hidden, w2, b2)
         block_out = [
             hidden[dim] + ff_out[dim]
             for dim in range(self.config.embedding_dim)
         ]
+        if self.config.use_layer_norm:
+            block_out = layer_norm_floats(
+                block_out,
+                ln2_gain,
+                ln2_bias,
+                self.config.layer_norm_epsilon,
+            )
         return linear_floats(block_out, wout, bout)
 
     def predict(self, context: list[int]) -> list[float]:
@@ -370,6 +416,10 @@ class TinyTransformerLM:
                 "b2": vector_to_floats(self.b2),
                 "wout": matrix_to_floats(self.wout),
                 "bout": vector_to_floats(self.bout),
+                "ln1_gain": vector_to_floats(self.ln1_gain),
+                "ln1_bias": vector_to_floats(self.ln1_bias),
+                "ln2_gain": vector_to_floats(self.ln2_gain),
+                "ln2_bias": vector_to_floats(self.ln2_bias),
             },
         }
         if tokenizer is not None:
@@ -931,6 +981,45 @@ def linear_floats(inputs: list[float], weights: list[list[float]], bias: list[fl
     return outputs
 
 
+def layer_norm_scalars(
+    values: list[Scalar],
+    gain: list[Scalar],
+    bias: list[Scalar],
+    epsilon: float,
+) -> list[Scalar]:
+    count = max(len(values), 1)
+    mean = Scalar(0.0)
+    for value in values:
+        mean = mean + value
+    mean = mean / count
+    variance = Scalar(0.0)
+    for value in values:
+        centered = value - mean
+        variance = variance + centered * centered
+    variance = variance / count
+    scale = (variance + epsilon).pow(-0.5)
+    return [
+        (value - mean) * scale * gain[index] + bias[index]
+        for index, value in enumerate(values)
+    ]
+
+
+def layer_norm_floats(
+    values: list[float],
+    gain: list[float],
+    bias: list[float],
+    epsilon: float,
+) -> list[float]:
+    count = max(len(values), 1)
+    mean = sum(values) / count
+    variance = sum((value - mean) ** 2 for value in values) / count
+    scale = 1.0 / math.sqrt(variance + epsilon)
+    return [
+        (value - mean) * scale * gain[index] + bias[index]
+        for index, value in enumerate(values)
+    ]
+
+
 def dot_scalars(left: list[Scalar], right: list[Scalar]) -> Scalar:
     total = Scalar(0.0)
     for left_value, right_value in zip(left, right):
@@ -1011,6 +1100,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     train_parser.add_argument("--context-size", type=int, default=16)
     train_parser.add_argument("--embedding-dim", type=int, default=8)
     train_parser.add_argument("--feedforward-dim", type=int, default=16)
+    train_parser.add_argument("--use-layer-norm", action="store_true")
+    train_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     train_parser.add_argument("--seed", type=int, default=17)
     train_parser.add_argument("--eval-every", type=int, default=20)
     train_parser.add_argument("--valid-limit", type=int, default=256)
@@ -1141,6 +1232,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer_parser.add_argument("--context-size", type=int, default=16)
     answer_parser.add_argument("--embedding-dim", type=int, default=8)
     answer_parser.add_argument("--feedforward-dim", type=int, default=16)
+    answer_parser.add_argument("--use-layer-norm", action="store_true")
+    answer_parser.add_argument("--layer-norm-epsilon", type=float, default=1e-5)
     answer_parser.add_argument("--seed", type=int, default=17)
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
@@ -1171,6 +1264,8 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         embedding_dim=args.embedding_dim,
         feedforward_dim=args.feedforward_dim,
         seed=args.seed,
+        use_layer_norm=args.use_layer_norm,
+        layer_norm_epsilon=args.layer_norm_epsilon,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -1222,6 +1317,8 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "context_size": args.context_size,
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
+        "use_layer_norm": args.use_layer_norm,
+        "layer_norm_epsilon": args.layer_norm_epsilon,
         "baseline_valid_nll": baseline["valid_nll"],
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
@@ -2494,6 +2591,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         embedding_dim=args.embedding_dim,
         feedforward_dim=args.feedforward_dim,
         seed=args.seed,
+        use_layer_norm=args.use_layer_norm,
+        layer_norm_epsilon=args.layer_norm_epsilon,
     )
     model = TinyTransformerLM.init_random(config)
     rng = random.Random(args.seed)
@@ -3533,6 +3632,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "context_size": args.context_size,
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
+        "use_layer_norm": args.use_layer_norm,
+        "layer_norm_epsilon": args.layer_norm_epsilon,
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,

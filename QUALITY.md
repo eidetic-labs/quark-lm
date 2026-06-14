@@ -101,6 +101,11 @@ training boundary.
   runtime tradeoffs, exact greedy output, candidate discrimination, direct loss,
   answer NLL, and final failure pattern. Wider random models may improve scored
   likelihood without solving prompt-conditioned greedy answers.
+- Normalization changes must record whether layer normalization was enabled,
+  the epsilon value, context coverage, exact greedy output, candidate
+  discrimination, direct loss, answer NLL, and final failure pattern. A more
+  stable architecture option is not promotable if it merely changes the loop
+  shape while regressing scored answer metrics.
 - Transformer runtime improvements must be behavior-preserving or covered by
   tests, and their measured effect should be documented when they make longer
   self-improvement runs feasible.

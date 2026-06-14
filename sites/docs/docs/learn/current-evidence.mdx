@@ -135,6 +135,10 @@ v0.42 promoted checkpoint.
 - `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80-1500/`
   reached `38/219` candidates, but regressed direct loss, answer NLL, and greedy
   output. It remains archived evidence rather than a promoted release.
+- `runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` tested
+  optional layer normalization with full context coverage. It preserved
+  `37/219` candidates, but answer NLL regressed to `2.5881` and greedy output
+  collapsed into repeated `" y"`/`"e"` loops, so it was not promoted.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned greedy generation instead of only
