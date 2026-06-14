@@ -413,6 +413,21 @@ admission paraphrases at `predicted_unique: 4/14` and admissions at
 repair should stabilize and extend that diversity to QA and heldout rather
 than add another unrelated branch objective.
 
+A target-balanced branch-batch follow-up tested whether repeated first-answer
+tokens in the weighted direct-answer pool were crowding rare branch targets out
+of representation-contrast updates. The new
+`branch-balanced-representation-contrast-unlikelihood` mode builds each branch
+batch from distinct target buckets while preserving the admitted-corpus-only
+training boundary. The matching pre-layer-norm context-80 smoke at
+`runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+passed the branch-context gate and ran `50/50` direct steps, but every trained
+snapshot scored worse than the baseline branch-diversity snapshot. Best-snapshot
+restoration returned to step `0`; the restored final state collapsed all `9/9`
+multi-target profiles to `"n"`, and QA stayed at `predicted_unique: 1/8` with
+target-token coverage `0.125`. This rejects target-balanced branch sampling as
+a standalone repair. The next repair should keep the pre-layer-norm path but
+target the prompt-to-answer binding that keeps QA and heldout moving together.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

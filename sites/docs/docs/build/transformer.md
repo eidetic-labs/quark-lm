@@ -98,6 +98,9 @@ Direct-answer snapshots include `branch_representation_profiles` so runs can
 measure hidden-state pairwise distance before the output head.
 Use `--direct-answer-mode branch-representation-contrast-unlikelihood` to
 penalize nearly identical hidden states for different branch targets.
+Use `--direct-answer-mode branch-balanced-representation-contrast-unlikelihood`
+to build that representation-contrast batch from target buckets so frequent
+first answer tokens cannot crowd out rare branch targets.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
@@ -513,6 +516,30 @@ Latest pre-layer-norm structural smoke:
 | Partial diversity | `7/9` multi-target profiles no longer fully collapsed |
 | Promotion status | partial structural evidence, rejected for promotion |
 
+Latest target-balanced branch-batch smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/` |
+| Mode | `branch-balanced-representation-contrast-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Batch sampler | target-bucket balanced branch batch |
+| Representation contrast weight | `50.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Train loss | final interval `50.6619` |
+| Prompt-position parameters moved | `516/1284`, max absolute value about `0.05881` |
+| Final-norm parameters moved | `8/8`, max absolute value about `1.0013` |
+| Restored best branch snapshot | yes, restored to baseline step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"n"` |
+| Final QA target-token coverage | `0.125` |
+| Final QA different-target hidden distance | restored avg about `0.1261`, max about `0.2476` |
+| Promotion status | rejected sampler evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -584,6 +611,7 @@ Prompt-position projection scaling shows the prompt residual can be made louder
 and the restored hidden-state distance can rise, but the branch prediction
 still collapses globally. The pre-layer-norm/final-normalization path is now
 implemented and screened; it cracks full collapse in most multi-target profiles
-but leaves QA and heldout collapsed, so the next repair should stabilize that
-partial prompt-conditioned diversity rather than moving to another unrelated
-loss term.
+but leaves QA and heldout collapsed. Target-balanced branch batching then
+regresses to a baseline-restored global `"n"` collapse, so the next repair
+should strengthen prompt-to-answer binding for QA and heldout rather than rely
+on sampler balancing or another unrelated loss term.

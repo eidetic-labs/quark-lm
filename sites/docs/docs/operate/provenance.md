@@ -344,4 +344,10 @@ without changing corpus sources. The run moved prompt-position and final-norm
 parameters and cracked full collapse in `7/9` multi-target profiles, but QA and
 heldout remained collapsed and the final diversity target still failed across
 all `9` multi-target eval profiles.
+A target-balanced branch-batch screen followed, still without changing corpus
+sources. The run
+`runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+used target-bucket branch batches, ran all `50` direct steps, and restored the
+final checkpoint to baseline step `0` because trained snapshots scored worse;
+all `9/9` multi-target eval profiles remained collapsed to one global token.
 None of these runs were promoted.

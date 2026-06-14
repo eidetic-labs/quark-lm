@@ -1973,11 +1973,35 @@ Open-source structure audit checkpoint:
 - rejected for promotion: QA and heldout remain fully collapsed, so the formal
   branch-diversity target still blocks promotion-style interpretation
 
-The next improvement target is stabilizing the pre-layer-norm structural gain
-so prompt-conditioned branch diversity reaches QA and heldout instead of only
-partially cracking non-QA profiles, while preserving the `37/219`
-candidate-discrimination gain and v0.42 target-loss gains; then continuing
-admitted-memory batches, completing the Python package/import migration to
-QuarkLM naming, turning more of the deterministic self-diagnosis and repair
-policy into admitted-corpus-trained behavior, and folding the decoder's
+`runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`:
+
+- added `branch-balanced-representation-contrast-unlikelihood`, which builds a
+  branch representation-contrast batch from target buckets so frequent first
+  answer tokens cannot crowd rare targets out of the batch
+- used the same pre-layer-norm, prompt-position projection, frozen output bias,
+  best branch snapshot restoration, context-80 branch-context gate, and
+  `--direct-answer-contrast-weight 50.0` setup as the prior structural screen
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- train loss ended at `50.6619`
+- every trained snapshot scored worse than the baseline branch-diversity
+  snapshot, so best-snapshot restoration returned to step `0`
+- restored final branch-diversity target still failed across all `9`
+  multi-target eval profiles, and all `9/9` profiles were fully collapsed to
+  `"n"`
+- restored QA stayed collapsed with target-token coverage `0.125`,
+  `predicted_unique` `1/8`, and different-target hidden distance average about
+  `0.1261`
+- rejected as sampler evidence: balancing branch target buckets alone does not
+  stabilize the pre-layer-norm partial diversity gain
+
+The next improvement target is strengthening prompt-to-answer binding for QA
+and heldout under the pre-layer-norm path, because target-balanced branch
+sampling regressed to a global `"n"` collapse while the prior pre-layer-norm
+screen partially cracked non-QA profiles. This work should preserve the
+`37/219` candidate-discrimination gain and v0.42 target-loss gains; then
+continue admitted-memory batches, complete the Python package/import migration
+to QuarkLM naming, turn more of the deterministic self-diagnosis and repair
+policy into admitted-corpus-trained behavior, and fold the decoder's
 reliability back into the broader free-form language model.

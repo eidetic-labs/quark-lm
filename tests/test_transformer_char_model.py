@@ -37,7 +37,9 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
     direct_answer_branch_batch,
+    direct_answer_target_balanced_branch_batch,
     direct_answer_branch_diversity_batch,
+    direct_answer_target_balanced_branch_diversity_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     audit_prompt_context_coverage,
@@ -1394,6 +1396,64 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(
             {tokenizer.itos[target] for _context, target in batch},
             {"n", "g", "t"},
+        )
+
+    def test_target_balanced_branch_batch_samples_rare_targets(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        blue = AnswerExample(prompt="q: blue?\na:", target=" blue.", source="qa:color")
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + blue.prompt
+            + blue.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=40,
+            )
+        )
+        skewed_examples = [near for _ in range(20)] + [green, tree, blue]
+
+        batch = direct_answer_target_balanced_branch_batch(
+            model,
+            tokenizer,
+            near,
+            skewed_examples,
+            random.Random(11),
+            branch_position=1,
+            batch_size=4,
+            terminator=ANSWER_TERMINATOR,
+        )
+        diversity_batch = direct_answer_target_balanced_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            skewed_examples,
+            random.Random(11),
+            branch_position=1,
+            batch_size=4,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(len(batch), 4)
+        self.assertEqual(
+            {tokenizer.itos[target] for _context, target in batch},
+            {"n", "g", "t", "b"},
+        )
+        self.assertEqual(
+            {tokenizer.itos[target] for _context, target, _predicted in diversity_batch},
+            {"n", "g", "t", "b"},
         )
 
     def test_branch_diversity_batch_records_current_predictions(self) -> None:
@@ -2754,6 +2814,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-target-margin-unlikelihood",
             "periodic-branch-target-margin-unlikelihood",
             "branch-representation-contrast-unlikelihood",
+            "branch-balanced-representation-contrast-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",

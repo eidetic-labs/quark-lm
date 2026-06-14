@@ -307,6 +307,15 @@ Current transformer answer-lesson run:
   prior all-global-token screens, `7/9` profiles were no longer fully
   collapsed, so the structural path is useful partial evidence but not a
   promotion.
+- `branch-balanced-representation-contrast-unlikelihood` now tests a
+  target-balanced branch batch sampler so repeated first-answer tokens cannot
+  crowd rare branch targets out of a repair batch. The matching pre-layer-norm
+  screen
+  `runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+  ran `50/50` direct steps, but every trained snapshot scored worse than the
+  baseline, so best-snapshot restoration returned to step `0`. The restored
+  final state collapsed all `9/9` multi-target profiles to `"n"` and QA stayed
+  `predicted_unique` `1/8`. Target-balanced sampling alone is rejected.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

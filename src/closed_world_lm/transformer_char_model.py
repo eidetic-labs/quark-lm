@@ -2161,6 +2161,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "branch-target-margin-unlikelihood",
             "periodic-branch-target-margin-unlikelihood",
             "branch-representation-contrast-unlikelihood",
+            "branch-balanced-representation-contrast-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
@@ -3219,6 +3220,55 @@ def direct_answer_branch_batch(
     return branches
 
 
+def direct_answer_target_balanced_branch_batch(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[tuple[list[int], int]]:
+    branch = direct_answer_branch_context(
+        model,
+        tokenizer,
+        example,
+        branch_position,
+        terminator,
+    )
+    if branch is None:
+        return []
+    context, target_id, _position = branch
+    branches = [(context, target_id)]
+    by_target: dict[int, list[tuple[list[int], int]]] = {}
+    candidates = branch_examples[:]
+    rng.shuffle(candidates)
+    for candidate in candidates:
+        candidate_branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            candidate,
+            branch_position,
+            terminator,
+        )
+        if candidate_branch is None:
+            continue
+        candidate_context, candidate_target, _candidate_position = candidate_branch
+        if candidate_target == target_id:
+            continue
+        by_target.setdefault(candidate_target, []).append(
+            (candidate_context, candidate_target)
+        )
+    target_ids = list(by_target)
+    rng.shuffle(target_ids)
+    for candidate_target in target_ids:
+        if len(branches) >= max(1, batch_size):
+            break
+        branches.append(rng.choice(by_target[candidate_target]))
+    return branches
+
+
 def direct_answer_branch_diversity_batch(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -3230,6 +3280,34 @@ def direct_answer_branch_diversity_batch(
     terminator: str = ANSWER_TERMINATOR,
 ) -> list[tuple[list[int], int, int]]:
     branches = direct_answer_branch_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    diversity_branches: list[tuple[list[int], int, int]] = []
+    for context, target_id in branches:
+        probs = model.predict(context)
+        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        diversity_branches.append((context, target_id, predicted_id))
+    return diversity_branches
+
+
+def direct_answer_target_balanced_branch_diversity_batch(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    rng: random.Random,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+) -> list[tuple[list[int], int, int]]:
+    branches = direct_answer_target_balanced_branch_batch(
         model,
         tokenizer,
         example,
@@ -3843,8 +3921,14 @@ def train_direct_answer_branch_representation_contrast_unlikelihood(
     batch_size: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    balance_targets: bool = False,
 ) -> float:
-    branches = direct_answer_branch_diversity_batch(
+    batch_builder = (
+        direct_answer_target_balanced_branch_diversity_batch
+        if balance_targets
+        else direct_answer_branch_diversity_batch
+    )
+    branches = batch_builder(
         model,
         tokenizer,
         example,
@@ -5676,6 +5760,24 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_branch_batch_size,
                     direct_answer_terminator,
                     direct_params,
+                )
+            elif args.direct_answer_mode == "branch-balanced-representation-contrast-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_representation_contrast_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
                 )
             elif args.direct_answer_mode == "periodic-branch-representation-contrast-unlikelihood":
                 rollout_interval = max(1, args.direct_answer_rollout_interval)

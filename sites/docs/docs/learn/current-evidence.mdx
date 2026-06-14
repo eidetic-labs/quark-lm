@@ -112,6 +112,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest pre-layer-norm run</td><td><code>{state.transformerLatestPreLayerNormRun}</code></td></tr>
     <tr><td>Pre-layer-norm mode</td><td><code>{state.transformerPreLayerNormMode}</code></td></tr>
     <tr><td>Pre-layer-norm status</td><td><code>{state.transformerPreLayerNormStatus}</code></td></tr>
+    <tr><td>Latest target-balanced run</td><td><code>{state.transformerLatestTargetBalancedRun}</code></td></tr>
+    <tr><td>Target-balanced mode</td><td><code>{state.transformerTargetBalancedMode}</code></td></tr>
+    <tr><td>Target-balanced status</td><td><code>{state.transformerTargetBalancedStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -410,12 +413,19 @@ v0.42 promoted checkpoint.
   `7/9` multi-target profiles. The formal diversity target still failed
   `0/9`, and QA stayed collapsed to all `"y"` with target-token coverage
   `0.125`.
+- `runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
+  added target-bucket branch batch sampling through
+  `branch-balanced-representation-contrast-unlikelihood`. The screen ran
+  `50/50` direct steps, but best-snapshot restoration returned to step `0`
+  because every trained snapshot scored worse than baseline. All `9/9`
+  multi-target profiles collapsed to `"n"`, so target balancing is rejected as
+  a standalone repair.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should now stabilize the pre-layer-norm partial-diversity gain so QA and
-heldout stop collapsing. The repair must improve prompt-conditioned branch
-diversity instead of only making more prompt text visible, raising hidden
-distance, or lowering branch loss.
+but it should now strengthen prompt-to-answer binding for QA and heldout under
+the pre-layer-norm path. The repair must improve prompt-conditioned branch
+diversity instead of only making more prompt text visible, balancing branch
+targets, raising hidden distance, or lowering branch loss.
 
 The v0.42 self-improvement run passed:
 

@@ -144,6 +144,11 @@ training boundary.
   loss, branch profile before/after, and whether distinct target branches
   become prompt-specific. A batch objective that lowers loss while preserving
   or worsening a global branch token is rejected repair evidence.
+- Target-balanced branch batch runs must record that target-bucket sampling was
+  used, whether best-snapshot restoration returned to a trained step or the
+  baseline, and final per-profile branch diversity. Proving that rare targets
+  entered a batch is diagnostic only; if final profiles collapse to one global
+  token, target balancing is rejected as a standalone repair.
 - Representation-side transformer options, such as context-mean pooling,
   context projection, prompt-prefix projection, prompt-position projection, or
   prompt-attention summaries, must record the option flag, affected training
