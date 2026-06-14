@@ -4329,6 +4329,36 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
     )
 
 
+def branch_diversity_snapshot_target_coverage_by_profile(
+    snapshot: dict[str, Any],
+) -> dict[str, float]:
+    coverage_by_profile: dict[str, float] = {}
+    branch_profiles = snapshot.get("branch_profiles", {})
+    for name, profile in branch_profiles.items():
+        diversity = profile.get("diversity", {})
+        target_unique = int(diversity.get("target_unique", 0))
+        if target_unique < 2:
+            continue
+        coverage_by_profile[name] = float(
+            diversity.get("target_token_coverage", 0.0)
+        )
+    return coverage_by_profile
+
+
+def branch_diversity_snapshot_preserves_target_coverage(
+    snapshot: dict[str, Any],
+    baseline: dict[str, Any],
+) -> bool:
+    baseline_coverage = branch_diversity_snapshot_target_coverage_by_profile(baseline)
+    if not baseline_coverage:
+        return True
+    snapshot_coverage = branch_diversity_snapshot_target_coverage_by_profile(snapshot)
+    for name, baseline_value in baseline_coverage.items():
+        if snapshot_coverage.get(name, -1.0) + 1e-12 < baseline_value:
+            return False
+    return True
+
+
 def train_direct_answer_lesson(
     model: TinyTransformerLM,
     lesson: DirectAnswerLesson,
@@ -7018,6 +7048,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     branch_context_coverage
                 ),
             }
+            record["branch_target_coverage_by_profile"] = (
+                branch_diversity_snapshot_target_coverage_by_profile(record)
+            )
             if extra is not None:
                 record.update(extra)
             with direct_history_path.open("a", encoding="utf-8") as handle:
@@ -7036,6 +7069,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             nonlocal best_direct_model_payload
             nonlocal best_direct_optimizer_payload
             score = branch_diversity_snapshot_score(snapshot)
+            if not branch_diversity_snapshot_preserves_target_coverage(
+                snapshot,
+                direct_baseline,
+            ):
+                return
             if score > best_direct_snapshot_score:
                 best_direct_snapshot_step = int(snapshot["step"])
                 best_direct_snapshot_score = score
@@ -8502,6 +8540,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
             "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),
+            "direct_answer_branch_snapshot_coverage_floor": (
+                branch_diversity_snapshot_target_coverage_by_profile(direct_baseline)
+            ),
             "direct_answer_require_branch_context_gate": (
                 args.direct_answer_require_branch_context_gate
             ),

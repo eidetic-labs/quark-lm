@@ -490,6 +490,21 @@ Current transformer answer-lesson run:
   hit `0.0` during training. This rejects context-owned replay coverage as
   implemented; the next repair needs stronger target-preserving ownership or
   snapshot scoring that refuses rank gains when coverage collapses.
+- v0.60 adds that coverage-preserving snapshot guard. Best branch snapshot
+  selection now requires every multi-target profile to preserve its baseline
+  target-token coverage before rank/top-k gains can win, and direct-answer
+  JSONL snapshots write `branch_target_coverage_by_profile` for auditability.
+  The focused transformer test covers a rank-lifted candidate that regresses
+  QA coverage and is rejected by the profile-wise floor. The clean full-stack
+  screen
+  `runs/transformer-answer-v0.60-fullstack-context-replay-coverage-floor-metadata-smoke-dim4-context80/`
+  completed `50/50` direct steps, restored step `0`, and kept the baseline
+  coverage floor visible in the metrics (`qa` `0.25`, `heldout` `0.25`,
+  `admissions` `0.1429`, minimum profile `0.0714`). Training still improved
+  QA rank/top-k mid-run, but those snapshots were not eligible because coverage
+  regressed. This accepts the gate repair while rejecting the model behavior;
+  the next repair should make the objective preserve coverage rather than only
+  relying on restore.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

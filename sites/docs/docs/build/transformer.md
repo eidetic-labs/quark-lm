@@ -152,9 +152,11 @@ each sampled replay branch context to own its own target within the replay
 target set. Use
 `--direct-answer-mode branch-balanced-context-replay-coverage-unlikelihood` for
 the same objective with target-balanced sampled branch and replay batches.
-Best branch snapshot scoring uses target-rank/top-k evidence before generic
-wrong-token diversity, so restore prefers snapshots that move correct targets
-upward instead of merely changing the dominant wrong token.
+Best branch snapshot scoring first enforces a profile-wise target-token
+coverage floor against the baseline snapshot. Eligible snapshots then use
+target-rank/top-k evidence before generic wrong-token diversity, so restore
+prefers snapshots that move correct targets upward without trading away
+coverage.
 v0.51 adds opt-in foundation-stack controls before the next repair objective:
 `--optimizer adamw`, `--gradient-accumulation-steps`, warmup/decay schedule
 flags, `--resume-checkpoint`, `--resume-optimizer`, `--attention-heads`,
@@ -936,6 +938,35 @@ Latest full-stack context-replay coverage branch repair smoke:
 | Final heldout target-token coverage | `0.25` |
 | Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
 | Promotion status | rejected; context-owned replay improves rank/top-k snapshots but still does not preserve target-token coverage |
+
+Latest full-stack coverage-floor branch restore smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.60-fullstack-context-replay-coverage-floor-metadata-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-replay-coverage-unlikelihood` |
+| Scoring guard | profile-wise target-token coverage floor before rank/top-k scoring |
+| Snapshot metadata | direct-answer JSONL rows include `branch_target_coverage_by_profile` |
+| Foundation stack | AdamW, gradient accumulation, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Positive target CE | `0.0` |
+| Hard wrong tokens | `5` |
+| Unit coverage | focused transformer tests pass, including profile-wise coverage-floor regression |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Baseline coverage floor | `qa` `0.25`, `heldout` `0.25`, `admissions` `0.1429`, minimum profile `0.0714` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA dominant prediction | wrong `"i"` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Final QA top-3/top-5 target coverage | `0.25` / `0.375` |
+| Training snapshot note | step `40` improved QA average target rank to `7.375`, top-3 to `0.375`, and top-5 to `0.5`, but regressed profile coverage and was ineligible for restore |
+| Final heldout average target rank | `13.375` |
+| Final heldout target-token coverage | `0.25` |
+| Final heldout top-3/top-5 target coverage | `0.25` / `0.375` |
+| Promotion status | gate repair accepted; trained model behavior rejected because coverage still collapses during training |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted

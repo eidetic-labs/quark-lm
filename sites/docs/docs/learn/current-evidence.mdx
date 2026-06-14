@@ -199,6 +199,13 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Context-replay coverage heldout</td><td><code>{state.transformerContextReplayCoverageHeldout}</code></td></tr>
     <tr><td>Context-replay coverage history</td><td><code>{state.transformerContextReplayCoverageHistory}</code></td></tr>
     <tr><td>Context-replay coverage status</td><td><code>{state.transformerContextReplayCoverageStatus}</code></td></tr>
+    <tr><td>Latest coverage-floor run</td><td><code>{state.transformerLatestCoverageFloorRun}</code></td></tr>
+    <tr><td>Coverage-floor mode</td><td><code>{state.transformerCoverageFloorMode}</code></td></tr>
+    <tr><td>Coverage-floor unit test</td><td><code>{state.transformerCoverageFloorUnitTest}</code></td></tr>
+    <tr><td>Coverage-floor QA</td><td><code>{state.transformerCoverageFloorQa}</code></td></tr>
+    <tr><td>Coverage-floor heldout</td><td><code>{state.transformerCoverageFloorHeldout}</code></td></tr>
+    <tr><td>Coverage-floor history</td><td><code>{state.transformerCoverageFloorHistory}</code></td></tr>
+    <tr><td>Coverage-floor status</td><td><code>{state.transformerCoverageFloorStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -625,13 +632,24 @@ v0.42 promoted checkpoint.
   `0.5`, and admissions top-5 to `0.5208` by step `50`, but target-token
   coverage still hit `0.0` during training and the diversity target failed
   `0/9`. This rejects context-owned replay coverage as implemented.
+- `runs/transformer-answer-v0.60-fullstack-context-replay-coverage-floor-metadata-smoke-dim4-context80/`
+  adds a profile-wise target-token coverage floor to branch snapshot selection:
+  rank/top-k gains are eligible only when every multi-target profile preserves
+  its baseline coverage. Direct-answer JSONL snapshots now write
+  `branch_target_coverage_by_profile`, and the focused transformer test rejects
+  a rank-lifted candidate that regresses QA coverage. The clean full-stack
+  screen completed `50/50` direct steps, wrote `7` JSONL rows, and restored from
+  step `0`: the baseline coverage floor remained visible in the final row
+  (`qa` `0.25`, `heldout` `0.25`, `admissions` `0.1429`, minimum profile
+  `0.0714`). This accepts the self-improvement gate repair while still
+  rejecting the trained model behavior.
 
 The next transformer repair should use the context-coverage audit as a gate,
-but it should strengthen target-preserving ownership or snapshot scoring before
-sharpening exact target selection. The repair must improve prompt-conditioned
-branch diversity instead of only making more prompt text visible, balancing
-branch targets, raising hidden distance, lowering branch loss, or trading
-coverage away for rank.
+but it should make the objective preserve target-token coverage under training
+before sharpening exact target selection. The repair must improve
+prompt-conditioned branch diversity instead of only making more prompt text
+visible, balancing branch targets, raising hidden distance, lowering branch
+loss, or relying on restore to undo coverage regression.
 
 The v0.42 self-improvement run passed:
 

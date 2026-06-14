@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.60
+
+- Added profile-wise branch coverage floor and rejected full-stack evidence.
+
 ## v0.59
 
 - Added context-owned replay branch repair and rejected full-stack evidence.

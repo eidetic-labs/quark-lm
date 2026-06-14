@@ -257,6 +257,23 @@ The next repair should either strengthen target-preserving ownership directly
 or make snapshot scoring reject rank/top-k gains whenever target-token coverage
 regresses.
 
+`runs/transformer-answer-v0.60-fullstack-context-replay-coverage-floor-metadata-smoke-dim4-context80/`
+implements the scoring side of that repair. Best branch snapshot selection now
+has a profile-wise target-token coverage floor: every multi-target profile must
+preserve its baseline coverage before rank/top-k improvements can promote a
+trained snapshot. Direct-answer JSONL snapshots also record
+`branch_target_coverage_by_profile`, making the floor auditable in run
+artifacts. The focused tests pass, including a regression that rejects a
+rank-lifted candidate when QA target-token coverage drops below baseline. The
+full-stack screen completed `50/50` direct steps, wrote `7` clean direct-answer
+JSONL rows, and restored step `0`. The baseline coverage floor was preserved
+in the final row (`qa` `0.25`, `heldout` `0.25`, `admissions` `0.1429`,
+minimum profile `0.0714`), while step `40` still improved QA average target
+rank to `7.375` and top-5 to `0.5` only by regressing profile coverage. This
+accepts the self-improvement gate repair but rejects the trained model
+behavior; the next repair should make the objective preserve target-token
+coverage under training.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test
