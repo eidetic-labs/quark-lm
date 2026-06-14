@@ -1222,6 +1222,63 @@ class TinyTransformerLM:
             parameter.data -= learning_rate * clipped_grad
         return loss.data
 
+    def train_step_with_branch_output_binding(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        binding_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        branch_target_offsets = {
+            target: offset for offset, target in enumerate(branch_targets)
+        }
+        branch_loss = Scalar(0.0)
+        hidden_by_target: list[tuple[list[Scalar], int]] = []
+        for context, target, predicted in branches:
+            hidden = self._final_hidden_scalars(context)
+            logits = linear_scalars(hidden, self.wout, self.bout)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                branch_loss = branch_loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                branch_loss = branch_loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            if binding_weight > 0.0 and len(branch_targets) > 1:
+                target_logits = [logits[branch_target] for branch_target in branch_targets]
+                target_probs = softmax_scalars(target_logits)
+                branch_loss = branch_loss + (
+                    -target_probs[branch_target_offsets[target]].log()
+                ) * binding_weight
+            hidden_by_target.append((hidden, target))
+        loss = branch_loss / max(len(branches), 1)
+        if binding_weight > 0.0:
+            contrast_loss = Scalar(0.0)
+            contrast_pairs = 0
+            for left_index, (left_hidden, left_target) in enumerate(hidden_by_target):
+                for right_hidden, right_target in hidden_by_target[left_index + 1:]:
+                    if left_target == right_target:
+                        continue
+                    distance_sq = Scalar(0.0)
+                    for left_value, right_value in zip(left_hidden, right_hidden):
+                        delta = left_value - right_value
+                        distance_sq = distance_sq + delta * delta
+                    distance_sq = distance_sq / max(self.config.embedding_dim, 1)
+                    contrast_loss = contrast_loss + (-distance_sq).exp()
+                    contrast_pairs += 1
+            if contrast_pairs:
+                loss = loss + (contrast_loss / contrast_pairs) * binding_weight
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
     def generate(
         self,
         tokenizer: CharTokenizer,
@@ -2162,6 +2219,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-target-margin-unlikelihood",
             "branch-representation-contrast-unlikelihood",
             "branch-balanced-representation-contrast-unlikelihood",
+            "branch-output-binding-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
@@ -2809,10 +2867,12 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
     multi_target_diversities = []
     for profile in branch_profiles.values():
         diversity = profile.get("diversity", {})
+        target_rank = profile.get("target_rank", {})
         target_unique = int(diversity.get("target_unique", 0))
         if target_unique < 2:
             continue
         predicted_unique = int(diversity.get("predicted_unique", 0))
+        avg_target_rank = float(target_rank.get("avg", 0.0))
         multi_target_diversities.append(
             {
                 "predicted_unique_rate": predicted_unique / target_unique,
@@ -2821,6 +2881,11 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
                 ),
                 "inverse_dominant_rate": 1.0
                 - float(diversity.get("dominant_predicted_rate", 0.0)),
+                "target_top3_rate": float(target_rank.get("top3_rate", 0.0)),
+                "target_top5_rate": float(target_rank.get("top5_rate", 0.0)),
+                "inverse_target_rank": (
+                    1.0 / avg_target_rank if avg_target_rank > 0.0 else 0.0
+                ),
             }
         )
     profile_count = max(len(multi_target_diversities), 1)
@@ -2836,12 +2901,27 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
         sum(item["inverse_dominant_rate"] for item in multi_target_diversities)
         / profile_count
     )
+    avg_target_top3_rate = (
+        sum(item["target_top3_rate"] for item in multi_target_diversities)
+        / profile_count
+    )
+    avg_target_top5_rate = (
+        sum(item["target_top5_rate"] for item in multi_target_diversities)
+        / profile_count
+    )
+    avg_inverse_target_rank = (
+        sum(item["inverse_target_rank"] for item in multi_target_diversities)
+        / profile_count
+    )
     return (
         1.0 if summary.get("passed", False) else 0.0,
         float(summary.get("passed_profiles", 0)),
         -float(summary.get("failed_profiles", 0)),
         float(summary.get("min_target_token_coverage", 0.0)),
         avg_target_token_coverage,
+        avg_target_top3_rate,
+        avg_target_top5_rate,
+        avg_inverse_target_rank,
         avg_predicted_unique_rate,
         avg_inverse_dominant_rate,
     )
@@ -3980,6 +4060,50 @@ def train_direct_answer_branch_representation_contrast_unlikelihood(
         negative_weight,
         positive_weight,
         representation_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_output_binding_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    binding_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_output_binding(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        binding_weight,
         params=params,
     )
 
@@ -5806,6 +5930,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_answer_terminator,
                     direct_params,
                     balance_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-output-binding-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_output_binding_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
                 )
             elif args.direct_answer_mode == "periodic-branch-representation-contrast-unlikelihood":
                 rollout_interval = max(1, args.direct_answer_rollout_interval)

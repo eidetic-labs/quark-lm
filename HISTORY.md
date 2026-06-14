@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.46
+
+- Added branch-output binding and rank-aware branch snapshot scoring.
+
 ## v0.45
 
 - Added branch-target rank diagnostics to direct-answer branch profiles.

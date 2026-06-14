@@ -68,6 +68,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_target_softmax_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_representation_contrast_unlikelihood,
+    train_direct_answer_branch_output_binding_unlikelihood,
     train_direct_answer_branch_contrast_unlikelihood,
     train_direct_answer_branch_span_repair_unlikelihood,
     train_direct_answer_branch_span_contrast_unlikelihood,
@@ -1159,6 +1160,112 @@ class TransformerCharModelTest(unittest.TestCase):
             branch_diversity_snapshot_score(collapsed),
         )
 
+    def test_branch_diversity_snapshot_score_uses_target_rank_tiebreaker(self) -> None:
+        buried = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 1.0,
+                    },
+                    "target_rank": {
+                        "avg": 20.0,
+                        "top3_rate": 0.0,
+                        "top5_rate": 0.0,
+                    },
+                }
+            },
+        }
+        lifted = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 1.0,
+                    },
+                    "target_rank": {
+                        "avg": 8.0,
+                        "top3_rate": 0.25,
+                        "top5_rate": 0.5,
+                    },
+                }
+            },
+        }
+
+        self.assertGreater(
+            branch_diversity_snapshot_score(lifted),
+            branch_diversity_snapshot_score(buried),
+        )
+
+    def test_branch_diversity_snapshot_score_prefers_rank_over_wrong_diversity(self) -> None:
+        wrong_diverse = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 2,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 0.75,
+                    },
+                    "target_rank": {
+                        "avg": 14.0,
+                        "top3_rate": 0.0,
+                        "top5_rate": 0.25,
+                    },
+                }
+            },
+        }
+        rank_lifted = {
+            "branch_diversity_target": {
+                "passed": False,
+                "passed_profiles": 0,
+                "failed_profiles": 1,
+                "min_target_token_coverage": 0.0,
+            },
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.0,
+                        "dominant_predicted_rate": 1.0,
+                    },
+                    "target_rank": {
+                        "avg": 12.0,
+                        "top3_rate": 0.25,
+                        "top5_rate": 0.25,
+                    },
+                }
+            },
+        }
+
+        self.assertGreater(
+            branch_diversity_snapshot_score(rank_lifted),
+            branch_diversity_snapshot_score(wrong_diverse),
+        )
+
     def test_branch_context_coverage_marks_truncated_semantic_branch(self) -> None:
         record = {
             "id": "place",
@@ -1985,6 +2092,96 @@ class TransformerCharModelTest(unittest.TestCase):
 
         after = average_hidden_distance()
         self.assertGreater(after, before)
+
+    def test_branch_output_binding_improves_rank_and_hidden_distance(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=49,
+            )
+        )
+        model.bout[tokenizer.stoi["."]].data = 5.0
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+        branch_targets = sorted({target for _context, target, _predicted in batch})
+
+        def restricted_target_probability() -> float:
+            total = 0.0
+            for context, target, _predicted in batch:
+                probs = model.predict(context)
+                denominator = sum(probs[branch_target] for branch_target in branch_targets)
+                total += probs[target] / denominator
+            return total
+
+        def average_hidden_distance() -> float:
+            distances = []
+            for left_index, (left_context, left_target, _left_predicted) in enumerate(batch):
+                left_hidden = model.final_hidden(left_context)
+                for right_context, right_target, _right_predicted in batch[left_index + 1:]:
+                    if left_target == right_target:
+                        continue
+                    right_hidden = model.final_hidden(right_context)
+                    distances.append(
+                        sum(
+                            (left_value - right_value) ** 2
+                            for left_value, right_value in zip(left_hidden, right_hidden)
+                        )
+                    )
+            return sum(distances) / len(distances)
+
+        before_probability = restricted_target_probability()
+        before_distance = average_hidden_distance()
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_output_binding_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.03,
+                negative_weight=1.0,
+                positive_weight=1.0,
+                binding_weight=2.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        self.assertGreater(restricted_target_probability(), before_probability)
+        self.assertGreater(average_hidden_distance(), before_distance)
 
     def test_direct_answer_unlikelihood_penalizes_self_predicted_error(self) -> None:
         example = AnswerExample(prompt="q:\na:", target=" a.", source="qa:color")
@@ -2823,6 +3020,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-target-margin-unlikelihood",
             "branch-representation-contrast-unlikelihood",
             "branch-balanced-representation-contrast-unlikelihood",
+            "branch-output-binding-unlikelihood",
             "periodic-branch-representation-contrast-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",

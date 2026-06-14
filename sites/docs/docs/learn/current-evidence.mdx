@@ -120,6 +120,11 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Branch-rank QA</td><td><code>{state.transformerBranchRankQa}</code></td></tr>
     <tr><td>Branch-rank heldout</td><td><code>{state.transformerBranchRankHeldout}</code></td></tr>
     <tr><td>Branch-rank status</td><td><code>{state.transformerBranchRankStatus}</code></td></tr>
+    <tr><td>Latest output-binding run</td><td><code>{state.transformerLatestOutputBindingRun}</code></td></tr>
+    <tr><td>Output-binding mode</td><td><code>{state.transformerOutputBindingMode}</code></td></tr>
+    <tr><td>Output-binding QA</td><td><code>{state.transformerOutputBindingQa}</code></td></tr>
+    <tr><td>Output-binding heldout</td><td><code>{state.transformerOutputBindingHeldout}</code></td></tr>
+    <tr><td>Output-binding status</td><td><code>{state.transformerOutputBindingStatus}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -432,6 +437,14 @@ v0.42 promoted checkpoint.
   coverage `0.125`. The correct branch target is usually buried behind several
   global alternatives, so this is output-binding evidence rather than a near-
   miss rank problem.
+- `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
+  adds `branch-output-binding-unlikelihood`, combining branch target softmax
+  with representation contrast, and makes best-snapshot scoring rank-aware. It
+  ran `20/20` direct steps with output bias frozen. QA average target rank
+  improved `17.375 -> 14.125`, and QA/heldout top-5 coverage reached `0.25`.
+  Target-token coverage stayed `0.0`, top-3 coverage ended `0.0`, and the
+  branch prediction still collapsed to wrong tokens, so the repair is rejected
+  for promotion.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it should now strengthen prompt-to-answer binding for QA and heldout under

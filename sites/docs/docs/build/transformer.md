@@ -104,6 +104,12 @@ first answer tokens cannot crowd out rare branch targets.
 Direct-answer branch profiles also include target-rank diagnostics: average
 target rank, top-3/top-5 target coverage, and the top predicted alternatives on
 failed branch records.
+Use `--direct-answer-mode branch-output-binding-unlikelihood` to combine
+restricted branch-target softmax with branch representation contrast in the
+same update.
+Best branch snapshot scoring uses target-rank/top-k evidence before generic
+wrong-token diversity, so restore prefers snapshots that move correct targets
+upward instead of merely changing the dominant wrong token.
 Use `STRUCTURE_AUDIT.md` before adding the next transformer repair objective:
 QuarkLM may study open-source model/trainer/tokenizer/checkpoint structure, but
 must not import external weights, tokenizers, embeddings, datasets, or training
@@ -562,6 +568,29 @@ Latest branch-rank diagnostic smoke:
 | Final heldout top-3/top-5 target coverage | `0.125` / `0.125` |
 | Promotion status | diagnostic evidence only |
 
+Latest output-binding repair smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/` |
+| Mode | `branch-output-binding-unlikelihood` |
+| Architecture option | `--use-pre-layer-norm` |
+| Representation option | `--use-prompt-position-projection` |
+| Binding weight | `2.0` |
+| Stabilizers | `--direct-answer-freeze-output-bias`, rank-aware `--direct-answer-restore-best-branch-snapshot` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `20/20` |
+| Train loss | `8.7064 -> 8.2205` |
+| Restored best branch snapshot | no; step `20` was best by aggregate rank-aware score |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `2` |
+| Final QA dominant predictions | wrong `"l"`/`"j"` branch tokens |
+| Final QA average target rank | `17.375 -> 14.125` |
+| Final QA top-3/top-5 target coverage | `0.125 -> 0.0` / `0.125 -> 0.25` |
+| Final heldout average target rank | `17.25 -> 14.375` |
+| Final heldout top-3/top-5 target coverage | `0.125 -> 0.0` / `0.125 -> 0.25` |
+| Promotion status | rejected output-binding evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -639,4 +668,9 @@ should strengthen prompt-to-answer binding for QA and heldout rather than rely
 on sampler balancing or another unrelated loss term. The branch-rank diagnostic
 confirms the correct target is usually buried outside the top five predictions,
 which points the next repair toward output-head prompt binding instead of a
-simple near-miss margin tweak.
+simple near-miss margin tweak. The first output-binding repair combines that
+target-set pressure with representation contrast and improves average target
+rank/top-5 evidence, but it still fails target-token coverage and collapses to
+wrong branch tokens. The next repair needs to promote the correct target into
+the top branch set, not only move it upward while the wrong tokens remain on
+top.

@@ -87,6 +87,15 @@ pre-layer-norm prompt-position path, QA and heldout both still collapse to
 next repair should improve prompt-to-answer output binding rather than only
 balance branch sampling.
 
+`runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
+tests that repair direction with `branch-output-binding-unlikelihood` and
+rank-aware best-snapshot scoring. The run completed `20/20` direct steps with
+output bias frozen. QA average target rank improved from `17.375` to `14.125`
+and QA/heldout top-5 coverage reached `0.25`, but target-token coverage stayed
+`0.0`, top-3 coverage ended `0.0`, and both profiles still collapsed to wrong
+branch tokens. The repair is rejected for promotion, while rank-aware restore
+remains a useful guardrail.
+
 Unpromoted v0.43 work added three pieces of transformer-loop evidence without
 changing the promoted checkpoint. The forward pass now computes only the final
 position consumed by the language-model head, cutting the transformer unit-test

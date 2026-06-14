@@ -325,6 +325,16 @@ Current transformer answer-lesson run:
   `0.125`. This shows the correct target is usually buried, not merely a
   near-miss behind the dominant token, so the next repair should target
   prompt-to-answer binding through the output head.
+- `branch-output-binding-unlikelihood` combines branch target softmax with
+  representation contrast in one direct-answer update, and best branch snapshot
+  scoring now uses target-rank/top-k evidence before generic wrong-token
+  diversity. The bounded v0.46 screen
+  `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
+  ran `20/20` direct steps with output bias frozen. It improved QA average
+  target rank from `17.375` to `14.125` and raised QA/heldout top-5 coverage to
+  `0.25`, but target-token coverage stayed `0.0`, top-3 coverage ended `0.0`,
+  and both profiles still collapsed to wrong `"l"`/`"j"` predictions. This is
+  rejected repair evidence, with rank-aware restore kept as a guardrail.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
