@@ -229,10 +229,12 @@ replay, evaluation, and artifact boundaries before adding more objective modes.
 - `transformer_char_model.py` is a 9,494-line monolith. It is difficult to
   reason about new training modes because model, recipe, replay, eval,
   checkpoint, and CLI behavior are interleaved.
-- There is no experiment registry that records hypothesis, acceptance
-  criteria, planned artifacts, and promotion decision before training begins.
-- Replay planning is still embedded in transformer objective plumbing instead
-  of being a reusable, pre-training artifact.
+- v0.71 now records hypothesis, acceptance criteria, planned artifacts, and
+  promotion decision before training begins.
+- v0.72 now extracts replay planning from transformer objective plumbing into a
+  reusable artifact module.
+- v0.73 now writes corpus hygiene and training-plan artifacts for the current
+  self-improvement and transformer run paths.
 - Candidate lessons and probes do not yet have a quarantine lane.
 - There is no closed-world verifier interface that can accept, reject, and
   explain candidate training material before it reaches the corpus.
@@ -409,9 +411,11 @@ target summaries now live outside the transformer monolith.
 
 ### v0.73
 
-Add corpus hygiene and training-plan artifacts for self-improvement and
-transformer paths: mixture, duplicates, train/eval overlap, candidate ratios,
-and rare-profile coverage.
+Implemented corpus hygiene and training-plan artifacts in
+`src/closed_world_lm/corpus_hygiene.py`. Self-improvement and transformer
+answer-training runs now write source mixture, duplicate, train/eval overlap,
+candidate-ratio, rare-profile coverage, allowed-data, planned-artifact, and
+replay-plan summary evidence.
 
 ### v0.74
 

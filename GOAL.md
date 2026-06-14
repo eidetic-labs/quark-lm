@@ -93,9 +93,10 @@ provenance, and the goal framework itself.
     open-source mechanics, and QuarkLM's current codebase.
 19. Follow the v0.70 implementation sequence before adding more direct-answer
     objective modes. v0.71 implements the experiment registry and run-intent
-    artifacts; v0.72 extracts replay planning into a standalone module. The
-    remaining sequence is corpus hygiene, candidate quarantine, deterministic
-    verifier checks, recipe boundaries, and constraint-first promotion gates.
+    artifacts; v0.72 extracts replay planning into a standalone module; v0.73
+    adds corpus hygiene and training-plan artifacts. The remaining sequence is
+    candidate quarantine, deterministic verifier checks, recipe boundaries, and
+    constraint-first promotion gates.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
@@ -104,6 +105,11 @@ provenance, and the goal framework itself.
     records, profile grouping, coverage floors, and missing-target summaries
     should stay outside objective-specific transformer code so later corpus and
     recipe gates can inspect them directly.
+22. Treat corpus hygiene and training plans as required run evidence:
+    self-improvement and transformer screens should report source mixtures,
+    duplicate pressure, train/eval prompt overlap, candidate ratios,
+    rare-profile coverage, allowed data sources, and planned artifacts before
+    their metrics influence later versions.
 
 ## Weight Update Policy
 

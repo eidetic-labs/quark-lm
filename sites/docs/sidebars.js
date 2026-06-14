@@ -37,6 +37,7 @@ const sidebars = {
       items: [
         'operate/release-discipline',
         'operate/experiment-registry',
+        'operate/corpus-hygiene',
         'operate/provenance',
         'operate/docs-drift',
       ],

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.73
+
+- Added corpus hygiene and training-plan artifacts.
+
 ## v0.72
 
 - Extracted replay planning into a standalone module.

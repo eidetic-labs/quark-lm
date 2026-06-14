@@ -71,6 +71,12 @@ From v0.72 onward, profile-aware replay planning lives in
 record normalization, profile grouping, coverage floors, and missing-target
 summaries are now standalone training-planning mechanics.
 
+From v0.73 onward, `answer-train` also writes `corpus_hygiene.json` and
+`training_plan.json`. These artifacts record source mixture, duplicate checks,
+train/eval prompt overlap, candidate ratio, rare-profile coverage, allowed data
+sources, planned artifacts, and replay-plan summaries when profile-aware replay
+writes a plan.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

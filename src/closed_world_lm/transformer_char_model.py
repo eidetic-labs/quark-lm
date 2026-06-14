@@ -30,6 +30,12 @@ from .answer_model import (
     write_lessons,
 )
 from .curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
+from .corpus_hygiene import (
+    attach_replay_plan_summary,
+    build_corpus_hygiene_report,
+    build_training_plan,
+    write_json_artifact,
+)
 from .experiment_registry import (
     ExperimentIntent,
     record_experiment_decision,
@@ -3430,6 +3436,8 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         str(args.run / "transformer_answer.json"),
         str(args.run / "optimizer_state.json"),
         str(args.run / "tokenizer.json"),
+        str(args.run / "corpus_hygiene.json"),
+        str(args.run / "training_plan.json"),
         str(args.run / "transformer_answer_metrics.json"),
         str(args.run / "transformer_answer_metrics.jsonl"),
         str(args.run / "transformer_answer_lessons.jsonl"),
@@ -3438,7 +3446,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
     if direct_profile_aware:
         planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.71"),
+        version=getattr(args, "experiment_version", "v0.73"),
         run_id=args.run.name,
         component="transformer-answer-train",
         hypothesis=hypothesis,
@@ -3937,7 +3945,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
-    answer_parser.add_argument("--experiment-version", default="v0.71")
+    answer_parser.add_argument("--experiment-version", default="v0.73")
     answer_parser.add_argument("--experiment-hypothesis", default=None)
     answer_parser.add_argument(
         "--experiment-acceptance-gate",
@@ -7390,6 +7398,42 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     experiment_path = args.run / "experiment_intent.json"
     experiment_intent = transformer_experiment_intent(args)
     write_experiment_intent(experiment_path, experiment_intent)
+    hygiene_path = args.run / "corpus_hygiene.json"
+    training_plan_path = args.run / "training_plan.json"
+    planned_replay_path = (
+        args.run / "direct_answer_replay_plan.json"
+        if args.direct_answer_steps > 0
+        and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
+        else None
+    )
+    corpus_hygiene = build_corpus_hygiene_report(
+        "transformer-answer-train",
+        args.corpus_dir,
+        args.train_text,
+        DEFAULT_ANSWER_EVALS,
+        examples,
+    )
+    training_plan = build_training_plan(
+        "transformer-answer-train",
+        args.run.name,
+        args.train_text,
+        args.corpus_dir,
+        DEFAULT_ANSWER_EVALS,
+        examples,
+        training_pool,
+        hygiene_path,
+        planned_artifacts=[
+            args.run / "transformer_answer.json",
+            args.run / "optimizer_state.json",
+            args.run / "tokenizer.json",
+            hygiene_path,
+            training_plan_path,
+            args.run / "transformer_answer_metrics.json",
+        ],
+        replay_plan_path=planned_replay_path,
+    )
+    write_json_artifact(hygiene_path, corpus_hygiene)
+    write_json_artifact(training_plan_path, training_plan)
     history_path = args.run / "transformer_answer_metrics.jsonl"
     lessons_path = args.run / "transformer_answer_lessons.jsonl"
     write_lessons(examples, lessons_path)
@@ -7571,6 +7615,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
                     handle.write("\n")
+                training_plan = attach_replay_plan_summary(
+                    training_plan,
+                    direct_replay_plan,
+                    direct_replay_plan_path,
+                )
+                write_json_artifact(training_plan_path, training_plan)
 
         def direct_snapshot(
             step: int,
@@ -9618,6 +9668,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "direct_answer": direct_answer_metrics,
         "answer_selector": selector_metrics,
         "answer_generator": generator_metrics,
+        "corpus_hygiene": corpus_hygiene,
+        "corpus_hygiene_path": str(hygiene_path),
+        "training_plan": training_plan,
+        "training_plan_path": str(training_plan_path),
         "experiment_intent_path": str(experiment_path),
         "pretrained_weights": False,
         "pretrained_tokenizer": False,

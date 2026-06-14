@@ -73,7 +73,8 @@ this audit into a fuller literature, implementation, and QuarkLM-codebase gap
 review. It keeps the same engineering direction and moves the implementation
 sequence to experiment registry first. v0.71 implements that registry and
 v0.72 extracts replay planning into a standalone module. Corpus hygiene is the
-next mechanics step.
+next mechanics step. v0.73 implements corpus hygiene and training-plan
+artifacts, leaving candidate quarantine as the next mechanics step.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

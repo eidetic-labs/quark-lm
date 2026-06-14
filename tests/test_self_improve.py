@@ -103,6 +103,8 @@ class SelfImproveTest(unittest.TestCase):
             report = {
                 "corpus_snapshot": {"schema_version": 1},
                 "corpus_diff": {"status": "evaluated"},
+                "corpus_hygiene": {"schema_version": 1, "kind": "corpus_hygiene_report"},
+                "training_plan": {"schema_version": 1, "kind": "training_plan"},
                 "promotion_gate": {"passed": False},
                 "experiment_intent": self_improvement_experiment_intent(
                     args,
@@ -124,6 +126,8 @@ class SelfImproveTest(unittest.TestCase):
             self.assertEqual(latest_report["attempt"]["report"], str(attempt_dir / "self_improvement_report.json"))
             self.assertTrue((attempt_dir / "corpus_snapshot.json").exists())
             self.assertTrue((run_dir / "corpus_diff.json").exists())
+            self.assertTrue((attempt_dir / "corpus_hygiene.json").exists())
+            self.assertTrue((run_dir / "training_plan.json").exists())
             self.assertTrue((attempt_dir / "experiment_intent.json").exists())
             self.assertTrue((run_dir / "experiment_intent.json").exists())
 

@@ -180,7 +180,8 @@ v0.70 adds `DEEP_RESEARCH_REVIEW.md`, which deepens the plan with a more
 explicit literature, implementation, and local-codebase review. It keeps the
 same direction but makes the ordering stricter: experiment registry first,
 then replay extraction and the remaining operating-system mechanics. v0.71
-implements the registry, and v0.72 extracts replay planning.
+implements the registry, v0.72 extracts replay planning, and v0.73 adds corpus
+hygiene plus training-plan artifacts.
 
 ## Decision
 

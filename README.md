@@ -96,6 +96,13 @@ plan behavior, but replay records, profile grouping, coverage floors, and JSON
 artifact planning are now standalone mechanics that later corpus-governance and
 recipe layers can reuse.
 
+v0.73 adds corpus hygiene and training-plan artifacts in
+`src/closed_world_lm/corpus_hygiene.py`. Self-improvement and transformer
+answer-training runs now write `corpus_hygiene.json` and `training_plan.json`
+with source mixtures, duplicate checks, train/eval prompt-overlap checks,
+candidate ratios, rare-profile coverage, allowed data sources, and planned
+artifacts. Candidate ratio is visible now; candidate quarantine remains v0.74.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

@@ -240,13 +240,12 @@ compatibility.
   scoring, CLI parsing, checkpoint writing, and run reporting.
 - `tests/test_transformer_char_model.py` is 5,247 lines, which mirrors the
   implementation monolith and makes targeted regression work harder.
-- There is no experiment registry or run-intent schema that records
-  hypothesis, allowed data, planned artifacts, gates, failure criteria, and
-  result decision before training.
-- Replay planning is artifacted for profile-aware direct-answer runs, but it is
-  still embedded inside transformer objective plumbing.
-- Corpus hygiene exists in pieces through provenance and prompt-leakage checks,
-  but not as a mandatory training-plan artifact for all run paths.
+- v0.71 now records hypothesis, allowed data, planned artifacts, gates, failure
+  criteria, and result decision before training.
+- v0.72 now extracts replay planning from transformer objective plumbing into a
+  standalone module.
+- v0.73 now writes mandatory corpus hygiene and training-plan artifacts for the
+  self-improvement and transformer answer-training paths.
 - Candidate lessons, generated probes, and repair proposals do not yet have a
   quarantine store with lifecycle states.
 - Closed-world verification is spread across audits; there is no verifier
@@ -402,8 +401,10 @@ plan construction is now inspectable without loading the transformer trainer.
 
 ### v0.73
 
-Add corpus hygiene and training-plan artifacts for self-improvement and
-transformer paths.
+Implemented corpus hygiene and training-plan artifacts for self-improvement
+and transformer paths. Runs now record source mixtures, duplicate checks,
+train/eval overlap, candidate ratios, rare-profile coverage, allowed data
+sources, planned artifacts, and replay-plan summaries where applicable.
 
 ### v0.74
 

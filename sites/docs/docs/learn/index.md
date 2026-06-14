@@ -23,8 +23,8 @@ an evaluation artifact, and a docs update.
 | [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence, v0.70 research checkpoint, and v0.72 handoff from replay extraction to corpus hygiene. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.72 implementation handoff. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence, v0.70 research checkpoint, and v0.73 handoff from corpus hygiene to candidate quarantine. |
+| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.73 implementation handoff. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea

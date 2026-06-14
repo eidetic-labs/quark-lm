@@ -11,7 +11,17 @@ from typing import Any
 
 from .admission_probes import audit_all_admission_probes
 from .answer_decoder import train_decoder
-from .answer_model import DEFAULT_EVALS, train_model
+from .answer_model import (
+    DEFAULT_EVALS,
+    answer_training_pool,
+    load_training_examples,
+    train_model,
+)
+from .corpus_hygiene import (
+    build_corpus_hygiene_report,
+    build_training_plan,
+    write_json_artifact,
+)
 from .curriculum import DEFAULT_CORPUS_DIR, build_curriculum, write_json, write_curriculum
 from .experiment_registry import (
     ExperimentIntent,
@@ -274,6 +284,10 @@ def write_report_artifacts(
     }
     write_json(attempt_dir / "corpus_snapshot.json", report["corpus_snapshot"])
     write_json(attempt_dir / "corpus_diff.json", report["corpus_diff"])
+    if "corpus_hygiene" in report:
+        write_json_artifact(attempt_dir / "corpus_hygiene.json", report["corpus_hygiene"])
+    if "training_plan" in report:
+        write_json_artifact(attempt_dir / "training_plan.json", report["training_plan"])
     if "experiment_intent" in report:
         write_experiment_intent(
             attempt_dir / "experiment_intent.json",
@@ -282,6 +296,10 @@ def write_report_artifacts(
     write_json(attempt_dir / "self_improvement_report.json", report)
     write_json(run_dir / "corpus_snapshot.json", report["corpus_snapshot"])
     write_json(run_dir / "corpus_diff.json", report["corpus_diff"])
+    if "corpus_hygiene" in report:
+        write_json_artifact(run_dir / "corpus_hygiene.json", report["corpus_hygiene"])
+    if "training_plan" in report:
+        write_json_artifact(run_dir / "training_plan.json", report["training_plan"])
     if "experiment_intent" in report:
         write_experiment_intent(
             run_dir / "experiment_intent.json",
@@ -303,7 +321,7 @@ def self_improvement_experiment_intent(
     )
     notes = getattr(args, "experiment_note", None) or []
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.71"),
+        version=getattr(args, "experiment_version", "v0.73"),
         run_id=attempt_dir.name or run_dir.name,
         component="self-improvement-answer-cycle",
         hypothesis=hypothesis,
@@ -318,12 +336,16 @@ def self_improvement_experiment_intent(
             str(attempt_dir / "decoder" / "answer_decoder.json"),
             str(attempt_dir / "corpus_snapshot.json"),
             str(attempt_dir / "corpus_diff.json"),
+            str(attempt_dir / "corpus_hygiene.json"),
+            str(attempt_dir / "training_plan.json"),
             str(attempt_dir / "experiment_intent.json"),
             str(attempt_dir / "self_improvement_report.json"),
+            str(run_dir / "corpus_hygiene.json"),
+            str(run_dir / "training_plan.json"),
             str(run_dir / "experiment_intent.json"),
             str(run_dir / "self_improvement_report.json"),
         ],
-        training_recipe_id="self-improve-answer-cycle:v0.71",
+        training_recipe_id="self-improve-answer-cycle:v0.73",
         acceptance_gates=[
             {
                 "name": "admission_probe_audit",
@@ -414,6 +436,8 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     write_curriculum(curriculum, args.build_dir)
     snapshot = corpus_snapshot(args.corpus_dir)
     train_text_path = args.build_dir / "train.txt"
+    training_examples = load_training_examples(train_text_path, args.corpus_dir)
+    scheduled_training_examples = answer_training_pool(training_examples)
     run_dir = args.run
     attempt_number, attempt_dir = next_attempt(run_dir)
     attempt_dir.mkdir(parents=True, exist_ok=False)
@@ -426,6 +450,34 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         train_text_path,
     )
     write_experiment_intent(attempt_dir / "experiment_intent.json", experiment_intent)
+    hygiene_path = attempt_dir / "corpus_hygiene.json"
+    training_plan_path = attempt_dir / "training_plan.json"
+    corpus_hygiene = build_corpus_hygiene_report(
+        "self-improvement-answer-cycle",
+        args.corpus_dir,
+        train_text_path,
+        DEFAULT_EVALS,
+        training_examples,
+    )
+    training_plan = build_training_plan(
+        "self-improvement-answer-cycle",
+        attempt_dir.name,
+        train_text_path,
+        args.corpus_dir,
+        DEFAULT_EVALS,
+        training_examples,
+        scheduled_training_examples,
+        hygiene_path,
+        planned_artifacts=[
+            answer_run / "answer_model.json",
+            decoder_run / "answer_decoder.json",
+            hygiene_path,
+            training_plan_path,
+            attempt_dir / "self_improvement_report.json",
+        ],
+    )
+    write_json_artifact(hygiene_path, corpus_hygiene)
+    write_json_artifact(training_plan_path, training_plan)
 
     answer_metrics = train_model(
         SimpleNamespace(
@@ -498,6 +550,8 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
             },
         ],
         "curriculum_manifest": curriculum.manifest,
+        "corpus_hygiene": corpus_hygiene,
+        "training_plan": training_plan,
         "corpus_snapshot": snapshot,
         "corpus_diff": corpus_diff_for_report(snapshot, args.compare_report),
         "responder": evaluate_responder(curriculum.train_text),
@@ -560,7 +614,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer.add_argument("--max-answer-chars", type=int, default=64)
     answer.add_argument("--seed", type=int, default=7)
     answer.add_argument("--compare-report", type=Path, default=None)
-    answer.add_argument("--experiment-version", default="v0.71")
+    answer.add_argument("--experiment-version", default="v0.73")
     answer.add_argument("--experiment-hypothesis", default=None)
     answer.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)

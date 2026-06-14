@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.72 replay planning extraction; promoted
+**Active version:** v0.73 corpus hygiene and training-plan artifacts; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -72,6 +72,11 @@ Working tagline: Big idea. Tiny package.
 - Standalone replay planning in `src/closed_world_lm/replay_plan.py`, with
   focused tests for profile-aware deficits, legacy branch records, fallback
   replay records, profile keys, and JSON artifact safety.
+- Corpus hygiene and training-plan artifacts in
+  `src/closed_world_lm/corpus_hygiene.py`. Self-improvement and transformer
+  answer-training runs now write `corpus_hygiene.json` and `training_plan.json`
+  with source mixtures, duplicate checks, train/eval prompt overlap, candidate
+  ratios, rare-profile coverage, allowed data sources, and planned artifacts.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -164,6 +169,13 @@ v0.72 extracts replay planning into `src/closed_world_lm/replay_plan.py`.
 Transformer training still uses the existing profile-aware replay behavior, but
 branch replay normalization, profile grouping, coverage-floor summaries, and
 replay-plan JSON shape are now standalone mechanics with focused tests.
+
+v0.73 adds `src/closed_world_lm/corpus_hygiene.py` and wires
+`corpus_hygiene.json` plus `training_plan.json` into self-improvement and
+transformer answer-training runs. These artifacts report source mixtures,
+duplicates, train/eval prompt overlap, candidate ratios, rare-profile
+coverage, allowed data sources, planned artifacts, and replay-plan summaries
+when profile-aware replay is written.
 
 ## Latest Evidence
 

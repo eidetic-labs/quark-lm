@@ -18,6 +18,10 @@ A promoted QuarkLM run must have:
 - passing promotion gate
 - `experiment_intent.json` with hypothesis, allowed data, planned artifacts,
   acceptance gates, failure criteria, and final decision
+- `corpus_hygiene.json` with source mixture, duplicate, train/eval overlap,
+  candidate-ratio, and rare-profile evidence
+- `training_plan.json` with allowed data sources, scheduled example mixture,
+  replay-plan status, and planned artifacts
 - self-diagnosis with `uses_external_model: false` unless a future release
   explicitly admits and documents a different source
 - archived attempts under `attempts/attempt-###/`
