@@ -73,6 +73,8 @@ training unless branch contexts are semantically complete and unambiguous.
 Add `--direct-answer-snapshot-mode branch-only` for bounded longer-context
 screens that need branch profiles and branch-context gate evidence but can
 intentionally skip greedy completion evals in direct-answer JSONL snapshots.
+Direct-answer snapshots also emit `branch_diversity_target`, which fails when
+multi-target eval profiles collapse to too few predicted branch tokens.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -255,6 +257,20 @@ Latest branch-only snapshot smoke:
 | Direct loss signal | smoke only | interval train loss `6.7890 -> 6.4326` | interval train loss `3.4614 -> 3.1976` |
 | Promotion status | screening efficiency evidence only | rejected screening evidence | rejected screening evidence |
 
+Latest branch-diversity target smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `5/5` |
+| Snapshot mode | `branch-only` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | `"r"` at rate `1.0` |
+| Final QA target-token coverage | `0.125` |
+| Promotion status | explicit target evidence only |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -297,4 +313,5 @@ and gate evidence needed for the next decision. The first dim8 follow-ups show
 that lower branch loss and complete branch context are still not enough: both
 repair/contrast and branch-batch contrast collapse QA branch prediction to one
 global token. A full greedy-eval promotion snapshot is not warranted until a
-screen improves prompt-specific branch diversity.
+screen improves prompt-specific branch diversity. The branch-diversity target
+now makes that requirement machine-readable in every direct-answer snapshot.

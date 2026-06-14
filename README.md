@@ -190,6 +190,15 @@ Current transformer answer-lesson run:
   but also collapsed QA branch prediction to all `"a"`. Neither screen earns a
   full promotion snapshot; the next transformer step needs a stronger
   prompt-specific branch signal, not another loss-only branch objective.
+- Branch profiles now include a structured `diversity` summary and snapshots
+  include a `branch_diversity_target` across multi-target eval profiles. The
+  context-80 smoke
+  `runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
+  passed the branch-context gate but failed branch diversity across all `9`
+  multi-target profiles. QA ended with `target_unique: 8`,
+  `predicted_unique: 1`, dominant predicted token `"r"` at rate `1.0`, and
+  target-token coverage `0.125`. This makes prompt-specific branch diversity an
+  explicit screen target before any full greedy-eval promotion snapshot.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

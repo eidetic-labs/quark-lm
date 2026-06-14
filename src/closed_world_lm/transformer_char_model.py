@@ -2034,6 +2034,23 @@ def direct_answer_branch_profile(
             for value, count in counter.most_common(12)
         ]
 
+    target_token_values = set(target_counts)
+    predicted_token_values = set(predicted_counts)
+    covered_target_tokens = target_token_values & predicted_token_values
+    dominant_predicted_token = None
+    dominant_predicted_count = 0
+    if predicted_counts:
+        dominant_predicted_token, dominant_predicted_count = (
+            predicted_counts.most_common(1)[0]
+        )
+    missing_target_tokens = [
+        {"value": value, "count": count}
+        for value, count in target_counts.most_common()
+        if value not in predicted_token_values
+    ]
+    target_unique = len(target_token_values)
+    predicted_unique = len(predicted_token_values)
+
     return {
         "branch_position": branch_position,
         "count": profiled,
@@ -2046,7 +2063,86 @@ def direct_answer_branch_profile(
         "target_tokens": top_items(target_counts),
         "predicted_tokens": top_items(predicted_counts),
         "confusions": top_items(confusion_counts),
+        "diversity": {
+            "target_unique": target_unique,
+            "predicted_unique": predicted_unique,
+            "target_token_coverage": (
+                len(covered_target_tokens) / target_unique
+                if target_unique
+                else 0.0
+            ),
+            "dominant_predicted_token": dominant_predicted_token,
+            "dominant_predicted_count": dominant_predicted_count,
+            "dominant_predicted_rate": (
+                dominant_predicted_count / profiled
+                if profiled
+                else 0.0
+            ),
+            "collapsed": profiled > 1 and target_unique > 1 and predicted_unique == 1,
+            "missing_target_tokens": missing_target_tokens,
+        },
         "failed_records": failed_records,
+    }
+
+
+def summarize_branch_diversity_target(
+    branch_profiles: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    blocking_evals: list[dict[str, Any]] = []
+    multi_target_profiles = 0
+    passed_profiles = 0
+    max_dominant_rate = 0.0
+    min_target_token_coverage = 1.0
+
+    for name, profile in sorted(branch_profiles.items()):
+        diversity = profile.get("diversity", {})
+        target_unique = int(diversity.get("target_unique", 0))
+        predicted_unique = int(diversity.get("predicted_unique", 0))
+        target_token_coverage = float(diversity.get("target_token_coverage", 0.0))
+        dominant_rate = float(diversity.get("dominant_predicted_rate", 0.0))
+        collapsed = bool(diversity.get("collapsed", False))
+        if target_unique < 2:
+            continue
+        multi_target_profiles += 1
+        max_dominant_rate = max(max_dominant_rate, dominant_rate)
+        min_target_token_coverage = min(min_target_token_coverage, target_token_coverage)
+        passed = (
+            not collapsed
+            and predicted_unique >= target_unique
+            and target_token_coverage >= 1.0
+        )
+        if passed:
+            passed_profiles += 1
+            continue
+        blocking_evals.append(
+            {
+                "name": name,
+                "target_unique": target_unique,
+                "predicted_unique": predicted_unique,
+                "target_token_coverage": target_token_coverage,
+                "dominant_predicted_token": diversity.get("dominant_predicted_token"),
+                "dominant_predicted_rate": dominant_rate,
+                "collapsed": collapsed,
+                "missing_target_tokens": diversity.get("missing_target_tokens", []),
+            }
+        )
+
+    return {
+        "passed": multi_target_profiles > 0 and passed_profiles == multi_target_profiles,
+        "multi_target_profiles": multi_target_profiles,
+        "passed_profiles": passed_profiles,
+        "failed_profiles": len(blocking_evals),
+        "max_dominant_predicted_rate": (
+            max_dominant_rate
+            if multi_target_profiles
+            else 0.0
+        ),
+        "min_target_token_coverage": (
+            min_target_token_coverage
+            if multi_target_profiles
+            else 0.0
+        ),
+        "blocking_evals": blocking_evals,
     }
 
 
@@ -3899,6 +3995,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 for name, records in sorted(eval_records.items())
             }
+            branch_profiles = {
+                name: direct_answer_branch_profile(
+                    model,
+                    tokenizer,
+                    records,
+                    args.direct_answer_branch_position,
+                    direct_answer_terminator,
+                )
+                for name, records in sorted(eval_records.items())
+            }
             record = {
                 "step": step,
                 "train_loss": train_loss,
@@ -3916,16 +4022,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     )
                     for name, records in sorted(eval_records.items())
                 },
-                "branch_profiles": {
-                    name: direct_answer_branch_profile(
-                        model,
-                        tokenizer,
-                        records,
-                        args.direct_answer_branch_position,
-                        direct_answer_terminator,
-                    )
-                    for name, records in sorted(eval_records.items())
-                },
+                "branch_profiles": branch_profiles,
+                "branch_diversity_target": summarize_branch_diversity_target(
+                    branch_profiles
+                ),
                 "branch_context_coverage": branch_context_coverage,
                 "branch_context_gate": summarize_branch_context_coverage_gate(
                     branch_context_coverage

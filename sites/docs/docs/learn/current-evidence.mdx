@@ -74,6 +74,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Branch-only repair status</td><td><code>{state.transformerBranchOnlyRepairStatus}</code></td></tr>
     <tr><td>Latest branch-only batch screen</td><td><code>{state.transformerLatestBranchOnlyBatchRun}</code></td></tr>
     <tr><td>Branch-only batch status</td><td><code>{state.transformerBranchOnlyBatchStatus}</code></td></tr>
+    <tr><td>Latest branch-diversity target run</td><td><code>{state.transformerLatestBranchDiversityRun}</code></td></tr>
+    <tr><td>Branch-diversity target</td><td><code>{state.transformerBranchDiversityTarget}</code></td></tr>
+    <tr><td>Branch-diversity smoke</td><td><code>{state.transformerBranchDiversitySmoke}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -284,6 +287,12 @@ v0.42 promoted checkpoint.
   tested branch-batch contrast under the same complete context. It lowered
   interval train loss `3.4614 -> 3.1976`, but final QA branch prediction still
   collapsed to all `"a"` with final QA branch accuracy `0/8`.
+- `runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
+  added a first-class `branch_diversity_target` to direct-answer snapshots. The
+  required branch-context gate passed and all `5` direct steps ran, but the
+  diversity target failed across all `9` multi-target eval profiles. Final QA
+  had `target_unique: 8`, `predicted_unique: 1`, dominant predicted token `"r"`
+  at rate `1.0`, and target-token coverage `0.125`.
 
 The next transformer repair should use the context-coverage audit as a gate,
 but it must also improve prompt-conditioned branch diversity instead of only

@@ -229,6 +229,19 @@ final QA branch accuracy `0/8`. These are rejected screening results: complete
 context and lower branch loss are still insufficient without a prompt-specific
 branch signal.
 
+Branch diversity is now an explicit direct-answer snapshot target. Each branch
+profile records target-token diversity, predicted-token diversity, target-token
+coverage, dominant predicted token/rate, collapse status, and missing target
+tokens. Each direct-answer snapshot also records a `branch_diversity_target`
+summary across multi-target eval profiles. The context-80 smoke at
+`runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
+passed the branch-context gate, ran `5/5` direct steps, and then failed the
+branch-diversity target across all `9` multi-target profiles. The final QA
+profile had `target_unique: 8`, `predicted_unique: 1`, dominant token `"r"` at
+rate `1.0`, and target-token coverage `0.125`. This turns branch diversity into
+a required screen signal before a full greedy-eval promotion snapshot is worth
+running.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

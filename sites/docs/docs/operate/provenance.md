@@ -261,4 +261,10 @@ ran all `100` requested direct steps and lowered interval train loss, but final
 QA branch prediction collapsed to all `"a"`. The branch-batch screen
 `runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/` ran all
 `50` requested direct steps and lowered interval train loss further, but also
-collapsed QA branch prediction to all `"a"`. None of these runs were promoted.
+collapsed QA branch prediction to all `"a"`. Branch diversity was then promoted
+from narrative diagnosis to an explicit snapshot target, again without changing
+corpus sources. The smoke run
+`runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
+passed the branch-context gate, ran all `5` requested direct steps, and recorded
+`branch_diversity_target` failure across all `9` multi-target eval profiles.
+None of these runs were promoted.

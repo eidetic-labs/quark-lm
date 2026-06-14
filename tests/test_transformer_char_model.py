@@ -41,6 +41,7 @@ from closed_world_lm.transformer_char_model import (
     audit_prompt_context_coverage,
     audit_direct_answer_branch_context_coverage,
     summarize_branch_context_coverage_gate,
+    summarize_branch_diversity_target,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
     evaluate_answer_records,
@@ -731,6 +732,107 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(profile["failed_records"][0]["id"], "color")
         self.assertEqual(profile["failed_records"][0]["target_token"], " ")
         self.assertEqual(profile["failed_records"][0]["predicted_token"], ".")
+
+    def test_direct_answer_branch_profile_reports_diversity_collapse(self) -> None:
+        records = [
+            {"id": "near", "prompt": "q: where?\na:", "target": " near."},
+            {"id": "green", "prompt": "q: color?\na:", "target": " green."},
+        ]
+        tokenizer = CharTokenizer.train(
+            "".join(record["prompt"] + record["target"] for record in records)
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=43,
+            )
+        )
+        wrong_id = tokenizer.stoi["."]
+        model.bout[wrong_id].data = 5.0
+
+        profile = direct_answer_branch_profile(
+            model,
+            tokenizer,
+            records,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(profile["diversity"]["target_unique"], 2)
+        self.assertEqual(profile["diversity"]["predicted_unique"], 1)
+        self.assertEqual(profile["diversity"]["target_token_coverage"], 0.0)
+        self.assertEqual(profile["diversity"]["dominant_predicted_token"], ".")
+        self.assertEqual(profile["diversity"]["dominant_predicted_count"], 2)
+        self.assertEqual(profile["diversity"]["dominant_predicted_rate"], 1.0)
+        self.assertTrue(profile["diversity"]["collapsed"])
+        self.assertEqual(
+            profile["diversity"]["missing_target_tokens"],
+            [{"value": "n", "count": 1}, {"value": "g", "count": 1}],
+        )
+
+    def test_branch_diversity_target_marks_collapsed_profiles(self) -> None:
+        summary = summarize_branch_diversity_target(
+            {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 2,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.5,
+                        "dominant_predicted_token": "a",
+                        "dominant_predicted_rate": 1.0,
+                        "collapsed": True,
+                        "missing_target_tokens": [{"value": "b", "count": 1}],
+                    }
+                },
+                "self": {
+                    "diversity": {
+                        "target_unique": 1,
+                        "predicted_unique": 1,
+                        "target_token_coverage": 1.0,
+                        "dominant_predicted_token": "s",
+                        "dominant_predicted_rate": 1.0,
+                        "collapsed": False,
+                        "missing_target_tokens": [],
+                    }
+                },
+            }
+        )
+
+        self.assertFalse(summary["passed"])
+        self.assertEqual(summary["multi_target_profiles"], 1)
+        self.assertEqual(summary["passed_profiles"], 0)
+        self.assertEqual(summary["failed_profiles"], 1)
+        self.assertEqual(summary["max_dominant_predicted_rate"], 1.0)
+        self.assertEqual(summary["min_target_token_coverage"], 0.5)
+        self.assertEqual(summary["blocking_evals"][0]["name"], "qa")
+        self.assertTrue(summary["blocking_evals"][0]["collapsed"])
+
+    def test_branch_diversity_target_passes_when_targets_are_covered(self) -> None:
+        summary = summarize_branch_diversity_target(
+            {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 2,
+                        "predicted_unique": 2,
+                        "target_token_coverage": 1.0,
+                        "dominant_predicted_token": "a",
+                        "dominant_predicted_rate": 0.5,
+                        "collapsed": False,
+                        "missing_target_tokens": [],
+                    }
+                }
+            }
+        )
+
+        self.assertTrue(summary["passed"])
+        self.assertEqual(summary["multi_target_profiles"], 1)
+        self.assertEqual(summary["passed_profiles"], 1)
+        self.assertEqual(summary["failed_profiles"], 0)
+        self.assertEqual(summary["blocking_evals"], [])
 
     def test_branch_context_coverage_marks_truncated_semantic_branch(self) -> None:
         record = {

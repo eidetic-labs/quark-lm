@@ -107,6 +107,10 @@ training boundary.
   A branch-only screen that lowers loss while predicting one token across a
   multi-target eval set is rejected screening evidence, not model-quality
   progress.
+- Direct-answer snapshots must retain `branch_diversity_target` once branch
+  profiles are present. A failed diversity target blocks promotion-style
+  interpretation until a follow-up screen improves predicted-token coverage
+  across multi-target eval profiles.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

@@ -1687,6 +1687,24 @@ pools, and corpus diffs.
 - rejected as screening evidence: branch-batch lowers loss more cheaply, but
   still does not create prompt-specific branch choices
 
+`runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`:
+
+- added structured branch diversity to direct-answer branch profiles:
+  `target_unique`, `predicted_unique`, target-token coverage, dominant
+  predicted token/rate, collapse status, and missing target tokens
+- added `branch_diversity_target` to direct-answer snapshots so multi-target
+  branch collapse is a machine-readable target failure
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- screen requested `5` direct-answer steps and recorded `actual_steps: 5`
+- final branch-diversity target failed across all `9` multi-target eval
+  profiles
+- final QA diversity recorded `target_unique: 8`, `predicted_unique: 1`,
+  dominant predicted token `"r"` at rate `1.0`, and target-token coverage
+  `0.125`
+- this is target-definition evidence: future transformer screens should not
+  graduate to full greedy-eval promotion snapshots until this target improves
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong
