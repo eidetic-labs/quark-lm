@@ -271,6 +271,20 @@ prediction moved from all `"x"` to all `"w"`, final target-token coverage was
 evidence: output bias can be guarded, but the current direct-answer path still
 collapses through deeper prompt-independent weights.
 
+`branch-target-softmax-unlikelihood` now adds a restricted softmax over the
+distinct branch targets in each batch, so each context's correct branch token
+must beat the other observed target tokens directly. Unit coverage verifies
+that the objective improves restricted target probability on a small branch
+batch. The context-80 corpus smoke at
+`runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, and ran `50/50` direct
+steps. Composite train loss moved `5.6671 -> 5.5820`, but the final
+branch-diversity target still failed across all `9` multi-target profiles. QA
+briefly reached `predicted_unique: 2` at step `20`, then collapsed back to all
+`"w"` by step `50` with final target-token coverage `0.0`. This is rejected
+target-set evidence: the restricted competition can crack collapse transiently,
+but it does not yet stabilize prompt-specific branches.
+
 The v0.31 no-candidate auxiliary generator remains the best no-candidate exact
 answer evidence: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/`
 trained the generator for `80000` weighted steps at learning rate `0.035` and

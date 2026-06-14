@@ -1741,6 +1741,26 @@ pools, and corpus diffs.
   cheap escape hatch, but the current training path still collapses through
   prompt-independent weights
 
+`runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/`:
+
+- added `branch-target-softmax-unlikelihood`, a direct-answer mode that applies
+  a restricted softmax over the distinct branch targets in each batch
+- unit coverage verifies that the objective improves restricted target
+  probability on a small branch batch
+- required context-80 branch-context gate passed with `219/219` semantic branch
+  coverage and no ambiguous contexts
+- output bias was frozen with `--direct-answer-freeze-output-bias`
+- screen requested `50` direct-answer steps and recorded `actual_steps: 50`
+- composite train loss moved `5.6671 -> 5.5820`
+- final branch-diversity target still failed across all `9` multi-target eval
+  profiles
+- QA briefly reached `predicted_unique: 2` at step `20`, then returned to
+  `predicted_unique: 1` by step `50` with all `"w"` predictions and final
+  target-token coverage `0.0`
+- rejected as target-set evidence: direct competition among branch targets can
+  transiently disrupt collapse, but does not yet stabilize prompt-specific
+  branch diversity
+
 The next improvement target is strengthening prompt-conditioned representation
 and branch diversity so the direct transformer emits target-specific answers
 instead of collapsing to a single global branch token or the short global wrong

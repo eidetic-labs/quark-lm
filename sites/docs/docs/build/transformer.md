@@ -81,6 +81,9 @@ prediction.
 Use `--direct-answer-freeze-output-bias` to exclude the transformer output bias
 from direct-answer updates when screening whether a branch objective is learning
 prompt-specific weights rather than moving one global token bias.
+Use `--direct-answer-mode branch-target-softmax-unlikelihood` to add a
+restricted softmax over the distinct branch targets in each batch, making the
+right target compete directly against the other observed branch targets.
 
 Current language-model evidence from `runs/transformer-v0.25/`:
 
@@ -309,6 +312,24 @@ Latest branch-diversity freeze-bias smoke:
 | Final QA target-token coverage | `0.0` |
 | Promotion status | rejected stabilizer evidence |
 
+Latest branch-target softmax smoke:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/` |
+| Mode | `branch-target-softmax-unlikelihood` |
+| Stabilizer | `--direct-answer-freeze-output-bias` |
+| Context gate | passed, `219/219` semantic records covered |
+| Direct steps | `50/50` |
+| Snapshot mode | `branch-only` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Composite train loss | `5.6671 -> 5.5820` |
+| Best QA predicted unique | `2/8` at step `20` |
+| Final QA target/predicted unique | `8` / `1` |
+| Final QA dominant prediction | all `"w"` |
+| Final QA target-token coverage | `0.0` |
+| Promotion status | rejected target-set evidence |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -357,5 +378,7 @@ now makes that requirement machine-readable in every direct-answer snapshot.
 token and improves the tiny unit case, but the first corpus smoke only moves the
 dominant global prediction. Freezing the output bias removes one cheap global
 escape hatch, but the corpus smoke still rotates to a single dominant branch
-token. The next repair needs to make diversity stable across prompts, not just
-rotate the collapsed token.
+token. Restricted target-set softmax briefly raises QA predicted diversity to
+two tokens, then collapses back by the final snapshot. The next repair needs to
+make diversity stable across prompts, not just rotate or momentarily crack the
+collapsed token.

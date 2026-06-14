@@ -118,6 +118,10 @@ training boundary.
   freezing, must record the frozen option, prove the excluded parameters stayed
   unchanged in unit coverage, and still be judged by branch diversity rather
   than loss movement alone.
+- Restricted branch-target objectives must record both transient and final
+  branch diversity. A temporary increase in `predicted_unique` is useful
+  diagnostic evidence, but promotion-style interpretation requires the final
+  branch-diversity target to improve.
 - Branch-collapse repair runs must record the sampled branch pool size, branch
   profile before/after, dominant predicted token, direct loss, exact greedy
   output, and whether lower loss actually improved branch accuracy. Penalizing

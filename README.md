@@ -217,6 +217,16 @@ Current transformer answer-lesson run:
   `"x"` predictions to all `"w"` predictions, final target-token coverage was
   `0.0`, and `predicted_unique` stayed `1/8`. This rejects output-bias-only
   collapse as the full explanation.
+- `branch-target-softmax-unlikelihood` adds a restricted softmax over the
+  distinct branch targets in each batch, forcing the correct target to compete
+  directly against the other observed target tokens. The frozen-output-bias
+  context-80 smoke
+  `runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/`
+  ran `50/50` direct steps and moved composite train loss
+  `5.6671 -> 5.5820`, but final branch diversity still failed across all `9`
+  multi-target profiles. QA briefly reached `predicted_unique: 2` at step `20`,
+  then collapsed back to all `"w"` by step `50`, so target-set competition is
+  rejected as a standalone repair.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -824,6 +824,44 @@ class TinyTransformerLM:
             parameter.data -= learning_rate * clipped_grad
         return loss.data
 
+    def train_step_with_branch_target_softmax(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        target_softmax_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        branch_target_offsets = {
+            target: offset for offset, target in enumerate(branch_targets)
+        }
+        loss = Scalar(0.0)
+        for context, target, predicted in branches:
+            logits = self._forward_scalars(context)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                loss = loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                loss = loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            if target_softmax_weight > 0.0 and len(branch_targets) > 1:
+                target_logits = [logits[branch_target] for branch_target in branch_targets]
+                target_probs = softmax_scalars(target_logits)
+                loss = loss + (
+                    -target_probs[branch_target_offsets[target]].log()
+                ) * target_softmax_weight
+        loss = loss / max(len(branches), 1)
+        loss.backward()
+        for parameter in params:
+            clipped_grad = max(min(parameter.grad, 5.0), -5.0)
+            parameter.data -= learning_rate * clipped_grad
+        return loss.data
+
     def generate(
         self,
         tokenizer: CharTokenizer,
@@ -1710,6 +1748,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "periodic-branch-batch-contrast-unlikelihood",
             "branch-diversity-unlikelihood",
             "periodic-branch-diversity-unlikelihood",
+            "branch-target-softmax-unlikelihood",
+            "periodic-branch-target-softmax-unlikelihood",
             "branch-span-repair-unlikelihood",
             "periodic-branch-span-repair-unlikelihood",
             "branch-contrast-unlikelihood",
@@ -3118,6 +3158,50 @@ def train_direct_answer_branch_diversity_unlikelihood(
         negative_weight,
         positive_weight,
         contrast_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_target_softmax_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    target_softmax_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_target_softmax(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        target_softmax_weight,
         params=params,
     )
 
@@ -4746,6 +4830,56 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 rollout_interval = max(1, args.direct_answer_rollout_interval)
                 if direct_step % rollout_interval == 0:
                     running_direct_loss += train_direct_answer_branch_diversity_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_training_pool,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_contrast_weight,
+                        args.direct_answer_branch_position,
+                        args.direct_answer_branch_batch_size,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+                else:
+                    running_direct_loss += train_direct_answer_branch_repair_unlikelihood(
+                        model,
+                        tokenizer,
+                        example,
+                        direct_lessons[example],
+                        direct_rng,
+                        args.direct_answer_learning_rate,
+                        args.direct_answer_negative_weight,
+                        args.direct_answer_positive_weight,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                        direct_params,
+                    )
+            elif args.direct_answer_mode == "branch-target-softmax-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_target_softmax_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
+            elif args.direct_answer_mode == "periodic-branch-target-softmax-unlikelihood":
+                rollout_interval = max(1, args.direct_answer_rollout_interval)
+                if direct_step % rollout_interval == 0:
+                    running_direct_loss += train_direct_answer_branch_target_softmax_unlikelihood(
                         model,
                         tokenizer,
                         example,

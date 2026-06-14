@@ -279,4 +279,11 @@ changing corpus sources. The context-80 smoke
 passed the branch-context gate and ran all `50` requested direct steps with
 `--direct-answer-freeze-output-bias`, but the diversity target still failed
 across all `9` multi-target eval profiles.
+A restricted branch-target softmax objective followed, still without changing
+corpus sources. The context-80 smoke
+`runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/`
+passed the branch-context gate, froze output bias, and ran all `50` requested
+direct steps. It briefly raised QA predicted diversity to two tokens at step
+`20`, but the final diversity target still failed across all `9` multi-target
+eval profiles.
 None of these runs were promoted.
