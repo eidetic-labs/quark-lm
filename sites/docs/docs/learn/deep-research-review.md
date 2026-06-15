@@ -85,7 +85,8 @@ the same discipline before another major repair screen.
 13. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
 14. **v0.84:** baseline replay anchors. Implemented and rejected.
 15. **v0.85:** baseline-floor update gating. Implemented and rejected.
-16. **v0.86+:** accepted branch-diversity updates under the full baseline
+16. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
+17. **v0.87+:** a different safe update shape under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -118,4 +119,8 @@ adds baseline replay anchors; trained snapshots avoid the v0.83 zero-coverage
 collapse but still restore step `0` because coverage reaches only `0.125`
 against the `0.25` floor. v0.85 adds baseline-floor update gating; it preserves
 the floor by rejecting `50/50` unsafe attempted updates, so the next repair must
-produce accepted updates under the guard.
+produce accepted updates under the guard. v0.86 adds adaptive baseline-floor
+retries across learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`; it
+rejects all `200/200` attempted retry updates, showing step size alone is not
+the missing mechanic and the next repair must change update shape under the
+same baseline floor.

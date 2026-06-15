@@ -68,7 +68,8 @@ direct-answer objective mode:
 9. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
 10. **v0.84:** baseline replay anchors. Implemented and rejected.
 11. **v0.85:** baseline-floor update gating. Implemented and rejected.
-12. **v0.86+:** accepted branch-diversity updates under the full baseline
+12. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
+13. **v0.87+:** a different safe update shape under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -101,11 +102,15 @@ QuarkLM already has:
   `branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
 - v0.85 full baseline-floor update-gate screen evidence:
   `runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`.
+- v0.86 adaptive baseline-floor prompt-ownership mode:
+  `branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+- v0.86 full adaptive baseline-floor screen evidence:
+  `runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`.
 
 It still needs:
 
-- accepted prompt-specific branch-diversity updates that keep trained snapshots
-  at or above baseline target-token coverage.
+- a different safe update shape that can improve branch diversity while keeping
+  trained snapshots at or above baseline target-token coverage.
 
 ## Operating Rule
 

@@ -148,6 +148,12 @@ whose branch-profile target-token coverage falls below the step-0 floor. The
 screen preserves coverage by rejecting all attempted updates, so the next repair
 must produce accepted safe updates rather than looser promotion gates.
 
+v0.86 adds
+`branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the baseline-floor guard and retries the same update at smaller
+learning-rate scales after restoring model, optimizer, and RNG state. The screen
+shows that step size alone is not enough: all scaled attempts are still rejected.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1279,6 +1285,32 @@ Latest baseline-floor update-gated prompt ownership full-stack screen:
 | Training heldout note | every recorded trained snapshot preserved heldout target-token coverage at `0.25`, but only because every attempted update was rejected |
 | Promotion status | rejected; the guard prevents unsafe forgetting, but no weight update is accepted and branch diversity still fails |
 
+Latest adaptive baseline-floor prompt ownership full-stack screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood` |
+| Added mechanic | rejected updates are retried at learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01` after restoring model, optimizer, and RNG state |
+| Unit coverage | focused transformer tests pass; the new mode records active baseline replay anchors and adaptive retry accounting |
+| Artifact stack | experiment intent, corpus hygiene, training plan, candidate quarantine, deterministic verifier, recipe, replay plan, constraint-first report, metrics, tokenizer, optimizer, lessons, checkpoint |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Baseline prediction anchors | `562` recorded and active |
+| Adaptive scales | `1.0`, `0.25`, `0.05`, `0.01` |
+| Update guard | checked `50/50` steps; attempted `200` scaled updates; accepted `0`; rejected `200` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Purity gates | no pretrained weights, no pretrained tokenizer, no external embeddings |
+| Direct steps | `50/50` attempted |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Training snapshot note | every recorded trained snapshot preserved QA target-token coverage at `0.25`, but adaptive retries accepted no updates |
+| Training heldout note | every recorded trained snapshot preserved heldout target-token coverage at `0.25`, but adaptive retries accepted no updates |
+| Promotion status | rejected; step-size retry alone is insufficient and the next repair needs a different update shape |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1389,5 +1421,6 @@ restores step `0` because trained snapshots lose target-token coverage. v0.84
 anchors replay preservation to baseline predictions and improves trained
 coverage relative to v0.83, but still restores step `0` because snapshots miss
 the full coverage floor. v0.85 adds a baseline-floor update guard that preserves
-the floor by rejecting all attempted unsafe updates; the next repair should
-produce accepted prompt-specific updates under that floor.
+the floor by rejecting all attempted unsafe updates. v0.86 retries those updates
+at four smaller scales and still rejects every attempt; the next repair should
+change the update shape under the floor.

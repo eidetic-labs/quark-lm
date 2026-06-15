@@ -259,10 +259,32 @@ Acceptance:
 - Promotion remains rejected because no update is accepted and
   `branch_diversity_target` still fails across all `9` multi-target profiles.
 
-### v0.86+
+### v0.86
+
+Implemented and screened adaptive baseline-floor retries:
+`branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The mode restores model, optimizer, and RNG state, then retries the same
+direct-answer update at learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`
+before rejecting the step.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show the mode records adaptive retry accounting.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors and the
+  adaptive scale list.
+- The update guard checks `50/50` steps, attempts `200` scaled updates, and
+  rejects `200/200`, preserving QA/heldout coverage at the baseline `0.25`
+  floor.
+- Promotion remains rejected because no scaled update is accepted and
+  `branch_diversity_target` still fails across all `9` multi-target profiles.
+
+### v0.87+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair that produces accepted updates under the full baseline
+branch-diversity repair with a different update shape under the full baseline
 target-token floor, revisit subword tokenization, or begin a learned
 verifier/repair-policy experiment.
 

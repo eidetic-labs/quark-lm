@@ -113,9 +113,10 @@ provenance, and the goal framework itself.
     improving trained snapshot coverage from `0.0` to `0.125` but still
     restoring baseline because the full `0.25` coverage floor is not preserved;
     v0.85 adds a baseline-floor update guard that preserves the full floor by
-    rejecting all `50/50` unsafe attempted updates. The remaining sequence should
-    produce accepted updates under the floor before broader tokenizer or verifier
-    changes.
+    rejecting all `50/50` unsafe attempted updates; v0.86 adds adaptive retries
+    at four learning-rate scales and rejects all `200/200` scaled attempts. The
+    remaining sequence should change the update shape so updates can be accepted
+    under the floor before broader tokenizer or verifier changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

@@ -73,7 +73,10 @@ because trained snapshots still lose target-token coverage. v0.84 adds baseline
 replay anchors and rejects the screen because trained snapshots still preserve
 only half of the baseline QA/heldout coverage floor. v0.85 adds a baseline-floor
 update guard and rejects the screen because all attempted updates are unsafe
-under that floor. Future objective repairs should use those narrower surfaces.
+under that floor. v0.86 adds adaptive baseline-floor retries and rejects the
+screen because all `200/200` retry attempts remain unsafe under the same floor.
+Future objective repairs should use those narrower surfaces to change update
+shape, not only learning-rate scale.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -194,9 +197,10 @@ loops become fragile.
   during training; v0.84 added baseline replay anchors and rejected the screen
   because trained snapshots preserve only `0.125` QA/heldout coverage against
   the `0.25` floor; v0.85 added a baseline-floor update guard and rejected the
-  screen because it preserved the floor by rejecting `50/50` attempted updates.
-  The next objective repair should produce accepted updates under the full
-  baseline target-token floor.
+  screen because it preserved the floor by rejecting `50/50` attempted updates;
+  v0.86 added adaptive baseline-floor retries and rejected the screen because
+  all `200/200` retry attempts remained unsafe. The next objective repair should
+  change update shape under the full baseline target-token floor.
 
 ## Defer
 

@@ -135,13 +135,23 @@ BASELINE_FLOOR_GATED_PROMPT_MODE = (
     "branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-"
     "target-share-preserving-deficit-unlikelihood"
 )
+BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE = (
+    "branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-"
+    "target-share-preserving-deficit-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
+    BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
+    BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
 }
+BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
+}
+BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 
 
 class ScalarOptimizer:
@@ -7232,6 +7242,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_answer_baseline_floor_update_gate_active = (
             args.direct_answer_mode in BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_adaptive_updates_active = (
+            args.direct_answer_mode in BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES
+        )
         if direct_profile_aware_targets:
             replay_records = direct_answer_profiled_replay_records(
                 model,
@@ -7260,6 +7273,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_replay_plan["baseline_prediction_anchors_active"] = (
                 direct_replay_prediction_anchors_active
             )
+            direct_replay_plan["baseline_floor_update_gate_active"] = (
+                direct_answer_baseline_floor_update_gate_active
+            )
+            direct_replay_plan["baseline_floor_adaptive_updates_active"] = (
+                direct_answer_baseline_floor_adaptive_updates_active
+            )
+            if direct_answer_baseline_floor_adaptive_updates_active:
+                direct_replay_plan["adaptive_learning_rate_scales"] = list(
+                    BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+                )
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
@@ -7403,9 +7426,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_params = exclude_scalars(direct_params, model.bout)
         direct_answer_update_guard = {
             "active": direct_answer_baseline_floor_update_gate_active,
+            "adaptive": direct_answer_baseline_floor_adaptive_updates_active,
+            "learning_rate_scales": list(
+                BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+            )
+            if direct_answer_baseline_floor_adaptive_updates_active
+            else [1.0],
             "checked_steps": 0,
+            "attempted_updates": 0,
             "accepted_steps": 0,
+            "accepted_attempts": 0,
             "rejected_steps": 0,
+            "rejected_attempts": 0,
+            "accepted_learning_rate_scale_counts": {},
             "rejected_step_sample": [],
         }
 
@@ -7437,13 +7470,112 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             model.active_optimizer = optimizer
             refresh_direct_update_params()
 
+        def train_baseline_anchored_prompt_update(update_learning_rate: float) -> float:
+            return train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                model,
+                tokenizer,
+                example,
+                direct_training_pool,
+                direct_lessons[example],
+                direct_rng,
+                update_learning_rate,
+                args.direct_answer_negative_weight,
+                args.direct_answer_positive_weight,
+                args.direct_answer_contrast_weight,
+                args.direct_answer_branch_position,
+                args.direct_answer_branch_batch_size,
+                args.direct_answer_hard_negatives,
+                direct_answer_terminator,
+                direct_params,
+                balance_targets=True,
+                focus_uncovered_targets=True,
+                preserve_predicted_target_coverage=True,
+                balance_deficit_targets=True,
+                profile_aware_targets=True,
+                balance_profile_target_shares=True,
+                enforce_prompt_target_margins=True,
+                replay_prediction_overrides=direct_replay_prediction_overrides,
+            )
+
+        def append_rejected_update_sample(
+            direct_step: int,
+            probe_snapshot: dict[str, Any],
+            learning_rate_scale: float,
+        ) -> None:
+            rejected_sample = direct_answer_update_guard["rejected_step_sample"]
+            if isinstance(rejected_sample, list) and len(rejected_sample) < 12:
+                rejected_sample.append(
+                    {
+                        "step": direct_step,
+                        "learning_rate_scale": learning_rate_scale,
+                        "coverage": (
+                            branch_diversity_snapshot_target_coverage_by_profile(
+                                probe_snapshot
+                            )
+                        ),
+                    }
+                )
+
+        def record_guard_acceptance(learning_rate_scale: float) -> None:
+            direct_answer_update_guard["accepted_steps"] += 1
+            direct_answer_update_guard["accepted_attempts"] += 1
+            scale_key = f"{learning_rate_scale:g}"
+            scale_counts = direct_answer_update_guard[
+                "accepted_learning_rate_scale_counts"
+            ]
+            if isinstance(scale_counts, dict):
+                scale_counts[scale_key] = int(scale_counts.get(scale_key, 0)) + 1
+
+        def train_adaptive_baseline_floor_update(
+            direct_step: int,
+            base_model_payload: dict[str, Any],
+            base_optimizer_payload: dict[str, Any],
+            base_rng_state: object,
+        ) -> float:
+            last_loss = 0.0
+            direct_answer_update_guard["checked_steps"] += 1
+            for learning_rate_scale in BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES:
+                restore_direct_update_state(base_model_payload, base_optimizer_payload)
+                direct_rng.setstate(base_rng_state)
+                direct_answer_update_guard["attempted_updates"] += 1
+                last_loss = train_baseline_anchored_prompt_update(
+                    args.direct_answer_learning_rate * learning_rate_scale
+                )
+                probe_snapshot = direct_snapshot_record(
+                    direct_step,
+                    None,
+                    {
+                        "baseline_floor_update_guard_probe": True,
+                        "learning_rate_scale": learning_rate_scale,
+                    },
+                )
+                if branch_diversity_snapshot_preserves_target_coverage(
+                    probe_snapshot,
+                    direct_baseline,
+                ):
+                    record_guard_acceptance(learning_rate_scale)
+                    return last_loss
+                direct_answer_update_guard["rejected_attempts"] += 1
+                append_rejected_update_sample(
+                    direct_step,
+                    probe_snapshot,
+                    learning_rate_scale,
+                )
+            direct_answer_update_guard["rejected_steps"] += 1
+            restore_direct_update_state(base_model_payload, base_optimizer_payload)
+            direct_rng.setstate(base_rng_state)
+            return last_loss
+
         for direct_step in range(1, direct_steps_to_run + 1):
             example = direct_training_cursor.next()
             pre_update_model_payload: dict[str, Any] | None = None
             pre_update_optimizer_payload: dict[str, Any] | None = None
+            pre_update_rng_state = None
+            direct_answer_update_guard_applied = False
             if direct_answer_baseline_floor_update_gate_active:
                 pre_update_model_payload = model.to_dict(tokenizer)
                 pre_update_optimizer_payload = optimizer.to_dict()
+                pre_update_rng_state = direct_rng.getstate()
             if args.direct_answer_mode == "first-error":
                 running_direct_loss += train_direct_answer_first_error(
                     model,
@@ -8651,31 +8783,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     enforce_prompt_target_margins=True,
                 )
             elif args.direct_answer_mode in BASELINE_ANCHORED_DIRECT_ANSWER_MODES:
-                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
-                    model,
-                    tokenizer,
-                    example,
-                    direct_training_pool,
-                    direct_lessons[example],
-                    direct_rng,
-                    args.direct_answer_learning_rate,
-                    args.direct_answer_negative_weight,
-                    args.direct_answer_positive_weight,
-                    args.direct_answer_contrast_weight,
-                    args.direct_answer_branch_position,
-                    args.direct_answer_branch_batch_size,
-                    args.direct_answer_hard_negatives,
-                    direct_answer_terminator,
-                    direct_params,
-                    balance_targets=True,
-                    focus_uncovered_targets=True,
-                    preserve_predicted_target_coverage=True,
-                    balance_deficit_targets=True,
-                    profile_aware_targets=True,
-                    balance_profile_target_shares=True,
-                    enforce_prompt_target_margins=True,
-                    replay_prediction_overrides=direct_replay_prediction_overrides,
-                )
+                if (
+                    direct_answer_baseline_floor_adaptive_updates_active
+                    and pre_update_model_payload is not None
+                    and pre_update_optimizer_payload is not None
+                    and pre_update_rng_state is not None
+                ):
+                    running_direct_loss += train_adaptive_baseline_floor_update(
+                        direct_step,
+                        pre_update_model_payload,
+                        pre_update_optimizer_payload,
+                        pre_update_rng_state,
+                    )
+                    direct_answer_update_guard_applied = True
+                else:
+                    running_direct_loss += train_baseline_anchored_prompt_update(
+                        args.direct_answer_learning_rate
+                    )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
                     model,
@@ -9073,32 +9197,29 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_learning_rate,
                     direct_params,
                 )
-            if direct_answer_baseline_floor_update_gate_active:
+            if (
+                direct_answer_baseline_floor_update_gate_active
+                and not direct_answer_update_guard_applied
+            ):
                 direct_answer_update_guard["checked_steps"] += 1
+                direct_answer_update_guard["attempted_updates"] += 1
                 probe_snapshot = direct_snapshot_record(
                     direct_step,
                     None,
-                    {"baseline_floor_update_guard_probe": True},
+                    {
+                        "baseline_floor_update_guard_probe": True,
+                        "learning_rate_scale": 1.0,
+                    },
                 )
                 if branch_diversity_snapshot_preserves_target_coverage(
                     probe_snapshot,
                     direct_baseline,
                 ):
-                    direct_answer_update_guard["accepted_steps"] += 1
+                    record_guard_acceptance(1.0)
                 else:
                     direct_answer_update_guard["rejected_steps"] += 1
-                    rejected_sample = direct_answer_update_guard["rejected_step_sample"]
-                    if isinstance(rejected_sample, list) and len(rejected_sample) < 12:
-                        rejected_sample.append(
-                            {
-                                "step": direct_step,
-                                "coverage": (
-                                    branch_diversity_snapshot_target_coverage_by_profile(
-                                        probe_snapshot
-                                    )
-                                ),
-                            }
-                        )
+                    direct_answer_update_guard["rejected_attempts"] += 1
+                    append_rejected_update_sample(direct_step, probe_snapshot, 1.0)
                     if (
                         pre_update_model_payload is not None
                         and pre_update_optimizer_payload is not None
@@ -9184,6 +9305,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_update_gate_active": (
                 direct_answer_baseline_floor_update_gate_active
+            ),
+            "direct_answer_baseline_floor_adaptive_updates_active": (
+                direct_answer_baseline_floor_adaptive_updates_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

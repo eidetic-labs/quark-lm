@@ -23,6 +23,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood",
+    "branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood",
 }
 
 

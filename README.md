@@ -233,6 +233,18 @@ baseline `0.25` floor in every recorded checkpoint. Because no update was
 accepted and branch diversity still failed across all `9` multi-target profiles,
 promotion remains rejected.
 
+v0.86 adds
+`branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the baseline-floor guard and retries the same direct-answer update at
+learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`, restoring model,
+optimizer, and RNG state before each scaled retry. The matching screen ran at
+`runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`.
+It recorded `562` active baseline prediction anchors and attempted `200` scaled
+updates across `50` checked steps. All `200` attempts still fell below at least
+one profile-wise coverage floor, so the guard accepted `0` updates. Promotion
+remains rejected, but the evidence is sharper: the next repair needs a different
+update shape, not only smaller step sizes.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -826,6 +838,14 @@ Current transformer answer-lesson run:
   recorded snapshots. This is useful safety evidence, but it is still rejected:
   no weight update is accepted and branch diversity fails across all `9`
   multi-target profiles.
+- v0.86 adds adaptive baseline-floor retries around that guard. The full-stack
+  run
+  `runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`
+  records `562` active baseline prediction anchors, checks `50/50` direct-answer
+  steps, and attempts `200` scaled updates across learning-rate scales `1.0`,
+  `0.25`, `0.05`, and `0.01`. It rejects `200/200` attempts, preserving QA and
+  heldout coverage at `0.25` but accepting no weight updates. This rejects step
+  size alone as the missing ingredient.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

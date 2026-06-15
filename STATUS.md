@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.85 baseline-floor update guard screen; promoted
+**Active version:** v0.86 adaptive baseline-floor retry screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -341,6 +341,21 @@ coverage at `0.25`, predicted diversity at `3/8`, QA average target rank at
 `13.25`, and heldout average rank at `13.375`. This is rejected but useful
 safety evidence: the guard prevents unsafe forgetting, but no update is accepted
 and `branch_diversity_target` still fails across all `9` multi-target profiles.
+
+v0.86 adds
+`branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the v0.85 guard and retries the same direct-answer update at
+learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`, restoring model,
+optimizer, and RNG state before each retry. Focused tests prove the mode records
+adaptive retry accounting. The matching screen at
+`runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+checked `50/50` steps, attempted `200` scaled updates, and rejected all `200` as
+unsafe. Every recorded snapshot preserved baseline/final QA and heldout
+target-token coverage at `0.25`, predicted diversity at `3/8`, QA average target
+rank at `13.25`, and heldout average rank at `13.375`. This is rejected evidence:
+step-size retry alone is insufficient, and the next repair needs a different
+safe update shape.
 
 ## Latest Evidence
 

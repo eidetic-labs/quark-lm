@@ -69,4 +69,6 @@ snapshots lose target-token coverage. v0.84 adds baseline replay anchors and
 keeps the same artifact trail, again rejecting promotion when trained snapshots
 miss the baseline coverage floor. v0.85 adds baseline-floor update gating and
 uses the same artifact trail to reject all unsafe attempted updates before they
+can become trusted model state. v0.86 adds adaptive baseline-floor retries and
+uses the same artifact trail to reject all `200/200` retry attempts before they
 can become trusted model state.

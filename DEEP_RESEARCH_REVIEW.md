@@ -509,9 +509,21 @@ records `562` active baseline prediction anchors and `50/50` rejected unsafe
 updates. It is still rejected evidence: the guard preserves QA/heldout coverage
 at `0.25`, but accepts no weight updates and branch diversity remains failed.
 
-### v0.86+
+### v0.86
 
-The next transformer repair should produce accepted direct-answer updates under
+Implemented adaptive baseline-floor retries with
+`branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new mode restores model, optimizer, and RNG state before retrying the same
+direct-answer update at learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`.
+Focused tests pass, and the full screen in
+`runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors and `200/200` rejected scaled
+attempts. It is still rejected evidence: step-size retry alone does not produce
+accepted safe updates.
+
+### v0.87+
+
+The next transformer repair should change the direct-answer update shape under
 the full baseline target-token floor before tokenizer growth or a learned
 verifier experiment.
 
