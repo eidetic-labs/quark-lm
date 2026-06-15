@@ -393,3 +393,12 @@ keeps retrieval exact at `219/219`, and still rejects promotion on
 `branch_diversity_target`. The next repair should use that evidence to target
 the remaining collapsed `owner`, `paraphrases`, and `learning` profiles without
 relaxing the target-token or branch-diversity gates.
+
+v0.110.0 narrows that evidence in
+`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.109.0 plan, requires collapsed-profile source evidence,
+targets only `owner`, `paraphrases`, and `learning`, records `16` guarded
+missing-token attempts, accepts `1` coverage-gain update, keeps retrieval exact
+at `219/219`, and still rejects promotion on `branch_diversity_target`. The
+next repair should make the pressure specific to each remaining profile's
+missing tokens and acceptance deltas.

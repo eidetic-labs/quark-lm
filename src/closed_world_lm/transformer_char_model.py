@@ -231,6 +231,13 @@ BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRAT
     "owner-paraphrase-memory-consolidation-missing-first-token-frontier-profile-"
     "scale-calibrated-sequential-profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-memory-consolidation-remaining-collapsed-missing-first-token-"
+    "frontier-profile-scale-calibrated-sequential-profile-stabilization-"
+    "unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -437,9 +444,14 @@ BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIR
 BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 _MEMORY_CONSOLIDATION_INHERITED_DIRECT_ANSWER_MODE_SETS = (
     BASELINE_ANCHORED_DIRECT_ANSWER_MODES,
@@ -5031,6 +5043,8 @@ def ordered_memory_consolidation_profiles(raw_profiles: Any) -> list[str]:
 def memory_consolidation_source_plan_targets(
     source_plan: dict[str, Any],
     max_profiles: int,
+    *,
+    require_collapsed_targets: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str], list[str]]:
     if max_profiles < 1:
         raise ValueError("memory consolidation max profiles must be at least 1")
@@ -5043,6 +5057,11 @@ def memory_consolidation_source_plan_targets(
     collapsed_profiles = ordered_memory_consolidation_profiles(
         summary.get("collapsed_memory_backed_profiles", [])
     )
+    if require_collapsed_targets and not collapsed_profiles:
+        raise ValueError(
+            "remaining-collapsed memory consolidation mode requires "
+            "collapsed_memory_backed_profiles in the source plan"
+        )
     top_priority_profiles = ordered_memory_consolidation_profiles(
         summary.get("top_priority_profiles", [])
     )
@@ -8305,6 +8324,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_memory_consolidation_source_plan_path = None
         direct_memory_consolidation_source_plan_summary: dict[str, Any] = {}
         direct_memory_consolidation_target_profiles: list[str] = []
@@ -8335,6 +8358,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ) = memory_consolidation_source_plan_targets(
                 direct_memory_consolidation_source_plan,
                 args.memory_consolidation_max_profiles,
+                require_collapsed_targets=direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active,
             )
             direct_memory_consolidation_missing_first_token_values = (
                 memory_consolidation_missing_first_token_values(
@@ -8512,6 +8536,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -8667,6 +8696,22 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     ] = (
                         list(BASELINE_FLOOR_MISSING_FIRST_TOKEN_LEARNING_RATE_SCALES)
                         if direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                        else []
+                    )
+                    direct_replay_plan[
+                        "memory_consolidation_remaining_collapsed_target_profiles"
+                    ] = (
+                        list(direct_memory_consolidation_target_profiles)
+                        if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                        else []
+                    )
+                    direct_replay_plan[
+                        "memory_consolidation_remaining_collapsed_source_profiles"
+                    ] = (
+                        list(
+                            direct_memory_consolidation_collapsed_memory_backed_profiles
+                        )
+                        if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
                         else []
                     )
             if direct_replay_plan_path is not None:
@@ -8877,6 +8922,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "profile_scale_memory_consolidation_missing_first_token_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+            ),
+            "profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
             ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
@@ -9148,6 +9196,30 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_memory_consolidation_consumed_profile_count": (
                 len(direct_memory_consolidation_target_profiles)
             ),
+            "profile_scale_memory_consolidation_remaining_collapsed_target_profiles": (
+                list(direct_memory_consolidation_target_profiles)
+                if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_memory_consolidation_remaining_collapsed_source_profiles": (
+                list(direct_memory_consolidation_collapsed_memory_backed_profiles)
+                if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_memory_consolidation_remaining_collapsed_consumed_profile_count": (
+                len(direct_memory_consolidation_target_profiles)
+                if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                else 0
+            ),
+            "profile_scale_memory_consolidation_remaining_collapsed_unconsumed_profiles": (
+                [
+                    profile
+                    for profile in direct_memory_consolidation_collapsed_memory_backed_profiles
+                    if profile not in set(direct_memory_consolidation_target_profiles)
+                ]
+                if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                else []
+            ),
             "profile_scale_memory_consolidation_missing_first_token_target_tokens": (
                 direct_memory_consolidation_missing_first_token_values
             ),
@@ -9395,6 +9467,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_memory_consolidation_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
+                "profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -9453,6 +9526,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
                             ):
                                 if (
+                                    direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                                ):
+                                    update_shape = (
+                                        "profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_calibrated_sequential_profile_stabilization"
+                                    )
+                                elif (
                                     direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
                                 ):
                                     update_shape = (
@@ -11210,6 +11289,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 ] = (
                                     direct_memory_consolidation_collapsed_memory_backed_profiles
                                 )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                                ):
+                                    sample[
+                                        "memory_consolidation_remaining_collapsed_target_profiles"
+                                    ] = direct_memory_consolidation_target_profiles
                             if (
                                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
                                 and profile_score is not None
@@ -11916,6 +12001,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
                                 ):
                                     if (
+                                        direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                                    ):
+                                        attempt_update_shape = (
+                                            "profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_calibrated_sequential_profile_stabilization"
+                                        )
+                                    elif (
                                         direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
                                     ):
                                         attempt_update_shape = (
@@ -13884,6 +13975,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
             ),
+            "direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+            ),
             "direct_answer_memory_consolidation_source_plan": (
                 str(direct_memory_consolidation_source_plan_path)
                 if direct_memory_consolidation_source_plan_path is not None
@@ -13903,6 +13997,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_memory_consolidation_missing_first_token_target_ids": (
                 direct_memory_consolidation_missing_first_token_ids
+            ),
+            "direct_answer_memory_consolidation_remaining_collapsed_target_profiles": (
+                list(direct_memory_consolidation_target_profiles)
+                if direct_answer_baseline_floor_profile_scale_remaining_collapsed_missing_first_token_consolidation_frontier_stabilization_active
+                else []
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

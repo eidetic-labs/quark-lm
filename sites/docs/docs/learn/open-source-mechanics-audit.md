@@ -174,6 +174,13 @@ coverage-gain update, `21` rejections, and `7` fallback acceptances while
 keeping retrieval exact and promotion blocked. The next mechanics change should
 focus on the remaining collapsed `owner`, `paraphrases`, and `learning`
 profiles.
+v0.110.0 makes that focus explicit by requiring the source plan's
+`collapsed_memory_backed_profiles` and consuming only `owner`, `paraphrases`,
+and `learning`. It records `6` candidates, `16` attempts, `1` accepted
+coverage-gain update, `15` rejections, and `5` fallback acceptances while
+keeping retrieval exact and promotion blocked. The next mechanics change should
+attach missing-token pressure and acceptance deltas to each remaining target
+profile, not only to the shared collapsed set.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

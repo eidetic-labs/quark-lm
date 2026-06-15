@@ -347,6 +347,16 @@ promotion still rejects on `branch_diversity_target`, and the next plan narrows
 remaining collapsed memory-backed profiles to `owner`, `paraphrases`, and
 `learning`.
 
+v0.110.0 consumes that narrowed plan directly. The diagnostic screen at
+`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+requires source-plan `collapsed_memory_backed_profiles`, targets only `owner`,
+`paraphrases`, and `learning`, and records the remaining-collapsed target
+contract in the replay plan and direct-answer guard. Retrieval remains exact at
+`219/219`; the missing-token phase records `6` candidates, `16` attempts, `1`
+accepted guarded coverage-gain update, `15` rejections, and `5` fallback
+acceptances. Promotion still rejects on `branch_diversity_target`, so the next
+mechanic should repair those three profiles with more profile-specific pressure.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

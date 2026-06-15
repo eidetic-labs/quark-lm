@@ -587,6 +587,17 @@ memory remains exact at `219/219`. Final coverage is preserved and improves for
 promotion is still blocked by `branch_diversity_target`; the next plan narrows
 the collapsed memory-backed profiles to `owner`, `paraphrases`, and `learning`.
 
+v0.110.0 makes that narrowed plan explicit. The diagnostic screen ran at
+`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+It consumes the v0.109.0 plan, requires source-plan
+`collapsed_memory_backed_profiles`, targets only `owner`, `paraphrases`, and
+`learning`, and records the remaining-collapsed target contract in replay and
+guard artifacts. The missing-token phase records `6` candidates, `16` attempts,
+`1` accepted guarded coverage-gain update, `15` rejections, and `5` fallback
+acceptances; memory-consolidation prioritization records `29` attempts, `6`
+acceptances, and `23` rejections. Retrieval remains exact at `219/219`, and
+promotion is still correctly blocked by `branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1320,6 +1331,14 @@ Current transformer answer-lesson run:
   missing-token attempts, `1` accepted guarded coverage-gain update, `21`
   rejections, and `7` fallback acceptances, keeps retrieval at `219/219`, and
   still rejects neural promotion on `branch_diversity_target`.
+- v0.110.0 narrows missing-token consolidation to the remaining collapsed
+  memory-backed profiles. The diagnostic run
+  `runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+  consumes the v0.109.0 plan, targets only `owner`, `paraphrases`, and
+  `learning`, records `6` missing-token candidates, `16` attempts, `1`
+  accepted guarded coverage-gain update, `15` rejections, and `5` fallback
+  acceptances, keeps retrieval at `219/219`, and still rejects neural promotion
+  on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1617,9 +1636,10 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.109.0 missing first-token evidence to repair the remaining collapsed
-   `owner`, `paraphrases`, and `learning` profiles, especially the zero-coverage
-   `paraphrases` profile, without relaxing coverage or branch-diversity gates.
+5. Use v0.110.0 remaining-collapsed evidence to design a profile-specific
+   repair for `owner`, `paraphrases`, and `learning`, especially the
+   zero-coverage `paraphrases` profile, without relaxing coverage or
+   branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

@@ -125,7 +125,13 @@ direct-answer objective mode:
    `22` attempts, `1` accepted guarded coverage-gain update, `21` rejections,
    `7` fallback acceptances, and exact `219/219` retrieval; rejected for
    promotion on `branch_diversity_target`.
-36. **v0.110.0+:** remaining collapsed-profile repair, tokenizer growth, or
+36. **v0.110.0:** remaining-collapsed missing first-token targeting.
+   Implemented with an explicit source-plan collapsed-profile requirement,
+   consumed targets `owner`, `paraphrases`, and `learning`, `6` candidates,
+   `16` attempts, `1` accepted guarded coverage-gain update, `15` rejections,
+   `5` fallback acceptances, and exact `219/219` retrieval; rejected for
+   promotion on `branch_diversity_target`.
+37. **v0.111.0+:** profile-specific collapsed-profile repair, tokenizer growth, or
    learned verifier experiments.
 
 ## Current Gap
@@ -214,12 +220,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
 - v0.109.0 missing first-token memory-consolidation evidence:
   `runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+- v0.110.0 remaining-collapsed missing-token evidence:
+  `runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- remaining collapsed-profile repair that uses v0.109.0 missing-token evidence
-  to improve `owner`, `paraphrases`, and `learning` target-token coverage
-  without regressing retrieval provenance or relaxing promotion gates.
+- profile-specific collapsed-profile repair that uses v0.110.0 remaining-target
+  evidence to improve `owner`, `paraphrases`, and `learning` target-token
+  coverage without regressing retrieval provenance or relaxing promotion gates.
 
 ## Operating Rule
 

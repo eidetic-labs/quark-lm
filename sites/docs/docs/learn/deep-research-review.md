@@ -142,7 +142,13 @@ the same discipline before another major repair screen.
     candidates, `22` attempts, `1` accepted guarded coverage-gain update, `21`
     rejections, `7` fallback acceptances, and exact `219/219` retrieval; still
     rejects promotion on `branch_diversity_target`.
-40. **v0.110.0+:** remaining collapsed-profile repair, tokenizer growth, or
+40. **v0.110.0:** remaining-collapsed missing first-token targeting.
+    Implemented with source-plan collapsed-profile enforcement, consumed
+    targets `owner`, `paraphrases`, and `learning`, `6` candidates, `16`
+    attempts, `1` accepted guarded coverage-gain update, `15` rejections, `5`
+    fallback acceptances, and exact `219/219` retrieval; still rejects promotion
+    on `branch_diversity_target`.
+41. **v0.111.0+:** profile-specific collapsed-profile repair, tokenizer growth, or
     learned verifier experiments.
 
 ## Operating Rule
@@ -258,3 +264,9 @@ attempts, accepts `1` coverage-gain update, keeps retrieval exact at `219/219`,
 and still rejects promotion on `branch_diversity_target`. The next repair should
 focus on the remaining collapsed memory-backed profiles: `owner`, `paraphrases`,
 and `learning`.
+v0.110.0 consumes that remaining-collapsed plan, requires
+`collapsed_memory_backed_profiles`, targets only `owner`, `paraphrases`, and
+`learning`, records `6` candidates and `16` missing-token attempts, accepts `1`
+coverage-gain update, keeps retrieval exact at `219/219`, and still rejects
+promotion on `branch_diversity_target`. The next repair should make the
+missing-token pressure profile-specific rather than only plan-specific.

@@ -1117,6 +1117,16 @@ at `219/219`; branch-diversity still blocks promotion, and the next plan
 narrows the collapsed memory-backed profiles to `owner`, `paraphrases`, and
 `learning`.
 
+v0.110.0 makes that narrowed plan the explicit training contract. The diagnostic
+screen in
+`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.109.0 plan, requires source-plan
+`collapsed_memory_backed_profiles`, targets only `owner`, `paraphrases`, and
+`learning`, and records no unconsumed collapsed targets. Retrieval remains exact
+at `219/219`; the missing-token phase records `6` candidates, `16` attempts,
+`1` accepted guarded coverage-gain update, `15` rejections, and `5` fallback
+acceptances. Branch-diversity still blocks promotion.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

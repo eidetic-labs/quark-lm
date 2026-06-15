@@ -75,6 +75,13 @@ PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE = (
     "owner-paraphrase-memory-consolidation-missing-first-token-frontier-profile-"
     "scale-calibrated-sequential-profile-stabilization-unlikelihood"
 )
+PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-memory-consolidation-remaining-collapsed-missing-first-token-"
+    "frontier-profile-scale-calibrated-sequential-profile-stabilization-"
+    "unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -102,6 +109,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_MODE,
     PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_MODE,
     PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
+    PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
 }
 
 
@@ -564,17 +572,26 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
         if getattr(args, "direct_answer_mode", "") in {
             PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_MODE,
             PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
+            PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
         }:
             missing_first_token_mode = (
+                getattr(args, "direct_answer_mode", "") in {
+                    PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
+                    PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE,
+                }
+            )
+            remaining_collapsed_mode = (
                 getattr(args, "direct_answer_mode", "")
-                == PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE
+                == PROFILE_SCALE_REMAINING_COLLAPSED_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_MODE
             )
             gates.append(
                 {
                     "name": (
                         "baseline_floor_profile_scale_memory_consolidation_"
                         + (
-                            "missing_first_token_frontier_calibrated_sequential_stabilization_screen"
+                            "remaining_collapsed_missing_first_token_frontier_calibrated_sequential_stabilization_screen"
+                            if remaining_collapsed_mode
+                            else "missing_first_token_frontier_calibrated_sequential_stabilization_screen"
                             if missing_first_token_mode
                             else "frontier_calibrated_sequential_stabilization_screen"
                         )
@@ -590,6 +607,12 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                             "acceptances, rejections, rejection reasons, "
                             "profile-diversity deltas, "
                             if missing_first_token_mode
+                            else ""
+                        )
+                        + (
+                            "remaining collapsed target profiles, remaining "
+                            "collapsed source profiles, "
+                            if remaining_collapsed_mode
                             else ""
                         )
                         +

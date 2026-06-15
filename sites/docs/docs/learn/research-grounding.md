@@ -149,6 +149,13 @@ accepted coverage-gain update, keeps retrieval exact at `219/219`, and still
 rejects neural promotion on `branch_diversity_target`. The next grounding point
 is remaining collapsed-profile repair for `owner`, `paraphrases`, and
 `learning`, still under separate memory and weight evidence rails.
+v0.110.0 turns that grounding point into an explicit evidence contract: it
+consumes the v0.109.0 plan, requires collapsed-profile source evidence, targets
+only `owner`, `paraphrases`, and `learning`, records `16` guarded missing-token
+attempts with `1` accepted coverage-gain update, keeps retrieval exact at
+`219/219`, and still rejects neural promotion on `branch_diversity_target`.
+The next grounding point is profile-specific missing-token pressure for those
+three unresolved profiles.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
