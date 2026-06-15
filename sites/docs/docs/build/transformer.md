@@ -160,6 +160,12 @@ It keeps the adaptive guard and adds one bounded baseline-covered anchor repair
 before each failed retry is accepted or rejected. The screen shows that
 post-update repair is not enough: all repaired attempts are still rejected.
 
+v0.88 adds
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It puts balanced baseline-floor anchors inside the same loss and backward pass
+as the branch-diversity pressure. The screen shows that the combined objective
+is still not enough: all objective-shaped attempts are rejected.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1344,6 +1350,33 @@ Latest repaired baseline-floor prompt ownership full-stack screen:
 | Training heldout note | every recorded trained snapshot preserved heldout target-token coverage at `0.25`, but repair retries accepted no updates |
 | Promotion status | rejected; post-update repair is insufficient and the next repair needs a floor-preserving objective before optimizer application |
 
+Latest objective-side baseline-floor prompt ownership full-stack screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood` |
+| Added mechanic | a balanced batch of baseline-covered floor anchors is included in the same direct-answer loss and backward pass as branch-diversity pressure |
+| Unit coverage | focused transformer tests pass; the new mode records objective anchor counts, anchor batch size, anchor weight, and accepted/rejected guard accounting |
+| Artifact stack | experiment intent, corpus hygiene, training plan, candidate quarantine, deterministic verifier, recipe, replay plan, constraint-first report, metrics, tokenizer, optimizer, lessons, checkpoint |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Baseline prediction anchors | `562` recorded and active |
+| Objective-side floor anchors | `227` recorded; batch size `32`; weight `10.0` |
+| Adaptive scales | `1.0`, `0.25`, `0.05`, `0.01` |
+| Update guard | checked `50/50` steps; attempted `200` updates; ran `200` objective anchor batches covering `2400` anchor records; accepted `0`; rejected `200` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Purity gates | no pretrained weights, no pretrained tokenizer, no external embeddings |
+| Direct steps | `50/50` attempted |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` |
+| Final QA average target rank | `13.25` |
+| Final QA target-token coverage | `0.25` |
+| Training snapshot note | every recorded trained snapshot preserved QA target-token coverage at `0.25`, but objective-side floor anchors accepted no updates |
+| Training heldout note | every recorded trained snapshot preserved heldout target-token coverage at `0.25`, but objective-side floor anchors accepted no updates |
+| Promotion status | rejected; the combined floor-anchor and branch-pressure objective is insufficient, so the next repair should prove accepted floor-stabilization updates first |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1457,5 +1490,6 @@ the full coverage floor. v0.85 adds a baseline-floor update guard that preserves
 the floor by rejecting all attempted unsafe updates. v0.86 retries those updates
 at four smaller scales and still rejects every attempt. v0.87 adds one
 baseline-covered repair after each failed retry and still rejects every attempt;
-the next repair should make the objective floor-preserving before optimizer
-application.
+v0.88 moves floor anchors into the objective and still rejects every attempt.
+The next repair should prove accepted floor-stabilization updates before adding
+branch-diversity pressure back.

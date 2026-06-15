@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.88
+
+- Added objective-side baseline-floor anchors for guarded prompt-ownership training.
+
 ## v0.87
 
 - Added baseline-floor repair retries for guarded prompt-ownership training.

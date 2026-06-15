@@ -77,8 +77,11 @@ under that floor. v0.86 adds adaptive baseline-floor retries and rejects the
 screen because all `200/200` retry attempts remain unsafe under the same floor.
 v0.87 adds one bounded baseline-covered repair after each failed retry and
 rejects the screen because all `200/200` repaired attempts remain unsafe under
-the same floor. Future objective repairs should use those narrower surfaces to
-make the objective floor-preserving before optimizer application.
+the same floor. v0.88 adds balanced baseline-floor anchors inside the objective
+and rejects the screen because all `200/200` objective-shaped attempts remain
+unsafe under the same floor. Future objective repairs should use those narrower
+surfaces to prove accepted floor-stabilization updates before branch-diversity
+pressure is added back.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -203,9 +206,11 @@ loops become fragile.
   v0.86 added adaptive baseline-floor retries and rejected the screen because
   all `200/200` retry attempts remained unsafe; v0.87 added one bounded
   baseline-covered repair after each failed retry and rejected the screen
-  because all `200/200` repaired attempts remained unsafe. The next objective
-  repair should make the objective floor-preserving under the full baseline
-  target-token floor before optimizer application.
+  because all `200/200` repaired attempts remained unsafe; v0.88 added
+  objective-side baseline-floor anchors and rejected the screen because all
+  `200/200` objective-shaped attempts remained unsafe. The next objective
+  repair should prove accepted floor-stabilization updates under the full
+  baseline target-token floor before branch-diversity pressure is added back.
 
 ## Defer
 

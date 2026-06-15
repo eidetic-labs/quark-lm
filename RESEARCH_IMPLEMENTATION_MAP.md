@@ -304,12 +304,36 @@ Acceptance:
 - Promotion remains rejected because no repaired update is accepted and
   `branch_diversity_target` still fails across all `9` multi-target profiles.
 
-### v0.88+
+### v0.88
+
+Implemented and screened objective-side baseline-floor anchors:
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The mode moves a balanced batch of baseline-covered floor anchors into the same
+loss and backward pass as the branch-diversity objective before the optimizer
+step.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show the mode records objective-anchor and accepted/rejected
+  guard accounting.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors, `227`
+  floor anchors, anchor batch size `32`, and anchor weight `10.0`.
+- The update guard checks `50/50` steps, attempts `200` updates, runs `200`
+  objective anchor batches covering `2400` anchor records, and rejects
+  `200/200`, preserving QA/heldout coverage at the baseline `0.25` floor.
+- Promotion remains rejected because no objective-shaped update is accepted and
+  `branch_diversity_target` still fails across all `9` multi-target profiles.
+
+### v0.89+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair that makes the objective floor-preserving before
-optimizer application, revisit subword tokenization, or begin a learned
-verifier/repair-policy experiment.
+branch-diversity repair. The next transformer step should first prove accepted
+floor-stabilization updates before reintroducing branch-diversity pressure,
+revisiting subword tokenization, or beginning a learned verifier/repair-policy
+experiment.
 
 ## Decision
 

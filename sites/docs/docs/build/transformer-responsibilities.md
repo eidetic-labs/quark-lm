@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.87 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.88 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -22,7 +22,9 @@ adds adaptive baseline-floor retries across smaller learning-rate scales and
 rejects the screen because all `200/200` attempted retry updates still fall
 below the floor. v0.87 adds one bounded baseline-covered repair after each
 failed retry and rejects the screen because all `200/200` repaired attempts
-still fall below the floor.
+still fall below the floor. v0.88 adds objective-side baseline-floor anchors
+and rejects the screen because all `200/200` objective-shaped attempts still
+fall below the floor.
 
 The current surfaces are:
 
@@ -72,8 +74,10 @@ repair work smaller and more auditable:
   learning-rate scales are not enough; the next repair must change update shape
   while staying under the full baseline coverage floor.
 - The v0.87 baseline-floor repair guard shows post-update anchor repair is not
-  enough; the next repair must make the objective floor-preserving before
-  optimizer application.
+  enough, setting up the v0.88 objective-side floor-anchor screen.
+- The v0.88 objective-side floor-anchor guard shows coupling floor anchors with
+  branch pressure in one step is not enough; the next repair should prove
+  accepted floor-stabilization updates first.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

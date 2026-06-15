@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.87 baseline-floor repair retry screen; promoted
+**Active version:** v0.88 baseline-floor objective screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -371,6 +371,22 @@ snapshot preserved baseline/final QA and heldout target-token coverage at
 heldout average rank at `13.375`. This is rejected evidence: post-update
 baseline-covered repair is insufficient, and the next repair needs an objective
 whose gradients preserve the floor before optimizer application.
+
+v0.88 adds
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It puts balanced baseline-covered floor anchors into the same objective and
+backward pass as the branch-diversity pressure. Focused tests prove anchor-batch
+selection and objective guard accounting. The matching screen at
+`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+`227` objective-side floor anchors, checked `50/50` steps, attempted `200`
+updates, ran `200` objective anchor batches covering `2400` anchor records, and
+rejected all `200` attempts as unsafe. Every recorded snapshot preserved
+baseline/final QA and heldout target-token coverage at `0.25`, predicted
+diversity at `3/8`, QA average target rank at `13.25`, and heldout average rank
+at `13.375`. This is rejected evidence: coupling floor anchors with branch
+pressure in one step is insufficient, and the next repair should prove accepted
+floor-stabilization updates before branch-diversity pressure is added back.
 
 ## Latest Evidence
 

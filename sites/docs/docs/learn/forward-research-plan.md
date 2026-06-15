@@ -81,8 +81,12 @@ and rejects the screen because the guard preserves the floor only by rejecting
 all attempted direct-answer updates. v0.86 adds adaptive baseline-floor retries
 and rejects the screen because all `200/200` retry attempts still violate the
 floor. v0.87 adds baseline-covered repair retries and rejects the screen because
-all `200/200` repaired attempts still violate the floor, so v0.88 should make
-the objective floor-preserving before optimizer application.
+all `200/200` repaired attempts still violate the floor, setting up the v0.88
+objective screen. v0.88 adds
+objective-side baseline-floor anchors and rejects the screen because all
+`200/200` objective-shaped attempts still violate the floor, so v0.89 should
+prove accepted floor-stabilization updates before branch-diversity pressure is
+added back.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -142,3 +146,12 @@ The run records `227` repair anchors and applies one bounded baseline-covered
 anchor repair before each failed adaptive retry is accepted or rejected. It
 records `200` repaired attempts, rejects all `200`, preserves QA/heldout
 coverage at `0.25`, and accepts no weight updates.
+
+v0.88 adds
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
+The run records `227` objective-side floor anchors and includes a balanced
+anchor batch in the same loss and backward pass as branch-diversity pressure.
+It records `200` objective anchor batches, rejects all `200` attempted updates,
+preserves QA/heldout coverage at `0.25`, and accepts no weight updates.

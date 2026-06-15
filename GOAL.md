@@ -116,9 +116,10 @@ provenance, and the goal framework itself.
     rejecting all `50/50` unsafe attempted updates; v0.86 adds adaptive retries
     at four learning-rate scales and rejects all `200/200` scaled attempts;
     v0.87 adds one bounded baseline-covered repair per retry and still rejects
-    all `200/200` repaired attempts. The remaining sequence should move the
-    floor-preserving constraint inside the update objective before broader
-    tokenizer or verifier changes.
+    all `200/200` repaired attempts; v0.88 moves balanced baseline-floor anchors
+    inside the update objective and still rejects all `200/200` attempted
+    updates. The remaining sequence should prove accepted floor-stabilization
+    updates before broader tokenizer, verifier, or branch-diversity changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

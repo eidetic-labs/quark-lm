@@ -547,11 +547,23 @@ records `562` active baseline prediction anchors, `227` repair anchors, `200`
 one-step repairs, and `200/200` rejected attempts. It is still rejected
 evidence: post-update repair does not produce accepted safe updates.
 
-### v0.88+
+### v0.88
 
-The next transformer repair should make the direct-answer objective
-floor-preserving before optimizer application under the full baseline
-target-token floor before tokenizer growth or a learned verifier experiment.
+Implemented objective-side baseline-floor anchors with
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new mode adds a balanced floor-anchor batch to the same loss and backward
+pass as branch-diversity pressure. Focused tests pass, and the full screen in
+`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` floor anchors, `200`
+objective anchor batches, `2400` anchor records, and `200/200` rejected
+attempts. It is still rejected evidence: the combined objective does not produce
+accepted safe updates.
+
+### v0.89+
+
+The next transformer repair should prove accepted floor-stabilization updates
+before branch-diversity pressure is added back under the full baseline
+target-token floor, before tokenizer growth or a learned verifier experiment.
 
 ## Stop Doing For Now
 

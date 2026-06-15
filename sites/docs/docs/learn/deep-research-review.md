@@ -87,7 +87,8 @@ the same discipline before another major repair screen.
 15. **v0.85:** baseline-floor update gating. Implemented and rejected.
 16. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
 17. **v0.87:** baseline-floor repair retries. Implemented and rejected.
-18. **v0.88+:** a floor-preserving objective under the full baseline
+18. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
+19. **v0.89+:** staged floor stabilization under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -127,5 +128,8 @@ the missing mechanic and the next repair must change update shape under the
 same baseline floor. v0.87 adds one bounded baseline-covered anchor repair
 after each failed retry; it records `227` repair anchors and rejects all
 `200/200` repaired attempts, showing post-update repair is also not the missing
-mechanic. The next repair must make the objective floor-preserving before
-optimizer application.
+mechanic. v0.88 moves balanced floor anchors into the objective itself; it runs
+`200` objective anchor batches covering `2400` anchor records and still rejects
+all `200/200` attempts, showing the combined branch-pressure objective is also
+not the missing mechanic. The next repair should prove accepted
+floor-stabilization updates before branch-diversity pressure is added back.

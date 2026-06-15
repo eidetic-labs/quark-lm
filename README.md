@@ -254,9 +254,20 @@ at
 It recorded `562` active baseline prediction anchors, `227` repair anchors, and
 `200` one-step repair attempts across `50` checked steps. All `200` attempts
 still fell below at least one profile-wise coverage floor, so the guard accepted
-`0` updates. Promotion remains rejected; the next repair needs to make the
-direct-answer objective floor-preserving before optimizer application rather
-than repairing unsafe updates afterward.
+`0` updates. Promotion remains rejected; that result set up the v0.88 objective
+screen by showing repair after an unsafe update was not enough.
+
+v0.88 adds
+`branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It moves baseline-covered floor anchors into the same direct-answer objective
+and backward pass as the branch-diversity pressure. The matching screen ran at
+`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
+It recorded `562` active baseline prediction anchors, `227` objective-side floor
+anchors, `200` objective anchor batches, and `2400` anchor records across `50`
+checked steps. All `200` attempts still fell below at least one profile-wise
+coverage floor, so the guard accepted `0` updates. Promotion remains rejected;
+the next repair should prove accepted floor-stabilization updates before adding
+branch-diversity pressure back into the objective.
 
 ## Latest Evidence
 
@@ -865,6 +876,12 @@ Current transformer answer-lesson run:
   records `227` repair anchors and `200` one-step repair attempts, but still
   rejects `200/200` attempts and accepts no weight updates. This rejects
   post-update repair as the missing ingredient.
+- v0.88 adds objective-side baseline-floor anchors. The full-stack run
+  `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`
+  records `227` floor anchors, `200` objective anchor batches, and `2400` anchor
+  records, but still rejects `200/200` attempts and accepts no weight updates.
+  This rejects combining floor anchors with branch-diversity pressure in one
+  step as the missing ingredient.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

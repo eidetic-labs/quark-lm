@@ -143,26 +143,38 @@ BASELINE_FLOOR_REPAIRED_PROMPT_MODE = (
     "branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-"
     "target-share-preserving-deficit-unlikelihood"
 )
+BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE = (
+    "branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-"
+    "target-share-preserving-deficit-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
+    BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
+    BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
+    BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
 }
+BASELINE_FLOOR_OBJECTIVE_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
+}
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_REPAIR_STEPS = 1
+BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE = 32
+BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT = 10.0
 
 
 class ScalarOptimizer:
@@ -2096,11 +2108,17 @@ class TinyTransformerLM:
         profile_aware_targets: bool = False,
         balance_profile_target_shares: bool = False,
         enforce_prompt_target_margins: bool = False,
+        floor_preservation_branches: list[BranchReplayRecord] | None = None,
+        floor_preservation_weight: float = 0.0,
+        balance_floor_preservation_targets: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
         replay_parts = [branch_replay_parts(branch) for branch in replay_branches]
         branch_parts = [branch_replay_parts(branch) for branch in branches]
+        floor_preservation_parts = [
+            branch_replay_parts(branch) for branch in (floor_preservation_branches or [])
+        ]
         replay_targets = sorted(
             {target for _context, target, _predicted, _profile in replay_parts}
         )
@@ -2147,6 +2165,10 @@ class TinyTransformerLM:
         covered_anchor_count = 0
         covered_anchor_losses_by_target: dict[tuple[str, int], Scalar] = {}
         covered_anchor_counts_by_target: Counter[tuple[str, int]] = Counter()
+        floor_preservation_loss = Scalar(0.0)
+        floor_preservation_count = 0
+        floor_preservation_losses_by_target: dict[tuple[str, int], Scalar] = {}
+        floor_preservation_counts_by_target: Counter[tuple[str, int]] = Counter()
         predicted_replay_targets_by_profile: dict[str, set[int]] = {}
         for _context, _target, predicted, profile in replay_parts:
             profile_key = profile if profile_aware_targets else "__all__"
@@ -2285,6 +2307,19 @@ class TinyTransformerLM:
                     + target_anchor_loss
                 )
                 covered_anchor_counts_by_target[target_key] += 1
+        if floor_preservation_weight > 0.0:
+            for context, target, _predicted, profile in floor_preservation_parts:
+                profile_key = profile if profile_aware_targets else "__all__"
+                target_key = (profile_key, target)
+                probs = softmax_scalars(self._forward_scalars(context))
+                target_floor_loss = -(probs[target] + 1e-12).log()
+                floor_preservation_loss = floor_preservation_loss + target_floor_loss
+                floor_preservation_count += 1
+                floor_preservation_losses_by_target[target_key] = (
+                    floor_preservation_losses_by_target.get(target_key, Scalar(0.0))
+                    + target_floor_loss
+                )
+                floor_preservation_counts_by_target[target_key] += 1
         loss = branch_loss / max(len(branches), 1)
         if replay_weight > 0.0 and replay_record_count and replay_targets:
             replay_loss = (
@@ -2363,6 +2398,26 @@ class TinyTransformerLM:
                     covered_anchor_loss / max(covered_anchor_count, 1)
                 )
             loss = loss + replay_loss * replay_weight
+        if floor_preservation_weight > 0.0 and floor_preservation_count:
+            if (
+                balance_floor_preservation_targets
+                and floor_preservation_losses_by_target
+            ):
+                balanced_floor_loss = Scalar(0.0)
+                for (
+                    target,
+                    target_floor_loss,
+                ) in floor_preservation_losses_by_target.items():
+                    balanced_floor_loss = balanced_floor_loss + (
+                        target_floor_loss / floor_preservation_counts_by_target[target]
+                    )
+                loss = loss + (
+                    balanced_floor_loss / len(floor_preservation_losses_by_target)
+                ) * floor_preservation_weight
+            else:
+                loss = loss + (
+                    floor_preservation_loss / max(floor_preservation_count, 1)
+                ) * floor_preservation_weight
         loss.backward()
         self.apply_gradients(params, learning_rate)
         return loss.data
@@ -5065,6 +5120,25 @@ def baseline_floor_repair_anchor_records(
     return anchors
 
 
+def baseline_floor_objective_anchor_batch(
+    anchors: list[BranchReplayRecord],
+    rng: random.Random,
+    batch_size: int,
+) -> list[BranchReplayRecord]:
+    if not anchors:
+        return []
+    anchors_by_profile_target: dict[tuple[str, int], list[BranchReplayRecord]] = {}
+    for branch in anchors:
+        _context, target, _predicted, profile = branch_replay_parts(branch)
+        anchors_by_profile_target.setdefault((profile, target), []).append(branch)
+    profile_targets = list(anchors_by_profile_target)
+    rng.shuffle(profile_targets)
+    selected: list[BranchReplayRecord] = []
+    for profile_target in profile_targets[: max(1, batch_size)]:
+        selected.append(rng.choice(anchors_by_profile_target[profile_target]))
+    return selected
+
+
 def train_direct_answer_baseline_floor_anchor_repair(
     model: TinyTransformerLM,
     anchors: list[BranchReplayRecord],
@@ -6066,6 +6140,9 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     balance_profile_target_shares: bool = False,
     enforce_prompt_target_margins: bool = False,
     replay_prediction_overrides: ReplayPredictionOverrides | None = None,
+    floor_preservation_branches: list[BranchReplayRecord] | None = None,
+    floor_preservation_weight: float = 0.0,
+    balance_floor_preservation_targets: bool = False,
 ) -> float:
     if profile_aware_targets:
         branches = direct_answer_profiled_branch_batch(
@@ -6145,6 +6222,9 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         profile_aware_targets=profile_aware_targets,
         balance_profile_target_shares=balance_profile_target_shares,
         enforce_prompt_target_margins=enforce_prompt_target_margins,
+        floor_preservation_branches=floor_preservation_branches,
+        floor_preservation_weight=floor_preservation_weight,
+        balance_floor_preservation_targets=balance_floor_preservation_targets,
     )
 
 
@@ -7314,6 +7394,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_answer_baseline_floor_repaired_updates_active = (
             args.direct_answer_mode in BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_objective_active = (
+            args.direct_answer_mode in BASELINE_FLOOR_OBJECTIVE_DIRECT_ANSWER_MODES
+        )
         direct_replay_records: list[BranchReplayRecord] = []
         direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
         if direct_profile_aware_targets:
@@ -7325,7 +7408,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 direct_answer_terminator,
             )
             direct_replay_records = replay_records
-            if direct_answer_baseline_floor_repaired_updates_active:
+            if (
+                direct_answer_baseline_floor_repaired_updates_active
+                or direct_answer_baseline_floor_objective_active
+            ):
                 direct_baseline_floor_repair_anchors = (
                     baseline_floor_repair_anchor_records(direct_replay_records)
                 )
@@ -7358,6 +7444,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_replay_plan["baseline_floor_repaired_updates_active"] = (
                 direct_answer_baseline_floor_repaired_updates_active
             )
+            direct_replay_plan["baseline_floor_objective_active"] = (
+                direct_answer_baseline_floor_objective_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -7365,6 +7454,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 BASELINE_FLOOR_REPAIR_STEPS
                 if direct_answer_baseline_floor_repaired_updates_active
                 else 0
+            )
+            direct_replay_plan["baseline_floor_objective_anchor_count"] = len(
+                direct_baseline_floor_repair_anchors
+            )
+            direct_replay_plan["baseline_floor_objective_anchor_batch_size"] = (
+                BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE
+                if direct_answer_baseline_floor_objective_active
+                else 0
+            )
+            direct_replay_plan["baseline_floor_objective_anchor_weight"] = (
+                BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT
+                if direct_answer_baseline_floor_objective_active
+                else 0.0
             )
             if direct_answer_baseline_floor_adaptive_updates_active:
                 direct_replay_plan["adaptive_learning_rate_scales"] = list(
@@ -7515,12 +7617,24 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "active": direct_answer_baseline_floor_update_gate_active,
             "adaptive": direct_answer_baseline_floor_adaptive_updates_active,
             "repair_active": direct_answer_baseline_floor_repaired_updates_active,
+            "objective_active": direct_answer_baseline_floor_objective_active,
             "learning_rate_scales": list(
                 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
             )
             if direct_answer_baseline_floor_adaptive_updates_active
             else [1.0],
             "repair_anchor_count": len(direct_baseline_floor_repair_anchors),
+            "objective_anchor_count": len(direct_baseline_floor_repair_anchors),
+            "objective_anchor_batch_size": (
+                BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE
+                if direct_answer_baseline_floor_objective_active
+                else 0
+            ),
+            "objective_anchor_weight": (
+                BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT
+                if direct_answer_baseline_floor_objective_active
+                else 0.0
+            ),
             "repair_steps_per_attempt": (
                 BASELINE_FLOOR_REPAIR_STEPS
                 if direct_answer_baseline_floor_repaired_updates_active
@@ -7530,6 +7644,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "attempted_updates": 0,
             "repair_attempts": 0,
             "repair_updates": 0,
+            "objective_anchor_batches": 0,
+            "objective_anchor_records": 0,
             "accepted_steps": 0,
             "accepted_attempts": 0,
             "repaired_steps": 0,
@@ -7570,6 +7686,20 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             refresh_direct_update_params()
 
         def train_baseline_anchored_prompt_update(update_learning_rate: float) -> float:
+            floor_preservation_branches: list[BranchReplayRecord] | None = None
+            if (
+                direct_answer_baseline_floor_objective_active
+                and direct_baseline_floor_repair_anchors
+            ):
+                floor_preservation_branches = baseline_floor_objective_anchor_batch(
+                    direct_baseline_floor_repair_anchors,
+                    direct_rng,
+                    BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE,
+                )
+                direct_answer_update_guard["objective_anchor_batches"] += 1
+                direct_answer_update_guard["objective_anchor_records"] += len(
+                    floor_preservation_branches
+                )
             return train_direct_answer_branch_context_replay_coverage_unlikelihood(
                 model,
                 tokenizer,
@@ -7594,6 +7724,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 balance_profile_target_shares=True,
                 enforce_prompt_target_margins=True,
                 replay_prediction_overrides=direct_replay_prediction_overrides,
+                floor_preservation_branches=floor_preservation_branches,
+                floor_preservation_weight=(
+                    BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT
+                    if direct_answer_baseline_floor_objective_active
+                    else 0.0
+                ),
+                balance_floor_preservation_targets=(
+                    direct_answer_baseline_floor_objective_active
+                ),
             )
 
         def append_rejected_update_sample(
@@ -9470,6 +9609,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_repaired_updates_active": (
                 direct_answer_baseline_floor_repaired_updates_active
+            ),
+            "direct_answer_baseline_floor_objective_active": (
+                direct_answer_baseline_floor_objective_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

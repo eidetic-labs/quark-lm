@@ -50,6 +50,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_profiled_branch_batch,
     direct_answer_profiled_replay_records,
     baseline_floor_repair_anchor_records,
+    baseline_floor_objective_anchor_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     branch_replay_plan,
@@ -4217,6 +4218,32 @@ class TransformerCharModelTest(unittest.TestCase):
             ],
         )
 
+    def test_baseline_floor_objective_anchor_batch_balances_profile_targets(
+        self,
+    ) -> None:
+        anchors = [
+            ([1, 2], 4, 4, "qa:place"),
+            ([1, 3], 4, 4, "qa:place"),
+            ([2, 2], 8, 8, "qa:owner"),
+            ([2, 3], 9, 9, "qa:owner"),
+            ([3, 3], 9, 9, "qa:owner"),
+        ]
+
+        batch = baseline_floor_objective_anchor_batch(
+            anchors,
+            random.Random(11),
+            batch_size=10,
+        )
+
+        profile_targets = {
+            (profile, target)
+            for _context, target, _predicted, profile in batch
+        }
+        self.assertEqual(
+            profile_targets,
+            {("qa:place", 4), ("qa:owner", 8), ("qa:owner", 9)},
+        )
+
     def test_baseline_floor_repaired_prompt_mode_records_repair_guard(
         self,
     ) -> None:
@@ -4280,6 +4307,86 @@ class TransformerCharModelTest(unittest.TestCase):
             replay_plan["baseline_floor_repair_anchor_count"],
         )
         self.assertEqual(guard["repair_steps_per_attempt"], 1)
+        self.assertEqual(guard["checked_steps"], 1)
+        self.assertGreaterEqual(guard["attempted_updates"], guard["checked_steps"])
+        self.assertEqual(
+            guard["accepted_steps"] + guard["rejected_steps"],
+            guard["checked_steps"],
+        )
+        self.assertEqual(
+            guard["accepted_attempts"] + guard["rejected_attempts"],
+            guard["attempted_updates"],
+        )
+
+    def test_baseline_floor_objective_prompt_mode_records_objective_guard(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-objective-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-balanced-context-profile-baseline-floor-objective-"
+                        "prompt-ownership-target-share-preserving-deficit-"
+                        "unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(direct_answer["direct_answer_replay_prediction_anchors_active"])
+        self.assertTrue(direct_answer["direct_answer_baseline_floor_update_gate_active"])
+        self.assertTrue(
+            direct_answer["direct_answer_baseline_floor_adaptive_updates_active"]
+        )
+        self.assertTrue(direct_answer["direct_answer_baseline_floor_objective_active"])
+        self.assertTrue(guard["active"])
+        self.assertTrue(guard["adaptive"])
+        self.assertTrue(guard["objective_active"])
+        self.assertEqual(guard["objective_anchor_batch_size"], 32)
+        self.assertEqual(guard["objective_anchor_weight"], 10.0)
+        self.assertEqual(
+            guard["objective_anchor_count"],
+            replay_plan["baseline_floor_objective_anchor_count"],
+        )
+        self.assertEqual(
+            replay_plan["baseline_floor_objective_anchor_batch_size"],
+            32,
+        )
+        self.assertEqual(
+            replay_plan["baseline_floor_objective_anchor_weight"],
+            10.0,
+        )
         self.assertEqual(guard["checked_steps"], 1)
         self.assertGreaterEqual(guard["attempted_updates"], guard["checked_steps"])
         self.assertEqual(
@@ -5248,6 +5355,10 @@ class TransformerCharModelTest(unittest.TestCase):
             ),
             (
                 "branch-balanced-context-profile-baseline-floor-repaired-"
+                "prompt-ownership-target-share-preserving-deficit-unlikelihood"
+            ),
+            (
+                "branch-balanced-context-profile-baseline-floor-objective-"
                 "prompt-ownership-target-share-preserving-deficit-unlikelihood"
             ),
             "branch-rank-margin-unlikelihood",

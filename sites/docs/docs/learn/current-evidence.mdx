@@ -331,6 +331,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Baseline-floor repaired gate</td><td><code>{state.transformerBaselineFloorRepairedGate}</code></td></tr>
     <tr><td>Baseline-floor repaired history</td><td><code>{state.transformerBaselineFloorRepairedHistory}</code></td></tr>
     <tr><td>Baseline-floor repaired status</td><td><code>{state.transformerBaselineFloorRepairedStatus}</code></td></tr>
+    <tr><td>Latest baseline-floor objective run</td><td><code>{state.transformerLatestBaselineFloorObjectiveRun}</code></td></tr>
+    <tr><td>Baseline-floor objective mode</td><td><code>{state.transformerBaselineFloorObjectiveMode}</code></td></tr>
+    <tr><td>Baseline-floor objective unit test</td><td><code>{state.transformerBaselineFloorObjectiveUnitTest}</code></td></tr>
+    <tr><td>Baseline-floor objective gate</td><td><code>{state.transformerBaselineFloorObjectiveGate}</code></td></tr>
+    <tr><td>Baseline-floor objective history</td><td><code>{state.transformerBaselineFloorObjectiveHistory}</code></td></tr>
+    <tr><td>Baseline-floor objective status</td><td><code>{state.transformerBaselineFloorObjectiveStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -892,6 +898,15 @@ records `562` active baseline prediction anchors, `227` repair anchors, `200`
 repair attempts, and `200/200` rejected update attempts. QA and heldout coverage
 remain at `0.25`, but no repaired update is accepted, so post-update repair is
 also rejected as the missing mechanic.
+
+v0.88 moves balanced baseline-floor anchors into the direct-answer objective
+itself. The full screen in
+`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` objective-side floor
+anchors, `200` objective anchor batches, `2400` anchor records, and `200/200`
+rejected update attempts. QA and heldout coverage remain at `0.25`, but no
+objective-shaped update is accepted, so the next repair should first prove
+accepted floor-stabilization updates.
 
 The v0.42 self-improvement run passed:
 

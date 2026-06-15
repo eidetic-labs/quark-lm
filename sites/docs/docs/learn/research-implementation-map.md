@@ -70,7 +70,8 @@ direct-answer objective mode:
 11. **v0.85:** baseline-floor update gating. Implemented and rejected.
 12. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
 13. **v0.87:** baseline-floor repair retries. Implemented and rejected.
-14. **v0.88+:** a floor-preserving objective under the full baseline
+14. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
+15. **v0.89+:** staged floor stabilization under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -111,12 +112,15 @@ QuarkLM already has:
   `branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
 - v0.87 clean full repaired baseline-floor screen evidence:
   `runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`.
+- v0.88 baseline-floor objective prompt-ownership mode:
+  `branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+- v0.88 full baseline-floor objective screen evidence:
+  `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
 
 It still needs:
 
-- a floor-preserving objective that can improve branch diversity while keeping
-  trained snapshots at or above baseline target-token coverage before optimizer
-  application.
+- staged floor-stabilization updates that can be accepted under the baseline
+  target-token coverage floor before branch-diversity pressure is added back.
 
 ## Operating Rule
 

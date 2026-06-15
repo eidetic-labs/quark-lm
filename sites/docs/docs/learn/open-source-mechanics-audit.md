@@ -95,7 +95,10 @@ update is accepted. v0.86 adds adaptive baseline-floor retries, rejects
 mechanics change must alter update shape while preserving the same floor. v0.87
 adds baseline-covered repair retries, rejects `200/200` repaired attempts, and
 shows the next mechanics change must put the floor-preserving constraint inside
-the objective before optimizer application.
+the objective before optimizer application. v0.88 does that with objective-side
+floor anchors, rejects `200/200` objective-shaped attempts, and shows the next
+mechanics change should prove floor-stabilization updates before branch pressure
+is added back.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
