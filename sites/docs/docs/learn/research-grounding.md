@@ -93,7 +93,11 @@ shows the next repair should isolate floor-preserving weight movement. v0.93
 adds calibrated scales below `0.01`, accepts one source-profile update at scale
 `0.0025`, and shows the next repair should expand safe calibrated movement.
 v0.94 adds profile-scale memory, accepts `8` source-profile updates, and shows
-the next repair should make safe movement branch-diverse.
+the next repair should make safe movement branch-diverse. v0.95 adds
+diversity-aware profile-scale acceptance, accepts `5` score-improving
+source-profile updates, rejects `11` floor-preserving score regressions, and
+shows the next repair should convert non-regressive movement into full
+branch-diversity target coverage.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

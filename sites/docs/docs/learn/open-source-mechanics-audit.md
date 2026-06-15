@@ -112,7 +112,10 @@ sub-`0.01` scales and coverage-only guard probes, accepts one `bridge:owner`
 source-profile update at scale `0.0025`, and shifts the next mechanics change
 toward expanding safe calibrated movement. v0.94 adds profile-scale memory,
 accepts `8` source-profile updates, and shifts the next mechanics change toward
-branch-diverse use of that safe movement.
+branch-diverse use of that safe movement. v0.95 adds diversity-aware
+profile-scale acceptance, accepts `5` score-improving source-profile updates,
+rejects `11` floor-preserving score regressions, and shifts the next mechanics
+change toward full branch-diversity target coverage.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

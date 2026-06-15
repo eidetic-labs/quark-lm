@@ -957,6 +957,16 @@ records one accepted outer profile-scale update, `60` profile-scale attempts,
 Promotion still rejects the transformer on `branch_diversity_target`, but safe
 floor-preserving movement now spans multiple source profiles.
 
+v0.95 adds diversity-aware profile-scale memory to that path. The diagnostic
+screen in
+`runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`
+records one accepted outer diversity-aware profile-scale update, `58`
+profile-scale attempts, `5` score-improving accepted source-profile updates,
+`42` floor regressions, and `11` floor-preserving diversity-score regressions.
+Promotion still rejects the transformer on `branch_diversity_target`, but the
+training loop now records which safe movements are non-regressive for branch
+diversity.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

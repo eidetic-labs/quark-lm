@@ -164,6 +164,10 @@ BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE = (
     "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-"
     "profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-"
+    "sequential-profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -175,6 +179,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -186,6 +191,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -196,6 +202,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -209,6 +216,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -217,13 +225,19 @@ BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -7559,6 +7573,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_diversity_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -7638,6 +7656,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "baseline_floor_profile_scale_calibrated_stabilization_active"
             ] = (
                 direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_diversity_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
             )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
@@ -7872,6 +7895,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_calibrated_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
             ),
+            "profile_scale_diversity_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+            ),
             "learning_rate_scales": list(
                 direct_baseline_floor_learning_rate_scales
             )
@@ -7950,6 +7976,18 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_rejection_scale_counts": {},
             "profile_scale_profile_acceptance_scales": {},
             "profile_scale_probe_sample": [],
+            "profile_scale_diversity_attempts": 0,
+            "profile_scale_diversity_acceptances": 0,
+            "profile_scale_diversity_rejections": 0,
+            "profile_scale_diversity_score_improvements": 0,
+            "profile_scale_diversity_score_ties": 0,
+            "profile_scale_diversity_score_regressions": 0,
+            "profile_scale_diversity_floor_rejections": 0,
+            "profile_scale_diversity_outer_acceptances": 0,
+            "profile_scale_diversity_outer_rejections": 0,
+            "profile_scale_diversity_profile_acceptance_outcomes": {},
+            "profile_scale_diversity_rejection_reasons": {},
+            "profile_scale_diversity_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8156,6 +8194,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "sequential_profile_stabilization",
                 "calibrated_sequential_profile_stabilization",
                 "profile_scale_calibrated_sequential_profile_stabilization",
+                "profile_scale_diversity_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8182,7 +8221,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_baseline_floor_repair_anchors
                 )
                 update_shape = (
-                    "profile_scale_calibrated_sequential_profile_stabilization"
+                    "profile_scale_diversity_calibrated_sequential_profile_stabilization"
+                    if direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                    else "profile_scale_calibrated_sequential_profile_stabilization"
                 )
                 total_loss = 0.0
                 loss_count = 0
@@ -8192,6 +8233,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     profile_optimizer_payload = optimizer.to_dict()
                     profile_rng_state = direct_rng.getstate()
                     profile_accepted = False
+                    profile_base_score: tuple[float, ...] | None = None
+                    if (
+                        direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                    ):
+                        profile_base_snapshot = direct_snapshot_record(
+                            direct_step,
+                            None,
+                            {
+                                "baseline_floor_update_guard_probe": True,
+                                "baseline_floor_profile_scale_diversity_base_probe": True,
+                                "update_shape": update_shape,
+                                "sequential_profile": profile,
+                            },
+                        )
+                        profile_base_score = branch_diversity_snapshot_score(
+                            profile_base_snapshot
+                        )
                     for profile_scale in direct_baseline_floor_learning_rate_scales:
                         restore_direct_update_state(
                             profile_model_payload,
@@ -8209,6 +8267,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_update_guard[
                             "profile_scale_memory_attempts"
                         ] += 1
+                        if (
+                            direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_diversity_attempts"
+                            ] += 1
                         direct_answer_update_guard[
                             "sequential_profile_records"
                         ] += len(profile_batch)
@@ -8246,17 +8310,60 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         profile_scale_sample = direct_answer_update_guard[
                             "profile_scale_probe_sample"
                         ]
+                        diversity_sample = direct_answer_update_guard[
+                            "profile_scale_diversity_probe_sample"
+                        ]
                         scale_key = f"{profile_scale:g}"
-                        if branch_diversity_snapshot_preserves_target_coverage(
+                        floor_preserved = branch_diversity_snapshot_preserves_target_coverage(
                             profile_probe_snapshot,
                             direct_baseline,
+                        )
+                        diversity_outcome = "not_active"
+                        diversity_rejection_reason = "floor_regression"
+                        profile_score: tuple[float, ...] | None = None
+                        if (
+                            direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
                         ):
+                            profile_score = branch_diversity_snapshot_score(
+                                profile_probe_snapshot
+                            )
+                            if floor_preserved and profile_base_score is not None:
+                                if profile_score > profile_base_score:
+                                    diversity_outcome = "improved"
+                                    diversity_rejection_reason = ""
+                                elif profile_score == profile_base_score:
+                                    diversity_outcome = "tied"
+                                    diversity_rejection_reason = ""
+                                else:
+                                    diversity_outcome = "regressed"
+                                    diversity_rejection_reason = "score_regression"
+                            else:
+                                diversity_outcome = "floor_regressed"
+                        diversity_accepted = (
+                            not direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                            or diversity_outcome in {"improved", "tied"}
+                        )
+                        if floor_preserved and diversity_accepted:
                             direct_answer_update_guard[
                                 "sequential_profile_acceptances"
                             ] += 1
                             direct_answer_update_guard[
                                 "profile_scale_memory_acceptances"
                             ] += 1
+                            if (
+                                direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                            ):
+                                direct_answer_update_guard[
+                                    "profile_scale_diversity_acceptances"
+                                ] += 1
+                                if diversity_outcome == "improved":
+                                    direct_answer_update_guard[
+                                        "profile_scale_diversity_score_improvements"
+                                    ] += 1
+                                else:
+                                    direct_answer_update_guard[
+                                        "profile_scale_diversity_score_ties"
+                                    ] += 1
                             accepted_counts = direct_answer_update_guard[
                                 "sequential_profile_acceptance_counts"
                             ]
@@ -8276,6 +8383,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             ]
                             if isinstance(profile_scales, dict):
                                 profile_scales[profile] = scale_key
+                            diversity_outcomes = direct_answer_update_guard[
+                                "profile_scale_diversity_profile_acceptance_outcomes"
+                            ]
+                            if isinstance(diversity_outcomes, dict):
+                                diversity_outcomes[profile] = diversity_outcome
                             accepted_any = True
                             profile_accepted = True
                             sample = {
@@ -8284,6 +8396,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 "records": len(profile_batch),
                                 "learning_rate_scale": profile_scale,
                             }
+                            if (
+                                direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                                and profile_score is not None
+                                and profile_base_score is not None
+                            ):
+                                sample["diversity_outcome"] = diversity_outcome
+                                sample["base_score"] = list(profile_base_score)
+                                sample["candidate_score"] = list(profile_score)
                             if (
                                 isinstance(probe_sample, list)
                                 and len(probe_sample) < 12
@@ -8294,6 +8414,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(profile_scale_sample) < 12
                             ):
                                 profile_scale_sample.append(sample)
+                            if (
+                                isinstance(diversity_sample, list)
+                                and len(diversity_sample) < 12
+                            ):
+                                diversity_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -8301,6 +8426,33 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_update_guard[
                             "profile_scale_memory_rejections"
                         ] += 1
+                        if (
+                            direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_diversity_rejections"
+                            ] += 1
+                            if floor_preserved:
+                                direct_answer_update_guard[
+                                    "profile_scale_diversity_score_regressions"
+                                ] += 1
+                            else:
+                                direct_answer_update_guard[
+                                    "profile_scale_diversity_floor_rejections"
+                                ] += 1
+                            rejection_reasons = direct_answer_update_guard[
+                                "profile_scale_diversity_rejection_reasons"
+                            ]
+                            if isinstance(rejection_reasons, dict):
+                                rejection_reasons[diversity_rejection_reason] = (
+                                    int(
+                                        rejection_reasons.get(
+                                            diversity_rejection_reason,
+                                            0,
+                                        )
+                                    )
+                                    + 1
+                                )
                         rejected_counts = direct_answer_update_guard[
                             "sequential_profile_rejection_counts"
                         ]
@@ -8332,6 +8484,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             ],
                         }
                         if (
+                            direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                            and profile_score is not None
+                            and profile_base_score is not None
+                        ):
+                            sample["diversity_outcome"] = diversity_outcome
+                            sample["diversity_rejection_reason"] = (
+                                diversity_rejection_reason
+                            )
+                            sample["base_score"] = list(profile_base_score)
+                            sample["candidate_score"] = list(profile_score)
+                        if (
                             isinstance(probe_sample, list)
                             and len(probe_sample) < 12
                         ):
@@ -8341,6 +8504,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             and len(profile_scale_sample) < 12
                         ):
                             profile_scale_sample.append(sample)
+                        if (
+                            isinstance(diversity_sample, list)
+                            and len(diversity_sample) < 12
+                        ):
+                            diversity_sample.append(sample)
                     if not profile_accepted:
                         restore_direct_update_state(
                             profile_model_payload,
@@ -8525,7 +8693,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
                 ):
                     attempt_update_shape = (
-                        "profile_scale_calibrated_sequential_profile_stabilization"
+                        "profile_scale_diversity_calibrated_sequential_profile_stabilization"
+                        if direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                        else "profile_scale_calibrated_sequential_profile_stabilization"
                     )
                 elif (
                     direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8567,8 +8737,26 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_baseline,
                     )
                 ):
-                    record_guard_acceptance(learning_rate_scale, attempt_update_shape)
-                    return last_loss
+                    if (
+                        direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                        and branch_diversity_snapshot_score(probe_snapshot)
+                        < branch_diversity_snapshot_score(direct_baseline)
+                    ):
+                        direct_answer_update_guard[
+                            "profile_scale_diversity_outer_rejections"
+                        ] += 1
+                    else:
+                        if (
+                            direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_diversity_outer_acceptances"
+                            ] += 1
+                        record_guard_acceptance(
+                            learning_rate_scale,
+                            attempt_update_shape,
+                        )
+                        return last_loss
                 if not update_applied:
                     direct_answer_update_guard[
                         "rejected_no_effective_update_attempts"
@@ -10373,6 +10561,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_diversity_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

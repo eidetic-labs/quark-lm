@@ -158,4 +158,7 @@ v0.93 adds calibrated sub-`0.01` scales plus coverage-only guard probes, accepts
 one `bridge:owner` source-profile update at scale `0.0025`, and still rejects
 promotion on branch diversity. v0.94 adds profile-scale memory, accepts `8`
 source-profile updates across `60` profile-scale attempts, and still rejects
-promotion on branch diversity.
+promotion on branch diversity. v0.95 adds diversity-aware profile-scale
+acceptance, accepts `5` score-improving source-profile updates across `58`
+profile-scale attempts, rejects `11` floor-preserving score regressions, and
+still rejects promotion on branch diversity.

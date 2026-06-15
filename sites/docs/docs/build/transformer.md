@@ -203,6 +203,15 @@ first safe update for that profile, and rolls back only unsafe profile-scale
 attempts. The diagnostic screen accepts eight source-profile updates while the
 baseline floor remains preserved.
 
+v0.95 adds
+`branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the profile-scale search, then accepts a source-profile update only
+when it preserves the baseline coverage floor and does not regress the
+branch-diversity score from that profile's pre-update state. The diagnostic
+screen accepts five score-improving source-profile updates and rejects eleven
+floor-preserving score regressions before promotion still blocks on branch
+diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1536,6 +1545,25 @@ Latest profile-scale calibrated floor stabilization screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected for model promotion; safe calibrated movement now spans eight source profiles |
 
+Latest diversity-aware profile-scale floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | diversity-aware profile-scale memory: accept profile-scale updates only when they preserve the baseline floor and do not regress branch-diversity score from the profile's pre-update state |
+| Unit coverage | focused transformer tests pass; the mode records diversity activation, attempts, score improvements/ties/regressions, floor rejections, rejection reasons, and accepted profile outcomes |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001` |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0`; outer diversity rejections `0` |
+| Profile-scale attempts | `58` attempted; `5` accepted; `53` rejected |
+| Diversity outcomes | `5` score improvements; `0` ties; `11` score regressions; `42` floor regressions |
+| Accepted profile scales | `bridge:owner 0.0025`, `bridge:place 0.0005`, `fact:learning 0.0005`, `qa:glossary 1`, `qa:learning 0.0025` |
+| Accepted update shapes | `profile_scale_diversity_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected for model promotion; accepted movement is now explicitly diversity-score non-regressive |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1657,5 +1685,8 @@ covers the full profile-target floor surface and still rejects every attempt.
 v0.92 changes the repair shape to sequential source-profile batches and still
 rejects every profile-local attempt. v0.93 calibrates that movement below
 `0.01` and accepts one source-profile update at scale `0.0025`. v0.94 adds
-profile-scale memory and accepts eight source-profile updates, so the next
-repair should turn safe calibrated movement into branch-diverse behavior.
+profile-scale memory and accepts eight source-profile updates. v0.95 adds
+diversity-aware profile-scale acceptance, preserves five score-improving
+source-profile updates, and rejects eleven floor-preserving score regressions,
+so the next repair should turn non-regressive movement into full branch-diverse
+coverage.

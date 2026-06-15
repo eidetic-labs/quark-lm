@@ -140,10 +140,12 @@ QuarkLM already has:
   `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`.
 - v0.94 profile-scale calibrated baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.95 diversity-aware profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`.
 
 It still needs:
 
-- branch-diverse use of expanded safe calibrated movement before
+- full branch-diversity target coverage from non-regressive calibrated movement before
   branch-diversity pressure is added back.
 
 ## Operating Rule

@@ -16,6 +16,10 @@ TRANSFORMER_RECIPE_VERSION = "v0.78"
 TRAINING_DATA_DESCRIPTION = (
     "closed_world_lm.answer_model corpus-derived AnswerExample lessons"
 )
+PROFILE_SCALE_DIVERSITY_MODE = (
+    "branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-"
+    "sequential-profile-stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -31,6 +35,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood",
+    PROFILE_SCALE_DIVERSITY_MODE,
 }
 
 
@@ -219,6 +224,26 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                 },
             ]
         )
+        if getattr(args, "direct_answer_mode", "") == PROFILE_SCALE_DIVERSITY_MODE:
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_diversity_calibrated_"
+                        "sequential_stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records diversity-aware profile-scale search "
+                        "activation, outer/search scales, source-profile scale "
+                        "attempts, accepted/rejected diversity outcome counts, "
+                        "score regression rejections, floor regression "
+                        "rejections, accepted profile scales, update-shape "
+                        "counts, replay plan, branch-context gate, coverage "
+                        "floor, diversity target, recipe, verifier, and "
+                        "constraint-first promotion artifacts."
+                    ),
+                    "required": True,
+                }
+            )
     gates.extend(
         parse_experiment_gate(raw_gate)
         for raw_gate in (getattr(args, "experiment_acceptance_gate", None) or [])

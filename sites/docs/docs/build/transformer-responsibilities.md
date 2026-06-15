@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.94 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.95 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -36,6 +36,9 @@ v0.93 adds calibrated sub-`0.01` scales plus coverage-only guard probes and
 accepts the first nonzero source-profile update under the baseline floor guard.
 v0.94 adds profile-scale memory and preserves eight calibrated source-profile
 updates in one guarded outer attempt.
+v0.95 adds diversity-aware profile-scale memory and preserves five
+score-improving source-profile updates while rejecting eleven floor-preserving
+score regressions.
 
 The current surfaces are:
 
@@ -105,6 +108,10 @@ repair work smaller and more auditable:
 - The v0.94 profile-scale guard shows accepted movement can be expanded:
   `8` source-profile updates survive across `60` profile-scale attempts while
   branch diversity still blocks promotion.
+- The v0.95 diversity-aware profile-scale guard shows accepted movement can be
+  filtered by branch-diversity score: `5` score-improving source-profile updates
+  survive across `58` profile-scale attempts while `11` floor-preserving score
+  regressions are rejected.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

@@ -348,6 +348,22 @@ Accepted profile scales were `bridge:owner: 0.0025`, `bridge:place: 0.0005`,
 rejected on `branch_diversity_target`, but v0.94 expands safe floor-preserving
 movement beyond one source profile.
 
+v0.95 adds
+`branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.94 profile-scale search but accepts a source-profile update only
+when it preserves the baseline coverage floor and does not regress the
+branch-diversity score from that profile's pre-update state. The matching
+diagnostic screen ran at
+`runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted one outer diversity-aware profile-scale
+update, accepted it, and preserved `5` diversity-score-improving source-profile
+updates across `58` profile-scale attempts. It rejected `42` floor regressions
+and `11` floor-preserving diversity-score regressions. Accepted profile scales
+were `bridge:owner: 0.0025`, `bridge:place: 0.0005`,
+`fact:learning: 0.0005`, `qa:glossary: 1`, and `qa:learning: 0.0025`.
+Promotion remains rejected on `branch_diversity_target`, but v0.95 turns safe
+movement into measured non-regressive diversity improvement.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -989,6 +1005,11 @@ Current transformer answer-lesson run:
   diagnostic run
   `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
   accepts `8` source-profile updates while preserving the baseline floor.
+- v0.95 adds diversity-aware profile-scale memory. The diagnostic run
+  `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`
+  accepts `5` diversity-score-improving source-profile updates, rejects `11`
+  floor-preserving score regressions, and still rejects promotion on
+  `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
