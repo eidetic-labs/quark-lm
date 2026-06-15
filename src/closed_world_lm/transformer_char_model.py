@@ -219,6 +219,12 @@ BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABIL
     "owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-"
     "stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-memory-consolidation-frontier-profile-scale-calibrated-"
+    "sequential-profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -422,6 +428,33 @@ BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_STABILIZATION_DI
 BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
+BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+_MEMORY_CONSOLIDATION_INHERITED_DIRECT_ANSWER_MODE_SETS = (
+    BASELINE_ANCHORED_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES,
+)
+for _mode_set in _MEMORY_CONSOLIDATION_INHERITED_DIRECT_ANSWER_MODE_SETS:
+    _mode_set.update(
+        BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+    )
+del _mode_set
+del _MEMORY_CONSOLIDATION_INHERITED_DIRECT_ANSWER_MODE_SETS
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
     1.0,
@@ -3919,6 +3952,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="first-error",
         help="Direct transformer update policy for greedy answer completion.",
     )
+    answer_parser.add_argument(
+        "--memory-consolidation-source-plan",
+        type=Path,
+        default=None,
+        help=(
+            "Prior memory_consolidation_plan.json to consume for gated "
+            "memory-backed direct-answer consolidation modes."
+        ),
+    )
+    answer_parser.add_argument(
+        "--memory-consolidation-max-profiles",
+        type=int,
+        default=3,
+        help="Maximum memory-backed failed profiles to consume from the source plan.",
+    )
     answer_parser.add_argument("--direct-answer-negative-weight", type=float, default=0.5)
     answer_parser.add_argument("--direct-answer-positive-weight", type=float, default=1.0)
     answer_parser.add_argument("--direct-answer-contrast-weight", type=float, default=1.0)
@@ -4938,6 +4986,58 @@ def remaining_profile_binding_profile_order(
         return priority_rank, label, profile
 
     return sorted(profile_groups.items(), key=priority)
+
+
+def ordered_memory_consolidation_profiles(raw_profiles: Any) -> list[str]:
+    profiles: list[str] = []
+    seen: set[str] = set()
+    if not isinstance(raw_profiles, list):
+        return profiles
+    for raw_profile in raw_profiles:
+        if not isinstance(raw_profile, str) or raw_profile in seen:
+            continue
+        profiles.append(raw_profile)
+        seen.add(raw_profile)
+    return profiles
+
+
+def memory_consolidation_source_plan_targets(
+    source_plan: dict[str, Any],
+    max_profiles: int,
+) -> tuple[dict[str, Any], list[str], list[str], list[str]]:
+    if max_profiles < 1:
+        raise ValueError("memory consolidation max profiles must be at least 1")
+    if source_plan.get("kind") != "memory_consolidation_plan":
+        raise ValueError("memory consolidation source plan must be a memory_consolidation_plan")
+    raw_summary = source_plan.get("summary", {})
+    if not isinstance(raw_summary, dict):
+        raise ValueError("memory consolidation source plan summary must be an object")
+    summary = dict(raw_summary)
+    collapsed_profiles = ordered_memory_consolidation_profiles(
+        summary.get("collapsed_memory_backed_profiles", [])
+    )
+    top_priority_profiles = ordered_memory_consolidation_profiles(
+        summary.get("top_priority_profiles", [])
+    )
+    targets = collapsed_profiles or top_priority_profiles
+    if not targets:
+        priority_records = source_plan.get("profile_priorities", [])
+        if isinstance(priority_records, list):
+            targets = ordered_memory_consolidation_profiles(
+                [
+                    record.get("profile")
+                    for record in priority_records
+                    if isinstance(record, dict)
+                ]
+            )
+    if not targets:
+        raise ValueError("memory consolidation source plan has no target profiles")
+    return (
+        summary,
+        targets[:max_profiles],
+        top_priority_profiles,
+        collapsed_profiles,
+    )
 
 
 def branch_diversity_snapshot_preserves_target_coverage(
@@ -8074,10 +8174,47 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
+        direct_memory_consolidation_source_plan_path = None
+        direct_memory_consolidation_source_plan_summary: dict[str, Any] = {}
+        direct_memory_consolidation_target_profiles: list[str] = []
+        direct_memory_consolidation_top_priority_profiles: list[str] = []
+        direct_memory_consolidation_collapsed_memory_backed_profiles: list[str] = []
+        if (
+            direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+        ):
+            if args.memory_consolidation_source_plan is None:
+                raise ValueError(
+                    "memory consolidation mode requires --memory-consolidation-source-plan"
+                )
+            direct_memory_consolidation_source_plan_path = (
+                args.memory_consolidation_source_plan
+            )
+            with direct_memory_consolidation_source_plan_path.open(
+                "r",
+                encoding="utf-8",
+            ) as handle:
+                direct_memory_consolidation_source_plan = json.load(handle)
+            (
+                direct_memory_consolidation_source_plan_summary,
+                direct_memory_consolidation_target_profiles,
+                direct_memory_consolidation_top_priority_profiles,
+                direct_memory_consolidation_collapsed_memory_backed_profiles,
+            ) = memory_consolidation_source_plan_targets(
+                direct_memory_consolidation_source_plan,
+                args.memory_consolidation_max_profiles,
+            )
         direct_remaining_profile_binding_target_profiles = list(
-            BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES
-            if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
-            else BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
+            direct_memory_consolidation_target_profiles
+            if direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+            else (
+                BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES
+                if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                else BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
+            )
         )
         direct_remaining_profile_binding_source_labels = (
             remaining_profile_binding_source_labels(
@@ -8224,6 +8361,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -8344,6 +8486,30 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     ] = direct_replay_plan[
                         "remaining_profile_binding_source_profiles"
                     ]
+                if (
+                    direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                ):
+                    direct_replay_plan[
+                        "memory_consolidation_source_plan"
+                    ] = str(direct_memory_consolidation_source_plan_path)
+                    direct_replay_plan[
+                        "memory_consolidation_source_plan_summary"
+                    ] = direct_memory_consolidation_source_plan_summary
+                    direct_replay_plan[
+                        "memory_consolidation_target_profiles"
+                    ] = direct_memory_consolidation_target_profiles
+                    direct_replay_plan[
+                        "memory_consolidation_top_priority_profiles"
+                    ] = direct_memory_consolidation_top_priority_profiles
+                    direct_replay_plan[
+                        "memory_consolidation_collapsed_memory_backed_profiles"
+                    ] = direct_memory_consolidation_collapsed_memory_backed_profiles
+                    direct_replay_plan[
+                        "memory_consolidation_max_profiles"
+                    ] = args.memory_consolidation_max_profiles
+                    direct_replay_plan[
+                        "memory_consolidation_consumed_profile_count"
+                    ] = len(direct_memory_consolidation_target_profiles)
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
@@ -8546,6 +8712,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "profile_scale_owner_paraphrase_binding_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+            ),
+            "profile_scale_memory_consolidation_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
             ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
@@ -8787,6 +8956,35 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_owner_paraphrase_binding_preservation_checks": 0,
             "profile_scale_owner_paraphrase_binding_preservation_failures": 0,
             "profile_scale_owner_paraphrase_binding_probe_sample": [],
+            "profile_scale_memory_consolidation_source_plan_path": (
+                str(direct_memory_consolidation_source_plan_path)
+                if direct_memory_consolidation_source_plan_path is not None
+                else None
+            ),
+            "profile_scale_memory_consolidation_source_plan_summary": (
+                direct_memory_consolidation_source_plan_summary
+            ),
+            "profile_scale_memory_consolidation_target_profiles": (
+                direct_memory_consolidation_target_profiles
+            ),
+            "profile_scale_memory_consolidation_top_priority_profiles": (
+                direct_memory_consolidation_top_priority_profiles
+            ),
+            "profile_scale_memory_consolidation_collapsed_memory_backed_profiles": (
+                direct_memory_consolidation_collapsed_memory_backed_profiles
+            ),
+            "profile_scale_memory_consolidation_max_profiles": (
+                args.memory_consolidation_max_profiles
+                if direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                else 0
+            ),
+            "profile_scale_memory_consolidation_consumed_profile_count": (
+                len(direct_memory_consolidation_target_profiles)
+            ),
+            "profile_scale_memory_consolidation_prioritized_attempts": 0,
+            "profile_scale_memory_consolidation_prioritized_acceptances": 0,
+            "profile_scale_memory_consolidation_prioritized_rejections": 0,
+            "profile_scale_memory_consolidation_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -9003,6 +9201,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization",
+                "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -9058,6 +9257,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                         ):
                             if (
+                                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                            ):
+                                update_shape = (
+                                    "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
+                                )
+                            elif (
                                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                             ):
                                 update_shape = (
@@ -9170,6 +9375,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                         and profile in remaining_source_profiles
                     )
+                    memory_consolidation_prioritized = (
+                        direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                        and profile in remaining_source_profiles
+                    )
                     profile_model_payload = model.to_dict(tokenizer)
                     profile_optimizer_payload = optimizer.to_dict()
                     profile_rng_state = direct_rng.getstate()
@@ -9258,6 +9467,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             direct_answer_update_guard[
                                 "profile_scale_owner_paraphrase_binding_prioritized_attempts"
                             ] += 1
+                        if memory_consolidation_prioritized:
+                            direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_prioritized_attempts"
+                            ] += 1
                         direct_answer_update_guard[
                             "sequential_profile_records"
                         ] += len(profile_batch)
@@ -9298,6 +9511,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 ),
                                 "owner_paraphrase_binding_prioritized": (
                                     owner_paraphrase_binding_prioritized
+                                ),
+                                "memory_consolidation_prioritized": (
+                                    memory_consolidation_prioritized
+                                ),
+                                "memory_consolidation_target_profiles": (
+                                    direct_memory_consolidation_target_profiles
                                 ),
                             },
                         )
@@ -9897,6 +10116,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 )
                             )
                             if (
+                                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                            ):
+                                memory_consolidation_targets = set(
+                                    direct_memory_consolidation_target_profiles
+                                )
+                                collapsed_profile_binding_target_profiles = [
+                                    name
+                                    for name in collapsed_profile_binding_target_profiles
+                                    if name in memory_consolidation_targets
+                                ]
+                            elif (
                                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                             ):
                                 owner_paraphrase_targets = set(
@@ -9975,6 +10205,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                             ),
                                             "collapsed_profile_binding_target_profiles": (
                                                 collapsed_profile_binding_target_profiles
+                                            ),
+                                            "memory_consolidation_target_profiles": (
+                                                direct_memory_consolidation_target_profiles
+                                                if direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                                                else []
                                             ),
                                             "owner_paraphrase_binding_preserved_profiles": (
                                                 list(
@@ -10178,6 +10413,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             if owner_paraphrase_binding_prioritized:
                                 direct_answer_update_guard[
                                     "profile_scale_owner_paraphrase_binding_prioritized_acceptances"
+                                ] += 1
+                            if memory_consolidation_prioritized:
+                                direct_answer_update_guard[
+                                    "profile_scale_memory_consolidation_prioritized_acceptances"
                                 ] += 1
                             if (
                                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
@@ -10447,6 +10686,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         "owner_paraphrase_binding_preservation_delta"
                                     ] = owner_paraphrase_binding_preservation_delta
                             if (
+                                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                            ):
+                                sample[
+                                    "memory_consolidation_prioritized"
+                                ] = memory_consolidation_prioritized
+                                sample[
+                                    "memory_consolidation_target_profiles"
+                                ] = direct_memory_consolidation_target_profiles
+                                sample[
+                                    "memory_consolidation_source_plan"
+                                ] = str(direct_memory_consolidation_source_plan_path)
+                                sample[
+                                    "memory_consolidation_collapsed_memory_backed_profiles"
+                                ] = (
+                                    direct_memory_consolidation_collapsed_memory_backed_profiles
+                                )
+                            if (
                                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
                                 and profile_score is not None
                                 and profile_base_score is not None
@@ -10702,6 +10958,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(owner_paraphrase_sample) < 12
                             ):
                                 owner_paraphrase_sample.append(sample)
+                            memory_consolidation_sample = direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_probe_sample"
+                            ]
+                            if (
+                                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                                and isinstance(memory_consolidation_sample, list)
+                                and len(memory_consolidation_sample) < 12
+                            ):
+                                memory_consolidation_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -10716,6 +10981,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         if owner_paraphrase_binding_prioritized:
                             direct_answer_update_guard[
                                 "profile_scale_owner_paraphrase_binding_prioritized_rejections"
+                            ] += 1
+                        if memory_consolidation_prioritized:
+                            direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_prioritized_rejections"
                             ] += 1
                         if (
                             direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
@@ -11083,6 +11352,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                             ):
                                 if (
+                                    direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+                                ):
+                                    attempt_update_shape = (
+                                        "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
+                                    )
+                                elif (
                                     direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                                 ):
                                     attempt_update_shape = (
@@ -13034,6 +13309,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
+            ),
+            "direct_answer_memory_consolidation_source_plan": (
+                str(direct_memory_consolidation_source_plan_path)
+                if direct_memory_consolidation_source_plan_path is not None
+                else None
+            ),
+            "direct_answer_memory_consolidation_target_profiles": (
+                direct_memory_consolidation_target_profiles
+            ),
+            "direct_answer_memory_consolidation_top_priority_profiles": (
+                direct_memory_consolidation_top_priority_profiles
+            ),
+            "direct_answer_memory_consolidation_collapsed_memory_backed_profiles": (
+                direct_memory_consolidation_collapsed_memory_backed_profiles
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

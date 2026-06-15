@@ -369,5 +369,11 @@ v0.106.0 adds memory-guided consolidation planning and screens it at
 The run writes `memory_consolidation_plan.json`, records `9` memory-backed
 neural failed profiles, and ranks `owner`, `paraphrases`, `glossary`,
 `admission_paraphrases`, and `admissions` as the top consolidation priorities.
-The next repair should consume this plan as a gated training target list, not
-as proof that the transformer weights already learned the retrieved memories.
+v0.107.0 consumes that plan in
+`runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`.
+The run targets `owner`, `paraphrases`, and `glossary`, records `26`
+memory-consolidation prioritized attempts with `8` acceptances and `18`
+rejections, keeps retrieval exact at `219/219`, and still rejects promotion on
+`branch_diversity_target`. The next repair should use this evidence to improve
+branch diversity without treating retrieved answers as learned transformer
+weights.

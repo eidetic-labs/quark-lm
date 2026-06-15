@@ -528,6 +528,20 @@ The plan uses no external model, no external embeddings, no pretrained
 retriever, and no weight updates; it is a target list for the next gated
 consolidation step, not promotion evidence.
 
+v0.107.0 adds a gated memory-consolidation direct-answer mode. The mode
+requires a declared prior `memory_consolidation_plan.json`, consumes the
+plan's collapsed memory-backed profiles as the remaining-profile target list,
+and records the consumed source plan, target profiles, prioritized attempts,
+acceptances, rejections, and update-shape evidence in the replay plan and
+direct-answer guard. The diagnostic screen ran at
+`runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`.
+It loads the v0.106.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+keeps retrieval exact at `219/219`, records `26` memory-consolidation
+prioritized attempts with `8` acceptances and `18` rejections, and still
+rejects neural promotion on `branch_diversity_target`. The run proves the
+memory plan can guide gated weight updates without treating retrieval success
+as transformer promotion.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1241,6 +1255,12 @@ Current transformer answer-lesson run:
   `9` memory-backed neural failed profiles, identifies collapsed
   memory-backed profiles `owner`, `paraphrases`, and `glossary`, and still
   rejects neural promotion on `branch_diversity_target`.
+- v0.107.0 adds gated memory-consolidation training. The diagnostic run
+  `runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`
+  consumes the v0.106.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+  records `26` memory-consolidation prioritized attempts with `8` acceptances
+  and `18` rejections, keeps retrieval at `219/219`, and still rejects neural
+  promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1538,9 +1558,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Convert the v0.106.0 memory-consolidation plan into a gated training
-   objective for the top memory-backed failed profiles without counting
-   retrieval success as transformer weight learning.
+5. Use v0.107.0 gated memory-consolidation evidence to improve the remaining
+   branch-diversity failures, especially collapsed `glossary`, `owner`, and
+   `paraphrases`, without counting retrieval success as transformer promotion.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

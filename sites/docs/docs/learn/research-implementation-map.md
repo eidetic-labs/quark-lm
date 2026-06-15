@@ -112,8 +112,12 @@ direct-answer objective mode:
    `memory_consolidation_plan.json`, `9` memory-backed neural failed profiles,
    and top priorities `owner`, `paraphrases`, `glossary`,
    `admission_paraphrases`, and `admissions`.
-33. **v0.107.0+:** gated memory-consolidation training, owner/paraphrase target
-   diversification, tokenizer growth, or learned verifier experiments.
+33. **v0.107.0:** gated memory-consolidation training. Implemented with a
+   declared source consolidation plan, consumed targets `owner`, `paraphrases`,
+   and `glossary`, and `26` prioritized attempts with `8` acceptances and `18`
+   rejections; rejected for promotion on `branch_diversity_target`.
+34. **v0.108.0+:** branch-diversity repair from the v0.107.0 consolidation
+   evidence, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
 
@@ -195,12 +199,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
 - v0.106.0 memory-guided consolidation planning evidence:
   `runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+- v0.107.0 gated memory-consolidation training evidence:
+  `runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- a gated consolidation objective that consumes the v0.106.0 priority plan and
-  trains only memory-backed neural failures that can improve branch diversity
-  and target-token coverage without regressing retrieval provenance.
+- branch-diversity repair that uses v0.107.0 source-plan-guided consolidation
+  evidence to improve target-token coverage without regressing retrieval
+  provenance.
 
 ## Operating Rule
 

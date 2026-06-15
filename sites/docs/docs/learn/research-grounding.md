@@ -134,7 +134,11 @@ retriever, or weight updates, and shows that immediate memory serving should be
 separated from slower neural consolidation.
 v0.106.0 adds memory-guided consolidation planning, ranks `9` retrieval-served
 neural failed profiles, and turns the memory/weight separation into an explicit
-target list for future gated consolidation training.
+target list for the next gated consolidation training screen.
+v0.107.0 implements that gated consolidation handoff: it consumes the v0.106.0
+plan, targets `owner`, `paraphrases`, and `glossary`, records `26` prioritized
+attempts with `8` acceptances and `18` rejections, and still rejects neural
+promotion on `branch_diversity_target`.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

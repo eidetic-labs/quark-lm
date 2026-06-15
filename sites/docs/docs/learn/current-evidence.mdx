@@ -1092,6 +1092,14 @@ writes `memory_consolidation_plan.json`, keeps retrieval at `219/219`, records
 priorities. The collapsed memory-backed profiles are `owner`, `paraphrases`,
 and `glossary`; neural promotion still rejects on `branch_diversity_target`.
 
+v0.107.0 adds gated memory-consolidation training. The diagnostic screen in
+`runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.106.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+records `26` memory-consolidation prioritized attempts with `8` acceptances and
+`18` rejections, and keeps retrieval at `219/219`. The transformer still
+rejects neural promotion on `branch_diversity_target`, so this is plan-guided
+weight-consolidation evidence rather than promoted model evidence.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

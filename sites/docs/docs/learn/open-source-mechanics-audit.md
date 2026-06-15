@@ -156,6 +156,12 @@ v0.106.0 adds `memory_consolidation_plan.json`, ranks `9` memory-backed neural
 failed profiles, and names the collapsed memory-backed profiles before any
 training objective consumes them. The next mechanics change should train from
 that plan under the same constraint-first promotion rules.
+v0.107.0 adds that source-plan-consuming training mode, targets `owner`,
+`paraphrases`, and `glossary`, records `26` prioritized attempts with `8`
+acceptances and `18` rejections, and still rejects promotion on
+`branch_diversity_target`. The next mechanics change should improve target-token
+diversity inside those memory-backed failures without relaxing the promotion
+gate.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

@@ -313,6 +313,17 @@ and ranks `owner`, `paraphrases`, `glossary`, `admission_paraphrases`, and
 memory-backed profiles `owner`, `paraphrases`, and `glossary`; the transformer
 still rejects promotion on branch diversity.
 
+v0.107.0 adds gated memory-consolidation direct-answer training. The diagnostic
+screen at
+`runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`
+loads the v0.106.0 consolidation plan as a declared source artifact, consumes
+`owner`, `paraphrases`, and `glossary` as the target profile list, records
+`26` memory-consolidation prioritized attempts with `8` acceptances and `18`
+rejections, keeps retrieval exact at `219/219`, and still rejects promotion on
+`branch_diversity_target`. Retrieval remains separate memory evidence; the
+new mode proves a plan-to-weight-update handoff under gates, not completed
+neural learning.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

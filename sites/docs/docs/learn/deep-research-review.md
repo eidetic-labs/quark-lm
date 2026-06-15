@@ -129,8 +129,12 @@ the same discipline before another major repair screen.
     consolidation plan that ranks `9` memory-backed neural failed profiles and
     names `owner`, `paraphrases`, and `glossary` as collapsed memory-backed
     priorities.
-37. **v0.107.0+:** gated memory-consolidation training, owner/paraphrase target
-    diversification, tokenizer growth, or learned verifier experiments.
+37. **v0.107.0:** gated memory-consolidation training. Implemented with a
+    source-plan-consuming direct-answer mode that targets `owner`,
+    `paraphrases`, and `glossary`, records `26` prioritized attempts, accepts
+    `8`, rejects `18`, and still rejects promotion on `branch_diversity_target`.
+38. **v0.108.0+:** branch-diversity repair from the v0.107.0 consolidation
+    evidence, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
 
@@ -231,3 +235,7 @@ v0.106.0 adds memory-guided consolidation planning, writes
 and identifies `owner`, `paraphrases`, and `glossary` as collapsed
 memory-backed profiles. This creates a target list for gated training without
 counting memory retrieval as weight learning.
+v0.107.0 consumes that plan in a gated direct-answer mode, targets `owner`,
+`paraphrases`, and `glossary`, records `26` prioritized attempts with `8`
+acceptances and `18` rejections, keeps retrieval exact at `219/219`, and still
+rejects promotion on `branch_diversity_target`.
