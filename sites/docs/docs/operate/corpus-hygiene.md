@@ -67,4 +67,6 @@ promotion shortcut. v0.83 adds prompt-specific ownership margins and runs the
 same governed screen path; the artifacts still reject promotion when trained
 snapshots lose target-token coverage. v0.84 adds baseline replay anchors and
 keeps the same artifact trail, again rejecting promotion when trained snapshots
-miss the baseline coverage floor.
+miss the baseline coverage floor. v0.85 adds baseline-floor update gating and
+uses the same artifact trail to reject all unsafe attempted updates before they
+can become trusted model state.

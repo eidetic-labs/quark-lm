@@ -237,12 +237,34 @@ Acceptance:
   heldout to one `"i"` token with target-token coverage `0.125`, below the
   baseline `0.25` floor, even though QA average target rank improves to `8.0`.
 
-### v0.85+
+### v0.85
+
+Implemented and screened baseline-floor update gating:
+`branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The mode keeps baseline replay anchors but treats the profile-wise step-0
+target-token coverage floor as an update-acceptance rule: an attempted
+direct-answer update is rolled back if the branch-profile probe falls below the
+floor.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show the mode records active baseline replay anchors and update
+  guard accounting.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors.
+- The update guard checks `50/50` attempted steps and rejects `50/50`, preserving
+  QA/heldout coverage at the baseline `0.25` floor in every recorded snapshot.
+- Promotion remains rejected because no update is accepted and
+  `branch_diversity_target` still fails across all `9` multi-target profiles.
+
+### v0.86+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair that preserves the full baseline target-token floor,
-revisit subword tokenization, or begin a learned verifier/repair-policy
-experiment.
+branch-diversity repair that produces accepted updates under the full baseline
+target-token floor, revisit subword tokenization, or begin a learned
+verifier/repair-policy experiment.
 
 ## Decision
 

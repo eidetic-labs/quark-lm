@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.85
+
+- Added baseline-floor update gating for prompt-ownership training.
+
 ## v0.84
 
 - Added baseline replay anchors for prompt-ownership preservation.

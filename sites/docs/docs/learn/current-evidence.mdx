@@ -313,6 +313,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Baseline-anchor gate</td><td><code>{state.transformerBaselineAnchorGate}</code></td></tr>
     <tr><td>Baseline-anchor history</td><td><code>{state.transformerBaselineAnchorHistory}</code></td></tr>
     <tr><td>Baseline-anchor status</td><td><code>{state.transformerBaselineAnchorStatus}</code></td></tr>
+    <tr><td>Latest baseline-floor gate run</td><td><code>{state.transformerLatestBaselineFloorGateRun}</code></td></tr>
+    <tr><td>Baseline-floor gate mode</td><td><code>{state.transformerBaselineFloorGateMode}</code></td></tr>
+    <tr><td>Baseline-floor gate unit test</td><td><code>{state.transformerBaselineFloorGateUnitTest}</code></td></tr>
+    <tr><td>Baseline-floor gate</td><td><code>{state.transformerBaselineFloorGateGate}</code></td></tr>
+    <tr><td>Baseline-floor gate history</td><td><code>{state.transformerBaselineFloorGateHistory}</code></td></tr>
+    <tr><td>Baseline-floor gate status</td><td><code>{state.transformerBaselineFloorGateStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -849,6 +855,15 @@ Step `40` improves QA average target rank to `8.0`, but QA and heldout still
 collapse to one `"i"` prediction with target-token coverage `0.125`, below the
 baseline `0.25` floor. Best-snapshot scoring restores step `0`, so the next
 repair must preserve the full baseline target-token floor.
+
+v0.85 adds a baseline-floor update guard around the baseline-anchored
+prompt-ownership mode. The full screen in
+`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors and checks `50/50` attempted
+direct-answer updates. The guard rejects all `50` unsafe updates, preserving QA
+and heldout target-token coverage at the baseline `0.25` floor in every recorded
+snapshot. It is still rejected evidence: no weight update is accepted and branch
+diversity still fails across all `9` multi-target profiles.
 
 The v0.42 self-improvement run passed:
 

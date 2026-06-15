@@ -4076,6 +4076,60 @@ class TransformerCharModelTest(unittest.TestCase):
             covered_probability(dynamic_model),
         )
 
+    def test_baseline_floor_gated_prompt_mode_records_update_guard(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-gated-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-balanced-context-profile-baseline-floor-gated-"
+                        "prompt-ownership-target-share-preserving-deficit-"
+                        "unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        self.assertTrue(direct_answer["direct_answer_replay_prediction_anchors_active"])
+        self.assertTrue(direct_answer["direct_answer_baseline_floor_update_gate_active"])
+        self.assertTrue(guard["active"])
+        self.assertEqual(guard["checked_steps"], 1)
+        self.assertEqual(
+            guard["accepted_steps"] + guard["rejected_steps"],
+            guard["checked_steps"],
+        )
+
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -5023,6 +5077,10 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
             "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood",
             "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood",
+            (
+                "branch-balanced-context-profile-baseline-floor-gated-"
+                "prompt-ownership-target-share-preserving-deficit-unlikelihood"
+            ),
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",

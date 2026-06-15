@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.84 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.85 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -16,7 +16,8 @@ declared for constraint-first checks. v0.83 adds prompt-specific ownership
 margins on top of profile target-share pressure and rejects the screen because
 trained snapshots still lose target-token coverage. v0.84 adds baseline replay
 anchors and rejects the screen because trained snapshots preserve only half of
-the baseline QA/heldout coverage floor.
+the baseline QA/heldout coverage floor. v0.85 adds baseline-floor update gating
+and rejects the screen because all attempted updates fall below the floor.
 
 The current surfaces are:
 
@@ -59,6 +60,9 @@ repair work smaller and more auditable:
   coverage-preserving training constraint before rank gains can promote.
 - The v0.84 baseline-anchor screen records active baseline replay prediction
   anchors and shows the next repair must preserve the full coverage floor.
+- The v0.85 baseline-floor update guard preserves that floor by rejecting every
+  unsafe attempted update, showing the next repair must produce accepted safe
+  updates.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

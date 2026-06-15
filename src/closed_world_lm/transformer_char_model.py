@@ -127,6 +127,21 @@ DEFAULT_PROBES = [
 ]
 ANSWER_TERMINATOR = "\n"
 ReplayPredictionOverrides = dict[tuple[tuple[int, ...], int, str], int]
+BASELINE_ANCHORED_PROMPT_MODE = (
+    "branch-balanced-context-profile-baseline-anchored-prompt-ownership-"
+    "target-share-preserving-deficit-unlikelihood"
+)
+BASELINE_FLOOR_GATED_PROMPT_MODE = (
+    "branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-"
+    "target-share-preserving-deficit-unlikelihood"
+)
+BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
+    BASELINE_ANCHORED_PROMPT_MODE,
+    BASELINE_FLOOR_GATED_PROMPT_MODE,
+}
+BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_GATED_PROMPT_MODE,
+}
 
 
 class ScalarOptimizer:
@@ -7212,8 +7227,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_replay_plan = None
         direct_replay_prediction_overrides: ReplayPredictionOverrides | None = None
         direct_replay_prediction_anchors_active = (
-            args.direct_answer_mode
-            == "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood"
+            args.direct_answer_mode in BASELINE_ANCHORED_DIRECT_ANSWER_MODES
+        )
+        direct_answer_baseline_floor_update_gate_active = (
+            args.direct_answer_mode in BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES
         )
         if direct_profile_aware_targets:
             replay_records = direct_answer_profiled_replay_records(
@@ -7254,7 +7271,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 write_json_artifact(training_plan_path, training_plan)
 
-        def direct_snapshot(
+        def direct_snapshot_record(
             step: int,
             train_loss: float | None,
             extra: dict[str, Any] | None = None,
@@ -7323,7 +7340,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             )
             if extra is not None:
                 record.update(extra)
-            return direct_history_writer.append(record)
+            return record
+
+        def direct_snapshot(
+            step: int,
+            train_loss: float | None,
+            extra: dict[str, Any] | None = None,
+        ) -> dict[str, Any]:
+            return direct_history_writer.append(
+                direct_snapshot_record(step, train_loss, extra)
+            )
 
         direct_baseline = direct_snapshot(0, None)
         best_direct_snapshot_step = 0
@@ -7375,8 +7401,49 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         )
         if args.direct_answer_freeze_output_bias:
             direct_params = exclude_scalars(direct_params, model.bout)
+        direct_answer_update_guard = {
+            "active": direct_answer_baseline_floor_update_gate_active,
+            "checked_steps": 0,
+            "accepted_steps": 0,
+            "rejected_steps": 0,
+            "rejected_step_sample": [],
+        }
+
+        def refresh_direct_update_params() -> None:
+            nonlocal direct_params
+            model.freeze_lower_layers_for_updates = (
+                args.direct_answer_train_top_layer_only and model.config.num_layers > 1
+            )
+            direct_params = (
+                model.top_layer_parameters()
+                if args.direct_answer_train_top_layer_only
+                else model.parameters()
+            )
+            if args.direct_answer_freeze_output_bias:
+                direct_params = exclude_scalars(direct_params, model.bout)
+
+        def restore_direct_update_state(
+            model_payload: dict[str, Any],
+            optimizer_payload: dict[str, Any],
+        ) -> None:
+            nonlocal model
+            nonlocal tokenizer
+            nonlocal optimizer
+            restored_model, restored_tokenizer = TinyTransformerLM.from_dict(model_payload)
+            model = restored_model
+            if restored_tokenizer is not None:
+                tokenizer = restored_tokenizer
+            optimizer = ScalarOptimizer.from_dict(optimizer_payload)
+            model.active_optimizer = optimizer
+            refresh_direct_update_params()
+
         for direct_step in range(1, direct_steps_to_run + 1):
             example = direct_training_cursor.next()
+            pre_update_model_payload: dict[str, Any] | None = None
+            pre_update_optimizer_payload: dict[str, Any] | None = None
+            if direct_answer_baseline_floor_update_gate_active:
+                pre_update_model_payload = model.to_dict(tokenizer)
+                pre_update_optimizer_payload = optimizer.to_dict()
             if args.direct_answer_mode == "first-error":
                 running_direct_loss += train_direct_answer_first_error(
                     model,
@@ -8583,7 +8650,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     balance_profile_target_shares=True,
                     enforce_prompt_target_margins=True,
                 )
-            elif args.direct_answer_mode == "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood":
+            elif args.direct_answer_mode in BASELINE_ANCHORED_DIRECT_ANSWER_MODES:
                 running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
                     model,
                     tokenizer,
@@ -9006,6 +9073,40 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     args.direct_answer_learning_rate,
                     direct_params,
                 )
+            if direct_answer_baseline_floor_update_gate_active:
+                direct_answer_update_guard["checked_steps"] += 1
+                probe_snapshot = direct_snapshot_record(
+                    direct_step,
+                    None,
+                    {"baseline_floor_update_guard_probe": True},
+                )
+                if branch_diversity_snapshot_preserves_target_coverage(
+                    probe_snapshot,
+                    direct_baseline,
+                ):
+                    direct_answer_update_guard["accepted_steps"] += 1
+                else:
+                    direct_answer_update_guard["rejected_steps"] += 1
+                    rejected_sample = direct_answer_update_guard["rejected_step_sample"]
+                    if isinstance(rejected_sample, list) and len(rejected_sample) < 12:
+                        rejected_sample.append(
+                            {
+                                "step": direct_step,
+                                "coverage": (
+                                    branch_diversity_snapshot_target_coverage_by_profile(
+                                        probe_snapshot
+                                    )
+                                ),
+                            }
+                        )
+                    if (
+                        pre_update_model_payload is not None
+                        and pre_update_optimizer_payload is not None
+                    ):
+                        restore_direct_update_state(
+                            pre_update_model_payload,
+                            pre_update_optimizer_payload,
+                        )
             if (
                 args.direct_answer_eval_every > 0
                 and direct_step % args.direct_answer_eval_every == 0
@@ -9081,6 +9182,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_replay_prediction_anchors_active": (
                 direct_replay_prediction_anchors_active
             ),
+            "direct_answer_baseline_floor_update_gate_active": (
+                direct_answer_baseline_floor_update_gate_active
+            ),
+            "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,
             "direct_answer_positive_weight": args.direct_answer_positive_weight,
             "direct_answer_contrast_weight": args.direct_answer_contrast_weight,

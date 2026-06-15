@@ -70,6 +70,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood",
+    "branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood",
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",

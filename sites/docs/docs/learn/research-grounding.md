@@ -71,8 +71,10 @@ v0.82 screens that objective and rejects trained snapshots that collapse branch
 diversity. v0.83 adds prompt-specific ownership margins and rejects the screen
 because trained snapshots still lose target-token coverage. v0.84 adds baseline
 replay anchors and rejects the screen because trained snapshots still preserve
-only half of the baseline QA/heldout coverage floor. Future objective repairs
-should use those narrower surfaces. See
+only half of the baseline QA/heldout coverage floor. v0.85 adds a baseline-floor
+update guard and rejects the screen because all attempted updates are unsafe
+under that floor. Future objective repairs should use those narrower surfaces.
+See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -191,8 +193,10 @@ loops become fragile.
   margins and rejected the screen because target-token coverage still collapses
   during training; v0.84 added baseline replay anchors and rejected the screen
   because trained snapshots preserve only `0.125` QA/heldout coverage against
-  the `0.25` floor. The next objective repair should preserve the full baseline
-  target-token floor.
+  the `0.25` floor; v0.85 added a baseline-floor update guard and rejected the
+  screen because it preserved the floor by rejecting `50/50` attempted updates.
+  The next objective repair should produce accepted updates under the full
+  baseline target-token floor.
 
 ## Defer
 

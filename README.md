@@ -221,6 +221,18 @@ That still regressed below the `0.25` baseline coverage floor, so
 best-snapshot scoring restored step `0` and promotion remains rejected on
 `branch_diversity_target`.
 
+v0.85 adds
+`branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The mode keeps the v0.84 baseline replay anchors, then adds an update guard that
+rolls back any direct-answer step whose branch-profile target-token coverage
+falls below the step-0 baseline floor. The matching screen ran at
+`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`.
+It recorded `562` active baseline prediction anchors, checked all `50` attempted
+updates, rejected all `50` as unsafe, and preserved QA/heldout coverage at the
+baseline `0.25` floor in every recorded checkpoint. Because no update was
+accepted and branch diversity still failed across all `9` multi-target profiles,
+promotion remains rejected.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -803,6 +815,17 @@ Current transformer answer-lesson run:
   step `0` because baseline QA/heldout coverage is `0.25` and branch diversity
   fails across all `9` multi-target profiles. This is partial progress, not
   promotion.
+- v0.85 adds a baseline-floor update guard around the v0.84 anchored prompt
+  ownership objective. The full-stack run
+  `runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`
+  records `562` active baseline prediction anchors, checks `50/50` attempted
+  direct-answer updates, and rejects `50/50` because each attempted update falls
+  below the profile-wise baseline target-token coverage floor. The guard keeps
+  QA and heldout at baseline coverage `0.25`, predicted diversity `3/8`, QA
+  average target rank `13.25`, and heldout average rank `13.375` through all
+  recorded snapshots. This is useful safety evidence, but it is still rejected:
+  no weight update is accepted and branch diversity fails across all `9`
+  multi-target profiles.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

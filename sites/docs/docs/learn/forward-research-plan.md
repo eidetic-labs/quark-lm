@@ -76,7 +76,9 @@ pressure; v0.82 screens that pressure and rejects it on branch diversity.
 v0.83 adds prompt-specific ownership margins and rejects the screen because
 trained snapshots still lose target-token coverage. v0.84 adds baseline replay
 anchors and rejects the screen because trained snapshots preserve only half of
-the baseline QA/heldout coverage floor.
+the baseline QA/heldout coverage floor. v0.85 adds baseline-floor update gating
+and rejects the screen because the guard preserves the floor only by rejecting
+all attempted direct-answer updates.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -109,3 +111,12 @@ and screens it at
 The run records `562` active baseline prediction anchors and avoids the v0.83
 `0.0` coverage collapse, but QA/heldout target-token coverage only reaches
 `0.125` against the `0.25` baseline floor.
+
+v0.85 adds
+`branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`.
+The run records `562` active baseline prediction anchors and checks `50/50`
+attempted updates under a baseline-floor guard. The guard rejects all `50`
+attempts, preserving QA/heldout coverage at `0.25` but accepting no weight
+updates.

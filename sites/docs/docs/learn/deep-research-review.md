@@ -84,7 +84,8 @@ the same discipline before another major repair screen.
     rejected.
 13. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
 14. **v0.84:** baseline replay anchors. Implemented and rejected.
-15. **v0.85+:** branch-diversity repair that preserves the full baseline
+15. **v0.85:** baseline-floor update gating. Implemented and rejected.
+16. **v0.86+:** accepted branch-diversity updates under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -115,5 +116,6 @@ prompt-specific sibling-target ownership margins, but the full screen still
 restores step `0` because trained snapshots lose target-token coverage. v0.84
 adds baseline replay anchors; trained snapshots avoid the v0.83 zero-coverage
 collapse but still restore step `0` because coverage reaches only `0.125`
-against the `0.25` floor. Future larger transformer screens should use these
-narrower surfaces rather than broad monolith patches.
+against the `0.25` floor. v0.85 adds baseline-floor update gating; it preserves
+the floor by rejecting `50/50` unsafe attempted updates, so the next repair must
+produce accepted updates under the guard.

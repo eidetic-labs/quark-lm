@@ -88,7 +88,9 @@ constraint-first gate. v0.83 adds prompt-specific ownership margins, but the
 full screen remains rejected because trained snapshots still collapse
 target-token coverage. v0.84 adds baseline replay anchors, improves trained
 coverage relative to v0.83, and remains rejected because it still misses the
-baseline coverage floor.
+baseline coverage floor. v0.85 adds baseline-floor update gating, preserves the
+floor by rejecting all attempted unsafe updates, and remains rejected because no
+update is accepted.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

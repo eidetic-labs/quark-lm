@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.84 baseline-anchored prompt ownership screen; promoted
+**Active version:** v0.85 baseline-floor update guard screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -324,6 +324,23 @@ direct steps with `7` JSONL rows. Step `40` improved QA average target rank to
 v0.83 `0.0` collapse. Best-snapshot scoring restored step `0` because trained
 snapshots still regressed below the `0.25` coverage floor, so the run is
 rejected evidence.
+
+v0.85 adds
+`branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the v0.84 baseline replay anchors and adds an update guard that probes
+branch-profile target-token coverage after each attempted direct-answer update.
+If the update falls below the step-0 profile-wise coverage floor, the loop
+restores the prior model and optimizer state before continuing. Focused tests
+prove the mode records the replay anchors and guard accounting. The matching
+screen at
+`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+checked `50/50` attempted direct-answer updates, and rejected all `50` as unsafe.
+Every recorded snapshot preserved baseline/final QA and heldout target-token
+coverage at `0.25`, predicted diversity at `3/8`, QA average target rank at
+`13.25`, and heldout average rank at `13.375`. This is rejected but useful
+safety evidence: the guard prevents unsafe forgetting, but no update is accepted
+and `branch_diversity_target` still fails across all `9` multi-target profiles.
 
 ## Latest Evidence
 

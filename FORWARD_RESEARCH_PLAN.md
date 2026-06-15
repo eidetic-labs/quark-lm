@@ -511,10 +511,23 @@ evidence: trained snapshots improve QA rank to `8.0` and avoid the v0.83
 `0.0` coverage collapse, but QA/heldout coverage only reaches `0.125`, below
 the `0.25` baseline floor.
 
-### v0.85+
+### v0.85
 
-The next transformer repair should preserve the full baseline target-token
-floor before tokenizer growth or a learned verifier experiment.
+Implemented baseline-floor update gating with
+`branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new mode rejects an attempted direct-answer update whenever its branch
+profile falls below the step-0 target-token coverage floor. Focused tests pass,
+and the full screen in
+`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors and `50/50` rejected unsafe
+updates. It is still rejected evidence: the guard preserves QA/heldout coverage
+at `0.25`, but accepts no weight updates and branch diversity remains failed.
+
+### v0.86+
+
+The next transformer repair should produce accepted direct-answer updates under
+the full baseline target-token floor before tokenizer growth or a learned
+verifier experiment.
 
 ## Stop Doing For Now
 
