@@ -79,6 +79,7 @@ const primitives = [
   ['verifier.report', 'Closed-world verifier', 'Deterministic approval for candidate checks and training plans, with no external model.'],
   ['recipe.run', 'Training recipe', 'A reproducible record of model, tokenizer, data, objective, optimizer, artifacts, gates, and rerun details.'],
   ['transformer.surface', 'Transformer surfaces', 'Experiment, artifact, trainer, and objective catalog boundaries for answer-training screens.'],
+  ['checkpoint.meta', 'Checkpoint metadata', 'Centralized transformer config, checkpoint identity, dataset metadata, and run metadata.'],
   ['docs.release', 'Docs gate', 'README, docs, and marketing content updated with each release when they reference current state.'],
 ];
 

@@ -439,9 +439,16 @@ keeps experiment/artifact contracts, recipe surfaces, promotion decisions,
 trainer utilities, and the direct-answer objective catalog outside the
 transformer monolith.
 
-### v0.79+
+### v0.79
 
-Only after deeper model/checkpoint extraction should QuarkLM add a new
+Implemented transformer model/config and checkpoint metadata extraction.
+`src/closed_world_lm/transformer_model.py` now owns model, optimizer, and
+generation configs, validation, checkpoint identity, closed-world dataset
+metadata, arg-to-config adapters, and run metadata.
+
+### v0.80+
+
+Only after eval/checkpoint-load extraction should QuarkLM add a new
 anti-collapse transformer objective, revisit tokenizer growth, or begin a
 learned verifier experiment.
 

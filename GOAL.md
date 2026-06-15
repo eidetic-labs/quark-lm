@@ -100,8 +100,9 @@ provenance, and the goal framework itself.
     quarantine artifacts and lifecycle states; v0.76 adds deterministic
     closed-world verifier checks; v0.77 adds recipe boundaries and
     constraint-first promotion gates; v0.78 extracts transformer experiment,
-    artifact, trainer utility, and objective catalog surfaces. The remaining
-    sequence is deeper model/checkpoint extraction before another transformer
+    artifact, trainer utility, and objective catalog surfaces; v0.79 extracts
+    transformer model/config and checkpoint metadata surfaces. The remaining
+    sequence is eval/checkpoint-load extraction before another transformer
     repair screen.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned

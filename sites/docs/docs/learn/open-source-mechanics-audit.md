@@ -79,7 +79,8 @@ candidate quarantine artifacts with source-backed acceptance criteria, and
 v0.76 implements deterministic closed-world verifier checks. v0.77 implements
 recipe artifacts and constraint-first promotion reports. v0.78 implements the
 first transformer responsibility split for experiment/artifact surfaces,
-trainer utilities, and the direct-answer objective catalog.
+trainer utilities, and the direct-answer objective catalog. v0.79 implements
+model/config and checkpoint metadata surfaces.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

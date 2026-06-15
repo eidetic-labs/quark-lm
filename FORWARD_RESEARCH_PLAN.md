@@ -453,9 +453,16 @@ intent/recipe surfaces, and promotion decisions; `transformer_training.py` for
 JSONL snapshot writing, shuffled training cursors, and loss averaging; and
 `transformer_objectives.py` for the direct-answer objective catalog.
 
-### v0.79+
+### v0.79
 
-Only after deeper model/checkpoint extraction should QuarkLM add a new
+Implemented transformer model/config and checkpoint metadata extraction.
+`src/closed_world_lm/transformer_model.py` now owns model, optimizer, and
+generation configs, validation, checkpoint identity, closed-world dataset
+metadata, arg-to-config adapters, and run metadata.
+
+### v0.80+
+
+Only after eval/checkpoint-load extraction should QuarkLM add a new
 anti-collapse transformer objective, revisit tokenizer growth, or begin a
 learned verifier experiment.
 

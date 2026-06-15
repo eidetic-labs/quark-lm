@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.78 transformer responsibility surfaces; promoted
+**Active version:** v0.79 transformer model/checkpoint surfaces; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -107,6 +107,11 @@ Working tagline: Big idea. Tiny package.
   artifact contracts, experiment/recipe decisions, JSONL snapshot writing,
   shuffled training cursors, loss averaging, and the direct-answer objective
   catalog behind narrow modules while preserving the public CLI.
+- Transformer model/checkpoint surfaces in
+  `src/closed_world_lm/transformer_model.py`. Model, optimizer, and generation
+  config dataclasses, validation, checkpoint identity, closed-world dataset
+  metadata, arg-to-config adapters, and run metadata now live outside the
+  transformer monolith while remaining re-exported for compatibility.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -213,8 +218,9 @@ self-generated-data, verifier, tokenizer, data-curation, transparent open-model,
 and public training-stack sources against QuarkLM's implementation gaps. The
 decision is to treat candidate quarantine as v0.75, deterministic verifier
 checks as v0.76, recipe and constraint-first promotion as v0.77, and the first
-transformer responsibility surfaces as v0.78 before deeper model/checkpoint
-extraction and another larger repair run.
+transformer responsibility surfaces as v0.78. v0.79 extracts model/config and
+checkpoint metadata surfaces before eval/checkpoint-load extraction and another
+larger repair run.
 
 v0.75 adds `src/closed_world_lm/candidate_quarantine.py`, the Docusaurus
 Operate page for candidate quarantine, and `candidate_quarantine.json` artifacts
@@ -242,8 +248,15 @@ v0.78 adds `src/closed_world_lm/transformer_experiment.py`,
 keeps the CLI stable while extracting the artifact contract, intent/recipe
 decision logic, JSONL history writing, shuffled training cursors, loss
 averaging, and direct-answer objective catalog into narrow, separately tested
-surfaces. The next transformer mechanic is deeper model/checkpoint extraction
-before another objective-repair screen.
+surfaces.
+
+v0.79 adds `src/closed_world_lm/transformer_model.py`. Model, optimizer, and
+generation config dataclasses, validation, checkpoint format identity,
+closed-world dataset metadata, arg-to-config adapters, and run metadata now
+live behind a model/checkpoint surface outside the transformer monolith while
+remaining re-exported from `transformer_char_model.py` for compatibility. The
+next transformer mechanic is eval/checkpoint-load extraction before another
+objective-repair screen.
 
 ## Latest Evidence
 

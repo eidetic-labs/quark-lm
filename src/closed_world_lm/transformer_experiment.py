@@ -9,6 +9,7 @@ from typing import Any
 from .answer_model import DEFAULT_EVALS as DEFAULT_ANSWER_EVALS
 from .experiment_registry import ExperimentIntent
 from .training_recipe import build_training_recipe
+from .transformer_model import TRANSFORMER_ARCHITECTURE, TRANSFORMER_TOKENIZER
 
 
 TRANSFORMER_RECIPE_VERSION = "v0.78"
@@ -280,7 +281,7 @@ def transformer_training_recipe(
             "evaluate reliable-answer behavior under constraint-first gates."
         ),
         model={
-            "architecture": "tiny-decoder-only-transformer",
+            "architecture": TRANSFORMER_ARCHITECTURE,
             "config": dict(model_config),
             "initialization": (
                 "declared QuarkLM checkpoint"
@@ -295,7 +296,7 @@ def transformer_training_recipe(
             "pretrained_weights": False,
         },
         tokenizer={
-            "type": "closed_world_lm.tokenizer.CharTokenizer",
+            "type": TRANSFORMER_TOKENIZER,
             "source": str(args.train_text),
             "vocab_size": tokenizer.vocab_size,
             "pretrained_tokenizer": False,

@@ -147,8 +147,15 @@ constraint-first, checkpoint, tokenizer, and metrics paths; JSONL snapshot
 writing, shuffled training cursors, and loss averaging live in small trainer
 utilities; and direct-answer objective names live in a testable objective
 catalog rather than inside the CLI parser. This is a responsibility-refactor
-checkpoint, not a model-quality claim. The next transformer mechanic is deeper
-model/checkpoint extraction before another objective-repair screen.
+checkpoint, not a model-quality claim.
+
+v0.79 adds `src/closed_world_lm/transformer_model.py` for model
+configuration, optimizer configuration, generation configuration, validation,
+checkpoint identity, closed-world dataset metadata, and run-metadata
+construction. `transformer_char_model.py` still exports the old names for
+compatibility, but the model/config/checkpoint surface is now testable outside
+the monolith. The next transformer mechanic is eval/checkpoint-load extraction
+before another objective-repair screen.
 
 ## Latest Evidence
 

@@ -80,6 +80,22 @@ from .transformer_experiment import (
     transformer_training_recipe as build_transformer_training_recipe,
     transformer_training_recipe_id,
 )
+from .transformer_model import (
+    TRANSFORMER_ARCHITECTURE,
+    TRANSFORMER_CHECKPOINT_FORMAT,
+    TRANSFORMER_TOKENIZER,
+    GenerationConfig,
+    OptimizationConfig,
+    TransformerConfig,
+    checkpoint_header,
+    generation_config_from_args,
+    optimization_config_from_args,
+    transformer_config_from_args,
+    transformer_run_metadata,
+    validate_generation_config,
+    validate_optimization_config,
+    validate_transformer_config,
+)
 from .transformer_objectives import (
     DIRECT_ANSWER_OBJECTIVE_MODES,
 )
@@ -100,55 +116,6 @@ DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "paraphrases.jsonl",
 ]
 ANSWER_TERMINATOR = "\n"
-
-
-@dataclass
-class TransformerConfig:
-    vocab_size: int
-    context_size: int = 16
-    embedding_dim: int = 8
-    feedforward_dim: int = 16
-    seed: int = 17
-    num_layers: int = 1
-    attention_heads: int = 1
-    use_layer_norm: bool = False
-    use_pre_layer_norm: bool = False
-    use_rms_norm: bool = False
-    layer_norm_epsilon: float = 1e-5
-    use_gated_mlp: bool = False
-    tie_output_embeddings: bool = False
-    use_rotary_positions: bool = False
-    use_kv_cache_path: bool = False
-    use_context_mean: bool = False
-    use_context_projection: bool = False
-    use_prompt_prefix_projection: bool = False
-    use_prompt_position_projection: bool = False
-    prompt_position_projection_scale: float = 1.0
-    use_prompt_attention_summary: bool = False
-
-
-@dataclass
-class OptimizationConfig:
-    optimizer: str = "sgd"
-    gradient_clip: float = 5.0
-    weight_decay: float = 0.0
-    beta1: float = 0.9
-    beta2: float = 0.999
-    epsilon: float = 1e-8
-    warmup_steps: int = 0
-    decay_steps: int = 0
-    min_learning_rate: float = 0.0
-    gradient_accumulation_steps: int = 1
-
-
-@dataclass
-class GenerationConfig:
-    temperature: float = 0.0
-    top_k: int = 0
-    top_p: float = 1.0
-    repetition_penalty: float = 1.0
-    trace_top_tokens: int = 5
-    use_kv_cache: bool = False
 
 
 class ScalarOptimizer:
@@ -295,59 +262,6 @@ class ScalarOptimizer:
             "decay_steps": self.config.decay_steps,
             "gradient_accumulation_steps": self.config.gradient_accumulation_steps,
         }
-
-
-def validate_transformer_config(config: TransformerConfig) -> None:
-    if config.vocab_size <= 0:
-        raise ValueError("vocab_size must be positive")
-    if config.context_size <= 0:
-        raise ValueError("context_size must be positive")
-    if config.embedding_dim <= 0:
-        raise ValueError("embedding_dim must be positive")
-    if config.feedforward_dim <= 0:
-        raise ValueError("feedforward_dim must be positive")
-    if config.num_layers <= 0:
-        raise ValueError("num_layers must be positive")
-    if config.attention_heads <= 0:
-        raise ValueError("attention_heads must be positive")
-    if config.embedding_dim % config.attention_heads != 0:
-        raise ValueError("embedding_dim must be divisible by attention_heads")
-    if config.layer_norm_epsilon <= 0.0:
-        raise ValueError("layer_norm_epsilon must be positive")
-
-
-def validate_optimization_config(config: OptimizationConfig) -> None:
-    if config.optimizer not in {"sgd", "adamw"}:
-        raise ValueError("optimizer must be 'sgd' or 'adamw'")
-    if config.gradient_clip < 0.0:
-        raise ValueError("gradient_clip must be non-negative")
-    if config.weight_decay < 0.0:
-        raise ValueError("weight_decay must be non-negative")
-    if not 0.0 <= config.beta1 < 1.0:
-        raise ValueError("beta1 must be in [0, 1)")
-    if not 0.0 <= config.beta2 < 1.0:
-        raise ValueError("beta2 must be in [0, 1)")
-    if config.epsilon <= 0.0:
-        raise ValueError("epsilon must be positive")
-    if config.warmup_steps < 0 or config.decay_steps < 0:
-        raise ValueError("warmup and decay steps must be non-negative")
-    if config.min_learning_rate < 0.0:
-        raise ValueError("min_learning_rate must be non-negative")
-    if config.gradient_accumulation_steps <= 0:
-        raise ValueError("gradient_accumulation_steps must be positive")
-
-
-def validate_generation_config(config: GenerationConfig) -> None:
-    if config.temperature < 0.0:
-        raise ValueError("temperature must be non-negative")
-    if config.top_k < 0:
-        raise ValueError("top_k must be non-negative")
-    if not 0.0 < config.top_p <= 1.0:
-        raise ValueError("top_p must be in (0, 1]")
-    if config.repetition_penalty <= 0.0:
-        raise ValueError("repetition_penalty must be positive")
-    if config.trace_top_tokens <= 0:
-        raise ValueError("trace_top_tokens must be positive")
 
 
 class TinyTransformerLM:
@@ -2554,9 +2468,7 @@ class TinyTransformerLM:
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
-            "architecture": "tiny-decoder-only-transformer",
-            "checkpoint_format": "quarklm-transformer-v2",
-            "config": asdict(self.config),
+            **checkpoint_header(self.config),
             "weights": {
                 "token_embeddings": matrix_to_floats(self.token_embeddings),
                 "position_embeddings": matrix_to_floats(self.position_embeddings),
@@ -3740,58 +3652,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def transformer_config_from_args(args: argparse.Namespace, vocab_size: int) -> TransformerConfig:
-    return TransformerConfig(
-        vocab_size=vocab_size,
-        context_size=args.context_size,
-        embedding_dim=args.embedding_dim,
-        feedforward_dim=args.feedforward_dim,
-        seed=args.seed,
-        num_layers=args.num_layers,
-        attention_heads=args.attention_heads,
-        use_layer_norm=args.use_layer_norm,
-        use_pre_layer_norm=args.use_pre_layer_norm,
-        use_rms_norm=args.use_rms_norm,
-        layer_norm_epsilon=args.layer_norm_epsilon,
-        use_gated_mlp=args.use_gated_mlp,
-        tie_output_embeddings=args.tie_output_embeddings,
-        use_rotary_positions=args.use_rotary_positions,
-        use_kv_cache_path=args.use_kv_cache_path,
-        use_context_mean=args.use_context_mean,
-        use_context_projection=args.use_context_projection,
-        use_prompt_prefix_projection=args.use_prompt_prefix_projection,
-        use_prompt_position_projection=args.use_prompt_position_projection,
-        prompt_position_projection_scale=args.prompt_position_projection_scale,
-        use_prompt_attention_summary=args.use_prompt_attention_summary,
-    )
-
-
-def optimization_config_from_args(args: argparse.Namespace) -> OptimizationConfig:
-    return OptimizationConfig(
-        optimizer=args.optimizer,
-        gradient_clip=args.gradient_clip,
-        weight_decay=args.weight_decay,
-        beta1=args.adam_beta1,
-        beta2=args.adam_beta2,
-        epsilon=args.adam_epsilon,
-        warmup_steps=args.warmup_steps,
-        decay_steps=args.decay_steps,
-        min_learning_rate=args.min_learning_rate,
-        gradient_accumulation_steps=args.gradient_accumulation_steps,
-    )
-
-
-def generation_config_from_args(args: argparse.Namespace) -> GenerationConfig:
-    return GenerationConfig(
-        temperature=args.temperature,
-        top_k=args.top_k,
-        top_p=args.top_p,
-        repetition_penalty=args.repetition_penalty,
-        trace_top_tokens=args.trace_top_tokens,
-        use_kv_cache=args.use_kv_cache,
-    )
-
-
 def load_optimizer_state(
     path: Path | None,
     config: OptimizationConfig,
@@ -3830,29 +3690,6 @@ def initialize_transformer_for_training(
     return model, {
         "resumed": True,
         "resume_checkpoint": str(args.resume_checkpoint),
-    }
-
-
-def transformer_run_metadata(
-    args: argparse.Namespace,
-    tokenizer: CharTokenizer,
-    optimizer: ScalarOptimizer,
-    run_kind: str,
-    resume: dict[str, Any],
-) -> dict[str, Any]:
-    return {
-        "run_kind": run_kind,
-        "seed": args.seed,
-        "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
-        "optimizer": optimizer.summary(),
-        "resume": resume,
-        "dataset": {
-            "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
-            "vocab_size": tokenizer.vocab_size,
-            "pretrained_weights": False,
-            "pretrained_tokenizer": False,
-            "external_embeddings": False,
-        },
     }
 
 
@@ -3917,9 +3754,9 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(args.run / "tokenizer.json")
     metrics = {
-        "architecture": "tiny-decoder-only-transformer",
+        "architecture": TRANSFORMER_ARCHITECTURE,
         "checkpoint": str(checkpoint_path),
-        "checkpoint_format": "quarklm-transformer-v2",
+        "checkpoint_format": TRANSFORMER_CHECKPOINT_FORMAT,
         "optimizer_state": str(optimizer_path),
         "optimizer": optimizer.summary(),
         "resume": resume_metadata,
@@ -3951,7 +3788,7 @@ def train_transformer(args: argparse.Namespace) -> dict[str, Any]:
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
-        "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
+        "tokenizer": TRANSFORMER_TOKENIZER,
     }
     with (args.run / "transformer_metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2, sort_keys=True)
@@ -9393,9 +9230,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(artifacts.tokenizer)
     metrics = {
-        "architecture": "tiny-decoder-only-transformer",
+        "architecture": TRANSFORMER_ARCHITECTURE,
         "checkpoint": str(checkpoint_path),
-        "checkpoint_format": "quarklm-transformer-v2",
+        "checkpoint_format": TRANSFORMER_CHECKPOINT_FORMAT,
         "optimizer_state": str(optimizer_path),
         "optimizer": optimizer.summary(),
         "resume": resume_metadata,
@@ -9457,7 +9294,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "run_id": args.run.name,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
-        "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
+        "tokenizer": TRANSFORMER_TOKENIZER,
         "training_data": TRAINING_DATA_DESCRIPTION,
     }
     metrics["constraint_first_promotion"] = transformer_constraint_report(metrics)

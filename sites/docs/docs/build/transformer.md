@@ -101,6 +101,11 @@ artifact contracts, experiment/recipe decisions, trainer utilities, and the
 direct-answer objective catalog. The public CLI and artifact names remain
 stable.
 
+From v0.79 onward, `src/closed_world_lm/transformer_model.py` owns model,
+optimizer, and generation config validation, checkpoint identity, closed-world
+dataset metadata, and run metadata. `transformer_char_model.py` still exports
+the old names for compatibility.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

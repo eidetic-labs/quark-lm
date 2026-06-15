@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.79
+
+- Extracted transformer model configuration and checkpoint metadata surfaces.
+
 ## v0.78
 
 - Extracted transformer experiment, artifact, trainer utility, and objective catalog surfaces.
