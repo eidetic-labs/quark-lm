@@ -46,6 +46,11 @@ PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_MODE = (
     "recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-"
     "profile-stabilization-unlikelihood"
 )
+PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-frontier-profile-scale-"
+    "calibrated-sequential-profile-stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -68,6 +73,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_MODE,
     PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_MODE,
     PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_MODE,
+    PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_MODE,
 }
 
 
@@ -423,6 +429,38 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                         "candidates, attempts, acceptances, fallback "
                         "acceptances, rejection reasons, score deltas, "
                         "accepted branch-diversity outcomes, coverage "
+                        "gain/tie/regression counts, diversity outcome "
+                        "counts, floor regression rejections, accepted "
+                        "profile scales, update-shape counts, replay plan, "
+                        "branch-context gate, coverage floor, diversity "
+                        "target, recipe, verifier, and constraint-first "
+                        "promotion artifacts."
+                    ),
+                    "required": True,
+                }
+            )
+        if (
+            getattr(args, "direct_answer_mode", "")
+            == PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_MODE
+        ):
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_collapsed_profile_"
+                        "binding_frontier_calibrated_sequential_"
+                        "stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records collapsed-profile binding frontier "
+                        "activation, outer/search scales, source-profile "
+                        "scale attempts, frontier anchor counts, "
+                        "coverage-preparation candidates, recovery retry "
+                        "scales, branch-stability checks, branch-stable "
+                        "recovery acceptances, branch-diversity recovery "
+                        "candidates, collapsed-profile binding candidates, "
+                        "attempts, acceptances, fallback acceptances, "
+                        "rejection reasons, target collapsed profiles, "
+                        "profile-diversity deltas, score deltas, coverage "
                         "gain/tie/regression counts, diversity outcome "
                         "counts, floor regression rejections, accepted "
                         "profile scales, update-shape counts, replay plan, "

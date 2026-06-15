@@ -62,6 +62,8 @@ from closed_world_lm.transformer_char_model import (
     summarize_branch_context_coverage_gate,
     summarize_branch_diversity_target,
     branch_diversity_snapshot_score,
+    branch_diversity_snapshot_collapsed_profile_names,
+    branch_diversity_snapshot_profile_diversity_delta,
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
     branch_diversity_snapshot_preserves_target_coverage,
@@ -5579,6 +5581,130 @@ class TransformerCharModelTest(unittest.TestCase):
             shape_counts,
         )
 
+    def test_profile_scale_collapsed_profile_binding_frontier_mode_records_binding_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / (
+                            "baseline-floor-profile-scale-collapsed-profile-"
+                            "binding-frontier-screen"
+                        )
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "branch-stable-coverage-recovery-branch-diversity-"
+                        "collapsed-profile-binding-frontier-profile-scale-"
+                        "calibrated-sequential-profile-stabilization-"
+                        "unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_collapsed_profile_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_collapsed_profile_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_collapsed_profile_binding_frontier_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            replay_plan["collapsed_profile_binding_learning_rate_scales"],
+            [0.25, 0.05, 0.01],
+        )
+        self.assertEqual(
+            guard["profile_scale_collapsed_profile_binding_learning_rate_scales"],
+            [0.25, 0.05, 0.01],
+        )
+        self.assertEqual(
+            guard["profile_scale_collapsed_profile_binding_frontier_attempts"],
+            guard["profile_scale_collapsed_profile_binding_frontier_acceptances"]
+            + guard["profile_scale_collapsed_profile_binding_frontier_rejections"],
+        )
+        self.assertEqual(
+            guard["profile_scale_collapsed_profile_binding_frontier_candidates"],
+            guard["profile_scale_collapsed_profile_binding_frontier_acceptances"]
+            + guard[
+                "profile_scale_collapsed_profile_binding_frontier_fallback_acceptances"
+            ],
+        )
+        if guard["profile_scale_collapsed_profile_binding_frontier_attempts"]:
+            self.assertGreater(
+                guard["profile_scale_collapsed_profile_binding_frontier_records"],
+                0,
+            )
+            self.assertTrue(
+                guard[
+                    "profile_scale_collapsed_profile_binding_frontier_probe_sample"
+                ]
+            )
+        if guard["profile_scale_collapsed_profile_binding_frontier_candidates"]:
+            self.assertTrue(
+                guard[
+                    "profile_scale_collapsed_profile_binding_frontier_profile_acceptance_outcomes"
+                ]
+            )
+            self.assertTrue(
+                guard[
+                    "profile_scale_collapsed_profile_binding_frontier_profile_deltas"
+                ]
+            )
+        if guard["profile_scale_collapsed_profile_binding_frontier_rejections"]:
+            self.assertTrue(
+                guard[
+                    "profile_scale_collapsed_profile_binding_frontier_rejection_reasons"
+                ]
+            )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
     def test_branch_diversity_target_coverage_delta_records_profile_gains(
         self,
     ) -> None:
@@ -5622,6 +5748,69 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(delta["tied_profile_count"], 1)
         self.assertAlmostEqual(delta["min_delta"], 1.0 / 12.0)
         self.assertAlmostEqual(delta["average_delta"], 0.125)
+
+    def test_branch_diversity_collapsed_profile_delta_tracks_targeted_gain(
+        self,
+    ) -> None:
+        baseline = {
+            "branch_diversity_target": {
+                "blocking_evals": [
+                    {"name": "owner", "collapsed": True},
+                    {"name": "qa", "collapsed": False},
+                ]
+            },
+            "branch_profiles": {
+                "owner": {
+                    "diversity": {
+                        "predicted_unique": 1,
+                        "target_token_coverage": 0.125,
+                        "dominant_predicted_rate": 1.0,
+                    }
+                },
+                "qa": {
+                    "diversity": {
+                        "predicted_unique": 2,
+                        "target_token_coverage": 0.25,
+                        "dominant_predicted_rate": 0.5,
+                    }
+                },
+            },
+        }
+        snapshot = {
+            "branch_profiles": {
+                "owner": {
+                    "diversity": {
+                        "predicted_unique": 2,
+                        "target_token_coverage": 0.125,
+                        "dominant_predicted_rate": 0.75,
+                    }
+                },
+                "qa": {
+                    "diversity": {
+                        "predicted_unique": 2,
+                        "target_token_coverage": 0.25,
+                        "dominant_predicted_rate": 0.5,
+                    }
+                },
+            }
+        }
+
+        collapsed_profiles = branch_diversity_snapshot_collapsed_profile_names(
+            baseline
+        )
+        delta = branch_diversity_snapshot_profile_diversity_delta(
+            snapshot,
+            baseline,
+            collapsed_profiles,
+        )
+
+        self.assertEqual(collapsed_profiles, ["owner"])
+        self.assertEqual(delta["improved_profile_count"], 1)
+        self.assertEqual(delta["regressed_profile_count"], 0)
+        self.assertEqual(
+            delta["improved_profiles"][0]["predicted_unique_delta"],
+            1,
+        )
 
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")

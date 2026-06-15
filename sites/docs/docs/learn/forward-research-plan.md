@@ -321,3 +321,14 @@ recovery attempts, `5` branch-score-improving refinements, `1` fallback, `1`
 floor-regression rejection, `1` score-regression rejection, and `2` score-tie
 rejections. The next repair should convert those local branch-score gains into
 target-token coverage for the profiles that still collapse.
+
+v0.102.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run records `54` profile-scale attempts, `11` accepted source-profile
+updates, `11` collapsed-profile binding candidates, `31` binding attempts, `1`
+accepted binding update, `10` fallbacks, `27` collapsed-profile ties, `1`
+floor-regression rejection, and `2` score-regression rejections. The next repair
+should target `learning`, `owner`, and `paraphrases`, the `3/9` eval profiles
+that remain collapsed.

@@ -450,6 +450,23 @@ blocked on `branch_diversity_target`. v0.101.0 proves local branch diversity can
 be improved under the same floor and coverage gates, but it is still not a
 promoted responder.
 
+v0.102.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.101.0 branch-diversity recovery guard and adds a bounded
+collapsed-profile binding micro-step that only sticks when a still-collapsed
+eval profile improves without weakening coverage floors. The matching
+diagnostic screen ran at
+`runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `54` profile-scale updates, accepted
+`11` source-profile updates, ran branch-diversity recovery on all `11`
+accepted candidates, accepted `4` branch-score refinements, ran `31`
+collapsed-profile binding attempts, accepted `1` binding update, and fell back
+`10` times. The binding step rejected `27` collapsed-profile ties, `1` floor
+regression, and `2` score regressions. Promotion remains blocked on
+`branch_diversity_target`, but final collapse narrows from `9/9` eval profiles
+at baseline to `3/9` remaining collapsed profiles: `learning`, `owner`, and
+`paraphrases`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1128,6 +1145,13 @@ Current transformer answer-lesson run:
   accepts `6` source-profile updates, accepts `5` branch-diversity recovery
   refinements, falls back once, and still rejects promotion on
   `branch_diversity_target`.
+- v0.102.0 adds collapsed-profile binding after branch-diversity recovery. The
+  diagnostic run
+  `runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `11` source-profile updates, accepts `4` branch-diversity recovery
+  refinements, accepts `1` collapsed-profile binding update, leaves `3/9`
+  eval profiles collapsed, and still rejects promotion on
+  `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1380,8 +1404,10 @@ of the promotion gate. README, STATUS, GOAL, QUALITY, Docusaurus docs, and the
 standalone marketing page should be updated with every promoted version so docs
 do not drift from the current state. If they reference current product state,
 release evidence, evals, or commands, they must be updated with the release.
-New release identifiers use SemVer-style `vMAJOR.MINOR.PATCH` tags and run
-paths, such as `v0.100.0`; historical artifacts keep their existing names.
+New release identifiers use SemVer (Semantic Versioning) with
+`vMAJOR.MINOR.PATCH` tags and matching run paths, such as `v0.102.0`.
+Do not use `XX.YY.ZZ` or `v1.00` naming for the current pre-1.0 line;
+historical artifacts keep their existing names.
 
 ## Purity Boundary
 

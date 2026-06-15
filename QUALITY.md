@@ -230,8 +230,11 @@ training boundary.
   version; any page that references current release evidence,
   eval counts, commands, hosting targets, or product positioning must be updated
   in the same release.
-- New release identifiers must use SemVer-style `vMAJOR.MINOR.PATCH` tags and
-  run paths. Historical artifacts keep their existing names for provenance.
+- New release identifiers must use SemVer (Semantic Versioning) with
+  `vMAJOR.MINOR.PATCH` tags and matching run paths. The current pre-1.0 line
+  advances as `v0.100.0`, `v0.101.0`, `v0.102.0`, and so on; do not use
+  `XX.YY.ZZ` placeholders or `v1.00` naming. Historical artifacts keep their
+  existing names for provenance.
 - Naming changes must keep product, repository/package slug, import path, and
   command aliases explicit until a full migration is promoted.
 

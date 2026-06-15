@@ -1031,6 +1031,20 @@ score-regression rejection, and `2` score-tie rejections. Promotion still
 rejects the transformer on `branch_diversity_target`, but the guard now proves
 local branch-diversity score can improve without weakening the coverage floor.
 
+v0.102.0 adds collapsed-profile binding after branch-diversity recovery. The
+diagnostic screen in
+`runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer collapsed-profile binding update, `54`
+profile-scale attempts, `11` accepted source-profile updates, `11`
+branch-diversity recovery candidates, `26` branch-diversity recovery attempts,
+`4` branch-score refinements, `31` collapsed-profile binding attempts, `1`
+accepted binding update, `10` binding fallbacks, `27` collapsed-profile ties,
+`1` floor-regression rejection, and `2` score-regression rejections. Promotion
+still rejects the transformer on `branch_diversity_target`, but the guard now
+proves a targeted binding update can survive while final collapse narrows from
+`9/9` eval profiles at baseline to `3/9` remaining collapsed profiles:
+`learning`, `owner`, and `paraphrases`.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

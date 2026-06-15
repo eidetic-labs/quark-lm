@@ -261,6 +261,15 @@ diagnostic screen accepts six source-profile updates, runs branch-diversity
 recovery on all six, keeps five branch-score-improving refinements, falls back
 once, and keeps promotion blocked on branch diversity.
 
+v0.102.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.101.0 branch-diversity recovery guard and adds a bounded
+collapsed-profile binding step after already-safe profile updates. The
+diagnostic screen accepts eleven source-profile updates, keeps four
+branch-diversity refinements, accepts one collapsed-profile binding update,
+narrows final collapse from nine eval profiles to three, and keeps promotion
+blocked on branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1751,6 +1760,28 @@ Latest branch-diversity recovery frontier profile-scale floor stabilization scre
 | Diversity target | failed, `0/9` multi-target profiles passed; coverage preservation passed, but max dominant predicted rate remains `1.0` and minimum target-token coverage remains `0.0` |
 | Promotion status | rejected for model promotion; v0.101.0 proves local branch-diversity recovery can improve guarded profile states, but global branch-diverse behavior is still not stable enough to promote |
 
+Latest collapsed-profile binding frontier profile-scale floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | collapsed-profile binding: after a profile update is already safe under the floor, coverage, branch-stability, and branch-diversity recovery gates, try a small profile-local binding update and keep it only if a still-collapsed eval profile improves without coverage regression |
+| Unit coverage | focused transformer tests pass; the mode records collapsed-profile binding activation, candidates, attempts, acceptances, fallback acceptances, rejection reasons, target collapsed profiles, profile-diversity deltas, replay-plan activation, and the collapsed-profile binding update shape |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001`; recovery retry scales `1`, `0.25`, `0.05`; branch-diversity recovery scales `0.25`, `0.05`, `0.01`; collapsed-profile binding scales `0.25`, `0.05`, `0.01` |
+| Frontier anchors | `52` anchors across `10` source-profile groups and `52` source-profile targets |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0` |
+| Profile-scale attempts | `54` attempted; `11` accepted; `43` rejected |
+| Branch-diversity recovery outcomes | `11` candidates; `26` attempts; `4` branch-score refinements; `7` fallbacks |
+| Collapsed-profile binding outcomes | `11` candidates; `31` attempts; `1` binding update; `10` fallbacks; `30` rejected attempts |
+| Collapsed-profile binding rejection reasons | `27` collapsed-profile ties; `1` floor regression; `2` score regressions |
+| Collapsed profiles | baseline `9/9`; final `3/9` remaining: `learning`, `owner`, `paraphrases` |
+| Accepted update shapes | `profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed; coverage preservation passed, but max dominant predicted rate remains `1.0` and minimum target-token coverage remains `0.0` |
+| Promotion status | rejected for model promotion; v0.102.0 proves a targeted collapsed-profile binding update can survive the guard, but learning, owner, and paraphrase collapse still block a functional transformer responder |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1886,6 +1917,7 @@ into direct coverage recoveries, and preserves four preparation fallbacks.
 v0.100.0 adds branch-stable recovery acceptance, keeps those two recoveries,
 and records one branch-score regression rejection. v0.101.0 adds
 branch-diversity recovery, accepts five local branch-score refinements, and
-falls back once. The next repair should convert those local score gains into
-target-token coverage and predicted-token diversity for the profiles that
-remain collapsed.
+falls back once. v0.102.0 adds collapsed-profile binding, accepts one targeted
+binding update, and narrows final collapse from nine eval profiles to three.
+The next repair should target `learning`, `owner`, and `paraphrases` without
+weakening the coverage floor.

@@ -117,6 +117,9 @@ increase branch diversity without weakening the recovery floor. v0.101.0 adds
 branch-diversity recovery after safe profile updates, accepts `5` local
 branch-score refinements, falls back once, and shows the next repair should
 turn local score gains into target-token coverage for the collapsed profiles.
+v0.102.0 adds collapsed-profile binding, accepts `1` targeted binding update,
+narrows final collapse from `9/9` eval profiles to `3/9`, and shows the next
+repair should focus on `learning`, `owner`, and `paraphrases`.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

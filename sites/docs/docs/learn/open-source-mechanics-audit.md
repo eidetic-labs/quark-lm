@@ -136,7 +136,10 @@ mechanics change toward branch diversity that preserves recovery evidence.
 v0.101.0 adds branch-diversity recovery after safe profile updates, accepts `5`
 local branch-score refinements, falls back once, and shifts the next mechanics
 change toward converting local branch-score gains into global target-token
-coverage.
+coverage. v0.102.0 adds collapsed-profile binding, accepts `1` targeted
+binding update after branch-diversity recovery, narrows final collapse from
+`9/9` eval profiles to `3/9`, and shifts the next mechanics change toward the
+remaining `learning`, `owner`, and `paraphrases` collapses.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

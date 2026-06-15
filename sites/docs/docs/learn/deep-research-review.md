@@ -113,7 +113,10 @@ the same discipline before another major repair screen.
     branch-stable recovery conversions; rejected for promotion.
 31. **v0.101.0:** branch-diversity recovery. Implemented with five local
     branch-score refinements; rejected for promotion.
-32. **v0.102.0+:** collapsed-profile branch binding, tokenizer growth, or
+32. **v0.102.0:** collapsed-profile binding. Implemented with one targeted
+    binding update and three remaining collapsed eval profiles; rejected for
+    promotion.
+33. **v0.103.0+:** remaining-profile binding, tokenizer growth, or
     learned verifier experiments.
 
 ## Operating Rule
@@ -194,3 +197,6 @@ branch-stability checks, rejects `1` retry for branch-score regression, and
 still rejects promotion on branch diversity. v0.101.0 adds branch-diversity
 recovery after safe profile updates, accepts `5` local branch-score
 refinements, falls back once, and still rejects promotion on branch diversity.
+v0.102.0 adds collapsed-profile binding after branch-diversity recovery,
+accepts `1` targeted binding update, narrows final collapse from `9/9` eval
+profiles to `3/9`, and still rejects promotion on branch diversity.
