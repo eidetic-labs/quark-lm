@@ -399,6 +399,18 @@ risk, low representation separation across `9/9` multi-target profiles, and a
 glossary target-imbalance hotspot. Promotion still rejects on
 `branch_diversity_target`.
 
+v0.114.0 adds `branch_logit_prior_profiles` and centroid separation metrics to
+direct-answer snapshots. The diagnostic screen at
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.113.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+and keeps retrieval exact at `219/219`. It records `24` profile-specific
+missing-token attempts with `0` direct missing-token acceptances, `24`
+rejections, and `8` fallbacks. The root cause remains a critical
+`target_routing_gap`; output-bias risk remains high, but logit-prior
+decomposition says dominant-token wins are hidden-projection driven across
+`9/9` multi-target profiles. Promotion still rejects on
+`branch_diversity_target`.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

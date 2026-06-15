@@ -12,7 +12,7 @@ import argparse
 import json
 import math
 import random
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -4647,6 +4647,62 @@ def direct_answer_branch_representation_profile(
                 different_target_distances.append(distance)
 
     target_tokens = Counter(target for target, _hidden in representations)
+    hidden_by_target: dict[str, list[list[float]]] = defaultdict(list)
+    for target, hidden in representations:
+        hidden_by_target[target].append(hidden)
+
+    def centroid(items: list[list[float]]) -> list[float]:
+        if not items:
+            return []
+        return [
+            sum(hidden[dim] for hidden in items) / len(items)
+            for dim in range(len(items[0]))
+        ]
+
+    def distance(left: list[float], right: list[float]) -> float:
+        return math.sqrt(
+            sum(
+                (left_value - right_value) ** 2
+                for left_value, right_value in zip(left, right)
+            )
+        )
+
+    centroids = {
+        target: centroid(items)
+        for target, items in sorted(hidden_by_target.items())
+        if items
+    }
+    centroid_distances: list[float] = []
+    centroid_items = list(centroids.items())
+    for left_index, (_left_target, left_centroid) in enumerate(centroid_items):
+        for _right_target, right_centroid in centroid_items[left_index + 1:]:
+            centroid_distances.append(distance(left_centroid, right_centroid))
+
+    centroid_margins: list[float] = []
+    for target, hidden in representations:
+        own_centroid = centroids.get(target)
+        other_centroids = [
+            centroid_value
+            for other_target, centroid_value in centroid_items
+            if other_target != target
+        ]
+        if own_centroid is None or not other_centroids:
+            continue
+        own_distance = distance(hidden, own_centroid)
+        nearest_other_distance = min(
+            distance(hidden, other_centroid) for other_centroid in other_centroids
+        )
+        centroid_margins.append(nearest_other_distance - own_distance)
+
+    def summarize_margins(margins: list[float]) -> dict[str, Any]:
+        summary = summarize_distances(margins)
+        poorly_separated = sum(1 for margin in margins if margin <= 0.01)
+        summary["poorly_separated"] = poorly_separated
+        summary["poorly_separated_rate"] = (
+            poorly_separated / len(margins) if margins else 0.0
+        )
+        return summary
+
     return {
         "branch_position": branch_position,
         "count": len(representations),
@@ -4661,6 +4717,245 @@ def direct_answer_branch_representation_profile(
         "different_target_pairwise_distance": summarize_distances(
             different_target_distances
         ),
+        "target_centroids": [
+            {
+                "target": target,
+                "count": len(hidden_by_target[target]),
+                "norm": math.sqrt(sum(value * value for value in centroid_value)),
+            }
+            for target, centroid_value in centroid_items[:12]
+        ],
+        "target_centroid_distance": summarize_distances(centroid_distances),
+        "target_centroid_margin": summarize_margins(centroid_margins),
+    }
+
+
+def direct_answer_branch_logit_prior_profile(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    records: list[dict[str, Any]],
+    branch_position: int,
+    terminator: str = ANSWER_TERMINATOR,
+    max_sample_records: int = 8,
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    skipped = 0
+    predicted_counts: Counter[int] = Counter()
+    target_counts: Counter[int] = Counter()
+
+    for record in records:
+        example = AnswerExample(
+            prompt=record["prompt"],
+            target=record["target"],
+            source=f"eval:{record['id']}",
+        )
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            example,
+            branch_position,
+            terminator,
+        )
+        if branch is None:
+            skipped += 1
+            continue
+        context, target_id, position = branch
+        logits = model._forward_floats(context)
+        hidden = model.final_hidden(context)
+        ranked_ids = sorted(
+            range(len(logits)),
+            key=lambda index: (-logits[index], tokenizer.itos[index], index),
+        )
+        predicted_id = ranked_ids[0]
+        predicted_counts[predicted_id] += 1
+        target_counts[target_id] += 1
+        rows.append(
+            {
+                "id": record["id"],
+                "position": position,
+                "target_id": target_id,
+                "predicted_id": predicted_id,
+                "target_rank": ranked_ids.index(target_id) + 1,
+                "logits": logits,
+                "hidden": hidden,
+            }
+        )
+
+    def top_token_items(counter: Counter[int]) -> list[dict[str, Any]]:
+        return [
+            {"value": tokenizer.itos[index], "count": count}
+            for index, count in counter.most_common(12)
+        ]
+
+    if predicted_counts:
+        dominant_id, dominant_count = predicted_counts.most_common(1)[0]
+    else:
+        dominant_id = None
+        dominant_count = 0
+    bias_rankings = {
+        index: rank + 1
+        for rank, index in enumerate(
+            sorted(
+                range(model.config.vocab_size),
+                key=lambda token_id: (
+                    -model.bout[token_id].data,
+                    tokenizer.itos[token_id],
+                    token_id,
+                ),
+            )
+        )
+    }
+
+    def hidden_contribution(hidden: list[float], token_id: int) -> float:
+        return sum(
+            hidden[dim] * model.wout[dim][token_id].data
+            for dim in range(len(hidden))
+        )
+
+    def summarize_decomposition(items: list[dict[str, float]]) -> dict[str, Any]:
+        if not items:
+            return {
+                "count": 0,
+                "avg_bias_advantage": 0.0,
+                "avg_hidden_advantage": 0.0,
+                "avg_logit_advantage": 0.0,
+                "bias_share_of_positive_advantage": 0.0,
+                "dominant_logit_win_rate": 0.0,
+                "primary_pressure": "none",
+            }
+        avg_bias = sum(item["bias_advantage"] for item in items) / len(items)
+        avg_hidden = sum(item["hidden_advantage"] for item in items) / len(items)
+        avg_logit = sum(item["logit_advantage"] for item in items) / len(items)
+        positive_bias = max(avg_bias, 0.0)
+        positive_hidden = max(avg_hidden, 0.0)
+        positive_total = positive_bias + positive_hidden
+        bias_share = positive_bias / positive_total if positive_total else 0.0
+        if avg_logit <= 0.0:
+            primary_pressure = "target_not_losing_to_dominant"
+        elif bias_share >= 0.67:
+            primary_pressure = "output_bias"
+        elif bias_share <= 0.33:
+            primary_pressure = "hidden_projection"
+        else:
+            primary_pressure = "mixed_bias_hidden"
+        return {
+            "count": len(items),
+            "avg_bias_advantage": avg_bias,
+            "avg_hidden_advantage": avg_hidden,
+            "avg_logit_advantage": avg_logit,
+            "bias_share_of_positive_advantage": bias_share,
+            "dominant_logit_win_rate": (
+                sum(1 for item in items if item["logit_advantage"] > 0.0)
+                / len(items)
+            ),
+            "primary_pressure": primary_pressure,
+        }
+
+    decompositions: list[dict[str, float]] = []
+    failed_decompositions: list[dict[str, float]] = []
+    sample_records: list[dict[str, Any]] = []
+    if dominant_id is not None:
+        dominant_bias = model.bout[dominant_id].data
+        for row in rows:
+            target_id = int(row["target_id"])
+            hidden = row["hidden"]
+            target_bias = model.bout[target_id].data
+            dominant_hidden = hidden_contribution(hidden, dominant_id)
+            target_hidden = hidden_contribution(hidden, target_id)
+            dominant_logit = row["logits"][dominant_id]
+            target_logit = row["logits"][target_id]
+            decomposition = {
+                "bias_advantage": dominant_bias - target_bias,
+                "hidden_advantage": dominant_hidden - target_hidden,
+                "logit_advantage": dominant_logit - target_logit,
+            }
+            decompositions.append(decomposition)
+            if int(row["predicted_id"]) != target_id:
+                failed_decompositions.append(decomposition)
+                if len(sample_records) < max_sample_records:
+                    sample_records.append(
+                        {
+                            "id": row["id"],
+                            "target_token": tokenizer.itos[target_id],
+                            "predicted_token": tokenizer.itos[int(row["predicted_id"])],
+                            "dominant_token": tokenizer.itos[dominant_id],
+                            "target_rank": row["target_rank"],
+                            "bias_advantage": decomposition["bias_advantage"],
+                            "hidden_advantage": decomposition["hidden_advantage"],
+                            "logit_advantage": decomposition["logit_advantage"],
+                        }
+                    )
+
+    target_token_ids = set(target_counts)
+    predicted_token_ids = set(predicted_counts)
+    missing_target_ids = sorted(
+        target_token_ids - predicted_token_ids,
+        key=lambda token_id: (-target_counts[token_id], tokenizer.itos[token_id], token_id),
+    )
+    missing_target_biases = [
+        model.bout[token_id].data for token_id in missing_target_ids
+    ]
+    top_bias_ids = sorted(
+        range(model.config.vocab_size),
+        key=lambda token_id: (
+            -model.bout[token_id].data,
+            tokenizer.itos[token_id],
+            token_id,
+        ),
+    )[:12]
+    dominant_bias_value = (
+        model.bout[dominant_id].data if dominant_id is not None else 0.0
+    )
+
+    return {
+        "branch_position": branch_position,
+        "count": len(rows),
+        "skipped": skipped,
+        "target_tokens": top_token_items(target_counts),
+        "predicted_tokens": top_token_items(predicted_counts),
+        "dominant_predicted_token": (
+            tokenizer.itos[dominant_id] if dominant_id is not None else None
+        ),
+        "dominant_predicted_count": dominant_count,
+        "dominant_predicted_rate": dominant_count / len(rows) if rows else 0.0,
+        "dominant_token_bias": dominant_bias_value,
+        "dominant_token_bias_rank": (
+            bias_rankings.get(dominant_id) if dominant_id is not None else None
+        ),
+        "missing_target_tokens": [
+            {"value": tokenizer.itos[token_id], "count": target_counts[token_id]}
+            for token_id in missing_target_ids[:12]
+        ],
+        "missing_target_bias": {
+            "count": len(missing_target_biases),
+            "avg": (
+                sum(missing_target_biases) / len(missing_target_biases)
+                if missing_target_biases
+                else 0.0
+            ),
+            "max": max(missing_target_biases) if missing_target_biases else 0.0,
+        },
+        "dominant_vs_missing_bias_advantage": (
+            dominant_bias_value
+            - (
+                sum(missing_target_biases) / len(missing_target_biases)
+                if missing_target_biases
+                else 0.0
+            )
+        ),
+        "top_bias_tokens": [
+            {
+                "token": tokenizer.itos[token_id],
+                "bias": model.bout[token_id].data,
+                "rank": bias_rankings[token_id],
+            }
+            for token_id in top_bias_ids
+        ],
+        "dominant_vs_target_decomposition": {
+            "all_records": summarize_decomposition(decompositions),
+            "failed_records": summarize_decomposition(failed_decompositions),
+        },
+        "sample_records": sample_records,
     }
 
 
@@ -8852,6 +9147,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     for name, records in sorted(eval_records.items())
                 }
             )
+            branch_logit_prior_profiles = {
+                name: direct_answer_branch_logit_prior_profile(
+                    model,
+                    tokenizer,
+                    records,
+                    args.direct_answer_branch_position,
+                    direct_answer_terminator,
+                )
+                for name, records in sorted(eval_records.items())
+            }
             record = {
                 "step": step,
                 "train_loss": train_loss,
@@ -8872,6 +9177,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 },
                 "branch_profiles": branch_profiles,
                 "branch_representation_profiles": branch_representation_profiles,
+                "branch_logit_prior_profiles": branch_logit_prior_profiles,
                 "branch_diversity_target": summarize_branch_diversity_target(
                     branch_profiles
                 ),
@@ -8882,6 +9188,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         tokenizer.itos[index]: value.data
                         for index, value in enumerate(model.bout)
                     },
+                    branch_logit_prior_profiles,
                 ),
                 "branch_context_coverage": branch_context_coverage,
                 "branch_context_gate": summarize_branch_context_coverage_gate(

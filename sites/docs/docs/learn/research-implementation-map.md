@@ -147,9 +147,12 @@ direct-answer objective mode:
    `branch_routing_audit` under direct-answer snapshots, output-bias escape
    risk, prompt-to-branch representation separation, and target-imbalance
    summaries; rejected for promotion on `branch_diversity_target`.
-40. **v0.114.0+:** use the v0.113 audit inside the closed-world lifecycle to
-   instrument dominant-token logit priors and representation separation before
-   choosing any guarded repair candidate.
+40. **v0.114.0:** logit-prior and centroid-separation instrumentation.
+   Implemented with `branch_logit_prior_profiles`, centroid-distance and
+   centroid-margin summaries, and `branch_routing_audit.logit_prior`; rejected
+   for promotion on `branch_diversity_target`.
+41. **v0.115.0+:** use the v0.114 evidence to choose a guarded
+   hidden-projection or representation-separation repair candidate.
 
 ## Current Gap
 
@@ -245,13 +248,15 @@ QuarkLM already has:
   `runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
 - v0.113.0 branch-routing audit evidence:
   `runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
+- v0.114.0 logit-prior instrumentation evidence:
+  `runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
 
 It still needs:
 
-- dominant-token logit-prior and prompt-representation instrumentation that
-  uses v0.113.0 audit evidence to improve zero-coverage `paraphrases`,
-  collapsed `owner` and `learning`, and buried-target profiles without
-  regressing retrieval provenance or relaxing promotion gates.
+- a guarded hidden-projection or representation-separation repair candidate
+  that uses v0.114.0 logit-prior evidence to improve zero-coverage
+  `paraphrases`, collapsed `owner` and `learning`, and buried-target profiles
+  without regressing retrieval provenance or relaxing promotion gates.
 
 ## Operating Rule
 

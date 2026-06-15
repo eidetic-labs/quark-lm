@@ -230,12 +230,14 @@ def branch_routing_audit_summary(
     branch_profiles: dict[str, dict[str, Any]],
     branch_representation_profiles: dict[str, dict[str, Any]] | None = None,
     output_bias_by_token: dict[str, float] | None = None,
+    branch_logit_prior_profiles: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Audit likely routing causes behind branch-diversity failure."""
 
     root_cause = branch_diversity_root_cause_summary(branch_profiles)
     branch_representation_profiles = branch_representation_profiles or {}
     output_bias_by_token = output_bias_by_token or {}
+    branch_logit_prior_profiles = branch_logit_prior_profiles or {}
 
     target_counts: Counter[str] = Counter()
     predicted_counts: Counter[str] = Counter()
@@ -346,11 +348,69 @@ def branch_routing_audit_summary(
             "different_target_distance_avg": different_avg,
             "same_target_distance_avg": same_avg,
             "separation_ratio": separation_ratio,
+            "target_centroid_distance_min": _as_float(
+                profile.get("target_centroid_distance", {}).get("min")
+            ),
+            "target_centroid_distance_avg": _as_float(
+                profile.get("target_centroid_distance", {}).get("avg")
+            ),
+            "target_centroid_margin_min": _as_float(
+                profile.get("target_centroid_margin", {}).get("min")
+            ),
+            "target_centroid_margin_avg": _as_float(
+                profile.get("target_centroid_margin", {}).get("avg")
+            ),
+            "poorly_separated_centroid_rate": _as_float(
+                profile.get("target_centroid_margin", {}).get(
+                    "poorly_separated_rate"
+                )
+            ),
         }
         representation_profiles.append(record)
         different_distances.append(different_avg)
-        if different_avg <= 0.01 or separation_ratio <= 1.05:
+        if (
+            different_avg <= 0.01
+            or separation_ratio <= 1.05
+            or record["target_centroid_distance_min"] <= 0.01
+            or record["target_centroid_margin_min"] <= 0.01
+        ):
             low_separation_profiles.append(record)
+
+    logit_prior_profiles: list[dict[str, Any]] = []
+    pressure_counts: Counter[str] = Counter()
+    for name, profile in sorted(branch_logit_prior_profiles.items()):
+        branch_profile = branch_profiles.get(name, {})
+        target_unique = _as_int(branch_profile.get("diversity", {}).get("target_unique"))
+        if target_unique < 2:
+            continue
+        decomposition = profile.get("dominant_vs_target_decomposition", {})
+        failed_summary = decomposition.get("failed_records", {})
+        summary = failed_summary if _as_int(failed_summary.get("count")) else decomposition.get("all_records", {})
+        if not summary:
+            continue
+        pressure = str(summary.get("primary_pressure", "unknown"))
+        pressure_counts[pressure] += 1
+        logit_prior_profiles.append(
+            {
+                "profile": name,
+                "dominant_predicted_token": profile.get("dominant_predicted_token"),
+                "dominant_predicted_rate": _as_float(
+                    profile.get("dominant_predicted_rate")
+                ),
+                "dominant_token_bias": _as_float(profile.get("dominant_token_bias")),
+                "dominant_token_bias_rank": profile.get("dominant_token_bias_rank"),
+                "avg_bias_advantage": _as_float(summary.get("avg_bias_advantage")),
+                "avg_hidden_advantage": _as_float(summary.get("avg_hidden_advantage")),
+                "avg_logit_advantage": _as_float(summary.get("avg_logit_advantage")),
+                "bias_share_of_positive_advantage": _as_float(
+                    summary.get("bias_share_of_positive_advantage")
+                ),
+                "dominant_logit_win_rate": _as_float(
+                    summary.get("dominant_logit_win_rate")
+                ),
+                "primary_pressure": pressure,
+            }
+        )
 
     target_total = sum(target_counts.values())
     top_target_token = None
@@ -381,6 +441,14 @@ def branch_routing_audit_summary(
     if output_bias_escape_risk != "low":
         next_checks.append(
             "Compare dominant-token bias ranks against missing target-token bias ranks."
+        )
+    if pressure_counts.get("output_bias") or pressure_counts.get("mixed_bias_hidden"):
+        next_checks.append(
+            "Trace output-bias update paths for reused dominant tokens before another repair objective."
+        )
+    if pressure_counts.get("hidden_projection") or pressure_counts.get("mixed_bias_hidden"):
+        next_checks.append(
+            "Trace hidden-projection contributions for missing target tokens before another repair objective."
         )
     if low_separation_profiles:
         next_checks.append(
@@ -419,6 +487,16 @@ def branch_routing_audit_summary(
             ),
             "low_separation_profiles": low_separation_profiles,
             "profiles": representation_profiles,
+        },
+        "logit_prior": {
+            "profile_count": len(logit_prior_profiles),
+            "pressure_counts": dict(sorted(pressure_counts.items())),
+            "bias_driven_profile_count": int(pressure_counts.get("output_bias", 0)),
+            "hidden_projection_profile_count": int(
+                pressure_counts.get("hidden_projection", 0)
+            ),
+            "mixed_profile_count": int(pressure_counts.get("mixed_bias_hidden", 0)),
+            "profiles": logit_prior_profiles,
         },
         "target_imbalance": {
             "profile_count": len(profile_imbalance),

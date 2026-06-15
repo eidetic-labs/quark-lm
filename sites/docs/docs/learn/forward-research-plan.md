@@ -431,3 +431,13 @@ high output-bias escape risk, low representation separation across `9/9`
 multi-target profiles, and a `glossary` target-imbalance hotspot. The next
 repair should be chosen only after those logit-prior and hidden-state
 separation measurements identify a guarded repair surface.
+
+v0.114.0 implements the logit-prior and centroid-separation measurements in
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
+The run consumes the v0.113.0 plan, targets `owner`, `paraphrases`, and
+`glossary`, keeps retrieval exact at `219/219`, records `24` guarded
+missing-token attempts with `0` direct acceptances and `8` fallbacks, and still
+rejects promotion on `branch_diversity_target`. `branch_logit_prior_profiles`
+show hidden-projection pressure across `9/9` multi-target profiles, while
+centroid margins remain poorly separated. The next repair should target that
+hidden-projection/representation surface under the existing guards.

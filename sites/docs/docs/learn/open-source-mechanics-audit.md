@@ -205,6 +205,15 @@ target-imbalance hotspot, while still rejecting promotion on
 `branch_diversity_target`. The next mechanics change should use those measured
 surfaces before selecting another guarded repair candidate.
 
+v0.114.0 adds the measured surface that v0.113 called for:
+`branch_logit_prior_profiles` decompose each dominant-token win into output
+bias, hidden projection, or mixed pressure, and representation profiles now
+record centroid distances and margins. The diagnostic screen keeps retrieval
+exact and still rejects promotion, but it shows the dominant-token wins are
+hidden-projection driven across `9/9` multi-target profiles. The next mechanics
+change should be a guarded hidden-projection or representation-separation
+repair candidate.
+
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
 improves one metric by erasing another.

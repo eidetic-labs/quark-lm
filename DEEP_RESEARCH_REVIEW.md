@@ -656,3 +656,13 @@ different-target hidden-state separation, and `glossary` carries a target
 imbalance hotspot. That points the next implementation at measured logit-prior
 and representation-separation instrumentation before any new guarded repair
 candidate.
+
+## v0.114 Addendum
+
+v0.114 implements that instrumentation. `branch_logit_prior_profiles` decompose
+dominant-token wins into output-bias, hidden-projection, or mixed pressure, and
+representation profiles now record centroid-distance and centroid-margin
+summaries. The v0.114 screen remains rejected for model promotion, but it
+narrows the mechanism: all `9/9` multi-target profiles are hidden-projection
+driven, and centroid margins are poorly separated. The next repair should be a
+guarded representation or hidden-projection candidate.

@@ -687,3 +687,15 @@ multi-target profiles, and a `glossary` target-imbalance hotspot. The next
 implementation should use those measurements to instrument dominant-token logit
 priors and hidden-state separation before selecting another guarded repair
 candidate.
+
+## v0.114 Addendum
+
+v0.114 adds `branch_logit_prior_profiles` and centroid separation metrics to
+the direct-answer snapshots. The diagnostic screen in
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`
+keeps retrieval exact at `219/219`, rejects promotion on
+`branch_diversity_target`, and shows that dominant-token wins are
+hidden-projection driven across `9/9` multi-target profiles even though
+output-bias risk remains high. The next implementation should target guarded
+hidden-projection or representation separation rather than another broad branch
+objective.

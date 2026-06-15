@@ -1161,6 +1161,16 @@ keeps branch-diversity as the blocker. The routing audit reports high
 output-bias escape risk (`"n"` bias rank `2`), low representation separation
 across `9/9` multi-target profiles, and a glossary target-imbalance hotspot.
 
+v0.114.0 adds logit-prior and centroid-separation instrumentation to the same
+screen surface. The diagnostic screen in
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.113.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+keeps retrieval exact at `219/219`, records `24` profile-specific
+missing-token attempts with `0` direct acceptances and `8` fallbacks, and keeps
+branch-diversity as the blocker. The new logit-prior profiles report
+hidden-projection pressure across `9/9` multi-target profiles, while centroid
+separation remains poor.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -44,7 +44,7 @@ Not allowed:
 | [Reflexion](https://arxiv.org/abs/2303.11366) | Trial feedback stored as linguistic memory without weight updates. | QuarkLM should continue separating memory artifacts, exact responders, retrieval-like rails, and weight learning claims. |
 | [LLM360](https://arxiv.org/abs/2312.06550) | Transparency standard: code, data, checkpoints, intermediate results, and analyses released together. | QuarkLM's run artifacts, docs, failed screens, and checkpoints are not overhead; they are part of the research claim. |
 | [OLMo](https://arxiv.org/abs/2402.00838) and [OLMo 2](https://arxiv.org/abs/2501.00656) | Open training/evaluation code, training data, recipes, logs, intermediate checkpoints, data mixtures, and late-stage curriculum. | QuarkLM should publish the recipe and rejected evidence for each version, and should report corpus/source mixtures before training rather than only final metrics after training. |
-| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Logits processors, processed score tensors, and optional hidden-state outputs are exposed as generation instrumentation surfaces. | v0.113 should inspect output-bias ranks and hidden-state separation before adding another branch objective. |
+| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Logits processors, processed score tensors, and optional hidden-state outputs are exposed as generation instrumentation surfaces. | v0.114 inspects output-bias ranks, hidden-projection contributions, and hidden-state separation before adding another branch objective. |
 | [fairseq search mechanics](https://github.com/facebookresearch/fairseq/blob/main/fairseq/search.py) | Search strategies, including diversity-aware beam variants, alter candidate scores during decoding. | Search diversity is useful evidence for inference design, not proof of closed-world weight consolidation. |
 
 ## Findings
@@ -208,3 +208,21 @@ those as direct solutions because promotion requires closed-world target-token
 coverage in weights. The new root-cause report classifies the current failure
 as `target_routing_gap`, so the next mechanic should audit routing and
 representation evidence before introducing another objective.
+
+## v0.113 Addendum
+
+v0.113 adds `branch_routing_audit` to direct-answer snapshots. It keeps
+retrieval exact, rejects promotion on `branch_diversity_target`, and records
+high output-bias escape risk, low representation separation across `9/9`
+multi-target profiles, and `glossary` target imbalance. That narrows the
+mechanics gap to measured logit-prior and representation-separation evidence.
+
+## v0.114 Addendum
+
+v0.114 implements that evidence with `branch_logit_prior_profiles`,
+centroid-distance summaries, and centroid-margin summaries. The diagnostic
+screen keeps retrieval exact at `219/219` and still rejects promotion, but it
+shows dominant-token wins are hidden-projection driven across `9/9`
+multi-target profiles. The next mechanics candidate should target guarded
+hidden-projection or representation separation rather than another broad branch
+objective.

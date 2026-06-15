@@ -467,3 +467,14 @@ multi-target profiles, and `glossary` target imbalance, then rejects promotion
 on `branch_diversity_target`. The next map item is instrumentation for
 dominant-token logit priors and prompt-to-branch separation before selecting a
 guarded repair candidate.
+
+## v0.114 Addendum
+
+v0.114 implements that instrumentation as `branch_logit_prior_profiles`,
+centroid-distance and centroid-margin summaries, and
+`branch_routing_audit.logit_prior`. The diagnostic screen in
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`
+keeps retrieval exact at `219/219`, rejects promotion on
+`branch_diversity_target`, and classifies all `9/9` multi-target profiles as
+hidden-projection driven. The next map item is a guarded hidden-projection or
+representation-separation repair candidate.

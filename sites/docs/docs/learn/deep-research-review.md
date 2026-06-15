@@ -164,9 +164,12 @@ the same discipline before another major repair screen.
     `branch_routing_audit` under direct-answer snapshots, output-bias escape
     risk, prompt-to-branch representation separation, and target-imbalance
     summaries; still rejects promotion on `branch_diversity_target`.
-44. **v0.114.0+:** use the v0.113 audit inside the closed-world lifecycle to
-    instrument dominant-token logit priors and representation separation before
-    choosing any guarded repair candidate.
+44. **v0.114.0:** logit-prior and centroid-separation instrumentation.
+    Implemented with `branch_logit_prior_profiles`, centroid-distance and
+    centroid-margin summaries, and `branch_routing_audit.logit_prior`; still
+    rejects promotion on `branch_diversity_target`.
+45. **v0.115.0+:** use the v0.114 evidence to choose a guarded
+    hidden-projection or representation-separation repair candidate.
 
 ## Operating Rule
 

@@ -41,6 +41,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_branch_repair_error,
     direct_answer_branch_context,
     direct_answer_branch_target_ids,
+    direct_answer_branch_logit_prior_profile,
     direct_answer_branch_representation_profile,
     direct_answer_branch_span_position,
     direct_answer_branch_span_repair_error,
@@ -1440,6 +1441,25 @@ class TransformerCharModelTest(unittest.TestCase):
         audit = branch_routing_audit_summary(
             branch_profiles,
             output_bias_by_token={"n": 4.0, "a": 0.0, "b": 0.0, "c": 0.0, "d": 0.0},
+            branch_logit_prior_profiles={
+                "qa": {
+                    "dominant_predicted_token": "n",
+                    "dominant_predicted_rate": 1.0,
+                    "dominant_token_bias": 4.0,
+                    "dominant_token_bias_rank": 1,
+                    "dominant_vs_target_decomposition": {
+                        "failed_records": {
+                            "count": 2,
+                            "avg_bias_advantage": 4.0,
+                            "avg_hidden_advantage": 0.0,
+                            "avg_logit_advantage": 4.0,
+                            "bias_share_of_positive_advantage": 1.0,
+                            "dominant_logit_win_rate": 1.0,
+                            "primary_pressure": "output_bias",
+                        }
+                    },
+                }
+            },
         )
 
         self.assertEqual(audit["root_cause_hypothesis"], "global_output_prior_collapse")
@@ -1454,8 +1474,17 @@ class TransformerCharModelTest(unittest.TestCase):
             1,
         )
         self.assertGreater(audit["output_bias"]["dominant_bias_advantage"], 0.0)
+        self.assertEqual(audit["logit_prior"]["bias_driven_profile_count"], 1)
+        self.assertEqual(
+            audit["logit_prior"]["profiles"][0]["primary_pressure"],
+            "output_bias",
+        )
         self.assertIn(
             "Compare dominant-token bias ranks against missing target-token bias ranks.",
+            audit["next_checks"],
+        )
+        self.assertIn(
+            "Trace output-bias update paths for reused dominant tokens before another repair objective.",
             audit["next_checks"],
         )
 
@@ -2503,6 +2532,58 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(profile["target_unique"], 3)
         self.assertEqual(profile["different_target_pairwise_distance"]["count"], 3)
         self.assertGreater(profile["different_target_pairwise_distance"]["avg"], 0.0)
+        self.assertEqual(len(profile["target_centroids"]), 3)
+        self.assertEqual(profile["target_centroid_distance"]["count"], 3)
+        self.assertEqual(profile["target_centroid_margin"]["count"], 3)
+
+    def test_branch_logit_prior_profile_decomposes_dominant_bias(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        records = [
+            {"id": "near", "prompt": near.prompt, "target": near.target},
+            {"id": "green", "prompt": green.prompt, "target": green.target},
+            {"id": "tree", "prompt": tree.prompt, "target": tree.target},
+        ]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=48,
+            )
+        )
+        model.bout[tokenizer.stoi["n"]].data = 5.0
+
+        profile = direct_answer_branch_logit_prior_profile(
+            model,
+            tokenizer,
+            records,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(profile["count"], 3)
+        self.assertEqual(profile["dominant_predicted_token"], "n")
+        self.assertEqual(profile["dominant_token_bias_rank"], 1)
+        missing_tokens = {item["value"] for item in profile["missing_target_tokens"]}
+        self.assertIn("g", missing_tokens)
+        self.assertIn("t", missing_tokens)
+        failed = profile["dominant_vs_target_decomposition"]["failed_records"]
+        self.assertEqual(failed["primary_pressure"], "output_bias")
+        self.assertEqual(failed["count"], 2)
+        self.assertGreater(failed["avg_bias_advantage"], 0.0)
+        self.assertGreater(profile["dominant_vs_missing_bias_advantage"], 0.0)
 
     def test_branch_representation_contrast_increases_hidden_distance(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")

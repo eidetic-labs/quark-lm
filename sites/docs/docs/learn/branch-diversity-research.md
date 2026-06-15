@@ -1,6 +1,6 @@
 ---
 title: Branch Diversity Research
-description: External research and v0.113 routing-audit evidence for QuarkLM branch-diversity failures.
+description: External research and v0.114 logit-prior evidence for QuarkLM branch-diversity failures.
 ---
 
 # Branch Diversity Research
@@ -11,6 +11,23 @@ QuarkLM's branch-diversity problem is the current transformer bottleneck.
 Retrieval memory can serve the admitted corpus exactly, and guarded weight
 updates can be accepted locally, but the transformer still predicts too few
 branch tokens across multi-target profiles.
+
+## v0.114 Evidence
+
+Diagnostic run:
+`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
+
+The run consumes the v0.113 memory-consolidation plan, targets `owner`,
+`paraphrases`, and `glossary`, keeps retrieval exact at `219/219`, records
+`24` profile-specific missing-token attempts with `0` direct missing-token
+acceptances and `8` fallbacks, and remains rejected on
+`branch_diversity_target`.
+
+The root-cause diagnosis remains a critical `target_routing_gap`. The routing
+audit still flags high output-bias escape risk (`"n"` bias rank `1`, `"a"` bias
+rank `3`), but `branch_logit_prior_profiles` show the dominant-token wins are
+driven by hidden-projection pressure across `9/9` multi-target profiles.
+Centroid separation remains poor across the sampled profiles.
 
 ## v0.113 Evidence
 
@@ -60,7 +77,7 @@ coverage, `predicted_unique: 1`, and average target rank `22.5`.
 | [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) | Shows that common decoding choices can produce bland or repetitive language even from strong likelihood-trained models. | Decoding diversity is not enough. QuarkLM needs branch diversity in the learned distribution before promotion. |
 | [Neural Text Generation with Unlikelihood Training](https://arxiv.org/abs/1908.04319) | Penalizes undesirable tokens or sequences during training. | QuarkLM's unlikelihood variants can move the collapse token, but v0.112 says routing remains broken. |
 | [Hugging Face generation configuration](https://huggingface.co/docs/transformers/en/main_classes/text_generation) | Exposes repetition penalties, no-repeat n-gram controls, diversity penalties, sampling, beam settings, and other generation-time controls. | Sampling or penalties may become inference rails, but they cannot prove closed-world weight consolidation. |
-| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Exposes logits processors, processed score tensors, and optional hidden-state outputs for instrumentation. | v0.113 follows this diagnostic pattern by inspecting output-bias ranks and prompt-to-branch hidden-state separation. |
+| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Exposes logits processors, processed score tensors, and optional hidden-state outputs for instrumentation. | v0.114 follows this diagnostic pattern by inspecting output-bias ranks, hidden projections, and prompt-to-branch hidden-state separation. |
 | [Diverse Beam Search](https://arxiv.org/abs/1610.02424) | Adds diversity to beam decoding to avoid near-duplicate candidate outputs. | Useful later for candidate exploration; not a substitute for target-token coverage. |
 | [fairseq search mechanics](https://github.com/facebookresearch/fairseq/blob/main/fairseq/search.py) | Implements search variants, including diversity-aware beam scoring. | Mature stacks keep search diversity separate from model learning, so QuarkLM should keep decoding diversity out of promotion claims. |
 | [Class-Balanced Loss](https://arxiv.org/abs/1901.05555) | Reweights long-tailed classes using effective sample counts. | Audit profile/target imbalance before changing another objective. |
@@ -70,8 +87,8 @@ coverage, `predicted_unique: 1`, and average target rank `22.5`.
 
 ## Taxonomy
 
-v0.112 adds `branch_diversity_target.root_cause`, and v0.113 adds
-`branch_routing_audit`:
+v0.112 adds `branch_diversity_target.root_cause`, v0.113 adds
+`branch_routing_audit`, and v0.114 adds `branch_logit_prior_profiles`:
 
 | Hypothesis | Meaning |
 | --- | --- |
@@ -87,7 +104,8 @@ v0.112 adds `branch_diversity_target.root_cause`, and v0.113 adds
 The next repair should instrument the route from prompt evidence to branch
 target before adding another branch objective:
 
-1. Measure global logit priors and output-bias escape paths.
+1. Target hidden-projection contributions that make dominant tokens beat
+   missing target tokens.
 2. Compare prompt-to-branch hidden-state separation for failed profiles.
 3. Separate zero-coverage profiles from buried-target profiles.
 4. Add candidate construction and sampling diagnostics for profile/target

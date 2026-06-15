@@ -192,6 +192,15 @@ records low representation separation across `9/9` multi-target profiles, and
 identifies `glossary` target imbalance. The next grounding point is to use that
 evidence to instrument dominant-token logit priors and prompt-to-branch
 separation before selecting any guarded repair objective.
+v0.114.0 adds those instruments. It consumes the v0.113.0 plan, targets
+`owner`, `paraphrases`, and `glossary`, records `24` guarded missing-token
+attempts with `0` direct acceptances and `8` fallbacks, keeps retrieval exact at
+`219/219`, and writes `branch_logit_prior_profiles` plus centroid separation
+metrics. The root cause remains `target_routing_gap`, but the dominant-token
+wins decompose as hidden-projection pressure across `9/9` multi-target
+profiles, while centroid margins remain poorly separated. The next grounding
+point is a guarded representation or hidden-projection repair candidate, not a
+broad branch-loss knob.
 See
 [Branch diversity research](./branch-diversity-research.md),
 [Forward research plan](./forward-research-plan.md) and
