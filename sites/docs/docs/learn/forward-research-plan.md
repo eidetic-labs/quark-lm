@@ -420,3 +420,14 @@ missing-token attempts with `0` direct missing-token acceptances, and classifies
 the final branch failure as a critical `target_routing_gap`. The next repair
 should audit logit priors, output-bias escape paths, representation separation,
 and profile/target imbalance before introducing another branch objective.
+
+v0.113.0 implements that audit in
+`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
+The run consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and
+`learning`, keeps retrieval exact at `219/219`, records `18` guarded
+missing-token attempts with `0` direct acceptances and `6` fallbacks, and still
+rejects promotion on `branch_diversity_target`. `branch_routing_audit` records
+high output-bias escape risk, low representation separation across `9/9`
+multi-target profiles, and a `glossary` target-imbalance hotspot. The next
+repair should be chosen only after those logit-prior and hidden-state
+separation measurements identify a guarded repair surface.

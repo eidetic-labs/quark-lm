@@ -456,3 +456,14 @@ It adds `BRANCH_DIVERSITY_RESEARCH.md`, `sites/docs/docs/learn/branch-diversity-
 and a `branch_diversity_target.root_cause` report. The current diagnosis is a
 critical `target_routing_gap`; the next map item is routing/logit/representation
 audit repair before another branch objective.
+
+## v0.113 Addendum
+
+v0.113 implements the routing/logit/representation audit as
+`branch_routing_audit`. It consumes the v0.112 plan, targets `owner`,
+`paraphrases`, and `learning`, keeps retrieval exact at `219/219`, records high
+output-bias escape risk, low representation separation across `9/9`
+multi-target profiles, and `glossary` target imbalance, then rejects promotion
+on `branch_diversity_target`. The next map item is instrumentation for
+dominant-token logit priors and prompt-to-branch separation before selecting a
+guarded repair candidate.

@@ -160,8 +160,13 @@ the same discipline before another major repair screen.
     `0` direct missing-token acceptances, `8` fallbacks, exact `219/219`
     retrieval, and a critical `target_routing_gap` diagnosis; still rejects
     promotion on `branch_diversity_target`.
-43. **v0.113.0+:** routing/logit/representation audit repair, tokenizer growth, or
-    learned verifier experiments.
+43. **v0.113.0:** branch routing audit diagnostics. Implemented with
+    `branch_routing_audit` under direct-answer snapshots, output-bias escape
+    risk, prompt-to-branch representation separation, and target-imbalance
+    summaries; still rejects promotion on `branch_diversity_target`.
+44. **v0.114.0+:** use the v0.113 audit inside the closed-world lifecycle to
+    instrument dominant-token logit priors and representation separation before
+    choosing any guarded repair candidate.
 
 ## Operating Rule
 

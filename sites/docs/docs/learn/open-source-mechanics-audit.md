@@ -196,6 +196,15 @@ is a critical `target_routing_gap`, not merely a diversity-knob miss, so the
 next mechanics change should audit routing and representation before adding
 another objective.
 
+v0.113.0 adds that audit as `branch_routing_audit`. It follows the external
+implementation pattern of inspecting logits, generation scores, and hidden
+states instead of using decoding diversity as promotion evidence. The run keeps
+retrieval exact at `219/219`, records high output-bias escape risk, low
+representation separation across `9/9` multi-target profiles, and a `glossary`
+target-imbalance hotspot, while still rejecting promotion on
+`branch_diversity_target`. The next mechanics change should use those measured
+surfaces before selecting another guarded repair candidate.
+
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
 improves one metric by erasing another.

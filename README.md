@@ -639,6 +639,19 @@ fallbacks, and classifies the final branch-diversity failure as a critical
 and dominant-token reuse split across `"n"` and `"a"`. Promotion remains
 blocked by `branch_diversity_target`.
 
+v0.113.0 turns that root-cause finding into a branch routing audit. The
+diagnostic screen ran at
+`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
+It consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
+keeps retrieval exact at `219/219`, records `18` profile-specific
+missing-token attempts with `0` direct acceptances and `6` fallbacks, and keeps
+promotion blocked on `branch_diversity_target`. The new
+`branch_routing_audit` classifies the next repair risk as
+`routing_gap_requires_representation_and_logit_audit`: output-bias escape risk
+is high (`"n"` bias rank `2`), all `9` multi-target profiles have low
+prompt-to-branch representation separation, and glossary has a target-imbalance
+hotspot with top target share `0.6316`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1395,6 +1408,13 @@ Current transformer answer-lesson run:
   acceptances, `24` rejections, and `8` fallbacks, keeps retrieval at
   `219/219`, and classifies the final branch-diversity failure as a critical
   `target_routing_gap`.
+- v0.113.0 adds branch routing audit diagnostics. The diagnostic run
+  `runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`
+  consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
+  records `18` missing-token attempts with `0` direct acceptances and `6`
+  fallbacks, keeps retrieval at `219/219`, and reports high output-bias escape
+  risk, low representation separation across `9/9` profiles, and glossary
+  target imbalance.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1692,9 +1712,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.112.0 root-cause evidence to audit global logit priors,
-   output-bias escape paths, prompt-to-branch representation separation, and
-   profile/target imbalance before adding another branch repair objective.
+5. Use v0.113.0 routing audit evidence to instrument dominant-token logit
+   priors, output-bias update escape paths, and prompt-to-branch separation
+   before adding another branch repair objective.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

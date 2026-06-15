@@ -182,6 +182,16 @@ fallbacks, keeps retrieval exact at `219/219`, and classifies the final failure
 as a critical `target_routing_gap`. The next grounding point is auditing logit
 priors, output-bias escape paths, prompt-to-branch representation separation,
 and profile/target imbalance before another branch objective is added.
+v0.113.0 implements that audit without changing the promotion boundary. It
+consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
+records `18` guarded missing-token attempts with `0` direct acceptances and `6`
+fallbacks, keeps retrieval exact at `219/219`, and writes
+`branch_routing_audit`. The audit keeps the root cause at
+`target_routing_gap`, flags high output-bias escape risk (`"n"` bias rank `2`),
+records low representation separation across `9/9` multi-target profiles, and
+identifies `glossary` target imbalance. The next grounding point is to use that
+evidence to instrument dominant-token logit priors and prompt-to-branch
+separation before selecting any guarded repair objective.
 See
 [Branch diversity research](./branch-diversity-research.md),
 [Forward research plan](./forward-research-plan.md) and

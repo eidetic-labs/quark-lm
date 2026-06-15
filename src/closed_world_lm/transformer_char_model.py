@@ -29,7 +29,10 @@ from .answer_model import (
     semantic_feature_names,
     write_lessons,
 )
-from .branch_diversity_diagnostics import branch_diversity_root_cause_summary
+from .branch_diversity_diagnostics import (
+    branch_diversity_root_cause_summary,
+    branch_routing_audit_summary,
+)
 from .candidate_quarantine import (
     build_candidate_quarantine_manifest,
     candidate_quarantine_summary,
@@ -8871,6 +8874,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "branch_representation_profiles": branch_representation_profiles,
                 "branch_diversity_target": summarize_branch_diversity_target(
                     branch_profiles
+                ),
+                "branch_routing_audit": branch_routing_audit_summary(
+                    branch_profiles,
+                    branch_representation_profiles,
+                    {
+                        tokenizer.itos[index]: value.data
+                        for index, value in enumerate(model.bout)
+                    },
                 ),
                 "branch_context_coverage": branch_context_coverage,
                 "branch_context_gate": summarize_branch_context_coverage_gate(

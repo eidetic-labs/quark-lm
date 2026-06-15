@@ -386,6 +386,19 @@ profiles fail, `3` remain collapsed, `1` has zero target-token coverage, and
 so the next mechanic should audit routing, representation separation, and
 profile/target imbalance before adding another objective.
 
+v0.113.0 adds that routing audit to direct-answer snapshots. The diagnostic
+screen at
+`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
+and keeps retrieval exact at `219/219`. It records `16` memory-prioritized
+attempts with `6` acceptances and `10` rejections, plus `18` profile-specific
+missing-token attempts with `0` direct missing-token acceptances, `18`
+rejections, and `6` fallbacks. The root cause remains a critical
+`target_routing_gap`, and `branch_routing_audit` reports high output-bias escape
+risk, low representation separation across `9/9` multi-target profiles, and a
+glossary target-imbalance hotspot. Promotion still rejects on
+`branch_diversity_target`.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

@@ -1151,6 +1151,16 @@ classifies the final branch-diversity failure as a critical
 and reused dominant tokens `"n"` and `"a"`. Branch-diversity still blocks
 promotion.
 
+v0.113.0 adds branch routing audit diagnostics to the same branch-only screen
+surface. The diagnostic screen in
+`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
+keeps retrieval exact at `219/219`, records `18` profile-specific
+missing-token attempts with `0` direct acceptances and `6` fallbacks, and
+keeps branch-diversity as the blocker. The routing audit reports high
+output-bias escape risk (`"n"` bias rank `2`), low representation separation
+across `9/9` multi-target profiles, and a glossary target-imbalance hotspot.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

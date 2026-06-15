@@ -643,3 +643,16 @@ The v0.112 screen records a critical `target_routing_gap`, not a promotable
 model improvement. The next repair should be selected only after routing,
 logit-prior, representation-separation, and profile/target-imbalance evidence
 identifies the actual bottleneck.
+
+## v0.113 Addendum
+
+v0.113 adds the missing routing/logit/representation audit instead of another
+repair objective. The screen consumes the v0.112 plan, keeps retrieval exact at
+`219/219`, and records `branch_routing_audit` beside the branch-diversity root
+cause. The result is still rejected for model promotion, but it narrows the
+research path: output-bias escape risk is high, `"n"` is the dominant reused
+token and bias-rank `2`, all `9/9` multi-target profiles have low
+different-target hidden-state separation, and `glossary` carries a target
+imbalance hotspot. That points the next implementation at measured logit-prior
+and representation-separation instrumentation before any new guarded repair
+candidate.

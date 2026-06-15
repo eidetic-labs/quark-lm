@@ -143,8 +143,13 @@ direct-answer objective mode:
    attempts, `0` direct missing-token acceptances, `8` fallbacks, exact
    `219/219` retrieval, and a critical `target_routing_gap` diagnosis;
    rejected for promotion on `branch_diversity_target`.
-39. **v0.113.0+:** routing/logit/representation audit repair, tokenizer growth, or
-   learned verifier experiments.
+39. **v0.113.0:** branch routing audit diagnostics. Implemented with
+   `branch_routing_audit` under direct-answer snapshots, output-bias escape
+   risk, prompt-to-branch representation separation, and target-imbalance
+   summaries; rejected for promotion on `branch_diversity_target`.
+40. **v0.114.0+:** use the v0.113 audit inside the closed-world lifecycle to
+   instrument dominant-token logit priors and representation separation before
+   choosing any guarded repair candidate.
 
 ## Current Gap
 
@@ -238,13 +243,15 @@ QuarkLM already has:
   `runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
 - v0.112.0 branch-diversity root-cause evidence:
   `runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
+- v0.113.0 branch-routing audit evidence:
+  `runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
 
 It still needs:
 
-- routing/logit/representation audit repair that uses v0.112.0 root-cause
-  evidence to improve zero-coverage `paraphrases`, collapsed `owner` and
-  `learning`, and buried-target profiles without regressing retrieval
-  provenance or relaxing promotion gates.
+- dominant-token logit-prior and prompt-representation instrumentation that
+  uses v0.113.0 audit evidence to improve zero-coverage `paraphrases`,
+  collapsed `owner` and `learning`, and buried-target profiles without
+  regressing retrieval provenance or relaxing promotion gates.
 
 ## Operating Rule
 

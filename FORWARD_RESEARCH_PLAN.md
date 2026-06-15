@@ -672,3 +672,18 @@ keeps retrieval exact at `219/219`, rejects neural promotion on
 `target_routing_gap`. The next implementation should audit logit priors,
 output-bias escape paths, prompt-to-branch representation separation, and
 profile/target imbalance before adding another branch objective.
+
+## v0.113 Addendum
+
+v0.113 adds that audit as `branch_routing_audit` in direct-answer snapshots.
+The diagnostic screen in
+`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.112 plan, targets `owner`, `paraphrases`, and `learning`, keeps
+retrieval exact at `219/219`, and remains rejected on
+`branch_diversity_target`. The audit records
+`routing_gap_requires_representation_and_logit_audit`, high output-bias escape
+risk with `"n"` at bias rank `2`, low representation separation across `9/9`
+multi-target profiles, and a `glossary` target-imbalance hotspot. The next
+implementation should use those measurements to instrument dominant-token logit
+priors and hidden-state separation before selecting another guarded repair
+candidate.
