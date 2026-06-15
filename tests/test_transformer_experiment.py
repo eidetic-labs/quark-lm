@@ -13,6 +13,7 @@ from closed_world_lm.transformer_experiment import (
     TRAINING_DATA_DESCRIPTION,
     TRANSFORMER_RECIPE_VERSION,
     TransformerRunArtifacts,
+    direct_answer_is_profile_aware,
     transformer_experiment_decision,
     transformer_experiment_intent,
     transformer_training_recipe,
@@ -89,6 +90,29 @@ class TransformerExperimentTests(unittest.TestCase):
             ),
         )
         self.assertIn("runs/profile-screen/training_recipe.json", intent["planned_artifacts"])
+        self.assertIn(
+            "runs/profile-screen/direct_answer_replay_plan.json",
+            intent["planned_artifacts"],
+        )
+
+    def test_target_share_mode_keeps_profile_replay_surface(self) -> None:
+        args = _args()
+        args.direct_answer_mode = (
+            "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood"
+        )
+
+        intent = transformer_experiment_intent(args)
+
+        self.assertTrue(direct_answer_is_profile_aware(args))
+        self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
+        self.assertEqual(
+            intent["training_recipe_id"],
+            (
+                "transformer-answer:"
+                "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood:"
+                "v0.78"
+            ),
+        )
         self.assertIn(
             "runs/profile-screen/direct_answer_replay_plan.json",
             intent["planned_artifacts"],

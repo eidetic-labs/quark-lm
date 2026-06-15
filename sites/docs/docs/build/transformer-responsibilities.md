@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.80 transformer responsibility surfaces.
+description: The v0.78-v0.81 transformer responsibility and objective surfaces.
 ---
 
 # Transformer Responsibilities
@@ -8,7 +8,8 @@ description: The v0.78-v0.80 transformer responsibility surfaces.
 v0.78 starts splitting transformer answer-training behind the recipe and
 verifier surfaces without changing the public CLI. v0.79 adds the
 model/config/checkpoint metadata surface. v0.80 adds checkpoint-load and eval
-report surfaces.
+report surfaces. v0.81 uses those surfaces to add profile target-share
+anti-collapse pressure to the direct-answer objective path.
 
 The current surfaces are:
 
@@ -19,7 +20,7 @@ The current surfaces are:
 | Eval reports | `src/closed_world_lm/transformer_eval.py` | Probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing. |
 | Experiment and artifacts | `src/closed_world_lm/transformer_experiment.py` | Run artifact paths, intent gates, recipe construction, and promotion decisions. |
 | Trainer utilities | `src/closed_world_lm/transformer_training.py` | JSONL snapshot writing, shuffled training cursors, and loss averaging. |
-| Objective catalog | `src/closed_world_lm/transformer_objectives.py` | Direct-answer objective names and small objective-selection primitives. |
+| Objective catalog | `src/closed_world_lm/transformer_objectives.py` | Direct-answer objective names, including the v0.81 profile target-share mode, and small objective-selection primitives. |
 | Replay planning | `src/closed_world_lm/replay_plan.py` | Branch replay records, profile grouping, replay summaries, and coverage floors. |
 | Verifier | `src/closed_world_lm/closed_world_verifier.py` | Deterministic closed-world data-boundary checks before evidence is trusted. |
 | Recipes and gates | `src/closed_world_lm/training_recipe.py` | Reproducible recipe artifacts and constraint-first promotion reports. |
@@ -41,6 +42,8 @@ repair work smaller and more auditable:
 - Generic eval report assembly and file writing are no longer owned by the CLI
   command body.
 - Direct-answer objective names are no longer owned by the CLI parser.
+- Profile-aware preserving-deficit replay can add balanced target-share
+  pressure across each profile's replay targets.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

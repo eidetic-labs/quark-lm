@@ -58,4 +58,6 @@ surfaces that consume the same training plan, recipe, verifier, and promotion
 artifacts without changing their names. v0.79 adds model/config and checkpoint
 metadata surfaces that keep run metadata aligned with those artifacts. v0.80
 adds eval/checkpoint-load surfaces that preserve eval artifact shapes while
-moving report mechanics out of the transformer monolith.
+moving report mechanics out of the transformer monolith. v0.81 uses those
+surfaces for a profile target-share objective repair while preserving the same
+training-plan and replay-plan evidence trail.

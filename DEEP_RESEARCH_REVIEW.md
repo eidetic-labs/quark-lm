@@ -454,11 +454,19 @@ loading and identity validation. `src/closed_world_lm/transformer_eval.py` now
 owns probe loading, candidate collection, generic scoring, report assembly,
 samples JSONL writing, and eval JSON writing.
 
-### v0.81+
+### v0.81
 
-Only after these operating surfaces are explicit should QuarkLM add a new
-anti-collapse transformer objective, revisit tokenizer growth, or begin a
-learned verifier experiment.
+Implemented the first post-surface anti-collapse objective:
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+It adds balanced owned target-share pressure across replay targets inside each
+profile-aware group, so the preserving-deficit objective no longer protects
+only the currently represented target token.
+
+### v0.82+
+
+After the v0.81 objective mechanic has been screened under the existing
+constraint-first gates, QuarkLM can revisit tokenizer growth or begin a learned
+verifier experiment.
 
 ## Decision
 

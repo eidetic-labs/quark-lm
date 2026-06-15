@@ -113,6 +113,14 @@ loading, candidate collection, scoring, eval report assembly, samples JSONL
 writing, and eval JSON writing. The public `eval` CLI and artifact shapes
 remain stable.
 
+From v0.81 onward,
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`
+adds balanced owned target-share pressure across replay targets inside each
+profile-aware replay group. It keeps the existing profile replay plan,
+deficit focus, and represented-target preservation, but adds a per-target
+anti-collapse term so one represented target cannot dominate a multi-target
+profile without pressure on the remaining replay targets.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1251,3 +1259,6 @@ v0.68 proves that constraint is doing useful work: profile-aware training moved
 correct targets upward in the ranked list, but only by collapsing target-token
 coverage and branch diversity, so the snapshot gate restored baseline. The next
 trainer change needs anti-collapse preservation inside the profile-aware plan.
+v0.81 implements that trainer change as a profile target-share objective
+mechanic. It is not promoted model-quality evidence until a full screen passes
+the existing constraint-first gates.

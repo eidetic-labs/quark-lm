@@ -165,6 +165,15 @@ separate eval surface. The public CLI and artifact shapes stay stable. The
 next transformer mechanic can return to objective-repair work with these
 boundaries in place.
 
+v0.81 adds
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+The objective keeps the v0.67 profile-aware replay plan, v0.65 deficit and
+preservation pressure, and v0.77 recipe/gate surfaces, then adds a balanced
+per-profile target-share term so one represented target cannot dominate the
+profile replay set. Focused tests verify the minority replay target gains more
+share than the previous profile-aware replay loss. This is objective-mechanics
+evidence, not promoted responder evidence.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

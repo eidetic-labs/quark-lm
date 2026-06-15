@@ -2057,6 +2057,7 @@ class TinyTransformerLM:
         preserve_predicted_target_coverage: bool = False,
         balance_deficit_targets: bool = False,
         profile_aware_targets: bool = False,
+        balance_profile_target_shares: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
@@ -2098,6 +2099,8 @@ class TinyTransformerLM:
         deficit_target_count = 0
         deficit_target_losses_by_target: dict[tuple[str, int], Scalar] = {}
         deficit_target_counts_by_target: Counter[tuple[str, int]] = Counter()
+        profile_target_share_losses_by_target: dict[tuple[str, int], Scalar] = {}
+        profile_target_share_counts_by_target: Counter[tuple[str, int]] = Counter()
         coverage_preservation_losses_by_target: dict[tuple[str, int], Scalar] = {}
         coverage_preservation_counts_by_target: Counter[tuple[str, int]] = Counter()
         covered_anchor_loss = Scalar(0.0)
@@ -2175,6 +2178,21 @@ class TinyTransformerLM:
             replay_ownership_loss = replay_ownership_loss + (
                 -(owned_target_share + 1e-12).log()
             )
+            if (
+                balance_profile_target_shares
+                and profile_aware_targets
+                and len(profile_replay_targets) > 1
+            ):
+                target_key = (profile_key, target)
+                target_share_loss = -(owned_target_share + 1e-12).log()
+                profile_target_share_losses_by_target[target_key] = (
+                    profile_target_share_losses_by_target.get(
+                        target_key,
+                        Scalar(0.0),
+                    )
+                    + target_share_loss
+                )
+                profile_target_share_counts_by_target[target_key] += 1
             if focus_uncovered_targets and target in profile_deficit_targets:
                 target_key = (profile_key, target)
                 target_deficit_loss = -(candidate_probs[target_offset] + 1e-12).log()
@@ -2235,6 +2253,18 @@ class TinyTransformerLM:
                     replay_loss = replay_loss + (
                         deficit_target_loss / max(deficit_target_count, 1)
                     )
+            if balance_profile_target_shares and profile_target_share_losses_by_target:
+                balanced_share_loss = Scalar(0.0)
+                for (
+                    target,
+                    target_share_loss,
+                ) in profile_target_share_losses_by_target.items():
+                    balanced_share_loss = balanced_share_loss + (
+                        target_share_loss / profile_target_share_counts_by_target[target]
+                    )
+                replay_loss = replay_loss + (
+                    balanced_share_loss / len(profile_target_share_losses_by_target)
+                )
             if preserve_predicted_target_coverage and coverage_preservation_losses_by_target:
                 balanced_preservation_loss = Scalar(0.0)
                 for (
@@ -5910,6 +5940,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     preserve_predicted_target_coverage: bool = False,
     balance_deficit_targets: bool = False,
     profile_aware_targets: bool = False,
+    balance_profile_target_shares: bool = False,
 ) -> float:
     if profile_aware_targets:
         branches = direct_answer_profiled_branch_batch(
@@ -5986,6 +6017,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         preserve_predicted_target_coverage=preserve_predicted_target_coverage,
         balance_deficit_targets=balance_deficit_targets,
         profile_aware_targets=profile_aware_targets,
+        balance_profile_target_shares=balance_profile_target_shares,
     )
 
 
@@ -8448,6 +8480,30 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     preserve_predicted_target_coverage=True,
                     balance_deficit_targets=True,
                     profile_aware_targets=True,
+                )
+            elif args.direct_answer_mode == "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                    profile_aware_targets=True,
+                    balance_profile_target_shares=True,
                 )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(

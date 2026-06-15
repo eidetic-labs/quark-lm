@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.81
+
+- Added profile target-share anti-collapse pressure for transformer direct-answer replay.
+
 ## v0.80
 
 - Extracted transformer checkpoint loading and eval report surfaces.

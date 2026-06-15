@@ -158,11 +158,28 @@ Acceptance:
   report assembly, and eval artifact writing live outside the monolith.
 - The public eval CLI and artifact shapes remain stable.
 
-### v0.81+
+### v0.81
+
+Implemented a profile target-share anti-collapse objective:
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+The loss balances owned target-share pressure across replay targets inside
+each profile-aware replay group, preserving the closed-world replay plan while
+reducing the chance that one represented target dominates a multi-target
+profile.
+
+Acceptance:
+
+- Profile-aware replay modes can select the new objective.
+- The new mode still emits the replay-plan artifact through the existing
+  profile-aware run surfaces.
+- Focused tests prove the balanced target-share term lifts a minority replay
+  target more than the previous profile-aware replay loss.
+
+### v0.82+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-anti-collapse transformer objective, revisit subword tokenization, or begin a
-learned verifier/repair-policy experiment.
+larger transformer screen, revisit subword tokenization, or begin a learned
+verifier/repair-policy experiment.
 
 ## Decision
 

@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.80 transformer eval/checkpoint-load surfaces; promoted
+**Active version:** v0.81 profile target-share objective repair; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -269,6 +269,15 @@ generic eval scoring, report assembly, samples JSONL writing, and eval JSON
 writing now live behind focused surfaces while preserving CLI behavior and
 artifact shapes. The next transformer mechanic can return to objective-repair
 work with the operating surfaces in place.
+
+v0.81 adds
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+The objective reuses profile-aware replay plans, preserving-deficit pressure,
+and recipe/promotion surfaces while adding balanced per-profile target-share
+loss, so a multi-target profile gets explicit pressure for every replay target
+instead of over-preserving a single represented target. This is a focused
+objective-mechanics checkpoint; model-quality promotion still requires a
+future full-stack screen to pass the closed-world constraints.
 
 ## Latest Evidence
 

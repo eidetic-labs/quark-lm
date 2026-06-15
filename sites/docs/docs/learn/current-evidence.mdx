@@ -292,6 +292,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Profile-aware full-stack heldout</td><td><code>{state.transformerProfileAwareFullStackHeldout}</code></td></tr>
     <tr><td>Profile-aware full-stack history</td><td><code>{state.transformerProfileAwareFullStackHistory}</code></td></tr>
     <tr><td>Profile-aware full-stack status</td><td><code>{state.transformerProfileAwareFullStackStatus}</code></td></tr>
+    <tr><td>Profile target-share objective</td><td><code>{state.transformerProfileTargetShare}</code></td></tr>
+    <tr><td>Profile target-share decision</td><td><code>{state.transformerProfileTargetShareDecision}</code></td></tr>
+    <tr><td>Profile target-share unit test</td><td><code>{state.transformerProfileTargetShareUnitTest}</code></td></tr>
+    <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
     <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
@@ -791,10 +795,12 @@ v0.42 promoted checkpoint.
   collapsing to `1/8`, so best-snapshot scoring restored step `0`. This is
   rejected evidence.
 
-The next transformer repair should keep the context-coverage audit,
-profile-wise coverage floor, and replay-plan artifact, but add anti-collapse
-preservation inside profile-local constraints so rank gains cannot come from
-erasing target-token coverage or branch diversity.
+v0.81 keeps the context-coverage audit, profile-wise coverage floor, and
+replay-plan artifact, then adds balanced profile target-share pressure inside
+the profile-local direct-answer objective. Focused tests verify the minority
+replay target gains more share than under the previous profile-aware replay
+loss. The next required evidence is a full screen proving that objective can
+improve rank without erasing target-token coverage or branch diversity.
 
 The v0.42 self-improvement run passed:
 

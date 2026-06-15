@@ -62,7 +62,8 @@ direct-answer objective mode:
 5. **v0.79:** transformer model/config and checkpoint metadata surfaces.
    Implemented.
 6. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
-7. **v0.81+:** anti-collapse objective, tokenizer growth, or learned verifier
+7. **v0.81:** profile target-share anti-collapse objective. Implemented.
+8. **v0.82+:** full objective screen, tokenizer growth, or learned verifier
    experiments.
 
 ## Current Gap
@@ -79,11 +80,12 @@ QuarkLM already has:
   direct-answer objective catalog.
 - v0.79 transformer model/config and checkpoint metadata surfaces.
 - v0.80 transformer eval/checkpoint-load surfaces.
+- v0.81 profile target-share objective mode:
+  `branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
 
 It still needs:
 
-- future objective repairs to use these narrower surfaces rather than broad
-  monolith patches.
+- a full v0.81 objective screen under the existing constraint-first gates.
 
 ## Operating Rule
 

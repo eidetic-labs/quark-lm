@@ -68,10 +68,11 @@ For QuarkLM, that means:
 
 ## Near-Term Decision
 
-v0.69 is strategy evidence, v0.70 is deep research evidence, and v0.71-v0.80
+v0.69 is strategy evidence, v0.70 is deep research evidence, and v0.71-v0.81
 are the first operating-system implementation steps. None of those are
-model-quality promotion evidence. After v0.80, the next engineering versions
-can return to objective-repair work under the narrower operating surfaces.
+model-quality promotion evidence. v0.81 returns to objective-repair work under
+the narrower operating surfaces with profile target-share anti-collapse
+pressure.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -87,4 +88,6 @@ deterministic closed-world verifier checks. v0.77 implements recipes and
 constraint-first promotion. v0.78 implements transformer experiment/artifact
 surfaces, trainer utilities, and a direct-answer objective catalog. v0.79
 implements transformer model/config and checkpoint metadata surfaces. v0.80
-implements transformer eval/checkpoint-load surfaces.
+implements transformer eval/checkpoint-load surfaces. v0.81 implements
+`branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`
+as the first post-surface anti-collapse objective.

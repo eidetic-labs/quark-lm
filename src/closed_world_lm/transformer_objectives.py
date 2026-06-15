@@ -67,6 +67,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "branch-balanced-context-coverage-preserving-deficit-unlikelihood",
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
+    "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",

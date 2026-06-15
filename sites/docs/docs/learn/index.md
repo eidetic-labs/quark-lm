@@ -23,9 +23,9 @@ an evaluation artifact, and a docs update.
 | [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.80 transformer eval/checkpoint checkpoint. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.80 transformer handoff. |
-| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.80 transformer eval/checkpoint implementation step. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.81 profile target-share objective checkpoint. |
+| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.81 objective handoff. |
+| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.81 target-share objective step. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea

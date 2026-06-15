@@ -79,8 +79,9 @@ the same discipline before another major repair screen.
 9. **v0.79:** transformer model/config and checkpoint metadata surfaces.
    Implemented.
 10. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
-11. **v0.81+:** new
-   anti-collapse objective, tokenizer growth, or learned verifier experiments.
+11. **v0.81:** profile target-share anti-collapse objective. Implemented.
+12. **v0.82+:** full objective screen, tokenizer growth, or learned verifier
+    experiments.
 
 ## Operating Rule
 
@@ -102,5 +103,7 @@ deterministic closed-world verifier checks. v0.77 adds recipes and
 constraint-first promotion. v0.78 adds transformer experiment/artifact
 surfaces, trainer utilities, and an objective catalog. v0.79 adds transformer
 model/config and checkpoint metadata surfaces. v0.80 adds transformer
-eval/checkpoint-load surfaces. Future larger transformer screens should use
-these narrower surfaces rather than broad monolith patches.
+eval/checkpoint-load surfaces. v0.81 adds balanced profile target-share
+pressure to the preserving-deficit direct-answer objective. Future larger
+transformer screens should use these narrower surfaces rather than broad
+monolith patches.

@@ -65,8 +65,9 @@ quarantine; v0.76 adds deterministic verifier checks; v0.77 adds training
 recipes and constraint-first promotion gates; v0.78 adds transformer
 experiment/artifact surfaces, trainer utilities, and an objective catalog;
 v0.79 adds transformer model/config and checkpoint metadata surfaces; v0.80
-adds transformer eval/checkpoint-load surfaces. Future objective repairs should
-use those narrower surfaces. See
+adds transformer eval/checkpoint-load surfaces; v0.81 adds balanced profile
+target-share pressure inside the preserving-deficit direct-answer objective.
+Future full objective screens should use those narrower surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -179,8 +180,9 @@ loops become fragile.
   verifier checks; v0.77 added training recipes and constraint-first promotion;
   v0.78 added transformer experiment/artifact surfaces, trainer utilities, and
   an objective catalog; v0.79 added transformer model/config and checkpoint
-  metadata surfaces; v0.80 added transformer eval/checkpoint-load surfaces.
-  Next objective-repair work should use those surfaces.
+  metadata surfaces; v0.80 added transformer eval/checkpoint-load surfaces;
+  v0.81 added profile target-share anti-collapse pressure. The next objective
+  screen should use those surfaces.
 
 ## Defer
 

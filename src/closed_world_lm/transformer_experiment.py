@@ -19,6 +19,7 @@ TRAINING_DATA_DESCRIPTION = (
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
+    "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
 }
 
 
