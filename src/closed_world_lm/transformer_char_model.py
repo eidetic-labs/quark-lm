@@ -34,6 +34,11 @@ from .candidate_quarantine import (
     candidate_quarantine_summary,
     write_candidate_quarantine,
 )
+from .closed_world_verifier import (
+    attach_verifier_summary,
+    verify_training_plan,
+    write_verifier_report,
+)
 from .curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
 from .corpus_hygiene import (
     attach_replay_plan_summary,
@@ -3374,6 +3379,11 @@ def transformer_experiment_acceptance_gates(args: argparse.Namespace) -> list[di
             "required": True,
         },
         {
+            "name": "closed_world_verifier",
+            "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
+            "required": True,
+        },
+        {
             "name": "no_pretrained_weights",
             "rule": (
                 "Initialize transformer weights randomly or from declared "
@@ -3431,6 +3441,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
         "Direct-answer screens omit branch-context, branch-diversity, or target-coverage evidence.",
         "A screen writes checkpoints without experiment intent and metrics artifacts.",
+        "The deterministic closed-world verifier rejects the training plan.",
     ]
     failure_criteria.extend(getattr(args, "experiment_failure_criterion", None) or [])
     direct_profile_aware = (
@@ -3444,6 +3455,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         str(args.run / "corpus_hygiene.json"),
         str(args.run / "training_plan.json"),
         str(args.run / "candidate_quarantine.json"),
+        str(args.run / "closed_world_verifier.json"),
         str(args.run / "transformer_answer_metrics.json"),
         str(args.run / "transformer_answer_metrics.jsonl"),
         str(args.run / "transformer_answer_lessons.jsonl"),
@@ -3452,7 +3464,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
     if direct_profile_aware:
         planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.75"),
+        version=getattr(args, "experiment_version", "v0.76"),
         run_id=args.run.name,
         component="transformer-answer-train",
         hypothesis=hypothesis,
@@ -3486,6 +3498,10 @@ def transformer_experiment_decision(
             "name": "closed_world_training_data",
             "passed": metrics.get("training_data")
             == "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+        },
+        {
+            "name": "closed_world_verifier",
+            "passed": metrics.get("closed_world_verifier", {}).get("passed") is True,
         },
         {"name": "no_pretrained_weights", "passed": metrics.get("pretrained_weights") is False},
         {
@@ -3951,7 +3967,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
-    answer_parser.add_argument("--experiment-version", default="v0.75")
+    answer_parser.add_argument("--experiment-version", default="v0.76")
     answer_parser.add_argument("--experiment-hypothesis", default=None)
     answer_parser.add_argument(
         "--experiment-acceptance-gate",
@@ -7407,6 +7423,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     hygiene_path = args.run / "corpus_hygiene.json"
     training_plan_path = args.run / "training_plan.json"
     candidate_quarantine_path = args.run / "candidate_quarantine.json"
+    verifier_path = args.run / "closed_world_verifier.json"
     candidate_quarantine = build_candidate_quarantine_manifest(
         "transformer-answer-train",
         args.run.name,
@@ -7442,6 +7459,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             hygiene_path,
             training_plan_path,
             candidate_quarantine_path,
+            verifier_path,
             args.run / "transformer_answer_metrics.json",
         ],
         replay_plan_path=planned_replay_path,
@@ -7450,6 +7468,22 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
+    closed_world_verifier = verify_training_plan(
+        training_plan,
+        corpus_hygiene=corpus_hygiene,
+        candidate_quarantine=candidate_quarantine,
+        subject_path=training_plan_path,
+        verifier_path=verifier_path,
+    )
+    write_verifier_report(verifier_path, closed_world_verifier)
+    training_plan = attach_verifier_summary(
+        training_plan,
+        closed_world_verifier,
+        verifier_path,
+    )
+    write_json_artifact(training_plan_path, training_plan)
+    if not closed_world_verifier["passed"]:
+        raise ValueError("closed-world verifier rejected the training plan")
     history_path = args.run / "transformer_answer_metrics.jsonl"
     lessons_path = args.run / "transformer_answer_lessons.jsonl"
     write_lessons(examples, lessons_path)
@@ -9690,6 +9724,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "training_plan_path": str(training_plan_path),
         "candidate_quarantine": candidate_quarantine,
         "candidate_quarantine_path": str(candidate_quarantine_path),
+        "closed_world_verifier": closed_world_verifier,
+        "closed_world_verifier_path": str(verifier_path),
         "experiment_intent_path": str(experiment_path),
         "pretrained_weights": False,
         "pretrained_tokenizer": False,

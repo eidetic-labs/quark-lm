@@ -82,6 +82,12 @@ From v0.75 onward, `answer-train` also writes
 is linked from `training_plan.json`; candidate records are not training data
 until admitted into the ledgered corpus.
 
+From v0.76 onward, `answer-train` also writes
+`closed_world_verifier.json`. The verifier is deterministic and checks that the
+closed-world data boundary, candidate exclusion policy, quarantine manifest, and
+protected train/eval overlap all pass before transformer screen evidence is
+trusted.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

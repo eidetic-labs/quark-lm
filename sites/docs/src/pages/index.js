@@ -76,6 +76,7 @@ const primitives = [
   ['weight.run', 'Versioned weights', 'Randomly initialized checkpoints promoted only with recorded metrics.'],
   ['forgetting.audit', 'Forgetting audit', 'A comparison against the previous promoted report.'],
   ['diagnosis.report', 'Self-diagnosis', 'Rule-based repair recommendations derived from the run report, with no external model.'],
+  ['verifier.report', 'Closed-world verifier', 'Deterministic approval for candidate checks and training plans, with no external model.'],
   ['docs.release', 'Docs gate', 'README, docs, and marketing content updated with each release when they reference current state.'],
 ];
 

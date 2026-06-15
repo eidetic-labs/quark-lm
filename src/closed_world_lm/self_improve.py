@@ -22,6 +22,11 @@ from .candidate_quarantine import (
     candidate_quarantine_summary,
     write_candidate_quarantine,
 )
+from .closed_world_verifier import (
+    attach_verifier_summary,
+    verify_training_plan,
+    write_verifier_report,
+)
 from .corpus_hygiene import (
     build_corpus_hygiene_report,
     build_training_plan,
@@ -256,9 +261,16 @@ def promotion_gate(report: dict[str, Any]) -> dict[str, Any]:
             "passed": report["exact_eval_audit"]["passed"],
         },
     ]
+    if "closed_world_verifier" in report:
+        checks.append(
+            {
+                "name": "closed_world_verifier",
+                "passed": report["closed_world_verifier"]["passed"],
+            }
+        )
     return {
         "passed": all(check["passed"] for check in checks),
-        "rule": "Promote only when generated probes, prompt leakage, forgetting, and exact eval audits all pass.",
+        "rule": "Promote only when generated probes, verifier, prompt leakage, forgetting, and exact eval audits all pass.",
         "checks": checks,
     }
 
@@ -298,6 +310,11 @@ def write_report_artifacts(
             attempt_dir / "candidate_quarantine.json",
             report["candidate_quarantine"],
         )
+    if "closed_world_verifier" in report:
+        write_verifier_report(
+            attempt_dir / "closed_world_verifier.json",
+            report["closed_world_verifier"],
+        )
     if "experiment_intent" in report:
         write_experiment_intent(
             attempt_dir / "experiment_intent.json",
@@ -314,6 +331,11 @@ def write_report_artifacts(
         write_candidate_quarantine(
             run_dir / "candidate_quarantine.json",
             report["candidate_quarantine"],
+        )
+    if "closed_world_verifier" in report:
+        write_verifier_report(
+            run_dir / "closed_world_verifier.json",
+            report["closed_world_verifier"],
         )
     if "experiment_intent" in report:
         write_experiment_intent(
@@ -336,7 +358,7 @@ def self_improvement_experiment_intent(
     )
     notes = getattr(args, "experiment_note", None) or []
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.75"),
+        version=getattr(args, "experiment_version", "v0.76"),
         run_id=attempt_dir.name or run_dir.name,
         component="self-improvement-answer-cycle",
         hypothesis=hypothesis,
@@ -354,16 +376,23 @@ def self_improvement_experiment_intent(
             str(attempt_dir / "corpus_hygiene.json"),
             str(attempt_dir / "training_plan.json"),
             str(attempt_dir / "candidate_quarantine.json"),
+            str(attempt_dir / "closed_world_verifier.json"),
             str(attempt_dir / "experiment_intent.json"),
             str(attempt_dir / "self_improvement_report.json"),
             str(run_dir / "corpus_hygiene.json"),
             str(run_dir / "training_plan.json"),
             str(run_dir / "candidate_quarantine.json"),
+            str(run_dir / "closed_world_verifier.json"),
             str(run_dir / "experiment_intent.json"),
             str(run_dir / "self_improvement_report.json"),
         ],
-        training_recipe_id="self-improve-answer-cycle:v0.75",
+        training_recipe_id="self-improve-answer-cycle:v0.76",
         acceptance_gates=[
+            {
+                "name": "closed_world_verifier",
+                "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
+                "required": True,
+            },
             {
                 "name": "admission_probe_audit",
                 "rule": "Generated probes for every admitted fact must pass.",
@@ -404,6 +433,7 @@ def self_improvement_experiment_intent(
             "Any required probe, leakage, forgetting, or exact-eval audit fails.",
             "Training writes checkpoints without a matching report and intent artifact.",
             "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
+            "The deterministic closed-world verifier rejects the training plan.",
         ],
         notes=notes,
     )
@@ -415,6 +445,10 @@ def self_improvement_experiment_decision(
 ) -> tuple[str, str, list[dict[str, Any]]]:
     gate = report["promotion_gate"]
     evidence = [
+        {
+            "name": "closed_world_verifier",
+            "passed": report.get("closed_world_verifier", {}).get("passed", False),
+        },
         {
             "name": "admission_probe_audit",
             "passed": report["admission_probe_audit"]["passed"],
@@ -470,6 +504,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     hygiene_path = attempt_dir / "corpus_hygiene.json"
     training_plan_path = attempt_dir / "training_plan.json"
     candidate_quarantine_path = attempt_dir / "candidate_quarantine.json"
+    verifier_path = attempt_dir / "closed_world_verifier.json"
     candidate_quarantine = build_candidate_quarantine_manifest(
         "self-improvement-answer-cycle",
         attempt_dir.name,
@@ -498,6 +533,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
             hygiene_path,
             training_plan_path,
             candidate_quarantine_path,
+            verifier_path,
             attempt_dir / "self_improvement_report.json",
         ],
         candidate_quarantine_path=candidate_quarantine_path,
@@ -505,6 +541,22 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
+    closed_world_verifier = verify_training_plan(
+        training_plan,
+        corpus_hygiene=corpus_hygiene,
+        candidate_quarantine=candidate_quarantine,
+        subject_path=training_plan_path,
+        verifier_path=verifier_path,
+    )
+    write_verifier_report(verifier_path, closed_world_verifier)
+    training_plan = attach_verifier_summary(
+        training_plan,
+        closed_world_verifier,
+        verifier_path,
+    )
+    write_json_artifact(training_plan_path, training_plan)
+    if not closed_world_verifier["passed"]:
+        raise ValueError("closed-world verifier rejected the training plan")
 
     answer_metrics = train_model(
         SimpleNamespace(
@@ -580,6 +632,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         "corpus_hygiene": corpus_hygiene,
         "training_plan": training_plan,
         "candidate_quarantine": candidate_quarantine,
+        "closed_world_verifier": closed_world_verifier,
         "corpus_snapshot": snapshot,
         "corpus_diff": corpus_diff_for_report(snapshot, args.compare_report),
         "responder": evaluate_responder(curriculum.train_text),
@@ -642,7 +695,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer.add_argument("--max-answer-chars", type=int, default=64)
     answer.add_argument("--seed", type=int, default=7)
     answer.add_argument("--compare-report", type=Path, default=None)
-    answer.add_argument("--experiment-version", default="v0.75")
+    answer.add_argument("--experiment-version", default="v0.76")
     answer.add_argument("--experiment-hypothesis", default=None)
     answer.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)

@@ -43,9 +43,12 @@ visible before promotion gates or transformer screens interpret metrics.
 - base and scheduled training-example mixture;
 - candidate policy status;
 - replay-plan path and summary when profile-aware replay writes one;
+- closed-world verifier path and summary when v0.76 approval is written;
 - planned artifacts.
 
 Candidate ratio is reported in v0.73. v0.75 adds
 `candidate_quarantine.json` and links it from `training_plan.json`, so generated
 or proposed examples still must not become training data without a later
-admission and verification path.
+admission and verification path. v0.76 adds `closed_world_verifier.json`, so
+the training plan can be approved or rejected before its evidence influences
+the next version.

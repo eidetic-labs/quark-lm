@@ -246,11 +246,10 @@ compatibility.
   standalone module.
 - v0.73 now writes mandatory corpus hygiene and training-plan artifacts for the
   self-improvement and transformer answer-training paths.
-- Candidate lessons, generated probes, and repair proposals do not yet have a
-  quarantine store with lifecycle states.
-- Closed-world verification is spread across audits; there is no verifier
-  interface that can accept or reject candidate training material before it can
-  reach the corpus.
+- v0.75 adds a quarantine store with lifecycle states for candidate lessons,
+  generated probes, repair proposals, diagnosis notes, and memory proposals.
+- v0.76 adds a deterministic verifier interface for candidate checks and
+  training-plan approval.
 - Transformer promotion is still less integrated than the self-improvement
   promotion gate.
 
@@ -361,7 +360,7 @@ Keep the CLI stable, but split responsibilities:
 - `transformer_replay.py`;
 - `transformer_eval.py`;
 - `experiment_registry.py`;
-- `candidate_store.py`;
+- `candidate_quarantine.py`;
 - `closed_world_verifier.py`;
 - `training_recipe.py`.
 
@@ -421,8 +420,10 @@ Self-improvement and transformer answer-training runs write
 
 ### v0.76
 
-Add deterministic closed-world verifier checks for candidate acceptance and
-training-plan approval.
+Implemented deterministic closed-world verifier checks for candidate acceptance
+and training-plan approval. Self-improvement and transformer answer-training
+runs now write `closed_world_verifier.json`, and training plans embed verifier
+summaries.
 
 ### v0.77
 

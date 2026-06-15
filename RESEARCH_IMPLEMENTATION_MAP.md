@@ -55,8 +55,8 @@ Not allowed:
 | Experiment intent | OLMo/Pythia transparency and reproducible training setup | v0.71 writes `experiment_intent.json` for self-improvement and transformer answer-training paths. | Keep this mandatory for all future training and screening paths. |
 | Replay planning | Continual-learning replay systems and Avalanche-style explicit strategies | v0.72 extracts profile-aware replay planning into `replay_plan.py`. | Feed replay plans into verifier, recipe, and promotion gates rather than leaving them as reports only. |
 | Corpus hygiene | Dolma, DataComp-LM, Open-Instruct decontamination | v0.73 writes `corpus_hygiene.json` and `training_plan.json`. | Promote hygiene from reporting to pre-training approval once the verifier exists. |
-| Candidate quarantine | Self-Instruct filters, STaR correctness filter, model-collapse risk | Candidate ratio is visible, but there is no candidate store or lifecycle state. | Add candidate artifacts with proposed, quarantined, verified, rejected, admitted, trained, and promoted states. Training builders must ignore non-admitted candidates. |
-| Deterministic verifier | Verifier/process-supervision research and verifiable rewards | Checks exist across separate audits, but there is no unified verifier interface. | Add `closed_world_verifier.py` that returns structured pass/fail reasons for candidates and training plans. |
+| Candidate quarantine | Self-Instruct filters, STaR correctness filter, model-collapse risk | v0.75 writes `candidate_quarantine.json` with candidate lifecycle states. | Keep non-admitted candidate records excluded from training and feed candidate manifests into verifier and recipe gates. |
+| Deterministic verifier | Verifier/process-supervision research and verifiable rewards | v0.76 writes `closed_world_verifier.json` and embeds verifier summaries in training plans. | Use verifier approval as the required pre-training integrity gate before recipes or promotion gates trust a run. |
 | Recipe layer | GPT-NeoX/OLMo/LitGPT recipe/config practice | CLI flags still carry much of the recipe identity, especially in the transformer path. | Add named recipe artifacts that bind model, tokenizer, curriculum, replay plan, objective, optimizer, snapshots, and gates. |
 | Constraint-first promotion | Continual-learning forgetting literature and QuarkLM v0.68 rejection evidence | Self-improvement has a stronger promotion gate than transformer screens. | Make transformer promotion impossible from loss, NLL, rank, or top-k alone. Constraints must pass first. |
 | Transformer boundaries | nanoGPT keeps model and trainer readable; OLMo/GPT-NeoX separate configs, train/eval, data | `transformer_char_model.py` still owns too many responsibilities in one module. | Split model/config/checkpoint, training loop, direct-answer objective, eval, replay, recipe, and reporting surfaces after verifier/recipe gates are defined. |
@@ -92,15 +92,15 @@ Acceptance:
 
 ### v0.76
 
-Implement deterministic closed-world verifier checks.
+Implemented deterministic closed-world verifier checks.
 
 Acceptance:
 
 - Candidate admission and training-plan approval return structured pass/fail
   evidence.
-- The verifier checks ledger membership, exact answer consistency,
-  unknown-policy compliance, prompt leakage, source labels, and protected
-  train/eval overlap.
+- The verifier checks the closed-world data boundary, candidate exclusion,
+  candidate quarantine validity, source labels, exact answer consistency when a
+  closed-world responder is supplied, and protected train/eval overlap.
 - Candidate quarantine can use verifier results without using an external
   model.
 

@@ -119,6 +119,16 @@ generated or proposed candidates out of training until they are admitted into
 the ledgered corpus and converted into curriculum lessons. Deterministic
 closed-world verifier checks move to v0.76.
 
+v0.76 adds `src/closed_world_lm/closed_world_verifier.py` and wires
+`closed_world_verifier.json` into self-improvement and transformer
+answer-training runs. The verifier is deterministic and does not use an
+external model. It approves training plans only when the closed-world data
+boundary is intact, candidate records are excluded from training, candidate
+quarantine is declared and valid, and protected train/eval overlap checks pass.
+Training plans now embed verifier summaries, and verifier approval is declared
+as a required gate in run intent artifacts. Recipe objects and
+constraint-first promotion gates move to v0.77.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.

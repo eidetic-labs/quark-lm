@@ -61,8 +61,8 @@ implementation step. The decision is to build the self-improvement operating
 system before more objective modes. v0.71 implements the experiment registry;
 v0.72 extracts replay planning; v0.73 adds corpus hygiene and training-plan
 artifacts; v0.74 adds the research implementation map; v0.75 adds candidate
-quarantine; the remaining work is deterministic verifier checks, training recipes, and
-constraint-first promotion gates. See
+quarantine; v0.76 adds deterministic verifier checks; the remaining work is
+training recipes and constraint-first promotion gates. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -165,14 +165,14 @@ loops become fragile.
 - Keep branch-diversity and target-coverage gates in the transformer path,
   because the current failure is collapse under weight updates, not lack of
   loss movement.
-- Begin designing a closed-world verifier lane. It can start deterministic and
-  rule-based, then later become a from-scratch model only after its judgments
-  can be audited against admitted sources.
+- Keep expanding the closed-world verifier lane. It starts deterministic and
+  rule-based in v0.76, and can become a from-scratch model only after its
+  judgments can be audited against admitted sources.
 - Continue the v0.70 sequence before adding another direct-answer objective
   mode: v0.71 implemented experiment registry and v0.72 extracted replay
   planning; v0.73 added corpus hygiene and training plans; v0.74 added the
-  research implementation map; v0.75 added candidate quarantine; next are
-  verifier checks, training recipes, and constraint-first promotion.
+  research implementation map; v0.75 added candidate quarantine; v0.76 added
+  verifier checks; next are training recipes and constraint-first promotion.
 
 ## Defer
 

@@ -5006,11 +5006,16 @@ class TransformerCharModelTest(unittest.TestCase):
         intent = transformer_experiment_intent(args)
 
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn("closed_world_verifier", gates)
         self.assertIn("branch_context_gate_recorded", gates)
         self.assertIn("custom_gate", gates)
         self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
         self.assertIn(
             "runs/profile-screen/candidate_quarantine.json",
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            "runs/profile-screen/closed_world_verifier.json",
             intent["planned_artifacts"],
         )
         self.assertEqual(intent["decision"]["status"], "planned")
@@ -5025,6 +5030,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
+            "closed_world_verifier": {"passed": True},
             "direct_answer": {
                 "direct_answer_branch_context_gate": {"passed": True},
                 "final": {

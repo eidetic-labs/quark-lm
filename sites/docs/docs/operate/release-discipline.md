@@ -24,6 +24,8 @@ A promoted QuarkLM run must have:
   replay-plan status, and planned artifacts
 - `candidate_quarantine.json` with candidate lifecycle state and proof that
   candidate records are not training data until admitted
+- `closed_world_verifier.json` with deterministic pass/fail evidence for
+  candidate checks and training-plan approval
 - self-diagnosis with `uses_external_model: false` unless a future release
   explicitly admits and documents a different source
 - archived attempts under `attempts/attempt-###/`

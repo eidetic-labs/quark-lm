@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.76
+
+- Added deterministic closed-world verifier checks.
+
 ## v0.75
 
 - Added candidate quarantine artifacts and lifecycle states.

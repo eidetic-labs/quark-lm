@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from closed_world_lm.curriculum import build_curriculum, read_jsonl
 from closed_world_lm.candidate_quarantine import build_candidate_quarantine_manifest
+from closed_world_lm.closed_world_verifier import verifier_check, verifier_report
 from closed_world_lm.glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
 from closed_world_lm.self_improve import (
     audit_exact_promotion,
@@ -85,10 +86,15 @@ class SelfImproveTest(unittest.TestCase):
             )
 
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn("closed_world_verifier", gates)
         self.assertIn("promotion_gate", gates)
         self.assertIn("exact_eval_audit", gates)
         self.assertIn(
             str(attempt_dir / "candidate_quarantine.json"),
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            str(attempt_dir / "closed_world_verifier.json"),
             intent["planned_artifacts"],
         )
         self.assertEqual(intent["decision"]["status"], "planned")
@@ -113,6 +119,18 @@ class SelfImproveTest(unittest.TestCase):
                 "candidate_quarantine": build_candidate_quarantine_manifest(
                     "self-improvement-answer-cycle",
                     "attempt-001",
+                ),
+                "closed_world_verifier": verifier_report(
+                    "self-improvement-answer-cycle",
+                    "attempt-001",
+                    "training_plan",
+                    [
+                        verifier_check(
+                            "test_verifier",
+                            True,
+                            "Test verifier evidence passes.",
+                        )
+                    ],
                 ),
                 "promotion_gate": {"passed": False},
                 "experiment_intent": self_improvement_experiment_intent(
@@ -139,6 +157,8 @@ class SelfImproveTest(unittest.TestCase):
             self.assertTrue((run_dir / "training_plan.json").exists())
             self.assertTrue((attempt_dir / "candidate_quarantine.json").exists())
             self.assertTrue((run_dir / "candidate_quarantine.json").exists())
+            self.assertTrue((attempt_dir / "closed_world_verifier.json").exists())
+            self.assertTrue((run_dir / "closed_world_verifier.json").exists())
             self.assertTrue((attempt_dir / "experiment_intent.json").exists())
             self.assertTrue((run_dir / "experiment_intent.json").exists())
 

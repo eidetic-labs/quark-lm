@@ -40,6 +40,7 @@ const sidebars = {
         'operate/experiment-registry',
         'operate/corpus-hygiene',
         'operate/candidate-quarantine',
+        'operate/closed-world-verifier',
         'operate/provenance',
         'operate/docs-drift',
       ],

@@ -235,12 +235,9 @@ replay, evaluation, and artifact boundaries before adding more objective modes.
   reusable artifact module.
 - v0.73 now writes corpus hygiene and training-plan artifacts for the current
   self-improvement and transformer run paths.
-- Candidate lessons and probes do not yet have a quarantine lane.
-- There is no closed-world verifier interface that can accept, reject, and
-  explain candidate training material before it reaches the corpus.
-- Corpus hygiene exists in pieces, but there is no mandatory all-path training
-  plan that reports source mixtures, duplicate pressure, protected-prompt
-  overlap, and synthetic candidate ratios.
+- v0.75 adds candidate quarantine artifacts and lifecycle states.
+- v0.76 adds a deterministic closed-world verifier interface for candidate
+  checks and training-plan approval.
 - Snapshot scoring is stronger than before, but transformer promotion remains
   less integrated than the self-improvement promotion gate.
 - The character tokenizer is still the purity baseline, but any future subword
@@ -359,7 +356,7 @@ Keep the public CLI stable, but carve out narrow modules:
 - `transformer_replay.py` for replay records and plans;
 - `transformer_eval.py` for branch profiles and promotion scoring;
 - `experiment_registry.py` for run intent and decision artifacts;
-- `candidate_store.py` for candidate quarantine;
+- `candidate_quarantine.py` for candidate quarantine;
 - `closed_world_verifier.py` for deterministic verifier checks.
 
 The exact module names can change, but those responsibilities should not keep
@@ -433,8 +430,12 @@ record the quarantine path and summary. Candidates are not training data.
 
 ### v0.76
 
-Add deterministic closed-world verifier checks for candidate acceptance and
-training-plan approval.
+Implemented deterministic closed-world verifier checks in
+`src/closed_world_lm/closed_world_verifier.py`. Self-improvement and
+transformer answer-training runs now write `closed_world_verifier.json`, and
+training plans embed verifier summaries. Verifier evidence is deterministic,
+external-model-free, and focused on candidate checks plus training-plan
+approval.
 
 ### v0.77
 

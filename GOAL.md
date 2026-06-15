@@ -97,9 +97,10 @@ provenance, and the goal framework itself.
     adds corpus hygiene and training-plan artifacts; v0.74 adds the research
     implementation map that cross-references papers, open-source mechanics, and
     QuarkLM gaps into a versioned implementation ladder; v0.75 adds candidate
-    quarantine artifacts and lifecycle states. The remaining sequence is
-    deterministic verifier checks, recipe boundaries, constraint-first
-    promotion gates, and transformer responsibility refactoring.
+    quarantine artifacts and lifecycle states; v0.76 adds deterministic
+    closed-world verifier checks. The remaining sequence is recipe boundaries,
+    constraint-first promotion gates, and transformer responsibility
+    refactoring.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
@@ -123,6 +124,11 @@ provenance, and the goal framework itself.
     rejected, admitted, trained, or promoted, but they are not training data
     until admitted into the ledgered corpus and converted into curriculum
     lessons.
+25. Treat deterministic verifier approval as the required pre-training
+    integrity gate. Training plans should not be trusted unless
+    `closed_world_verifier.json` shows the closed-world data boundary is intact,
+    candidates are excluded from training, candidate quarantine is valid, and
+    protected train/eval overlap checks pass without using an external model.
 
 ## Weight Update Policy
 

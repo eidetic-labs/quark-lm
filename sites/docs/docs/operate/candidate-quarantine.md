@@ -47,15 +47,18 @@ Self-improvement attempts now write:
 - `candidate_quarantine.json` at the latest run level
 - `training_plan.json` with the candidate quarantine path and summary
 - `self_improvement_report.json` with the manifest embedded
+- `closed_world_verifier.json` with deterministic quarantine and plan checks
 
 Transformer answer-training runs write:
 
 - `candidate_quarantine.json`
 - `training_plan.json` with the candidate quarantine path and summary
 - `transformer_answer_metrics.json` with the manifest embedded
+- `closed_world_verifier.json` with deterministic quarantine and plan checks
 
-## Next Step
+## Verifier Link
 
-v0.76 should add deterministic closed-world verifier checks. Once verifier
-evidence exists, candidate quarantine can move from an empty lane to a real
-proposal and acceptance pipeline.
+v0.76 adds deterministic closed-world verifier checks. Candidate quarantine can
+now feed a verifier report without using an external model. Non-admitted
+candidates remain out of training; training-eligible candidates must link to a
+ledger admission id.

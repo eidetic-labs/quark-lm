@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.75 candidate quarantine artifacts; promoted
+**Active version:** v0.76 deterministic closed-world verifier checks; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -88,6 +88,12 @@ Working tagline: Big idea. Tiny package.
   lifecycle state, manifest counts, transition policy, and an explicit rule
   that candidate records are not training data until admitted into the ledgered
   corpus and converted into curriculum lessons.
+- Deterministic closed-world verifier checks in
+  `src/closed_world_lm/closed_world_verifier.py`. Self-improvement and
+  transformer answer-training runs now write `closed_world_verifier.json`,
+  embed verifier summaries in `training_plan.json`, and declare verifier
+  approval as a required run-intent gate before training evidence can be
+  trusted.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -199,9 +205,15 @@ responsibility refactoring as v0.78 before another larger repair run.
 v0.75 adds `src/closed_world_lm/candidate_quarantine.py`, the Docusaurus
 Operate page for candidate quarantine, and `candidate_quarantine.json` artifacts
 for self-improvement and transformer answer-training paths. Training plans now
-link the quarantine manifest and summarize candidate counts. The next code
-mechanic is v0.76 deterministic closed-world verifier checks for candidate
-acceptance and training-plan approval.
+link the quarantine manifest and summarize candidate counts.
+
+v0.76 adds `src/closed_world_lm/closed_world_verifier.py`, the Docusaurus
+Operate page for closed-world verifier checks, and `closed_world_verifier.json`
+artifacts for self-improvement and transformer answer-training paths. The
+verifier approves training plans only when the data boundary is closed,
+candidate records are excluded from training, candidate quarantine is valid, and
+protected train/eval overlap checks pass. The next code mechanic is v0.77
+recipe objects and constraint-first promotion gates.
 
 ## Latest Evidence
 
