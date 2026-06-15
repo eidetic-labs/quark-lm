@@ -196,11 +196,30 @@ Acceptance:
   improves QA rank only by collapsing QA/heldout to one `"c"` token with
   `0.0` target-token coverage.
 
-### v0.83+
+### v0.83
+
+Implemented and screened prompt-specific branch ownership:
+`branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The loss keeps profile target-share pressure, then adds a sibling-target margin
+so each replay context is trained to put its own target above other targets
+from the same profile.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show prompt-ownership margins lift a context-specific target
+  more than the v0.82 target-share pressure.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`.
+- Promotion remains rejected because trained snapshots still collapse QA and
+  heldout to one `"c"` token with `0.0` target-token coverage, even though QA
+  average target rank improves to `8.625`.
+
+### v0.84+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair, revisit subword tokenization, or begin a learned
-verifier/repair-policy experiment.
+coverage-preserving branch-diversity repair, revisit subword tokenization, or
+begin a learned verifier/repair-policy experiment.
 
 ## Decision
 

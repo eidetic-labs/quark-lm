@@ -74,6 +74,10 @@ class TransformerTrainingUtilityTests(unittest.TestCase):
             "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
             DIRECT_ANSWER_OBJECTIVE_MODES,
         )
+        self.assertIn(
+            "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood",
+            DIRECT_ANSWER_OBJECTIVE_MODES,
+        )
         self.assertEqual(validate_direct_answer_objective_mode("first-error"), "first-error")
         with self.assertRaises(ValueError):
             validate_direct_answer_objective_mode("not-a-mode")

@@ -188,6 +188,21 @@ restore, but training step `40` improved QA average rank only by collapsing QA
 and heldout to one `"c"` branch token with `0.0` target-token coverage.
 Constraint-first promotion rejected the run on `branch_diversity_target`.
 
+v0.83 adds
+`branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The objective keeps the v0.82 profile target-share path, then adds a
+prompt-specific sibling-target margin so each replay context is trained to put
+its own target above other targets from the same profile. Focused tests verify
+that prompt-ownership margin lifts a context-specific target more than the
+v0.82 target-share pressure. The matching screen ran at
+`runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`.
+It wrote the modern artifact set, passed the branch-context and purity gates,
+and completed `50/50` direct steps with `7` JSONL rows. Step `50` improved QA
+average rank to `8.625` and heldout rank to `8.5`, but trained snapshots still
+collapsed QA and heldout to one `"c"` branch token with `0.0` target-token
+coverage. Best-snapshot scoring restored step `0`; promotion remains rejected
+on `branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -745,6 +760,18 @@ Current transformer answer-lesson run:
   Best-snapshot scoring restored step `0`, preserving QA/heldout coverage at
   `0.25` but leaving branch diversity failed across all `9` multi-target
   profiles. This rejects profile target-share pressure as sufficient by itself.
+- v0.83 adds prompt-specific sibling-target ownership margins on top of the
+  v0.82 profile target-share objective. The unit regression passes, and the
+  full-stack run
+  `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`
+  writes the modern artifact set with a replay plan covering `9144`
+  branch/replay records across `21` profiles. The verifier, branch-context
+  gate, and purity gates pass. Step `50` improves QA average target rank to
+  `8.625` and heldout rank to `8.5`, but QA and heldout again collapse to one
+  `"c"` prediction with target-token coverage `0.0`. Best-snapshot scoring
+  restores step `0`, preserving QA/heldout coverage at `0.25` while leaving
+  branch diversity failed across all `9` multi-target profiles. This rejects
+  prompt ownership as sufficient without a coverage-preserving training term.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

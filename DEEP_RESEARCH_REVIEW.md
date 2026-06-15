@@ -472,10 +472,22 @@ gate, and preserves target coverage after restore. It is rejected evidence:
 trained snapshots still collapse QA and heldout branch diversity before any
 rank gain can be trusted.
 
-### v0.83+
+### v0.83
 
-The next transformer repair should target prompt-specific branch diversity
-directly before tokenizer growth or a learned verifier experiment.
+Implemented prompt-specific branch ownership with
+`branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new loss adds a sibling-target margin inside each profile so a replay
+context is trained to rank its own target above other profile targets. Focused
+tests pass, and the full screen in
+`runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`
+writes the modern artifact set. It is still rejected evidence: trained
+snapshots improve QA rank to `8.625` only while collapsing QA and heldout to one
+`"c"` branch token with `0.0` target-token coverage.
+
+### v0.84+
+
+The next transformer repair should make prompt-specific branch diversity
+coverage-preserving before tokenizer growth or a learned verifier experiment.
 
 ## Decision
 

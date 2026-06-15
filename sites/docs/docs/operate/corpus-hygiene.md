@@ -63,4 +63,6 @@ surfaces for a profile target-share objective repair while preserving the same
 training-plan and replay-plan evidence trail. v0.82 screens that objective with
 the same artifacts, rejects the result on branch diversity, and keeps the
 corpus-hygiene trail as part of the evidence bundle rather than a quality
-promotion shortcut.
+promotion shortcut. v0.83 adds prompt-specific ownership margins and runs the
+same governed screen path; the artifacts still reject promotion when trained
+snapshots lose target-token coverage.

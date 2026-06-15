@@ -127,6 +127,13 @@ for `external_embeddings`, passes the verifier and branch-context gate, and
 preserves coverage by restoring step `0`, but trained snapshots still collapse
 QA and heldout branch diversity.
 
+v0.83 adds
+`branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the profile target-share objective and adds a prompt-specific
+sibling-target margin, so each replay context is trained to rank its own target
+above other targets from the same profile. The focused mechanic passes, but the
+full screen still rejects trained snapshots that lose target-token coverage.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1186,6 +1193,29 @@ Latest profile target-share full-stack screen:
 | Training heldout note | step `40` improved heldout average target rank to `9.25` and top-5 coverage to `0.375`, but heldout target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
 | Promotion status | rejected; target-share pressure still trades coverage and diversity away for rank |
 
+Latest prompt-specific branch ownership full-stack screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood` |
+| Added mechanic | sibling-target margin inside each profile so a replay context is trained to outrank other profile targets |
+| Unit coverage | focused transformer test passes; prompt ownership lifts a context-specific target more than v0.82 target-share pressure |
+| Artifact stack | experiment intent, corpus hygiene, training plan, candidate quarantine, deterministic verifier, recipe, replay plan, constraint-first report, metrics, tokenizer, optimizer, lessons, checkpoint |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Purity gates | no pretrained weights, no pretrained tokenizer, no external embeddings |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` after restore |
+| Final QA average target rank | `13.25` after restore |
+| Final QA target-token coverage | `0.25` after restore |
+| Training snapshot note | step `50` improved QA average target rank to `8.625`, but QA target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
+| Training heldout note | step `50` improved heldout average target rank to `8.5`, but heldout target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
+| Promotion status | rejected; prompt ownership needs coverage-preserving training before rank gains can be trusted |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1290,5 +1320,7 @@ coverage and branch diversity, so the snapshot gate restored baseline. The next
 trainer change needs anti-collapse preservation inside the profile-aware plan.
 v0.81 implements that trainer change as a profile target-share objective
 mechanic. v0.82 screens it and rejects the trained snapshots because rank lift
-still comes from branch collapse; the next repair should target prompt-specific
-branch diversity directly.
+still comes from branch collapse. v0.83 adds prompt-specific sibling-target
+ownership margins and proves the focused mechanic, but the screen still
+restores step `0` because trained snapshots lose target-token coverage; the
+next repair should make prompt-specific branch diversity coverage-preserving.

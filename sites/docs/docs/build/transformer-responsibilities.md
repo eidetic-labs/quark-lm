@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.82 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.83 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -12,7 +12,9 @@ report surfaces. v0.81 uses those surfaces to add profile target-share
 anti-collapse pressure to the direct-answer objective path. v0.82 screens that
 objective under the modern artifact stack, rejects it on branch diversity, and
 fixes the transformer purity metrics so `external_embeddings: false` is
-declared for constraint-first checks.
+declared for constraint-first checks. v0.83 adds prompt-specific ownership
+margins on top of profile target-share pressure and rejects the screen because
+trained snapshots still lose target-token coverage.
 
 The current surfaces are:
 
@@ -51,6 +53,8 @@ repair work smaller and more auditable:
   boundary before constraint-first promotion reads them.
 - The v0.82 profile target-share screen shows rank lift is not enough when it
   depends on prompt-collapse and lost target-token coverage.
+- The v0.83 prompt-ownership screen shows prompt-specific margins still need a
+  coverage-preserving training constraint before rank gains can promote.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

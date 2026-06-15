@@ -23,9 +23,9 @@ an evaluation artifact, and a docs update.
 | [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.82 profile target-share screen. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.82 rejected screen handoff. |
-| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.82 target-share screen evidence. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.83 prompt-ownership screen. |
+| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.83 rejected screen handoff. |
+| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.83 prompt-ownership screen evidence. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea

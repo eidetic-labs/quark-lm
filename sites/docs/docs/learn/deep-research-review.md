@@ -82,7 +82,8 @@ the same discipline before another major repair screen.
 11. **v0.81:** profile target-share anti-collapse objective. Implemented.
 12. **v0.82:** profile target-share full-stack screen. Implemented and
     rejected.
-13. **v0.83+:** branch-diversity repair, tokenizer growth, or learned verifier
+13. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
+14. **v0.84+:** coverage-preserving branch-diversity repair, tokenizer growth, or learned verifier
     experiments.
 
 ## Operating Rule
@@ -108,6 +109,8 @@ model/config and checkpoint metadata surfaces. v0.80 adds transformer
 eval/checkpoint-load surfaces. v0.81 adds balanced profile target-share
 pressure to the preserving-deficit direct-answer objective. v0.82 screens that
 objective, preserves coverage only by restoring step `0`, and rejects trained
-snapshots that collapse QA and heldout branch diversity. Future larger
-transformer screens should use these narrower surfaces rather than broad
+snapshots that collapse QA and heldout branch diversity. v0.83 adds
+prompt-specific sibling-target ownership margins, but the full screen still
+restores step `0` because trained snapshots lose target-token coverage. Future
+larger transformer screens should use these narrower surfaces rather than broad
 monolith patches.

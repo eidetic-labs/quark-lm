@@ -301,6 +301,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Profile target-share gate</td><td><code>{state.transformerProfileTargetShareGate}</code></td></tr>
     <tr><td>Profile target-share history</td><td><code>{state.transformerProfileTargetShareHistory}</code></td></tr>
     <tr><td>Profile target-share status</td><td><code>{state.transformerProfileTargetShareStatus}</code></td></tr>
+    <tr><td>Latest prompt-ownership run</td><td><code>{state.transformerLatestPromptOwnershipRun}</code></td></tr>
+    <tr><td>Prompt-ownership mode</td><td><code>{state.transformerPromptOwnershipMode}</code></td></tr>
+    <tr><td>Prompt-ownership unit test</td><td><code>{state.transformerPromptOwnershipUnitTest}</code></td></tr>
+    <tr><td>Prompt-ownership gate</td><td><code>{state.transformerPromptOwnershipGate}</code></td></tr>
+    <tr><td>Prompt-ownership history</td><td><code>{state.transformerPromptOwnershipHistory}</code></td></tr>
+    <tr><td>Prompt-ownership status</td><td><code>{state.transformerPromptOwnershipStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -812,8 +818,19 @@ branch-context, purity, and coverage-preservation gates, but it still fails
 branch diversity. Step `40` improves QA average target rank to `9.125`, yet
 does so by collapsing QA and heldout to one `"c"` prediction with `0.0`
 target-token coverage. Best-snapshot scoring restores step `0`, so this is
-rejected evidence and the next repair should target prompt-specific branch
-diversity directly.
+rejected evidence.
+
+v0.83 adds prompt-specific sibling-target ownership margins on top of that
+profile target-share objective. Focused tests show the new term lifts a
+context-specific target more than v0.82 target-share pressure. The full screen
+in
+`runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`
+writes the modern artifacts and passes the verifier, branch-context, and purity
+gates. It still fails branch diversity: step `50` improves QA average target
+rank to `8.625`, but QA and heldout collapse to one `"c"` prediction with
+`0.0` target-token coverage during training. Best-snapshot scoring restores
+step `0`, so the next repair must make prompt-specific branch diversity
+coverage-preserving.
 
 The v0.42 self-improvement run passed:
 

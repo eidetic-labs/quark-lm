@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.83
+
+- Added prompt-specific branch ownership pressure and rejected screen evidence.
+
 ## v0.82
 
 - Added gated profile target-share full-stack screen evidence.

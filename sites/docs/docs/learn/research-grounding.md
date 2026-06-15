@@ -68,7 +68,9 @@ v0.79 adds transformer model/config and checkpoint metadata surfaces; v0.80
 adds transformer eval/checkpoint-load surfaces; v0.81 adds balanced profile
 target-share pressure inside the preserving-deficit direct-answer objective;
 v0.82 screens that objective and rejects trained snapshots that collapse branch
-diversity. Future objective repairs should use those narrower surfaces. See
+diversity. v0.83 adds prompt-specific ownership margins and rejects the screen
+because trained snapshots still lose target-token coverage. Future objective
+repairs should use those narrower surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -183,8 +185,10 @@ loops become fragile.
   an objective catalog; v0.79 added transformer model/config and checkpoint
   metadata surfaces; v0.80 added transformer eval/checkpoint-load surfaces;
   v0.81 added profile target-share anti-collapse pressure; v0.82 screened it
-  and rejected it on branch diversity. The next objective repair should use
-  those surfaces to target prompt-specific branch diversity.
+  and rejected it on branch diversity; v0.83 added prompt-specific ownership
+  margins and rejected the screen because target-token coverage still collapses
+  during training. The next objective repair should make prompt-specific branch
+  diversity coverage-preserving.
 
 ## Defer
 

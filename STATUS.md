@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.82 profile target-share full-stack screen; promoted
+**Active version:** v0.83 prompt-specific branch ownership screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -290,6 +290,22 @@ branch-context gate passed and coverage preservation restored step `0`, but
 branch diversity still failed. Step `40` improved QA average target rank to
 `9.125` while collapsing QA and heldout to one `"c"` prediction with `0.0`
 target-token coverage, so the run is rejected evidence.
+
+v0.83 adds
+`branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The objective keeps the profile target-share, deficit, preservation, replay
+plan, and recipe/promotion surfaces, then adds a prompt-specific sibling-target
+margin so each replay context is trained to outrank other targets from the same
+profile. A focused unit test proves the new margin lifts a context-specific
+target more than the v0.82 target-share pressure. The matching screen at
+`runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`
+wrote the modern artifacts, passed the verifier, branch-context, and purity
+gates, and completed `50/50` direct steps with `7` JSONL rows. Step `50`
+improved QA average target rank to `8.625` and heldout rank to `8.5`, but
+trained snapshots still collapsed QA and heldout to one `"c"` prediction with
+`0.0` target-token coverage. Best-snapshot scoring restored step `0`, so the
+run is rejected evidence and the next repair needs coverage-preserving
+prompt-specific training.
 
 ## Latest Evidence
 

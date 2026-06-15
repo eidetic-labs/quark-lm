@@ -2058,6 +2058,7 @@ class TinyTransformerLM:
         balance_deficit_targets: bool = False,
         profile_aware_targets: bool = False,
         balance_profile_target_shares: bool = False,
+        enforce_prompt_target_margins: bool = False,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
@@ -2101,6 +2102,8 @@ class TinyTransformerLM:
         deficit_target_counts_by_target: Counter[tuple[str, int]] = Counter()
         profile_target_share_losses_by_target: dict[tuple[str, int], Scalar] = {}
         profile_target_share_counts_by_target: Counter[tuple[str, int]] = Counter()
+        prompt_target_margin_loss = Scalar(0.0)
+        prompt_target_margin_count = 0
         coverage_preservation_losses_by_target: dict[tuple[str, int], Scalar] = {}
         coverage_preservation_counts_by_target: Counter[tuple[str, int]] = Counter()
         covered_anchor_loss = Scalar(0.0)
@@ -2193,6 +2196,21 @@ class TinyTransformerLM:
                     + target_share_loss
                 )
                 profile_target_share_counts_by_target[target_key] += 1
+            if (
+                enforce_prompt_target_margins
+                and profile_aware_targets
+                and len(profile_replay_targets) > 1
+            ):
+                target_logit = candidate_logits[target_offset]
+                for rival_target in profile_replay_targets:
+                    if rival_target == target:
+                        continue
+                    rival_offset = profile_replay_target_offsets[rival_target]
+                    margin_gap = candidate_logits[rival_offset] - target_logit + 1.0
+                    prompt_target_margin_loss = prompt_target_margin_loss + (
+                        Scalar(1.0) + margin_gap.exp()
+                    ).log()
+                    prompt_target_margin_count += 1
             if focus_uncovered_targets and target in profile_deficit_targets:
                 target_key = (profile_key, target)
                 target_deficit_loss = -(candidate_probs[target_offset] + 1e-12).log()
@@ -2264,6 +2282,10 @@ class TinyTransformerLM:
                     )
                 replay_loss = replay_loss + (
                     balanced_share_loss / len(profile_target_share_losses_by_target)
+                )
+            if enforce_prompt_target_margins and prompt_target_margin_count:
+                replay_loss = replay_loss + (
+                    prompt_target_margin_loss / prompt_target_margin_count
                 )
             if preserve_predicted_target_coverage and coverage_preservation_losses_by_target:
                 balanced_preservation_loss = Scalar(0.0)
@@ -5941,6 +5963,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     balance_deficit_targets: bool = False,
     profile_aware_targets: bool = False,
     balance_profile_target_shares: bool = False,
+    enforce_prompt_target_margins: bool = False,
 ) -> float:
     if profile_aware_targets:
         branches = direct_answer_profiled_branch_batch(
@@ -6018,6 +6041,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
         balance_deficit_targets=balance_deficit_targets,
         profile_aware_targets=profile_aware_targets,
         balance_profile_target_shares=balance_profile_target_shares,
+        enforce_prompt_target_margins=enforce_prompt_target_margins,
     )
 
 
@@ -8504,6 +8528,31 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     balance_deficit_targets=True,
                     profile_aware_targets=True,
                     balance_profile_target_shares=True,
+                )
+            elif args.direct_answer_mode == "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                    profile_aware_targets=True,
+                    balance_profile_target_shares=True,
+                    enforce_prompt_target_margins=True,
                 )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
