@@ -9,7 +9,25 @@ guarded updates are accepted, but the transformer still predicts too few branch
 tokens for multi-target profiles. The v0.112 decision is to stop adding repair
 objectives until the failure is classified.
 
-## Current v0.114 Evidence
+## Current v0.115 Evidence
+
+Candidate run:
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+
+v0.115 adds `branch-hidden-projection-margin-unlikelihood`, a repair candidate
+that compares target-token `hidden * output_weight` contributions directly and
+runs with output bias frozen. The one-step screen reduces average
+collapsed-token hidden advantage from about `0.0842` to `0.0736`, supporting
+hidden projection as a relevant repair surface.
+
+The candidate remains rejected for neural promotion. Constraint-first promotion
+passes `10/11` constraints and fails `branch_diversity_target`; all `9/9`
+multi-target profiles still collapse to `"n"`, `2` profiles keep zero
+target-token coverage, and hidden-projection pressure remains primary across
+`9/9` profiles. The next repair must scale beyond one branch batch while
+preserving coverage, representation separation, and branch-diversity gates.
+
+## v0.114 Evidence
 
 Diagnostic run:
 `runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
@@ -83,7 +101,7 @@ correct targets are still buried.
 | [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) | Shows that likelihood-trained language models can produce bland or repetitive output under common decoding choices, and motivates nucleus sampling as an inference-time diversity control. | Do not treat a decoding trick as weight learning. QuarkLM needs branch diversity in the learned distribution before promotion. |
 | [Neural Text Generation with Unlikelihood Training](https://arxiv.org/abs/1908.04319) | Adds losses that reduce probability assigned to undesirable tokens or sequences. | QuarkLM already uses many unlikelihood variants; v0.112 evidence says suppressing wrong tokens can move the collapse token without fixing routing. |
 | [Hugging Face generation configuration](https://huggingface.co/docs/transformers/en/main_classes/text_generation) | Production libraries expose repetition penalties, no-repeat n-gram controls, diversity penalties, sampling, beam settings, and other generation-time controls. | Keep generation strategy separate from promotion. Sampling or penalties may be useful later, but they cannot prove closed-world weight consolidation. |
-| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Generation internals expose logits processors, processed score tensors, and optional hidden-state outputs for instrumentation. | v0.114 follows the diagnostic pattern: inspect logits, output-bias ranks, hidden projections, and hidden-state separation before changing another training objective. |
+| [Hugging Face generation utilities](https://huggingface.co/docs/transformers/en/internal/generation_utils) | Generation internals expose logits processors, processed score tensors, and optional hidden-state outputs for instrumentation. | v0.114 follows the diagnostic pattern: inspect logits, output-bias ranks, hidden projections, and hidden-state separation before changing another training objective. v0.115 turns that evidence into a guarded hidden-projection candidate. |
 | [Diverse Beam Search](https://arxiv.org/abs/1610.02424) | Adds diversity directly to beam decoding so multiple output candidates do not collapse to near-duplicates. | Useful for future inference rails, but branch diversity in QuarkLM must be measured at the profile target-token level before decoding diversity is trusted. |
 | [fairseq search mechanics](https://github.com/facebookresearch/fairseq/blob/main/fairseq/search.py) | Implements multiple search strategies, including diversity-aware beam variants that rewrite candidate scores during decoding. | Mature systems isolate search diversity from model learning; QuarkLM should keep inference diversity separate from guarded weight updates. |
 | [Class-Balanced Loss Based on Effective Number of Samples](https://arxiv.org/abs/1901.05555) | Reweights long-tailed classes using effective sample counts rather than raw counts. | Branch targets should be audited for profile/target imbalance before adding another objective; repeated source patterns can hide rare target failures. |
@@ -94,8 +112,9 @@ correct targets are still buried.
 ## Root-Cause Taxonomy
 
 v0.112 adds a data-only root-cause report under
-`branch_diversity_target.root_cause`, v0.113 adds `branch_routing_audit`, and
-v0.114 adds `branch_logit_prior_profiles`:
+`branch_diversity_target.root_cause`, v0.113 adds `branch_routing_audit`, v0.114
+adds `branch_logit_prior_profiles`, and v0.115 adds a hidden-projection margin
+candidate:
 
 - `global_output_prior_collapse`: all multi-target profiles collapse to the
   same dominant token.
@@ -111,8 +130,10 @@ v0.114 adds `branch_logit_prior_profiles`:
 
 ## Decision
 
-The next repair should not be another generic branch-loss knob. It should first
-instrument the route from prompt evidence to branch target:
+The next repair should not be another generic branch-loss knob. v0.115 shows
+that hidden projection is a relevant repair surface, but one branch batch is not
+enough. The next repair should scale the route from prompt evidence to branch
+target:
 
 1. Target hidden-projection contributions that make dominant tokens beat
    missing target tokens.

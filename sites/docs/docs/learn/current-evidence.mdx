@@ -1171,6 +1171,17 @@ branch-diversity as the blocker. The new logit-prior profiles report
 hidden-projection pressure across `9/9` multi-target profiles, while centroid
 separation remains poor.
 
+v0.115.0 adds a bias-frozen hidden-projection margin candidate. The candidate
+screen in
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`
+introduces `branch-hidden-projection-margin-unlikelihood` and tests one
+direct-answer step that compares target-token `hidden * output_weight`
+contributions directly. It lowers average collapsed-token hidden advantage from
+about `0.0842` to `0.0736`, but promotion remains blocked before quality
+metrics: `10/11` constraints pass, `branch_diversity_target` fails, all `9/9`
+multi-target profiles still collapse to `"n"`, and `2` profiles still have
+zero target-token coverage.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

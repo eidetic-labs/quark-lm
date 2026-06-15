@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.114.0 logit-prior representation diagnostic;
+**Active version:** v0.115.0 hidden-projection margin candidate;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -57,6 +57,9 @@ Working tagline: Big idea. Tiny package.
 - Branch logit-prior profiles that decompose dominant-token wins into output
   bias, hidden projection, or mixed pressure before another repair objective is
   selected.
+- Branch hidden-projection margin training that compares target-token
+  `hidden * output_weight` contributions directly, so a candidate can repair
+  target routing without treating output bias as the primary repair surface.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -556,22 +559,19 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
-The run consumes the v0.113.0 `memory_consolidation_plan.json`, targets
-`owner`, `paraphrases`, and `glossary`, keeps `retrieval_memory_report.json` at
-`219/219` exact retrieval, and records `24` profile-specific missing-token
-attempts with `0` direct missing-token acceptances, `24` rejections, and `8`
-fallbacks. The branch-diversity root cause remains a critical
-`target_routing_gap`; the routing audit now includes `branch_logit_prior_profiles`
-and centroid separation metrics. It still flags high output-bias risk (`"n"`
-bias rank `1`, `"a"` bias rank `3`), but the dominant-token wins decompose as
-hidden-projection pressure across `9/9` multi-target profiles. Centroid margins
-are poorly separated for the sampled profiles, including `owner`, `paraphrases`,
-`learning`, and `glossary`. It uses no external model, no embeddings, no
-pretrained retriever, and no retrieval weight updates. The transformer remains
-blocked on `branch_diversity_target`; v0.114.0 proves the next repair should
-target hidden projection or representation separation before another broad
-branch objective.
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+v0.115.0 adds `branch-hidden-projection-margin-unlikelihood`, runs the one-step
+candidate with output bias frozen, and records a directionally useful but
+insufficient repair signal: average collapsed-token hidden advantage moves from
+about `0.0842` to `0.0736`. Promotion remains
+`blocked_before_quality_metrics` with `10/11` constraints passing and
+`branch_diversity_target` failing. All `9/9` multi-target profiles are still
+collapsed to `"n"`, `2` profiles still have zero target-token coverage, all
+sampled profiles still have low representation separation, and hidden-projection
+pressure remains primary across `9/9` profiles. It uses no external model, no
+embeddings, no pretrained retriever, and no retrieval weight updates. v0.115.0
+proves the repair surface is relevant, but a single branch batch is not enough
+to earn promotion.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

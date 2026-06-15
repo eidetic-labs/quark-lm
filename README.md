@@ -664,6 +664,18 @@ show the dominant-token wins are driven by hidden projection pressure across
 `"a"` is bias rank `3`, but every multi-target profile reports
 `primary_pressure: hidden_projection`.
 
+v0.115.0 adds the first guarded hidden-projection repair candidate. The
+candidate screen ran at
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+It introduces `branch-hidden-projection-margin-unlikelihood`, runs one
+direct-answer step with output bias frozen, and compares target-token
+`hidden * output_weight` contributions directly. The candidate reduces average
+collapsed-token hidden advantage from about `0.0842` to `0.0736`, but promotion
+remains `blocked_before_quality_metrics`: `10/11` constraints pass,
+`branch_diversity_target` still fails, all `9/9` multi-target profiles remain
+collapsed to `"n"`, `2` profiles retain zero target-token coverage, and
+hidden-projection pressure remains primary across `9/9` profiles.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1434,6 +1446,11 @@ Current transformer answer-lesson run:
   records `24` missing-token attempts with `0` direct acceptances and `8`
   fallbacks, keeps retrieval at `219/219`, and shows hidden-projection pressure
   across `9/9` multi-target profiles.
+- v0.115.0 adds a bias-frozen hidden-projection margin candidate. The run
+  `runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`
+  lowers average collapsed-token hidden advantage from about `0.0842` to
+  `0.0736`, but still fails `branch_diversity_target` with `9/9` profiles
+  collapsed to `"n"` and `2` zero-coverage profiles.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1731,9 +1748,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.114.0 logit-prior evidence to design a guarded hidden-projection or
-   representation-separation repair before adding another broad branch
-   objective.
+5. Use v0.115.0 hidden-projection candidate evidence to scale repair beyond a
+   single branch batch while preserving target coverage, representation
+   separation, and branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

@@ -1,6 +1,6 @@
 ---
 title: Branch Diversity Research
-description: External research and v0.114 logit-prior evidence for QuarkLM branch-diversity failures.
+description: External research and v0.115 hidden-projection evidence for QuarkLM branch-diversity failures.
 ---
 
 # Branch Diversity Research
@@ -11,6 +11,25 @@ QuarkLM's branch-diversity problem is the current transformer bottleneck.
 Retrieval memory can serve the admitted corpus exactly, and guarded weight
 updates can be accepted locally, but the transformer still predicts too few
 branch tokens across multi-target profiles.
+
+## v0.115 Evidence
+
+Candidate run:
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+
+v0.115 adds `branch-hidden-projection-margin-unlikelihood`, a repair candidate
+that compares target-token `hidden * output_weight` contributions without using
+output bias as the margin surface. The screen runs one direct-answer step with
+output bias frozen. It reduces average collapsed-token hidden advantage from
+about `0.0842` to `0.0736`, which supports hidden projection as a relevant
+repair surface.
+
+The candidate is still rejected for neural promotion. Constraint-first
+promotion passes `10/11` constraints and fails `branch_diversity_target`; all
+`9/9` multi-target profiles still collapse to `"n"`, `2` profiles keep zero
+target-token coverage, and hidden-projection pressure remains primary across
+`9/9` profiles. The next repair must scale beyond a single branch batch while
+preserving coverage and representation-separation gates.
 
 ## v0.114 Evidence
 

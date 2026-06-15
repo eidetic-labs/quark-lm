@@ -102,6 +102,7 @@ from closed_world_lm.transformer_char_model import (
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
+    train_direct_answer_branch_hidden_projection_margin_unlikelihood,
     train_direct_answer_branch_representation_contrast_unlikelihood,
     train_direct_answer_branch_output_binding_unlikelihood,
     train_direct_answer_branch_bidirectional_binding_unlikelihood,
@@ -2490,6 +2491,93 @@ class TransformerCharModelTest(unittest.TestCase):
 
         after = restricted_logit_gap()
         self.assertGreater(after, before)
+
+    def test_branch_hidden_projection_margin_improves_projection_gap(self) -> None:
+        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
+        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
+        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
+        examples = [near, green, tree]
+        tokenizer = CharTokenizer.train(
+            near.prompt
+            + near.target
+            + green.prompt
+            + green.target
+            + tree.prompt
+            + tree.target
+            + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=43,
+            )
+        )
+        model.bout[tokenizer.stoi["."]].data = 5.0
+        batch = direct_answer_branch_diversity_batch(
+            model,
+            tokenizer,
+            near,
+            examples,
+            random.Random(15),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+        )
+        branch_targets = sorted({target for _context, target, _predicted in batch})
+
+        def projection(context: list[int], token_id: int) -> float:
+            hidden = model.final_hidden(context)
+            output_weights = model._output_weights_floats()
+            return sum(
+                hidden[dim] * output_weights[dim][token_id]
+                for dim in range(len(hidden))
+            )
+
+        def restricted_projection_gap() -> float:
+            total = 0.0
+            for context, target, _predicted in batch:
+                strongest_other = max(
+                    projection(context, other)
+                    for other in branch_targets
+                    if other != target
+                )
+                total += projection(context, target) - strongest_other
+            return total
+
+        before = restricted_projection_gap()
+        before_bias = [value.data for value in model.bout]
+        lesson = direct_answer_lesson(
+            tokenizer,
+            model.config.context_size,
+            near,
+            ANSWER_TERMINATOR,
+        )
+        rng = random.Random(16)
+
+        for _ in range(48):
+            train_direct_answer_branch_hidden_projection_margin_unlikelihood(
+                model,
+                tokenizer,
+                near,
+                examples,
+                lesson,
+                rng,
+                learning_rate=0.03,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                margin_weight=1.0,
+                branch_position=1,
+                batch_size=3,
+                terminator=ANSWER_TERMINATOR,
+            )
+
+        after = restricted_projection_gap()
+        after_bias = [value.data for value in model.bout]
+        self.assertGreater(after, before)
+        self.assertEqual(after_bias, before_bias)
 
     def test_branch_representation_profile_reports_hidden_distances(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
@@ -8200,6 +8288,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "periodic-branch-target-softmax-unlikelihood",
             "branch-target-margin-unlikelihood",
             "periodic-branch-target-margin-unlikelihood",
+            "branch-hidden-projection-margin-unlikelihood",
             "branch-representation-contrast-unlikelihood",
             "branch-balanced-representation-contrast-unlikelihood",
             "branch-output-binding-unlikelihood",

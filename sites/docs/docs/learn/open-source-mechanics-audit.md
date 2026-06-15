@@ -214,6 +214,13 @@ hidden-projection driven across `9/9` multi-target profiles. The next mechanics
 change should be a guarded hidden-projection or representation-separation
 repair candidate.
 
+v0.115.0 adds that guarded hidden-projection candidate as
+`branch-hidden-projection-margin-unlikelihood`. The one-step output-bias-frozen
+screen lowers average collapsed-token hidden advantage from about `0.0842` to
+`0.0736`, but still rejects promotion on `branch_diversity_target`. The next
+mechanics change should broaden routing repair only if it preserves coverage
+and improves target-token diversity.
+
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
 improves one metric by erasing another.

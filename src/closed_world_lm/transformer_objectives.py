@@ -42,6 +42,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "periodic-branch-target-softmax-unlikelihood",
     "branch-target-margin-unlikelihood",
     "periodic-branch-target-margin-unlikelihood",
+    "branch-hidden-projection-margin-unlikelihood",
     "branch-representation-contrast-unlikelihood",
     "branch-balanced-representation-contrast-unlikelihood",
     "branch-output-binding-unlikelihood",

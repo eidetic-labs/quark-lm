@@ -201,6 +201,13 @@ wins decompose as hidden-projection pressure across `9/9` multi-target
 profiles, while centroid margins remain poorly separated. The next grounding
 point is a guarded representation or hidden-projection repair candidate, not a
 broad branch-loss knob.
+
+v0.115.0 adds that first hidden-projection candidate. It runs
+`branch-hidden-projection-margin-unlikelihood` with output bias frozen, lowers
+average collapsed-token hidden advantage from about `0.0842` to `0.0736`, and
+still rejects promotion on `branch_diversity_target`. This keeps the grounding
+point narrow: scale routing repair only when coverage and branch-diversity gates
+prove the update is not just another collapse.
 See
 [Branch diversity research](./branch-diversity-research.md),
 [Forward research plan](./forward-research-plan.md) and

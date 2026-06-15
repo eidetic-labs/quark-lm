@@ -441,3 +441,12 @@ rejects promotion on `branch_diversity_target`. `branch_logit_prior_profiles`
 show hidden-projection pressure across `9/9` multi-target profiles, while
 centroid margins remain poorly separated. The next repair should target that
 hidden-projection/representation surface under the existing guards.
+
+v0.115.0 implements the first hidden-projection candidate in
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+It runs `branch-hidden-projection-margin-unlikelihood` with output bias frozen
+and lowers average collapsed-token hidden advantage from about `0.0842` to
+`0.0736`. It still rejects promotion on `branch_diversity_target`, with all
+`9/9` multi-target profiles collapsed to `"n"` and `2` zero-coverage profiles.
+The next repair should scale hidden-projection routing pressure only under
+coverage-preserving gates.

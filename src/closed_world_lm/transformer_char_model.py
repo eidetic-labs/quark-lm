@@ -2008,6 +2008,56 @@ class TinyTransformerLM:
         self.apply_gradients(params, learning_rate)
         return loss.data
 
+    def train_step_with_branch_hidden_projection_margin(
+        self,
+        branches: list[tuple[list[int], int, int]],
+        learning_rate: float,
+        negative_weight: float,
+        positive_weight: float,
+        margin_weight: float,
+        params: list[Scalar] | None = None,
+    ) -> float:
+        params = self.parameters() if params is None else params
+        zero_grad(params)
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        output_weights = self._output_weights_scalars()
+        loss = Scalar(0.0)
+        for context, target, predicted in branches:
+            hidden = self._final_hidden_scalars(context)
+            logits = linear_scalars(hidden, output_weights, self.bout)
+            probs = softmax_scalars(logits)
+            if positive_weight > 0.0:
+                loss = loss + (-probs[target].log()) * positive_weight
+            if negative_weight > 0.0 and predicted != target:
+                loss = loss + (
+                    -(Scalar(1.0) - probs[predicted] + 1e-12).log()
+                ) * negative_weight
+            margin_targets = [
+                branch_target
+                for branch_target in branch_targets
+                if branch_target != target
+            ]
+            if margin_weight > 0.0 and margin_targets:
+                per_target_weight = margin_weight / len(margin_targets)
+                target_projection = Scalar(0.0)
+                for dim, value in enumerate(hidden):
+                    target_projection = (
+                        target_projection + value * output_weights[dim][target]
+                    )
+                for margin_target in margin_targets:
+                    margin_projection = Scalar(0.0)
+                    for dim, value in enumerate(hidden):
+                        margin_projection = (
+                            margin_projection
+                            + value * output_weights[dim][margin_target]
+                        )
+                    gap = margin_projection - target_projection + 1.0
+                    loss = loss + (Scalar(1.0) + gap.exp()).log() * per_target_weight
+        loss = loss / max(len(branches), 1)
+        loss.backward()
+        self.apply_gradients(params, learning_rate)
+        return loss.data
+
     def train_step_with_branch_representation_contrast(
         self,
         branches: list[tuple[list[int], int, int]],
@@ -6946,6 +6996,50 @@ def train_direct_answer_branch_target_margin_unlikelihood(
             params=params,
         )
     return model.train_step_with_branch_target_margin(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        margin_weight,
+        params=params,
+    )
+
+
+def train_direct_answer_branch_hidden_projection_margin_unlikelihood(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    margin_weight: float,
+    branch_position: int,
+    batch_size: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_branch_diversity_batch(
+        model,
+        tokenizer,
+        example,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_hidden_projection_margin(
         branches,
         learning_rate,
         negative_weight,
@@ -13308,6 +13402,23 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         direct_answer_terminator,
                         direct_params,
                     )
+            elif args.direct_answer_mode == "branch-hidden-projection-margin-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_hidden_projection_margin_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    direct_answer_terminator,
+                    direct_params,
+                )
             elif args.direct_answer_mode == "branch-representation-contrast-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_representation_contrast_unlikelihood(
                     model,

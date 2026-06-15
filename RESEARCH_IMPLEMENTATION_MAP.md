@@ -478,3 +478,15 @@ keeps retrieval exact at `219/219`, rejects promotion on
 `branch_diversity_target`, and classifies all `9/9` multi-target profiles as
 hidden-projection driven. The next map item is a guarded hidden-projection or
 representation-separation repair candidate.
+
+## v0.115 Addendum
+
+v0.115 implements the guarded hidden-projection repair candidate as
+`branch-hidden-projection-margin-unlikelihood`, with parser, training dispatch,
+focused tests, and a one-step bias-frozen screen at
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+The candidate lowers average collapsed-token hidden advantage from about
+`0.0842` to `0.0736`, but it does not promote: `branch_diversity_target`
+still fails with all `9/9` profiles collapsed to `"n"`. The next map item is a
+broader guarded routing repair that preserves coverage while increasing target
+token diversity.

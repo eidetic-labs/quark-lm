@@ -666,3 +666,15 @@ summaries. The v0.114 screen remains rejected for model promotion, but it
 narrows the mechanism: all `9/9` multi-target profiles are hidden-projection
 driven, and centroid margins are poorly separated. The next repair should be a
 guarded representation or hidden-projection candidate.
+
+## v0.115 Addendum
+
+v0.115 implements the first hidden-projection candidate as
+`branch-hidden-projection-margin-unlikelihood`. The screen in
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`
+runs with output bias frozen and reduces average collapsed-token hidden
+advantage from about `0.0842` to `0.0736`. It is still rejected for model
+promotion because `branch_diversity_target` fails: all `9/9` multi-target
+profiles remain collapsed to `"n"` and `2` profiles remain zero-coverage. The
+next research-backed step is broader guarded routing repair, not relaxing the
+promotion gate.

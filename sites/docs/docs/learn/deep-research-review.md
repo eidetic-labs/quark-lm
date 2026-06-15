@@ -168,8 +168,10 @@ the same discipline before another major repair screen.
     Implemented with `branch_logit_prior_profiles`, centroid-distance and
     centroid-margin summaries, and `branch_routing_audit.logit_prior`; still
     rejects promotion on `branch_diversity_target`.
-45. **v0.115.0+:** use the v0.114 evidence to choose a guarded
-    hidden-projection or representation-separation repair candidate.
+45. **v0.115.0:** hidden-projection margin candidate. Implemented with
+    `branch-hidden-projection-margin-unlikelihood` and a one-step
+    output-bias-frozen screen; still rejects promotion on
+    `branch_diversity_target`.
 
 ## Operating Rule
 

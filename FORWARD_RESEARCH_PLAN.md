@@ -699,3 +699,14 @@ hidden-projection driven across `9/9` multi-target profiles even though
 output-bias risk remains high. The next implementation should target guarded
 hidden-projection or representation separation rather than another broad branch
 objective.
+
+## v0.115 Addendum
+
+v0.115 adds `branch-hidden-projection-margin-unlikelihood` as the first
+bias-frozen hidden-projection repair candidate. The candidate screen in
+`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`
+reduces average collapsed-token hidden advantage from about `0.0842` to
+`0.0736`, but remains rejected on `branch_diversity_target`: all `9/9`
+multi-target profiles still collapse to `"n"` and `2` profiles keep zero
+target-token coverage. The next implementation should scale this repair beyond
+one branch batch only under coverage-preserving promotion gates.

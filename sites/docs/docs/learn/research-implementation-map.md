@@ -151,8 +151,10 @@ direct-answer objective mode:
    Implemented with `branch_logit_prior_profiles`, centroid-distance and
    centroid-margin summaries, and `branch_routing_audit.logit_prior`; rejected
    for promotion on `branch_diversity_target`.
-41. **v0.115.0+:** use the v0.114 evidence to choose a guarded
-   hidden-projection or representation-separation repair candidate.
+41. **v0.115.0:** hidden-projection margin candidate. Implemented with
+   `branch-hidden-projection-margin-unlikelihood`, parser/dispatch support,
+   focused tests, and a one-step output-bias-frozen screen; rejected for
+   promotion on `branch_diversity_target`.
 
 ## Current Gap
 
@@ -250,13 +252,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
 - v0.114.0 logit-prior instrumentation evidence:
   `runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
+- v0.115.0 hidden-projection margin candidate evidence:
+  `runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
 
 It still needs:
 
-- a guarded hidden-projection or representation-separation repair candidate
-  that uses v0.114.0 logit-prior evidence to improve zero-coverage
-  `paraphrases`, collapsed `owner` and `learning`, and buried-target profiles
-  without regressing retrieval provenance or relaxing promotion gates.
+- a broader guarded routing repair that uses v0.115.0 hidden-projection
+  evidence to improve zero-coverage profiles and buried-target profiles without
+  regressing retrieval provenance or relaxing promotion gates.
 
 ## Operating Rule
 
