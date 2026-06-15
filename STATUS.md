@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.88 baseline-floor objective screen; promoted
+**Active version:** v0.89 baseline-floor stabilization screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -385,8 +385,25 @@ rejected all `200` attempts as unsafe. Every recorded snapshot preserved
 baseline/final QA and heldout target-token coverage at `0.25`, predicted
 diversity at `3/8`, QA average target rank at `13.25`, and heldout average rank
 at `13.375`. This is rejected evidence: coupling floor anchors with branch
-pressure in one step is insufficient, and the next repair should prove accepted
-floor-stabilization updates before branch-diversity pressure is added back.
+pressure in one step is insufficient, which set up the stabilization-only
+screen before branch-diversity pressure is added back.
+
+v0.89 adds
+`branch-context-profile-baseline-floor-stabilization-unlikelihood`.
+It removes branch-diversity pressure from the attempted update shape and trains
+only baseline-covered floor anchors under the same adaptive guard. Focused tests
+prove the anchor-batch helper, stabilization guard accounting, objective catalog,
+and replay-plan surfaces. The matching screen at
+`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+`227` stabilization anchors, checked `50/50` steps, attempted `200` updates,
+ran `200` stabilization anchor batches covering `2400` anchor records, and
+rejected all `200` attempts as unsafe. Every recorded snapshot preserved the
+branch-context gate and baseline/final QA and heldout target-token coverage at
+`0.25`; deterministic verifier checks passed with no external model. This is
+rejected evidence: even floor-only anchor updates are not yet accepted by the
+guard, so the next repair should diagnose the guard/update interaction before
+branch-diversity pressure is added back.
 
 ## Latest Evidence
 

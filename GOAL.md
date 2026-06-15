@@ -118,8 +118,10 @@ provenance, and the goal framework itself.
     v0.87 adds one bounded baseline-covered repair per retry and still rejects
     all `200/200` repaired attempts; v0.88 moves balanced baseline-floor anchors
     inside the update objective and still rejects all `200/200` attempted
-    updates. The remaining sequence should prove accepted floor-stabilization
-    updates before broader tokenizer, verifier, or branch-diversity changes.
+    updates; v0.89 trains only baseline-covered floor anchors and still rejects
+    all `200/200` stabilization-only attempts. The remaining sequence should
+    diagnose why floor-only updates still violate the baseline floor before
+    broader tokenizer, verifier, or branch-diversity changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

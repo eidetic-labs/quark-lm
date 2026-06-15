@@ -905,8 +905,16 @@ itself. The full screen in
 records `562` active baseline prediction anchors, `227` objective-side floor
 anchors, `200` objective anchor batches, `2400` anchor records, and `200/200`
 rejected update attempts. QA and heldout coverage remain at `0.25`, but no
-objective-shaped update is accepted, so the next repair should first prove
-accepted floor-stabilization updates.
+objective-shaped update is accepted, so branch-pressure coupling is rejected as
+the missing mechanic.
+
+v0.89 isolates baseline-floor stabilization updates. The full screen in
+`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` stabilization anchors,
+`200` stabilization anchor batches, `2400` anchor records, and `200/200`
+rejected update attempts. QA and heldout coverage remain at `0.25`, but no
+stabilization-only update is accepted, so the next repair should diagnose why
+floor-only updates still violate the baseline floor.
 
 The v0.42 self-improvement run passed:
 

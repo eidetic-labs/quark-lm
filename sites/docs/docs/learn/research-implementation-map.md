@@ -71,7 +71,9 @@ direct-answer objective mode:
 12. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
 13. **v0.87:** baseline-floor repair retries. Implemented and rejected.
 14. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
-15. **v0.89+:** staged floor stabilization under the full baseline
+15. **v0.89:** stabilization-only baseline-floor updates. Implemented and
+   rejected.
+16. **v0.90+:** guard/update diagnosis under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -116,10 +118,14 @@ QuarkLM already has:
   `branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
 - v0.88 full baseline-floor objective screen evidence:
   `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
+- v0.89 baseline-floor stabilization mode:
+  `branch-context-profile-baseline-floor-stabilization-unlikelihood`.
+- v0.89 full baseline-floor stabilization screen evidence:
+  `runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
 
 It still needs:
 
-- staged floor-stabilization updates that can be accepted under the baseline
+- a diagnosis of why floor-only anchor updates still violate the baseline
   target-token coverage floor before branch-diversity pressure is added back.
 
 ## Operating Rule

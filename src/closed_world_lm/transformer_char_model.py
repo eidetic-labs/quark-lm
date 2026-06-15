@@ -147,23 +147,29 @@ BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE = (
     "branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-"
     "target-share-preserving-deficit-unlikelihood"
 )
+BASELINE_FLOOR_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
     BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
     BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
     BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -171,10 +177,14 @@ BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
 BASELINE_FLOOR_OBJECTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_OBJECTIVE_PROMPT_MODE,
 }
+BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_STABILIZATION_MODE,
+}
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_REPAIR_STEPS = 1
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE = 32
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT = 10.0
+BASELINE_FLOOR_STABILIZATION_ANCHOR_BATCH_SIZE = 32
 
 
 class ScalarOptimizer:
@@ -5139,6 +5149,26 @@ def baseline_floor_objective_anchor_batch(
     return selected
 
 
+def train_direct_answer_baseline_floor_anchor_batch(
+    model: TinyTransformerLM,
+    anchors: list[BranchReplayRecord],
+    learning_rate: float,
+    params: list[Scalar] | None = None,
+) -> float:
+    if not anchors:
+        return 0.0
+    params = model.parameters() if params is None else params
+    zero_grad(params)
+    loss = Scalar(0.0)
+    for branch in anchors:
+        context, target, _predicted, _profile = branch_replay_parts(branch)
+        loss = loss + cross_entropy_scalars(model._forward_scalars(context), target)
+    loss = loss / len(anchors)
+    loss.backward()
+    model.apply_gradients(params, learning_rate)
+    return loss.data
+
+
 def train_direct_answer_baseline_floor_anchor_repair(
     model: TinyTransformerLM,
     anchors: list[BranchReplayRecord],
@@ -7397,6 +7427,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_answer_baseline_floor_objective_active = (
             args.direct_answer_mode in BASELINE_FLOOR_OBJECTIVE_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_stabilization_active = (
+            args.direct_answer_mode in BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_replay_records: list[BranchReplayRecord] = []
         direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
         if direct_profile_aware_targets:
@@ -7411,6 +7444,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if (
                 direct_answer_baseline_floor_repaired_updates_active
                 or direct_answer_baseline_floor_objective_active
+                or direct_answer_baseline_floor_stabilization_active
             ):
                 direct_baseline_floor_repair_anchors = (
                     baseline_floor_repair_anchor_records(direct_replay_records)
@@ -7447,6 +7481,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_replay_plan["baseline_floor_objective_active"] = (
                 direct_answer_baseline_floor_objective_active
             )
+            direct_replay_plan["baseline_floor_stabilization_active"] = (
+                direct_answer_baseline_floor_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -7467,6 +7504,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT
                 if direct_answer_baseline_floor_objective_active
                 else 0.0
+            )
+            direct_replay_plan["baseline_floor_stabilization_anchor_count"] = len(
+                direct_baseline_floor_repair_anchors
+            )
+            direct_replay_plan["baseline_floor_stabilization_anchor_batch_size"] = (
+                BASELINE_FLOOR_STABILIZATION_ANCHOR_BATCH_SIZE
+                if direct_answer_baseline_floor_stabilization_active
+                else 0
             )
             if direct_answer_baseline_floor_adaptive_updates_active:
                 direct_replay_plan["adaptive_learning_rate_scales"] = list(
@@ -7618,6 +7663,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "adaptive": direct_answer_baseline_floor_adaptive_updates_active,
             "repair_active": direct_answer_baseline_floor_repaired_updates_active,
             "objective_active": direct_answer_baseline_floor_objective_active,
+            "stabilization_active": direct_answer_baseline_floor_stabilization_active,
             "learning_rate_scales": list(
                 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
             )
@@ -7635,6 +7681,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 if direct_answer_baseline_floor_objective_active
                 else 0.0
             ),
+            "stabilization_anchor_count": len(direct_baseline_floor_repair_anchors),
+            "stabilization_anchor_batch_size": (
+                BASELINE_FLOOR_STABILIZATION_ANCHOR_BATCH_SIZE
+                if direct_answer_baseline_floor_stabilization_active
+                else 0
+            ),
             "repair_steps_per_attempt": (
                 BASELINE_FLOOR_REPAIR_STEPS
                 if direct_answer_baseline_floor_repaired_updates_active
@@ -7646,10 +7698,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "repair_updates": 0,
             "objective_anchor_batches": 0,
             "objective_anchor_records": 0,
+            "stabilization_anchor_batches": 0,
+            "stabilization_anchor_records": 0,
             "accepted_steps": 0,
             "accepted_attempts": 0,
             "repaired_steps": 0,
             "repaired_attempts": 0,
+            "stabilized_steps": 0,
+            "stabilized_attempts": 0,
             "rejected_steps": 0,
             "rejected_attempts": 0,
             "accepted_learning_rate_scale_counts": {},
@@ -7765,6 +7821,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if update_shape == "repaired":
                 direct_answer_update_guard["repaired_steps"] += 1
                 direct_answer_update_guard["repaired_attempts"] += 1
+            if update_shape == "stabilization":
+                direct_answer_update_guard["stabilized_steps"] += 1
+                direct_answer_update_guard["stabilized_attempts"] += 1
             scale_key = f"{learning_rate_scale:g}"
             scale_counts = direct_answer_update_guard[
                 "accepted_learning_rate_scale_counts"
@@ -7774,6 +7833,27 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             shape_counts = direct_answer_update_guard["accepted_update_shape_counts"]
             if isinstance(shape_counts, dict):
                 shape_counts[update_shape] = int(shape_counts.get(update_shape, 0)) + 1
+
+        def train_baseline_floor_stabilization_update(
+            update_learning_rate: float,
+        ) -> float:
+            if not direct_baseline_floor_repair_anchors:
+                return 0.0
+            stabilization_batch = baseline_floor_objective_anchor_batch(
+                direct_baseline_floor_repair_anchors,
+                direct_rng,
+                BASELINE_FLOOR_STABILIZATION_ANCHOR_BATCH_SIZE,
+            )
+            direct_answer_update_guard["stabilization_anchor_batches"] += 1
+            direct_answer_update_guard["stabilization_anchor_records"] += len(
+                stabilization_batch
+            )
+            return train_direct_answer_baseline_floor_anchor_batch(
+                model,
+                stabilization_batch,
+                update_learning_rate,
+                params=direct_params,
+            )
 
         def train_baseline_floor_anchor_repair(
             update_learning_rate: float,
@@ -7807,22 +7887,31 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 restore_direct_update_state(base_model_payload, base_optimizer_payload)
                 direct_rng.setstate(base_rng_state)
                 direct_answer_update_guard["attempted_updates"] += 1
-                last_loss = train_baseline_anchored_prompt_update(
-                    args.direct_answer_learning_rate * learning_rate_scale
-                )
+                attempt_update_shape = "stabilization" if (
+                    direct_answer_baseline_floor_stabilization_active
+                ) else "direct"
+                if direct_answer_baseline_floor_stabilization_active:
+                    last_loss = train_baseline_floor_stabilization_update(
+                        args.direct_answer_learning_rate * learning_rate_scale
+                    )
+                else:
+                    last_loss = train_baseline_anchored_prompt_update(
+                        args.direct_answer_learning_rate * learning_rate_scale
+                    )
                 probe_snapshot = direct_snapshot_record(
                     direct_step,
                     None,
                     {
                         "baseline_floor_update_guard_probe": True,
                         "learning_rate_scale": learning_rate_scale,
+                        "update_shape": attempt_update_shape,
                     },
                 )
                 if branch_diversity_snapshot_preserves_target_coverage(
                     probe_snapshot,
                     direct_baseline,
                 ):
-                    record_guard_acceptance(learning_rate_scale)
+                    record_guard_acceptance(learning_rate_scale, attempt_update_shape)
                     return last_loss
                 if (
                     direct_answer_baseline_floor_repaired_updates_active
@@ -7858,6 +7947,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_step,
                     probe_snapshot,
                     learning_rate_scale,
+                    attempt_update_shape,
                 )
             direct_answer_update_guard["rejected_steps"] += 1
             restore_direct_update_state(base_model_payload, base_optimizer_payload)
@@ -9612,6 +9702,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_objective_active": (
                 direct_answer_baseline_floor_objective_active
+            ),
+            "direct_answer_baseline_floor_stabilization_active": (
+                direct_answer_baseline_floor_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

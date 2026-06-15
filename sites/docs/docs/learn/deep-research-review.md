@@ -88,7 +88,9 @@ the same discipline before another major repair screen.
 16. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
 17. **v0.87:** baseline-floor repair retries. Implemented and rejected.
 18. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
-19. **v0.89+:** staged floor stabilization under the full baseline
+19. **v0.89:** stabilization-only baseline-floor updates. Implemented and
+    rejected.
+20. **v0.90+:** guard/update diagnosis under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -131,5 +133,9 @@ after each failed retry; it records `227` repair anchors and rejects all
 mechanic. v0.88 moves balanced floor anchors into the objective itself; it runs
 `200` objective anchor batches covering `2400` anchor records and still rejects
 all `200/200` attempts, showing the combined branch-pressure objective is also
-not the missing mechanic. The next repair should prove accepted
-floor-stabilization updates before branch-diversity pressure is added back.
+not the missing mechanic. v0.89 removes branch-diversity pressure and trains
+only baseline-covered floor anchors; it runs `200` stabilization anchor batches
+covering `2400` anchor records and still rejects all `200/200` attempts,
+showing floor-only updates are also not the missing mechanic under the current
+guard. The next repair should diagnose the guard/update interaction before
+branch-diversity pressure is added back.

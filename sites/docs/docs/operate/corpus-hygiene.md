@@ -75,4 +75,7 @@ can become trusted model state. v0.87 adds baseline-covered repair retries and
 uses the same artifact trail to reject all `200/200` repaired attempts before
 they can become trusted model state. v0.88 adds objective-side baseline-floor
 anchors and uses the same artifact trail to reject all `200/200`
-objective-shaped attempts before they can become trusted model state.
+objective-shaped attempts before they can become trusted model state. v0.89
+adds stabilization-only baseline-floor anchors and uses the same artifact trail
+to reject all `200/200` floor-only attempts before they can become trusted model
+state.

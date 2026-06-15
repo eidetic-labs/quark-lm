@@ -327,13 +327,36 @@ Acceptance:
 - Promotion remains rejected because no objective-shaped update is accepted and
   `branch_diversity_target` still fails across all `9` multi-target profiles.
 
-### v0.89+
+### v0.89
+
+Implemented and screened stabilization-only baseline-floor updates:
+`branch-context-profile-baseline-floor-stabilization-unlikelihood`.
+The mode removes branch-diversity pressure from guarded attempts and trains only
+baseline-covered floor anchors before the guard evaluates coverage.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show the mode records stabilization-anchor and
+  accepted/rejected guard accounting.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors, `227`
+  stabilization anchors, and anchor batch size `32`.
+- The update guard checks `50/50` steps, attempts `200` updates, runs `200`
+  stabilization anchor batches covering `2400` anchor records, and rejects
+  `200/200`, preserving QA/heldout coverage at the baseline `0.25` floor.
+- Promotion remains rejected because no stabilization-shaped update is accepted
+  and `branch_diversity_target` still fails across all `9` multi-target
+  profiles.
+
+### v0.90+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair. The next transformer step should first prove accepted
-floor-stabilization updates before reintroducing branch-diversity pressure,
-revisiting subword tokenization, or beginning a learned verifier/repair-policy
-experiment.
+branch-diversity repair. The next transformer step should first diagnose why
+floor-only anchor updates still violate the baseline target-token floor before
+reintroducing branch-diversity pressure, revisiting subword tokenization, or
+beginning a learned verifier/repair-policy experiment.
 
 ## Decision
 

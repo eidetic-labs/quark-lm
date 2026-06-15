@@ -84,8 +84,10 @@ floor. v0.87 adds baseline-covered repair retries and rejects the screen because
 all `200/200` repaired attempts still violate the floor, setting up the v0.88
 objective screen. v0.88 adds
 objective-side baseline-floor anchors and rejects the screen because all
-`200/200` objective-shaped attempts still violate the floor, so v0.89 should
-prove accepted floor-stabilization updates before branch-diversity pressure is
+`200/200` objective-shaped attempts still violate the floor. v0.89 removes
+branch-diversity pressure and trains only baseline-covered floor anchors, but
+all `200/200` stabilization-only attempts still violate the floor, so v0.90
+should diagnose the guard/update interaction before branch-diversity pressure is
 added back.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
@@ -155,3 +157,11 @@ The run records `227` objective-side floor anchors and includes a balanced
 anchor batch in the same loss and backward pass as branch-diversity pressure.
 It records `200` objective anchor batches, rejects all `200` attempted updates,
 preserves QA/heldout coverage at `0.25`, and accepts no weight updates.
+
+v0.89 adds `branch-context-profile-baseline-floor-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
+The run removes branch-diversity pressure from guarded attempts and trains only
+baseline-covered floor anchors. It records `227` stabilization anchors, `200`
+stabilization anchor batches, rejects all `200` attempted updates, preserves
+QA/heldout coverage at `0.25`, and accepts no weight updates.

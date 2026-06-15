@@ -545,11 +545,23 @@ objective anchor batches, `2400` anchor records, and `200/200` rejected
 attempts. It is still rejected evidence: the combined objective does not produce
 accepted safe updates.
 
-### v0.89+
+### v0.89
 
-The next transformer repair should prove accepted floor-stabilization updates
-before branch-diversity pressure is added back under the full baseline
-target-token floor, before tokenizer growth or a learned verifier experiment.
+Implemented stabilization-only baseline-floor updates with
+`branch-context-profile-baseline-floor-stabilization-unlikelihood`.
+The new mode removes branch-diversity pressure from guarded attempts and trains
+only baseline-covered floor anchors. Focused tests pass, and the full screen in
+`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` stabilization anchors,
+`200` stabilization anchor batches, `2400` anchor records, and `200/200`
+rejected attempts. It is still rejected evidence: floor-only stabilization
+updates do not produce accepted safe updates under the current guard.
+
+### v0.90+
+
+The next transformer repair should diagnose why floor-only anchor updates still
+violate the baseline target-token floor before branch-diversity pressure is
+added back, before tokenizer growth or a learned verifier experiment.
 
 ## Decision
 

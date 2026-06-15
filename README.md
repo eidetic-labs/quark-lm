@@ -266,8 +266,20 @@ It recorded `562` active baseline prediction anchors, `227` objective-side floor
 anchors, `200` objective anchor batches, and `2400` anchor records across `50`
 checked steps. All `200` attempts still fell below at least one profile-wise
 coverage floor, so the guard accepted `0` updates. Promotion remains rejected;
-the next repair should prove accepted floor-stabilization updates before adding
-branch-diversity pressure back into the objective.
+that result set up a stabilization-only screen without branch-diversity pressure.
+
+v0.89 adds `branch-context-profile-baseline-floor-stabilization-unlikelihood`.
+It trains only baseline-covered floor anchors during guarded attempts, leaving
+branch-diversity pressure out of the update shape so the guard can test floor
+stabilization in isolation. The matching screen ran at
+`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
+It recorded `562` active baseline prediction anchors, `227` stabilization
+anchors, `200` stabilization anchor batches, and `2400` anchor records across
+`50` checked steps. All `200` stabilization-only attempts still fell below at
+least one profile-wise coverage floor, so the guard accepted `0` updates.
+Promotion remains rejected; the next repair should diagnose why floor-only
+updates still violate the baseline floor before branch-diversity pressure is
+added back.
 
 ## Latest Evidence
 
@@ -882,6 +894,12 @@ Current transformer answer-lesson run:
   records, but still rejects `200/200` attempts and accepts no weight updates.
   This rejects combining floor anchors with branch-diversity pressure in one
   step as the missing ingredient.
+- v0.89 adds stabilization-only baseline-floor updates. The full-stack run
+  `runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`
+  records `227` stabilization anchors, `200` stabilization anchor batches, and
+  `2400` anchor records, but still rejects `200/200` attempts and accepts no
+  weight updates. This rejects floor-only anchor updates as sufficient under the
+  current guard.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

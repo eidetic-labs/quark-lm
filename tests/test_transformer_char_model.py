@@ -51,6 +51,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_profiled_replay_records,
     baseline_floor_repair_anchor_records,
     baseline_floor_objective_anchor_batch,
+    train_direct_answer_baseline_floor_anchor_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
     branch_replay_plan,
@@ -4244,6 +4245,31 @@ class TransformerCharModelTest(unittest.TestCase):
             {("qa:place", 4), ("qa:owner", 8), ("qa:owner", 9)},
         )
 
+    def test_baseline_floor_anchor_batch_update_lowers_anchor_nll(self) -> None:
+        text = "where? near.\nwho? owner.\n"
+        tokenizer = CharTokenizer.train(text)
+        ids = tokenizer.encode(text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=4,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=89,
+        )
+        model = TinyTransformerLM.init_random(config)
+        target = ids[4]
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        before = model.nll(context, target)
+
+        for _step in range(10):
+            train_direct_answer_baseline_floor_anchor_batch(
+                model,
+                [(context, target, target, "qa:place")],
+                learning_rate=0.05,
+            )
+
+        self.assertLess(model.nll(context, target), before)
+
     def test_baseline_floor_repaired_prompt_mode_records_repair_guard(
         self,
     ) -> None:
@@ -4386,6 +4412,79 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertEqual(
             replay_plan["baseline_floor_objective_anchor_weight"],
             10.0,
+        )
+        self.assertEqual(guard["checked_steps"], 1)
+        self.assertGreaterEqual(guard["attempted_updates"], guard["checked_steps"])
+        self.assertEqual(
+            guard["accepted_steps"] + guard["rejected_steps"],
+            guard["checked_steps"],
+        )
+        self.assertEqual(
+            guard["accepted_attempts"] + guard["rejected_attempts"],
+            guard["attempted_updates"],
+        )
+
+    def test_baseline_floor_stabilization_mode_records_stabilization_guard(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-stabilization-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    "branch-context-profile-baseline-floor-stabilization-unlikelihood",
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(direct_answer["direct_answer_replay_prediction_anchors_active"])
+        self.assertTrue(direct_answer["direct_answer_baseline_floor_update_gate_active"])
+        self.assertTrue(
+            direct_answer["direct_answer_baseline_floor_adaptive_updates_active"]
+        )
+        self.assertTrue(
+            direct_answer["direct_answer_baseline_floor_stabilization_active"]
+        )
+        self.assertTrue(guard["active"])
+        self.assertTrue(guard["adaptive"])
+        self.assertTrue(guard["stabilization_active"])
+        self.assertEqual(guard["stabilization_anchor_batch_size"], 32)
+        self.assertEqual(
+            guard["stabilization_anchor_count"],
+            replay_plan["baseline_floor_stabilization_anchor_count"],
+        )
+        self.assertEqual(
+            replay_plan["baseline_floor_stabilization_anchor_batch_size"],
+            32,
         )
         self.assertEqual(guard["checked_steps"], 1)
         self.assertGreaterEqual(guard["attempted_updates"], guard["checked_steps"])
@@ -5361,6 +5460,7 @@ class TransformerCharModelTest(unittest.TestCase):
                 "branch-balanced-context-profile-baseline-floor-objective-"
                 "prompt-ownership-target-share-preserving-deficit-unlikelihood"
             ),
+            "branch-context-profile-baseline-floor-stabilization-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
