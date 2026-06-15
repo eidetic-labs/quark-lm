@@ -336,6 +336,17 @@ rejections, and promotion still rejects on `branch_diversity_target`. The next
 mechanic should directly target missing first-token diversity for that expanded
 profile set.
 
+v0.109.0 adds that missing first-token memory-consolidation pressure. The
+diagnostic screen at
+`runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.108.0 plan, preserves the five-profile target window, extracts
+plan-derived missing first-token maps, and records `8` missing-token candidates,
+`22` missing-token attempts, `1` accepted guarded coverage-gain update, `21`
+rejections, and `7` fallback acceptances. Retrieval remains exact at `219/219`;
+promotion still rejects on `branch_diversity_target`, and the next plan narrows
+remaining collapsed memory-backed profiles to `owner`, `paraphrases`, and
+`learning`.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

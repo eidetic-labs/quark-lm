@@ -167,6 +167,13 @@ v0.108.0 expands the source-plan target window to `owner`, `paraphrases`,
 admitted source labels. The screen keeps retrieval exact and still rejects on
 `branch_diversity_target`, so the next mechanics change should apply direct
 missing first-token diversity pressure.
+v0.109.0 applies that pressure by extracting missing first-token maps from the
+source plan and testing guarded missing-token updates after the existing
+consolidation phases. It records `8` candidates, `22` attempts, `1` accepted
+coverage-gain update, `21` rejections, and `7` fallback acceptances while
+keeping retrieval exact and promotion blocked. The next mechanics change should
+focus on the remaining collapsed `owner`, `paraphrases`, and `learning`
+profiles.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

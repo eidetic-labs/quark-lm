@@ -384,3 +384,12 @@ The run consumes the v0.107.0 plan, targets `owner`, `paraphrases`, `heldout`,
 `qa`, and `glossary`, maps target-only profiles to admitted source labels, and
 keeps retrieval exact at `219/219`. Branch diversity still blocks promotion, so
 the next repair should target missing first-token diversity directly.
+
+v0.109.0 implements that repair direction in
+`runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.108.0 plan, extracts missing first-token target maps,
+runs `22` guarded missing-token attempts, accepts `1` coverage-gain update,
+keeps retrieval exact at `219/219`, and still rejects promotion on
+`branch_diversity_target`. The next repair should use that evidence to target
+the remaining collapsed `owner`, `paraphrases`, and `learning` profiles without
+relaxing the target-token or branch-diversity gates.

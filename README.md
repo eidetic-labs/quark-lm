@@ -22,6 +22,26 @@ This is not yet a useful assistant. It is a first closed-world language model lo
 glossary, simple grammar, tiny stories, question-answer lessons, training, and
 closed-world probes.
 
+## Model Philosophy
+
+QuarkLM is memory-native before it is weight-native:
+
+```text
+new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+```
+
+Large language models usually absorb massive mixed corpora into pretrained
+weights first, then specialize that base with prompting, retrieval, fine-tuning,
+or adapters. QuarkLM explores the opposite direction. A lesson enters an owned
+closed-world corpus first, exact retrieval memory can serve it immediately, and
+the transformer only receives guarded consolidation pressure when evaluation can
+prove the update improves behavior without breaking older evidence.
+
+That means retrieval success is not counted as neural learning. It is evidence
+that the closed world contains the knowledge. Weight updates are the slower,
+audited step that should teach language behavior, routing, paraphrase
+tolerance, compression, and generalization over the admitted world.
+
 ## Research Grounding
 
 QuarkLM is closest to continual learning, lifelong pretraining, replay,
@@ -554,6 +574,18 @@ labels to `color`, `glossary`, `owner`, `place`, and `training_data`, records
 `26` memory-consolidation prioritized attempts with `8` acceptances and `18`
 rejections, keeps retrieval exact at `219/219`, and still rejects neural
 promotion on `branch_diversity_target`.
+
+v0.109.0 adds plan-derived missing first-token memory-consolidation pressure.
+The diagnostic screen ran at
+`runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+It consumes the v0.108.0 plan, keeps the same five target profiles and admitted
+source labels, extracts the plan's missing first-token maps, and records `8`
+missing-token candidates, `22` missing-token attempts, `1` accepted guarded
+coverage-gain update, `21` rejections, and `7` fallback acceptances. Retrieval
+memory remains exact at `219/219`. Final coverage is preserved and improves for
+`admission_paraphrases`, `admissions`, `glossary`, `learning`, and `self`, but
+promotion is still blocked by `branch_diversity_target`; the next plan narrows
+the collapsed memory-backed profiles to `owner`, `paraphrases`, and `learning`.
 
 ## Latest Evidence
 
@@ -1281,6 +1313,13 @@ Current transformer answer-lesson run:
   explicit source labels `color`, `glossary`, `owner`, `place`, and
   `training_data`, keeps retrieval at `219/219`, and still rejects neural
   promotion on `branch_diversity_target`.
+- v0.109.0 adds missing first-token memory-consolidation pressure. The
+  diagnostic run
+  `runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
+  consumes the v0.108.0 plan, records `8` missing-token candidates, `22`
+  missing-token attempts, `1` accepted guarded coverage-gain update, `21`
+  rejections, and `7` fallback acceptances, keeps retrieval at `219/219`, and
+  still rejects neural promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1578,9 +1617,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.108.0 expanded memory-consolidation evidence to add a direct missing
-   first-token diversity repair for `owner`, `paraphrases`, `heldout`, `qa`,
-   and `glossary` without counting retrieval success as transformer promotion.
+5. Use v0.109.0 missing first-token evidence to repair the remaining collapsed
+   `owner`, `paraphrases`, and `learning` profiles, especially the zero-coverage
+   `paraphrases` profile, without relaxing coverage or branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

@@ -66,6 +66,10 @@ from closed_world_lm.transformer_char_model import (
     branch_diversity_snapshot_profile_diversity_delta,
     remaining_profile_binding_profile_order,
     remaining_profile_binding_source_labels,
+    memory_consolidation_missing_first_token_values,
+    missing_first_token_ids_by_profile,
+    missing_first_token_anchor_batch,
+    branch_diversity_profile_delta_has_coverage_gain,
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
     branch_diversity_snapshot_preserves_target_coverage,
@@ -5759,6 +5763,77 @@ class TransformerCharModelTest(unittest.TestCase):
             ["color", "glossary", "owner", "place", "training_data"],
         )
 
+    def test_missing_first_token_helpers_use_source_plan_targets(
+        self,
+    ) -> None:
+        source_plan = {
+            "kind": "memory_consolidation_plan",
+            "profile_priorities": [
+                {
+                    "profile": "owner",
+                    "missing_target_tokens": [
+                        {"value": "u", "count": 2},
+                        {"value": "a", "count": 1},
+                        {"value": "u", "count": 1},
+                    ],
+                },
+                {
+                    "profile": "qa",
+                    "missing_target_tokens": [{"value": "g", "count": 1}],
+                },
+                {
+                    "profile": "self",
+                    "missing_target_tokens": [{"value": "s", "count": 1}],
+                },
+            ],
+        }
+        tokenizer = CharTokenizer(["<pad>", "a", "g", "n", "u"])
+
+        values = memory_consolidation_missing_first_token_values(
+            source_plan,
+            ["owner", "qa"],
+        )
+        ids_by_profile = missing_first_token_ids_by_profile(tokenizer, values)
+        target_ids = {
+            token_id
+            for token_ids in ids_by_profile.values()
+            for token_id in token_ids
+        }
+        batch = missing_first_token_anchor_batch(
+            [
+                ([0], tokenizer.stoi["u"], tokenizer.stoi["n"], "fact:owner"),
+                ([0], tokenizer.stoi["a"], tokenizer.stoi["n"], "fact:owner"),
+                ([0], tokenizer.stoi["n"], tokenizer.stoi["n"], "fact:owner"),
+                ([0], tokenizer.stoi["g"], tokenizer.stoi["n"], "qa:place"),
+            ],
+            target_ids,
+            random.Random(7),
+            8,
+        )
+
+        self.assertEqual(values, {"owner": ["u", "a"], "qa": ["g"]})
+        self.assertEqual(
+            ids_by_profile,
+            {
+                "owner": [tokenizer.stoi["u"], tokenizer.stoi["a"]],
+                "qa": [tokenizer.stoi["g"]],
+            },
+        )
+        self.assertEqual(
+            sorted(target for _context, target, _predicted, _profile in batch),
+            [tokenizer.stoi["a"], tokenizer.stoi["g"], tokenizer.stoi["u"]],
+        )
+        self.assertTrue(
+            branch_diversity_profile_delta_has_coverage_gain(
+                {
+                    "profiles": [
+                        {"profile": "owner", "coverage_delta": 0.0},
+                        {"profile": "qa", "coverage_delta": 0.125},
+                    ]
+                }
+            )
+        )
+
     def test_profile_scale_remaining_profile_binding_frontier_mode_records_priority_memory(
         self,
     ) -> None:
@@ -6194,6 +6269,178 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertGreater(
             consolidation_plan["summary"]["memory_backed_failed_profiles"],
             0,
+        )
+
+    def test_profile_scale_memory_consolidation_missing_first_token_mode_records_token_pressure(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            source_plan = Path(temp) / "source_memory_consolidation_plan.json"
+            with source_plan.open("w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "kind": "memory_consolidation_plan",
+                        "summary": {
+                            "collapsed_memory_backed_profiles": [
+                                "owner",
+                                "paraphrases",
+                                "glossary",
+                            ],
+                            "top_priority_profiles": [
+                                "owner",
+                                "paraphrases",
+                                "glossary",
+                            ],
+                            "memory_backed_failed_profiles": 9,
+                            "retrieval_exact_rate": 1.0,
+                        },
+                        "profile_priorities": [
+                            {
+                                "profile": "owner",
+                                "priority_score": 5.075,
+                                "missing_target_tokens": [
+                                    {"value": "u", "count": 2},
+                                    {"value": "a", "count": 1},
+                                ],
+                            },
+                            {
+                                "profile": "paraphrases",
+                                "priority_score": 5.0,
+                                "missing_target_tokens": [
+                                    {"value": "u", "count": 3},
+                                    {"value": "g", "count": 1},
+                                ],
+                            },
+                            {
+                                "profile": "glossary",
+                                "priority_score": 4.333333,
+                                "missing_target_tokens": [
+                                    {"value": "a", "count": 24},
+                                    {"value": "t", "count": 4},
+                                ],
+                            },
+                        ],
+                    },
+                    handle,
+                    indent=2,
+                    sort_keys=True,
+                )
+                handle.write("\n")
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / (
+                            "baseline-floor-profile-scale-memory-"
+                            "consolidation-missing-first-token-screen"
+                        )
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "branch-stable-coverage-recovery-branch-diversity-"
+                        "collapsed-profile-binding-remaining-profile-owner-"
+                        "paraphrase-memory-consolidation-missing-first-token-"
+                        "frontier-profile-scale-calibrated-sequential-profile-"
+                        "stabilization-unlikelihood"
+                    ),
+                    "--memory-consolidation-source-plan",
+                    str(source_plan),
+                    "--memory-consolidation-max-profiles",
+                    "3",
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        expected_tokens = {
+            "owner": ["u", "a"],
+            "paraphrases": ["u", "g"],
+            "glossary": ["a", "t"],
+        }
+
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            replay_plan[
+                "baseline_floor_profile_scale_memory_consolidation_missing_first_token_frontier_stabilization_active"
+            ]
+        )
+        self.assertEqual(
+            direct_answer[
+                "direct_answer_memory_consolidation_missing_first_token_target_tokens"
+            ],
+            expected_tokens,
+        )
+        self.assertEqual(
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_target_tokens"
+            ],
+            expected_tokens,
+        )
+        self.assertEqual(
+            replay_plan[
+                "memory_consolidation_missing_first_token_target_tokens"
+            ],
+            expected_tokens,
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_unique_target_ids"
+            ]
+        )
+        self.assertEqual(
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_attempts"
+            ],
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_acceptances"
+            ]
+            + guard[
+                "profile_scale_memory_consolidation_missing_first_token_rejections"
+            ],
+        )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_memory_consolidation_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
+            shape_counts,
         )
 
     def test_branch_diversity_target_coverage_delta_records_profile_gains(

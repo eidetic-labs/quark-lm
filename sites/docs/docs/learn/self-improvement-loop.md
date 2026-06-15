@@ -7,15 +7,31 @@ description: How QuarkLM improves without leaving the admitted dataset.
 
 QuarkLM improves by changing the system that teaches and audits it:
 
+```text
+new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+```
+
+That lifecycle is the difference between QuarkLM and a conventional large-model
+workflow. A large pretrained model usually starts with world knowledge already
+encoded in its weights, then uses a smaller supervised or retrieval layer to
+shape behavior. QuarkLM starts with no world knowledge in weights. A lesson is
+first ledgered into the corpus, memory can answer it exactly, the trainer builds
+closed-world candidates from that evidence, and only guarded updates are allowed
+to modify weights.
+
+Release loop:
+
 1. Admit or refine corpus data.
-2. Regenerate curriculum files.
-3. Train learned components from random initialization.
-4. Evaluate responder, classifier, and decoder.
-5. Audit generated probes, prompt leakage, provenance, forgetting, and exact
+2. Regenerate curriculum files and retrieval memory artifacts.
+3. Build training candidates from admitted sources and current failure reports.
+4. Train learned components from random initialization or a declared closed-world
+   checkpoint.
+5. Evaluate responder, classifier, decoder, transformer, and retrieval memory.
+6. Audit generated probes, prompt leakage, provenance, forgetting, and exact
    eval coverage.
-6. Diagnose the report and name the next action without using an external model.
-7. Archive the attempt before updating the latest report pointer.
-8. Promote only when the promotion gate passes and docs are current.
+7. Diagnose the report and name the next action without using an external model.
+8. Archive the attempt before updating the latest report pointer.
+9. Promote only when the promotion gate passes and docs are current.
 
 ## Components
 
@@ -43,6 +59,15 @@ The current diagnosis layer is intentionally rule-based. It is not the final
 form of autonomous improvement, but it establishes the interface: QuarkLM should
 learn from its own reports, name what changed, and propose the next repair
 without another model shaping that decision.
+
+## Memory Before Consolidation
+
+QuarkLM treats memory and weights as separate evidence rails. Retrieval memory
+can prove that admitted knowledge is available without pretending the neural
+model has learned it. Training candidates are the bridge: they decide what parts
+of retrieved or ledgered knowledge deserve pressure on the transformer. Guarded
+weight updates are accepted only if they improve the targeted profile while
+preserving closed-world constraints, prior coverage, and promotion gates.
 
 ## Research Guardrails
 

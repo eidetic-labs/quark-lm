@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.108.0 expanded memory-consolidation target screen;
+**Active version:** v0.109.0 missing first-token memory-consolidation screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -35,6 +35,10 @@ Working tagline: Big idea. Tiny package.
 - Explicit target-profile-to-source-label mapping for expanded consolidation
   windows, including `heldout`, `qa`, `admissions`, and
   `admission_paraphrases`.
+- Plan-derived missing first-token memory-consolidation pressure that extracts
+  missing first-token target maps from a source plan, trains only under guarded
+  coverage-gain checks, and records candidates, attempts, acceptances,
+  rejections, fallback acceptances, and rejection reasons.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -534,17 +538,20 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
-The run consumes the v0.107.0 `memory_consolidation_plan.json`, targets
+`runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.108.0 `memory_consolidation_plan.json`, targets
 `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`, keeps
-`retrieval_memory_report.json` at `219/219` exact retrieval, and records `26`
-memory-consolidation prioritized attempts with `8` acceptances and `18`
-rejections. The new run writes its own `memory_consolidation_plan.json`; it
-still records `9` memory-backed neural failed profiles and ranks the same five
-collapsed memory-backed profiles as top priorities. It uses no external model,
-no embeddings, no pretrained retriever, and no retrieval weight updates. The
-transformer remains blocked on `branch_diversity_target`; v0.108.0 proves the
-expanded plan-to-training target window, not neural promotion.
+`retrieval_memory_report.json` at `219/219` exact retrieval, and records `25`
+memory-consolidation prioritized attempts with `8` acceptances and `17`
+rejections. Its missing first-token phase records `8` candidates, `22`
+attempts, `1` accepted guarded coverage-gain update, `21` rejections, and `7`
+fallback acceptances. Final coverage is preserved and improves for
+`admission_paraphrases`, `admissions`, `glossary`, `learning`, and `self`;
+the new plan narrows collapsed memory-backed profiles to `owner`,
+`paraphrases`, and `learning`. It uses no external model, no embeddings, no
+pretrained retriever, and no retrieval weight updates. The transformer remains
+blocked on `branch_diversity_target`; v0.109.0 proves plan-derived missing
+first-token consolidation pressure, not neural promotion.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

@@ -87,8 +87,9 @@
           <p class="hero__lede">
             QuarkLM is a research prototype for language models that learn only from
             their admitted dataset. No pretrained weights. No pretrained tokenizer. No
-            external embeddings. Just a tiny world, a corpus-trained tokenizer, versioned
-            weight updates, generated probes, and evidence that follows every promotion.
+            external embeddings. Just a tiny world, exact retrieval memory, a
+            corpus-trained tokenizer, guarded weight updates, generated probes, and
+            evidence that follows every promotion.
           </p>
           <div class="hero__actions">
             <a class="button button--primary" href="https://docs.quark-lm.eidetic-labs.com">
@@ -152,10 +153,11 @@
         <p class="premise__kicker">A small world with hard edges</p>
         <h2>Instead of training on everything, train only on what was admitted.</h2>
         <p>
-          QuarkLM explores whether a language model can grow from a deliberately tiny
-          corpus while preserving provenance. New facts become learnable only after they
-          are written into the admitted-memory log, converted into lessons, trained into
-          versioned weights, and checked by generated probes.
+          Large language models usually compress broad mixed corpora into weights, then
+          specialize that base with retrieval, prompting, fine-tuning, or adapters.
+          QuarkLM reverses the order: a new lesson enters the corpus, retrieval memory
+          can serve it immediately, training candidates decide whether weights should
+          learn from it, and evaluation accepts or rejects the guarded update.
         </p>
       </section>
 
@@ -200,17 +202,17 @@
             <h2 id="loop-title">Self-improvement means measured change.</h2>
           </div>
           <p>
-            QuarkLM does not silently mutate. It declares run intent, plans replay,
-            checks corpus hygiene, admits data, regenerates lessons, trains fresh
-            weights, evaluates, audits, and promotes only with evidence.
+            QuarkLM does not silently mutate. Its loop is explicit: new lesson -> corpus
+            -> retrieval memory -> training candidates -> guarded weight update ->
+            evaluation -> accepted or rejected.
           </p>
         </header>
         <ol class="workflow">
-          <li><span>01</span><h3>Admit</h3><p>New knowledge enters through `corpus/admissions.jsonl`.</p></li>
-          <li><span>02</span><h3>Generate</h3><p>Curriculum and probes are derived from ledgered corpus files.</p></li>
-          <li><span>03</span><h3>Train</h3><p>Classifier, decoder, and transformer weights update from random initialization.</p></li>
-          <li><span>04</span><h3>Audit</h3><p>Forgetting, prompt leakage, provenance, and generated probes must pass.</p></li>
-          <li><span>05</span><h3>Diagnose</h3><p>The report recommends the next action without using an external model.</p></li>
+          <li><span>01</span><h3>Corpus</h3><p>New knowledge enters through admitted, ledgered corpus files.</p></li>
+          <li><span>02</span><h3>Memory</h3><p>Exact retrieval serves admitted knowledge before weights claim it.</p></li>
+          <li><span>03</span><h3>Candidates</h3><p>Training examples are built from admitted sources and failure reports.</p></li>
+          <li><span>04</span><h3>Update</h3><p>Transformer weights receive guarded consolidation pressure.</p></li>
+          <li><span>05</span><h3>Evaluate</h3><p>Coverage, provenance, forgetting, and branch-diversity gates decide acceptance.</p></li>
           <li><span>06</span><h3>Publish</h3><p>Docs and marketing update when they reference current state.</p></li>
         </ol>
       </section>
@@ -218,18 +220,18 @@
       <section class="section" id="evidence" aria-labelledby="evidence-title">
         <header class="section__head">
           <p class="section__num" aria-hidden="true">§03</p>
-          <h2 id="evidence-title">Promoted evidence: v0.42. Latest screen: v0.108.0.</h2>
+          <h2 id="evidence-title">Promoted evidence: v0.42. Latest screen: v0.109.0.</h2>
           <p>
             The latest promoted self-improvement run is `runs/self-improve-v0.42/`.
-            The latest transformer screen, v0.108.0, expands the consolidation
-            target window to all five collapsed memory-backed profiles while
-            branch diversity remains the promotion blocker.
+            The latest transformer screen, v0.109.0, consumes the v0.108.0
+            consolidation plan, adds missing first-token pressure, and still keeps
+            branch diversity as the promotion blocker.
           </p>
         </header>
         <div class="evidence-grid">
           <div class="evidence"><span>Admission probes</span><strong>48/48 · 84/84</strong><p>Direct and paraphrase probes generated from admitted memory.</p></div>
           <div class="evidence"><span>Glossary probes</span><strong>38/38</strong><p>Definition probes generated from admitted glossary words.</p></div>
-          <div class="evidence"><span>Consolidation window</span><strong>5 profiles</strong><p>v0.108.0 targets owner, paraphrases, heldout, qa, and glossary while promotion remains gated.</p></div>
+          <div class="evidence"><span>Missing-token attempts</span><strong>22 attempts</strong><p>v0.109.0 accepts one guarded coverage-gain update and keeps promotion gated.</p></div>
           <div class="evidence"><span>Self-diagnosis</span><strong>no external model</strong><p>Rule-based report diagnosis found zero blockers on v0.42.</p></div>
           <div class="evidence"><span>No-candidate generator</span><strong>219/219</strong><p>v0.31 auxiliary generator still proves exact answers without a candidate set.</p></div>
           <div class="evidence"><span>Promotion gate</span><strong>passed</strong><p>Exact eval, forgetting, probe, and leakage audits all passed.</p></div>
@@ -254,7 +256,7 @@
           </article>
           <article>
             <h3>Research-led mechanics</h3>
-            <p>Use candidate quarantine, deterministic verifier checks, recipes, constraint-first promotion gates, transformer responsibility surfaces, model/checkpoint metadata, eval surfaces, and the v0.108.0 expanded consolidation evidence to improve missing first-token diversity under branch-diversity and target-token gates.</p>
+            <p>Use candidate quarantine, deterministic verifier checks, recipes, constraint-first promotion gates, transformer responsibility surfaces, model/checkpoint metadata, eval surfaces, and the v0.109.0 missing-token evidence to repair the remaining `owner`, `paraphrases`, and `learning` collapses.</p>
           </article>
         </div>
       </section>

@@ -225,6 +225,12 @@ BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZAT
     "owner-paraphrase-memory-consolidation-frontier-profile-scale-calibrated-"
     "sequential-profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-memory-consolidation-missing-first-token-frontier-profile-"
+    "scale-calibrated-sequential-profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -430,6 +436,10 @@ BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIR
 }
 BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 _MEMORY_CONSOLIDATION_INHERITED_DIRECT_ANSWER_MODE_SETS = (
     BASELINE_ANCHORED_DIRECT_ANSWER_MODES,
@@ -468,6 +478,7 @@ BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
 BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05)
 BASELINE_FLOOR_BRANCH_DIVERSITY_RECOVERY_LEARNING_RATE_SCALES = (0.25, 0.05, 0.01)
 BASELINE_FLOOR_COLLAPSED_PROFILE_BINDING_LEARNING_RATE_SCALES = (0.25, 0.05, 0.01)
+BASELINE_FLOOR_MISSING_FIRST_TOKEN_LEARNING_RATE_SCALES = (0.25, 0.05, 0.01)
 BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES = (
     "learning",
     "owner",
@@ -5056,6 +5067,102 @@ def memory_consolidation_source_plan_targets(
     )
 
 
+def memory_consolidation_missing_first_token_values(
+    source_plan: dict[str, Any],
+    target_profiles: list[str] | tuple[str, ...] | set[str],
+) -> dict[str, list[str]]:
+    target_set = set(target_profiles)
+    values_by_profile: dict[str, list[str]] = {}
+    priority_records = source_plan.get("profile_priorities", [])
+    if not isinstance(priority_records, list):
+        return values_by_profile
+    for record in priority_records:
+        if not isinstance(record, dict):
+            continue
+        profile = record.get("profile")
+        if not isinstance(profile, str) or profile not in target_set:
+            continue
+        values: list[str] = []
+        seen: set[str] = set()
+        raw_missing_tokens = record.get("missing_target_tokens", [])
+        if not isinstance(raw_missing_tokens, list):
+            continue
+        for raw_token in raw_missing_tokens:
+            value = (
+                raw_token.get("value")
+                if isinstance(raw_token, dict)
+                else raw_token
+            )
+            if not isinstance(value, str) or len(value) != 1 or value in seen:
+                continue
+            values.append(value)
+            seen.add(value)
+        if values:
+            values_by_profile[profile] = values
+    return {
+        profile: values_by_profile[profile]
+        for profile in target_profiles
+        if profile in values_by_profile
+    }
+
+
+def missing_first_token_ids_by_profile(
+    tokenizer: CharTokenizer,
+    values_by_profile: dict[str, list[str]],
+) -> dict[str, list[int]]:
+    ids_by_profile: dict[str, list[int]] = {}
+    for profile, values in values_by_profile.items():
+        ids: list[int] = []
+        seen: set[int] = set()
+        for value in values:
+            try:
+                encoded = tokenizer.encode(value)
+            except ValueError:
+                continue
+            if len(encoded) != 1 or encoded[0] in seen:
+                continue
+            ids.append(encoded[0])
+            seen.add(encoded[0])
+        if ids:
+            ids_by_profile[profile] = ids
+    return ids_by_profile
+
+
+def missing_first_token_anchor_batch(
+    anchors: list[BranchReplayRecord],
+    target_ids: set[int],
+    rng: random.Random,
+    batch_size: int,
+) -> list[BranchReplayRecord]:
+    if not anchors or not target_ids:
+        return []
+    by_target: dict[int, list[BranchReplayRecord]] = {}
+    for branch in anchors:
+        _context, target, _predicted, _profile = branch_replay_parts(branch)
+        if target in target_ids:
+            by_target.setdefault(target, []).append(branch)
+    if not by_target:
+        return []
+    targets = list(by_target)
+    rng.shuffle(targets)
+    selected: list[BranchReplayRecord] = []
+    for target in targets[: max(1, batch_size)]:
+        selected.append(rng.choice(by_target[target]))
+    return selected
+
+
+def branch_diversity_profile_delta_has_coverage_gain(delta: dict[str, Any]) -> bool:
+    profiles = delta.get("profiles", [])
+    if not isinstance(profiles, list):
+        return False
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            continue
+        if float(profile.get("coverage_delta", 0.0)) > 1e-12:
+            return True
+    return False
+
+
 def branch_diversity_snapshot_preserves_target_coverage(
     snapshot: dict[str, Any],
     baseline: dict[str, Any],
@@ -8194,11 +8301,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_MEMORY_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_MISSING_FIRST_TOKEN_CONSOLIDATION_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_memory_consolidation_source_plan_path = None
         direct_memory_consolidation_source_plan_summary: dict[str, Any] = {}
         direct_memory_consolidation_target_profiles: list[str] = []
         direct_memory_consolidation_top_priority_profiles: list[str] = []
         direct_memory_consolidation_collapsed_memory_backed_profiles: list[str] = []
+        direct_memory_consolidation_missing_first_token_values: dict[str, list[str]] = {}
+        direct_memory_consolidation_missing_first_token_ids: dict[str, list[int]] = {}
         if (
             direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
         ):
@@ -8222,6 +8335,18 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ) = memory_consolidation_source_plan_targets(
                 direct_memory_consolidation_source_plan,
                 args.memory_consolidation_max_profiles,
+            )
+            direct_memory_consolidation_missing_first_token_values = (
+                memory_consolidation_missing_first_token_values(
+                    direct_memory_consolidation_source_plan,
+                    direct_memory_consolidation_target_profiles,
+                )
+            )
+            direct_memory_consolidation_missing_first_token_ids = (
+                missing_first_token_ids_by_profile(
+                    tokenizer,
+                    direct_memory_consolidation_missing_first_token_values,
+                )
             )
         direct_remaining_profile_binding_target_profiles = list(
             direct_memory_consolidation_target_profiles
@@ -8382,6 +8507,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_memory_consolidation_missing_first_token_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -8526,6 +8656,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_replay_plan[
                         "memory_consolidation_consumed_profile_count"
                     ] = len(direct_memory_consolidation_target_profiles)
+                    direct_replay_plan[
+                        "memory_consolidation_missing_first_token_target_tokens"
+                    ] = direct_memory_consolidation_missing_first_token_values
+                    direct_replay_plan[
+                        "memory_consolidation_missing_first_token_target_ids"
+                    ] = direct_memory_consolidation_missing_first_token_ids
+                    direct_replay_plan[
+                        "memory_consolidation_missing_first_token_learning_rate_scales"
+                    ] = (
+                        list(BASELINE_FLOOR_MISSING_FIRST_TOKEN_LEARNING_RATE_SCALES)
+                        if direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                        else []
+                    )
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
@@ -8732,6 +8875,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_memory_consolidation_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
             ),
+            "profile_scale_memory_consolidation_missing_first_token_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+            ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
                 if direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
@@ -8745,6 +8891,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_collapsed_profile_binding_learning_rate_scales": (
                 list(BASELINE_FLOOR_COLLAPSED_PROFILE_BINDING_LEARNING_RATE_SCALES)
                 if direct_answer_baseline_floor_profile_scale_collapsed_profile_binding_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_memory_consolidation_missing_first_token_learning_rate_scales": (
+                list(BASELINE_FLOOR_MISSING_FIRST_TOKEN_LEARNING_RATE_SCALES)
+                if direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
                 else []
             ),
             "learning_rate_scales": list(
@@ -8997,10 +9148,35 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_memory_consolidation_consumed_profile_count": (
                 len(direct_memory_consolidation_target_profiles)
             ),
+            "profile_scale_memory_consolidation_missing_first_token_target_tokens": (
+                direct_memory_consolidation_missing_first_token_values
+            ),
+            "profile_scale_memory_consolidation_missing_first_token_target_ids": (
+                direct_memory_consolidation_missing_first_token_ids
+            ),
+            "profile_scale_memory_consolidation_missing_first_token_unique_target_ids": (
+                sorted(
+                    {
+                        token_id
+                        for token_ids in direct_memory_consolidation_missing_first_token_ids.values()
+                        for token_id in token_ids
+                    }
+                )
+            ),
             "profile_scale_memory_consolidation_prioritized_attempts": 0,
             "profile_scale_memory_consolidation_prioritized_acceptances": 0,
             "profile_scale_memory_consolidation_prioritized_rejections": 0,
             "profile_scale_memory_consolidation_probe_sample": [],
+            "profile_scale_memory_consolidation_missing_first_token_candidates": 0,
+            "profile_scale_memory_consolidation_missing_first_token_attempts": 0,
+            "profile_scale_memory_consolidation_missing_first_token_acceptances": 0,
+            "profile_scale_memory_consolidation_missing_first_token_fallback_acceptances": 0,
+            "profile_scale_memory_consolidation_missing_first_token_rejections": 0,
+            "profile_scale_memory_consolidation_missing_first_token_records": 0,
+            "profile_scale_memory_consolidation_missing_first_token_rejection_reasons": {},
+            "profile_scale_memory_consolidation_missing_first_token_profile_acceptance_outcomes": {},
+            "profile_scale_memory_consolidation_missing_first_token_profile_deltas": {},
+            "profile_scale_memory_consolidation_missing_first_token_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -9218,6 +9394,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization",
+                "profile_scale_memory_consolidation_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -9275,9 +9452,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             if (
                                 direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
                             ):
-                                update_shape = (
-                                    "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
-                                )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                                ):
+                                    update_shape = (
+                                        "profile_scale_memory_consolidation_missing_first_token_frontier_calibrated_sequential_profile_stabilization"
+                                    )
+                                else:
+                                    update_shape = (
+                                        "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
+                                    )
                             elif (
                                 direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                             ):
@@ -9659,6 +9843,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         )
                         collapsed_profile_binding_score: tuple[float, ...] | None = None
                         collapsed_profile_binding_delta: dict[str, Any] | None = None
+                        missing_first_token_attempted = False
+                        missing_first_token_accepted = False
+                        missing_first_token_outcome = "not_attempted"
+                        missing_first_token_rejection_reason = ""
+                        missing_first_token_learning_rate_scale: float | None = None
+                        missing_first_token_records = 0
+                        missing_first_token_target_profiles: list[str] = []
+                        missing_first_token_target_ids: list[int] = []
+                        missing_first_token_base_score: tuple[float, ...] | None = None
+                        missing_first_token_score: tuple[float, ...] | None = None
+                        missing_first_token_delta: dict[str, Any] | None = None
                         owner_paraphrase_binding_preserved = True
                         owner_paraphrase_binding_preservation_delta: dict[
                             str, Any
@@ -10415,6 +10610,256 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     direct_answer_update_guard[
                                         "profile_scale_collapsed_profile_binding_frontier_fallback_acceptances"
                                     ] += 1
+                        if (
+                            direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                            and memory_consolidation_prioritized
+                            and floor_preserved
+                            and diversity_accepted
+                            and coverage_accepted
+                            and profile_score is not None
+                            and profile_probe_snapshot is not None
+                            and direct_memory_consolidation_missing_first_token_ids
+                        ):
+                            missing_first_token_target_profiles = [
+                                target_profile
+                                for target_profile in direct_memory_consolidation_target_profiles
+                                if direct_memory_consolidation_missing_first_token_ids.get(
+                                    target_profile
+                                )
+                            ]
+                            missing_first_token_target_id_set = {
+                                token_id
+                                for target_profile in missing_first_token_target_profiles
+                                for token_id in direct_memory_consolidation_missing_first_token_ids.get(
+                                    target_profile,
+                                    [],
+                                )
+                            }
+                            missing_first_token_target_ids = sorted(
+                                missing_first_token_target_id_set
+                            )
+                            missing_first_token_batch = missing_first_token_anchor_batch(
+                                profile_batch,
+                                missing_first_token_target_id_set,
+                                direct_rng,
+                                len(profile_batch),
+                            )
+                            if missing_first_token_batch:
+                                direct_answer_update_guard[
+                                    "profile_scale_memory_consolidation_missing_first_token_candidates"
+                                ] += 1
+                                missing_first_token_base_score = profile_score
+                                missing_first_token_candidate_model_payload = (
+                                    model.to_dict(tokenizer)
+                                )
+                                missing_first_token_candidate_optimizer_payload = (
+                                    optimizer.to_dict()
+                                )
+                                missing_first_token_records = len(
+                                    missing_first_token_batch
+                                )
+                                for (
+                                    missing_first_token_scale
+                                ) in BASELINE_FLOOR_MISSING_FIRST_TOKEN_LEARNING_RATE_SCALES:
+                                    restore_direct_update_state(
+                                        missing_first_token_candidate_model_payload,
+                                        missing_first_token_candidate_optimizer_payload,
+                                    )
+                                    missing_first_token_attempted = True
+                                    direct_answer_update_guard[
+                                        "profile_scale_memory_consolidation_missing_first_token_attempts"
+                                    ] += 1
+                                    direct_answer_update_guard[
+                                        "profile_scale_memory_consolidation_missing_first_token_records"
+                                    ] += missing_first_token_records
+                                    missing_first_token_loss = train_direct_answer_baseline_floor_anchor_branch_diversity(
+                                        model,
+                                        missing_first_token_batch,
+                                        (
+                                            args.direct_answer_learning_rate
+                                            * profile_scale
+                                            * missing_first_token_scale
+                                        ),
+                                        args.direct_answer_negative_weight,
+                                        args.direct_answer_positive_weight,
+                                        args.direct_answer_contrast_weight,
+                                        params=direct_params,
+                                    )
+                                    total_loss += missing_first_token_loss
+                                    loss_count += 1
+                                    missing_first_token_probe_snapshot = direct_snapshot_record(
+                                        direct_step,
+                                        None,
+                                        {
+                                            "baseline_floor_update_guard_probe": True,
+                                            "baseline_floor_sequential_profile_probe": True,
+                                            "baseline_floor_calibrated_sequential_profile_probe": True,
+                                            "baseline_floor_profile_scale_memory_probe": True,
+                                            "baseline_floor_profile_scale_frontier_probe": True,
+                                            "baseline_floor_profile_scale_memory_consolidation_missing_first_token_probe": True,
+                                            "learning_rate_scale": profile_scale,
+                                            "missing_first_token_learning_rate_scale": (
+                                                missing_first_token_scale
+                                            ),
+                                            "update_shape": update_shape,
+                                            "sequential_profile": profile,
+                                            "sequential_profile_records": len(
+                                                profile_batch
+                                            ),
+                                            "sequential_profile_frontier_records": (
+                                                profile_frontier_records
+                                            ),
+                                            "missing_first_token_records": (
+                                                missing_first_token_records
+                                            ),
+                                            "missing_first_token_target_profiles": (
+                                                missing_first_token_target_profiles
+                                            ),
+                                            "missing_first_token_target_ids": (
+                                                missing_first_token_target_ids
+                                            ),
+                                            "memory_consolidation_target_profiles": (
+                                                direct_memory_consolidation_target_profiles
+                                            ),
+                                        },
+                                    )
+                                    missing_first_token_floor_preserved = branch_diversity_snapshot_preserves_target_coverage(
+                                        missing_first_token_probe_snapshot,
+                                        direct_baseline,
+                                    )
+                                    missing_first_token_score = branch_diversity_snapshot_score(
+                                        missing_first_token_probe_snapshot
+                                    )
+                                    missing_first_token_coverage_delta = branch_diversity_snapshot_target_coverage_delta(
+                                        missing_first_token_probe_snapshot,
+                                        profile_probe_snapshot,
+                                    )
+                                    missing_first_token_profile_delta = branch_diversity_snapshot_profile_diversity_delta(
+                                        missing_first_token_probe_snapshot,
+                                        profile_probe_snapshot,
+                                        missing_first_token_target_profiles,
+                                    )
+                                    missing_first_token_delta = {
+                                        "coverage_delta": missing_first_token_coverage_delta,
+                                        "profile_delta": missing_first_token_profile_delta,
+                                    }
+                                    if not missing_first_token_floor_preserved:
+                                        missing_first_token_outcome = (
+                                            "floor_regressed"
+                                        )
+                                        missing_first_token_rejection_reason = (
+                                            "floor_regression"
+                                        )
+                                    elif (
+                                        int(
+                                            missing_first_token_coverage_delta[
+                                                "regressed_profile_count"
+                                            ]
+                                        )
+                                        > 0
+                                    ):
+                                        missing_first_token_outcome = (
+                                            "coverage_regressed"
+                                        )
+                                        missing_first_token_rejection_reason = (
+                                            "coverage_regression"
+                                        )
+                                    elif (
+                                        int(
+                                            missing_first_token_profile_delta[
+                                                "regressed_profile_count"
+                                            ]
+                                        )
+                                        > 0
+                                    ):
+                                        missing_first_token_outcome = (
+                                            "target_profile_regressed"
+                                        )
+                                        missing_first_token_rejection_reason = (
+                                            "target_profile_regression"
+                                        )
+                                    elif (
+                                        missing_first_token_base_score is not None
+                                        and missing_first_token_score
+                                        < missing_first_token_base_score
+                                    ):
+                                        missing_first_token_outcome = (
+                                            "score_regressed"
+                                        )
+                                        missing_first_token_rejection_reason = (
+                                            "score_regression"
+                                        )
+                                    elif branch_diversity_profile_delta_has_coverage_gain(
+                                        missing_first_token_profile_delta
+                                    ):
+                                        missing_first_token_outcome = (
+                                            "missing_first_token_coverage_gained"
+                                        )
+                                        missing_first_token_rejection_reason = ""
+                                        missing_first_token_accepted = True
+                                        missing_first_token_learning_rate_scale = (
+                                            missing_first_token_scale
+                                        )
+                                        floor_preserved = (
+                                            missing_first_token_floor_preserved
+                                        )
+                                        profile_probe_snapshot = (
+                                            missing_first_token_probe_snapshot
+                                        )
+                                        profile_score = missing_first_token_score
+                                        if (
+                                            profile_base_snapshot is not None
+                                        ):
+                                            coverage_delta = branch_diversity_snapshot_target_coverage_delta(
+                                                missing_first_token_probe_snapshot,
+                                                profile_base_snapshot,
+                                            )
+                                        coverage_outcome = "gained"
+                                        coverage_rejection_reason = ""
+                                        if (
+                                            missing_first_token_base_score is not None
+                                            and missing_first_token_score
+                                            > missing_first_token_base_score
+                                        ):
+                                            diversity_outcome = "improved"
+                                        diversity_rejection_reason = ""
+                                        direct_answer_update_guard[
+                                            "profile_scale_memory_consolidation_missing_first_token_acceptances"
+                                        ] += 1
+                                        break
+                                    else:
+                                        missing_first_token_outcome = (
+                                            "missing_first_token_tied"
+                                        )
+                                        missing_first_token_rejection_reason = (
+                                            "missing_first_token_tie"
+                                        )
+                                    direct_answer_update_guard[
+                                        "profile_scale_memory_consolidation_missing_first_token_rejections"
+                                    ] += 1
+                                    missing_first_token_reasons = direct_answer_update_guard[
+                                        "profile_scale_memory_consolidation_missing_first_token_rejection_reasons"
+                                    ]
+                                    if isinstance(missing_first_token_reasons, dict):
+                                        missing_first_token_reasons[
+                                            missing_first_token_rejection_reason
+                                        ] = (
+                                            int(
+                                                missing_first_token_reasons.get(
+                                                    missing_first_token_rejection_reason,
+                                                    0,
+                                                )
+                                            )
+                                            + 1
+                                        )
+                                if not missing_first_token_accepted:
+                                    restore_direct_update_state(
+                                        missing_first_token_candidate_model_payload,
+                                        missing_first_token_candidate_optimizer_payload,
+                                    )
+                                    direct_answer_update_guard[
+                                        "profile_scale_memory_consolidation_missing_first_token_fallback_acceptances"
+                                    ] += 1
                         if floor_preserved and diversity_accepted and coverage_accepted:
                             direct_answer_update_guard[
                                 "sequential_profile_acceptances"
@@ -10654,6 +11099,53 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     "outcome": collapsed_profile_binding_outcome,
                                     "delta": collapsed_profile_binding_delta,
                                 }
+                            missing_first_token_outcomes = direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_missing_first_token_profile_acceptance_outcomes"
+                            ]
+                            if isinstance(missing_first_token_outcomes, dict):
+                                if missing_first_token_accepted:
+                                    missing_first_token_outcomes[profile] = (
+                                        "missing_first_token_coverage"
+                                    )
+                                elif (
+                                    direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                                    and missing_first_token_attempted
+                                ):
+                                    missing_first_token_outcomes[profile] = (
+                                        "missing_first_token_fallback"
+                                    )
+                                elif (
+                                    direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                                ):
+                                    missing_first_token_outcomes[profile] = (
+                                        "no_missing_first_token_batch"
+                                    )
+                            missing_first_token_deltas = direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_missing_first_token_profile_deltas"
+                            ]
+                            if (
+                                isinstance(missing_first_token_deltas, dict)
+                                and missing_first_token_delta is not None
+                            ):
+                                missing_first_token_deltas[profile] = {
+                                    "target_profiles": (
+                                        missing_first_token_target_profiles
+                                    ),
+                                    "target_ids": missing_first_token_target_ids,
+                                    "base_score": (
+                                        list(missing_first_token_base_score)
+                                        if missing_first_token_base_score is not None
+                                        else None
+                                    ),
+                                    "final_score": (
+                                        list(missing_first_token_score)
+                                        if missing_first_token_score is not None
+                                        else None
+                                    ),
+                                    "accepted": missing_first_token_accepted,
+                                    "outcome": missing_first_token_outcome,
+                                    "delta": missing_first_token_delta,
+                                }
                             accepted_any = True
                             profile_accepted = True
                             sample = {
@@ -10881,6 +11373,50 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         "collapsed_profile_binding_delta"
                                     ] = collapsed_profile_binding_delta
                             if (
+                                direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                            ):
+                                sample[
+                                    "missing_first_token_attempted"
+                                ] = missing_first_token_attempted
+                                sample[
+                                    "missing_first_token_accepted"
+                                ] = missing_first_token_accepted
+                                sample[
+                                    "missing_first_token_outcome"
+                                ] = missing_first_token_outcome
+                                sample[
+                                    "missing_first_token_target_profiles"
+                                ] = missing_first_token_target_profiles
+                                sample[
+                                    "missing_first_token_target_ids"
+                                ] = missing_first_token_target_ids
+                                if missing_first_token_rejection_reason:
+                                    sample[
+                                        "missing_first_token_rejection_reason"
+                                    ] = missing_first_token_rejection_reason
+                                if (
+                                    missing_first_token_learning_rate_scale
+                                    is not None
+                                ):
+                                    sample[
+                                        "missing_first_token_learning_rate_scale"
+                                    ] = missing_first_token_learning_rate_scale
+                                sample[
+                                    "missing_first_token_records"
+                                ] = missing_first_token_records
+                                if missing_first_token_base_score is not None:
+                                    sample[
+                                        "missing_first_token_base_score"
+                                    ] = list(missing_first_token_base_score)
+                                if missing_first_token_score is not None:
+                                    sample[
+                                        "missing_first_token_score"
+                                    ] = list(missing_first_token_score)
+                                if missing_first_token_delta is not None:
+                                    sample[
+                                        "missing_first_token_delta"
+                                    ] = missing_first_token_delta
+                            if (
                                 isinstance(probe_sample, list)
                                 and len(probe_sample) < 12
                             ):
@@ -10983,6 +11519,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(memory_consolidation_sample) < 12
                             ):
                                 memory_consolidation_sample.append(sample)
+                            missing_first_token_sample = direct_answer_update_guard[
+                                "profile_scale_memory_consolidation_missing_first_token_probe_sample"
+                            ]
+                            if (
+                                direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                                and isinstance(missing_first_token_sample, list)
+                                and len(missing_first_token_sample) < 12
+                            ):
+                                missing_first_token_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -11370,9 +11915,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 if (
                                     direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
                                 ):
-                                    attempt_update_shape = (
-                                        "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
-                                    )
+                                    if (
+                                        direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+                                    ):
+                                        attempt_update_shape = (
+                                            "profile_scale_memory_consolidation_missing_first_token_frontier_calibrated_sequential_profile_stabilization"
+                                        )
+                                    else:
+                                        attempt_update_shape = (
+                                            "profile_scale_memory_consolidation_frontier_calibrated_sequential_profile_stabilization"
+                                        )
                                 elif (
                                     direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                                 ):
@@ -13329,6 +13881,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_memory_consolidation_frontier_stabilization_active
             ),
+            "direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_missing_first_token_consolidation_frontier_stabilization_active
+            ),
             "direct_answer_memory_consolidation_source_plan": (
                 str(direct_memory_consolidation_source_plan_path)
                 if direct_memory_consolidation_source_plan_path is not None
@@ -13342,6 +13897,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_memory_consolidation_collapsed_memory_backed_profiles": (
                 direct_memory_consolidation_collapsed_memory_backed_profiles
+            ),
+            "direct_answer_memory_consolidation_missing_first_token_target_tokens": (
+                direct_memory_consolidation_missing_first_token_values
+            ),
+            "direct_answer_memory_consolidation_missing_first_token_target_ids": (
+                direct_memory_consolidation_missing_first_token_ids
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

@@ -12,27 +12,42 @@ embeddings. Knowledge enters only through the admitted corpus and the
 corpus-derived lessons generated from it.
 
 The current prototype is intentionally small. Its value is not scale. Its value
-is discipline: every claim about learning has a corpus source, a training run,
-an evaluation artifact, and a docs update.
+is discipline: every claim about learning has a corpus source, a retrieval
+record when memory can serve it, a training candidate when weights should learn
+from it, a guarded update, an evaluation artifact, and a docs update.
+
+Core lifecycle:
+
+```text
+new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+```
+
+Large language models usually learn broad world knowledge by absorbing massive
+mixed corpora into weights, then specialize through prompting, retrieval,
+fine-tuning, or adapters. QuarkLM explores the opposite direction. Knowledge is
+first admitted into a tiny owned world, served by exact retrieval when possible,
+and only later considered for weight consolidation if the guarded trainer proves
+the update improves behavior without breaking older evidence.
 
 ## Read First
 
 | Page | Use it when |
 | --- | --- |
-| [Language model](./language-model.md) | You want the model philosophy and boundaries. |
-| [Self-improvement loop](./self-improvement-loop.md) | You want the release and training loop. |
+| [Language model](./language-model.md) | You want the memory-native model philosophy and closed-world boundaries. |
+| [Self-improvement loop](./self-improvement-loop.md) | You want the corpus-to-memory-to-weight-update lifecycle. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.108.0 expanded memory-consolidation screen. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.108.0 consolidation handoff. |
-| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.108.0 memory-consolidation evidence. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.109.0 missing-token consolidation screen. |
+| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.109.0 consolidation handoff. |
+| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.109.0 memory-consolidation evidence. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea
 
 Most language models learn broadly first and specialize later. QuarkLM explores
 the opposite direction: learn from a tiny admitted world, preserve the boundary,
-then grow through measured self-improvement.
+answer from memory when the world already contains the knowledge, and gradually
+consolidate only the updates that survive evaluation.
 
 That makes the project more like a lab organism than a product assistant. The
 important question is not "what can it answer?" yet. The important question is:

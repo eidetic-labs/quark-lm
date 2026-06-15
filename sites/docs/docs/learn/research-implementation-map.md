@@ -120,7 +120,12 @@ direct-answer objective mode:
    target-profile-to-source-label mapping and a five-profile source-plan screen
    for `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`; rejected for
    promotion on `branch_diversity_target`.
-35. **v0.109.0+:** missing first-token diversity repair, tokenizer growth, or
+35. **v0.109.0:** missing first-token memory-consolidation pressure.
+   Implemented with plan-derived missing first-token maps, `8` candidates,
+   `22` attempts, `1` accepted guarded coverage-gain update, `21` rejections,
+   `7` fallback acceptances, and exact `219/219` retrieval; rejected for
+   promotion on `branch_diversity_target`.
+36. **v0.110.0+:** remaining collapsed-profile repair, tokenizer growth, or
    learned verifier experiments.
 
 ## Current Gap
@@ -207,12 +212,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`.
 - v0.108.0 expanded memory-consolidation target-window evidence:
   `runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+- v0.109.0 missing first-token memory-consolidation evidence:
+  `runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- missing first-token diversity repair that uses v0.108.0 expanded
-  source-plan-guided consolidation evidence to improve target-token coverage
-  without regressing retrieval provenance.
+- remaining collapsed-profile repair that uses v0.109.0 missing-token evidence
+  to improve `owner`, `paraphrases`, and `learning` target-token coverage
+  without regressing retrieval provenance or relaxing promotion gates.
 
 ## Operating Rule
 

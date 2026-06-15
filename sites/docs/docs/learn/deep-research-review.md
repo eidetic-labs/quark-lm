@@ -137,7 +137,12 @@ the same discipline before another major repair screen.
     explicit source-label mapping for target-only profiles and a five-target
     screen for `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`; still
     rejects promotion on `branch_diversity_target`.
-39. **v0.109.0+:** missing first-token diversity repair, tokenizer growth, or
+39. **v0.109.0:** missing first-token memory-consolidation pressure.
+    Implemented with plan-derived missing first-token target maps, `8`
+    candidates, `22` attempts, `1` accepted guarded coverage-gain update, `21`
+    rejections, `7` fallback acceptances, and exact `219/219` retrieval; still
+    rejects promotion on `branch_diversity_target`.
+40. **v0.110.0+:** remaining collapsed-profile repair, tokenizer growth, or
     learned verifier experiments.
 
 ## Operating Rule
@@ -247,3 +252,9 @@ v0.108.0 expands the consumed target window to `owner`, `paraphrases`,
 `heldout`, `qa`, and `glossary`, adds explicit target-to-source label mapping,
 keeps retrieval exact at `219/219`, and still rejects promotion on
 `branch_diversity_target`.
+v0.109.0 consumes the v0.108.0 plan, extracts missing first-token target maps,
+runs a guarded missing-token consolidation phase with `8` candidates and `22`
+attempts, accepts `1` coverage-gain update, keeps retrieval exact at `219/219`,
+and still rejects promotion on `branch_diversity_target`. The next repair should
+focus on the remaining collapsed memory-backed profiles: `owner`, `paraphrases`,
+and `learning`.

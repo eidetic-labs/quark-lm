@@ -143,6 +143,12 @@ v0.108.0 consumes the v0.107.0 plan, expands the target window to `owner`,
 `paraphrases`, `heldout`, `qa`, and `glossary`, and shows that the next
 mechanic needs missing first-token diversity pressure rather than another
 target-window expansion.
+v0.109.0 adds that pressure: it consumes the v0.108.0 plan, extracts missing
+first-token target maps, records `22` guarded missing-token attempts with `1`
+accepted coverage-gain update, keeps retrieval exact at `219/219`, and still
+rejects neural promotion on `branch_diversity_target`. The next grounding point
+is remaining collapsed-profile repair for `owner`, `paraphrases`, and
+`learning`, still under separate memory and weight evidence rails.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

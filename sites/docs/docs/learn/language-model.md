@@ -17,6 +17,31 @@ The model does not begin with internet-scale knowledge. It does not inherit a
 pretrained tokenizer. It does not use external embeddings. The training corpus
 is generated from files named in `corpus/ledger.json`.
 
+## Memory-Native Philosophy
+
+Large language models typically compress broad public and licensed corpora into
+weights first, then use retrieval, fine-tuning, adapters, or prompting to steer
+that pretrained base toward a task. That path buys fluency and breadth with
+enormous compute, but the resulting knowledge boundary is difficult to audit:
+it is hard to prove exactly where a fact entered, why a behavior changed, or
+whether a later update erased an earlier one.
+
+QuarkLM takes the smaller path on purpose. Knowledge enters as a lesson, becomes
+part of the admitted corpus, is served immediately by retrieval memory when the
+corpus can answer it, and only becomes a weight-update candidate after it has a
+verifiable source. The lifecycle is:
+
+```text
+new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+```
+
+In this design, retrieval memory is not a shortcut around learning. It is the
+first reliable expression of the model's closed world. Weight consolidation is
+the slower step that teaches the neural model language behavior, routing,
+paraphrase tolerance, compression, and generalization over that world. An update
+is accepted only when evaluation shows it improved the target behavior without
+violating the corpus boundary or regressing prior evidence.
+
 ## Tokenizer
 
 QuarkLM already has its own tokenizer. `closed_world_lm.tokenizer.CharTokenizer`
@@ -34,9 +59,10 @@ transformer built without PyTorch, JAX, Hugging Face, pretrained checkpoints, or
 pretrained tokenizers. It starts from random weights and trains with a small
 standard-library scalar autodiff engine.
 
-The transformer is not yet the reliable answering path. It is the first
-architecture checkpoint for growing beyond the earlier character MLP while
-keeping the same closed-world boundary.
+The transformer is not yet the reliable answering path. It is the weight
+consolidation path: the component that should gradually learn from admitted
+training candidates after retrieval memory has made the knowledge available and
+evaluation can reject harmful updates.
 
 ## Why So Small?
 
