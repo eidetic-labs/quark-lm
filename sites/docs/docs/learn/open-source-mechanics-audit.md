@@ -188,6 +188,13 @@ attempts, `6` fallbacks, and `1` accepted profile-specific update shape while
 keeping retrieval exact and promotion blocked. The next mechanics change should
 use those per-profile deltas to repair `paraphrases`, `owner`, and re-emergent
 `glossary` collapse without relaxing branch-diversity gates.
+v0.112.0 adds the missing diagnostic layer before that repair. It cross-checks
+external work on degeneration, unlikelihood, diverse decoding, class-balanced
+losses, contrastive learning, and transparent open-model practice, then records
+`branch_diversity_target.root_cause` in the run artifact. The current failure
+is a critical `target_routing_gap`, not merely a diversity-knob miss, so the
+next mechanics change should audit routing and representation before adding
+another objective.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

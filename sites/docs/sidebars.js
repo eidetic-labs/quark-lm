@@ -10,6 +10,7 @@ const sidebars = {
         'learn/self-improvement-loop',
         'learn/research-grounding',
         'learn/open-source-mechanics-audit',
+        'learn/branch-diversity-research',
         'learn/forward-research-plan',
         'learn/deep-research-review',
         'learn/research-implementation-map',

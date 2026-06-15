@@ -1139,6 +1139,18 @@ acceptances, `18` rejections, and `6` fallbacks. The guard records `1`
 accepted profile-specific update shape, but branch-diversity still blocks
 promotion.
 
+v0.112.0 adds branch-diversity root-cause diagnostics before another repair
+objective. The diagnostic screen in
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+keeps retrieval exact at `219/219`, records `24` profile-specific
+missing-token attempts with `0` direct acceptances and `8` fallbacks, and
+classifies the final branch-diversity failure as a critical
+`target_routing_gap`. The root-cause report records `9/9` failed profiles,
+`3` collapsed profiles, `1` zero-coverage profile, `6` buried-target profiles,
+and reused dominant tokens `"n"` and `"a"`. Branch-diversity still blocks
+promotion.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

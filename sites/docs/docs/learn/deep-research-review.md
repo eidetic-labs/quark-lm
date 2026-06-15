@@ -154,7 +154,13 @@ the same discipline before another major repair screen.
     rejections, `6` fallbacks, `1` accepted profile-specific update shape, and
     exact `219/219` retrieval; still rejects promotion on
     `branch_diversity_target`.
-42. **v0.112.0+:** per-profile acceptance-delta repair, tokenizer growth, or
+42. **v0.112.0:** branch-diversity root-cause diagnostics. Implemented with
+    external research grounding, root-cause taxonomy under
+    `branch_diversity_target.root_cause`, `24` guarded missing-token attempts,
+    `0` direct missing-token acceptances, `8` fallbacks, exact `219/219`
+    retrieval, and a critical `target_routing_gap` diagnosis; still rejects
+    promotion on `branch_diversity_target`.
+43. **v0.113.0+:** routing/logit/representation audit repair, tokenizer growth, or
     learned verifier experiments.
 
 ## Operating Rule

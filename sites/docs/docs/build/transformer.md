@@ -372,6 +372,20 @@ profile-specific update shape. Promotion still rejects on
 acceptance deltas to repair `paraphrases`, `owner`, and re-emergent `glossary`
 collapse.
 
+v0.112.0 pauses repair-objective churn and adds branch-diversity root-cause
+diagnostics. The diagnostic screen at
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`
+consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+and keeps retrieval exact at `219/219`. It records `24` memory-prioritized
+attempts with `8` acceptances and `16` rejections, plus `24` profile-specific
+missing-token attempts with `0` direct missing-token acceptances, `24`
+rejections, and `8` fallbacks. The new `branch_diversity_target.root_cause`
+report classifies the final failure as a critical `target_routing_gap`: `9/9`
+profiles fail, `3` remain collapsed, `1` has zero target-token coverage, and
+`6` have buried targets. Promotion still rejects on `branch_diversity_target`,
+so the next mechanic should audit routing, representation separation, and
+profile/target imbalance before adding another objective.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

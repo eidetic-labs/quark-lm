@@ -195,3 +195,14 @@ inside the profile-aware plan. v0.69 should be treated as forward strategy
 evidence. v0.70 should be treated as deep research evidence: it pauses
 objective churn until the self-improvement operating system around the trainer
 is explicit, tested, and grounded in the deeper cross-reference review.
+
+## v0.112 Addendum
+
+v0.112 adds the branch-diversity diagnostic layer that this audit was missing.
+The external research review shows that other systems often handle diversity
+with decoding strategies, unlikelihood penalties, class balancing,
+representation objectives, or transparent eval artifacts. QuarkLM cannot treat
+those as direct solutions because promotion requires closed-world target-token
+coverage in weights. The new root-cause report classifies the current failure
+as `target_routing_gap`, so the next mechanic should audit routing and
+representation evidence before introducing another objective.

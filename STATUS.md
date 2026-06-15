@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.111.0 profile-specific missing first-token screen;
+**Active version:** v0.112.0 branch-diversity root-cause diagnostic;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -46,6 +46,11 @@ Working tagline: Big idea. Tiny package.
 - Profile-specific missing first-token memory-consolidation targeting that maps
   each admitted source label to only the unresolved target profiles it can
   support before guarded weight updates are evaluated.
+- Branch-diversity root-cause diagnostics in
+  `src/closed_world_lm/branch_diversity_diagnostics.py`, classifying failed
+  profiles as global collapse, profile-local collapse, target-routing gaps,
+  target-rank burial, wrong diversity, or mixed gaps before another objective
+  is introduced.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -545,20 +550,20 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
-The run consumes the v0.110.0 `memory_consolidation_plan.json`, keeps target
-profiles `owner`, `paraphrases`, and `learning`, and maps admitted source
-labels to supported target profiles before applying missing-token pressure:
-`learning -> learning`, `owner -> owner/paraphrases`, and
-`color/place/training_data -> paraphrases`. Retrieval remains exact at
-`219/219`. Memory-prioritized consolidation records `16` attempts with `6`
-acceptances and `10` rejections; the profile-specific missing-token phase
-records `6` candidates, `18` attempts, `0` direct missing-token acceptances,
-`18` rejections, and `6` fallbacks, while the guard records `1` accepted
-profile-specific update shape. It uses no external model, no embeddings, no
-pretrained retriever, and no retrieval weight updates. The transformer remains
-blocked on `branch_diversity_target`; v0.111.0 proves profile-specific
-pressure is auditable, not neural promotion.
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
+The run consumes the v0.111.0 `memory_consolidation_plan.json`, targets
+`owner`, `paraphrases`, and `glossary`, keeps `retrieval_memory_report.json` at
+`219/219` exact retrieval, records `24` memory-prioritized attempts with `8`
+acceptances and `16` rejections, and records `24` profile-specific
+missing-token attempts with `0` direct missing-token acceptances, `24`
+rejections, and `8` fallbacks. The new root-cause diagnostic classifies the
+final branch failure as `target_routing_gap` with `critical` severity:
+`9/9` profiles fail, `3` profiles remain collapsed, `1` profile has zero
+target-token coverage, `6` profiles have buried targets, and dominant tokens
+are reused as `"n"` across `5` profiles and `"a"` across `4`. It uses no
+external model, no embeddings, no pretrained retriever, and no retrieval weight
+updates. The transformer remains blocked on `branch_diversity_target`;
+v0.112.0 proves the failure shape before the next repair objective.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

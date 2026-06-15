@@ -174,7 +174,16 @@ keeps retrieval exact at `219/219`, and still rejects neural promotion on
 `branch_diversity_target`. The next grounding point is using the profile map
 and acceptance deltas to repair remaining `paraphrases`, `owner`, and
 re-emergent `glossary` collapse without relaxing promotion gates.
+v0.112.0 pauses repair-objective churn and adds branch-diversity root-cause
+diagnostics grounded by external research. It consumes the v0.111.0 plan,
+targets `owner`, `paraphrases`, and `glossary`, records `24` guarded
+missing-token attempts with `0` direct missing-token acceptances and `8`
+fallbacks, keeps retrieval exact at `219/219`, and classifies the final failure
+as a critical `target_routing_gap`. The next grounding point is auditing logit
+priors, output-bias escape paths, prompt-to-branch representation separation,
+and profile/target imbalance before another branch objective is added.
 See
+[Branch diversity research](./branch-diversity-research.md),
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 

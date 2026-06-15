@@ -660,3 +660,15 @@ corpus-governance reports, candidate quarantine, verifier checks, replay
 extraction, training recipes, and constraint-first promotion gates. That is the
 structured path toward a model that can eventually say, truthfully and
 audibly: "I learned something new, and now it is part of my training data."
+
+## v0.112 Addendum
+
+v0.112 adds `BRANCH_DIVERSITY_RESEARCH.md`, a matching Docusaurus Learn page,
+and root-cause diagnostics under `branch_diversity_target.root_cause`. The
+diagnostic screen in
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`
+keeps retrieval exact at `219/219`, rejects neural promotion on
+`branch_diversity_target`, and classifies the final failure as a critical
+`target_routing_gap`. The next implementation should audit logit priors,
+output-bias escape paths, prompt-to-branch representation separation, and
+profile/target imbalance before adding another branch objective.

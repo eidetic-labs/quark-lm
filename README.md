@@ -623,6 +623,22 @@ profile-specific update shape. Promotion is still correctly blocked by
 `branch_diversity_target`, so the run is diagnostic evidence, not a promoted
 neural model.
 
+v0.112.0 pauses objective churn and adds branch-diversity root-cause
+diagnostics. The research artifact `BRANCH_DIVERSITY_RESEARCH.md` and matching
+Docusaurus Learn page compare QuarkLM's branch collapse with external work on
+text degeneration, unlikelihood training, diversity-aware decoding,
+class-balanced losses, supervised contrastive learning, and transparent open
+LLM training. The diagnostic screen ran at
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
+It consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+keeps retrieval exact at `219/219`, records `24` profile-specific
+missing-token attempts with `0` direct missing-token acceptances and `8`
+fallbacks, and classifies the final branch-diversity failure as a critical
+`target_routing_gap`. The root-cause report records `9/9` failed profiles,
+`3` collapsed profiles, `1` zero-coverage profile, `6` buried-target profiles,
+and dominant-token reuse split across `"n"` and `"a"`. Promotion remains
+blocked by `branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1371,6 +1387,14 @@ Current transformer answer-lesson run:
   records `6` missing-token candidates, `18` attempts, `0` direct missing-token
   acceptances, `18` rejections, and `6` fallbacks, keeps retrieval at
   `219/219`, and still rejects neural promotion on `branch_diversity_target`.
+- v0.112.0 adds branch-diversity root-cause diagnostics and external research
+  grounding. The diagnostic run
+  `runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`
+  consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and `glossary`,
+  records `24` profile-specific missing-token attempts with `0` direct
+  acceptances, `24` rejections, and `8` fallbacks, keeps retrieval at
+  `219/219`, and classifies the final branch-diversity failure as a critical
+  `target_routing_gap`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1668,9 +1692,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.111.0 profile-specific evidence to repair zero-coverage
-   `paraphrases`, remaining `owner` collapse, and the re-emergent `glossary`
-   collapse without relaxing coverage or branch-diversity gates.
+5. Use v0.112.0 root-cause evidence to audit global logit priors,
+   output-bias escape paths, prompt-to-branch representation separation, and
+   profile/target imbalance before adding another branch repair objective.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

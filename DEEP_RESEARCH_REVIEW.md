@@ -632,3 +632,14 @@ tiny transformer from scratch. The valuable research claim is a closed-world
 learning lifecycle in which every new belief has provenance, every generated
 candidate is quarantined, every weight update is measured, and every promotion
 can be rejected when it improves one score by damaging the learner's world.
+
+## v0.112 Addendum
+
+v0.112 adds external branch-diversity research and root-cause diagnostics. The
+new artifact compares QuarkLM's repeated branch-collapse failures with work on
+text degeneration, unlikelihood training, diverse decoding, class-balanced
+losses, supervised contrastive learning, and transparent open-model practice.
+The v0.112 screen records a critical `target_routing_gap`, not a promotable
+model improvement. The next repair should be selected only after routing,
+logit-prior, representation-separation, and profile/target-imbalance evidence
+identifies the actual bottleneck.

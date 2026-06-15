@@ -411,3 +411,12 @@ attempts, keeps retrieval exact at `219/219`, and still rejects promotion on
 `branch_diversity_target`. The next repair should use those target maps and
 acceptance deltas to recover `paraphrases`, `owner`, and re-emergent `glossary`
 target-token diversity without weakening constraint-first promotion.
+
+v0.112.0 pauses that repair and adds root-cause diagnostics in
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
+The run consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and
+`glossary`, keeps retrieval exact at `219/219`, records `24` guarded
+missing-token attempts with `0` direct missing-token acceptances, and classifies
+the final branch failure as a critical `target_routing_gap`. The next repair
+should audit logit priors, output-bias escape paths, representation separation,
+and profile/target imbalance before introducing another branch objective.

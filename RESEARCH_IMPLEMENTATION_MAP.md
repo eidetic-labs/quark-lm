@@ -446,3 +446,13 @@ structured are required. The next implementation work should be driven by this
 map. QuarkLM's novelty depends on the whole lifecycle: admitted data,
 quarantined candidates, deterministic verification, auditable weight updates,
 constraint-first promotion, and transparent docs that move with every version.
+
+## v0.112 Addendum
+
+v0.112 implements branch-diversity root-cause diagnostics and records the
+current failed transformer screen at
+`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
+It adds `BRANCH_DIVERSITY_RESEARCH.md`, `sites/docs/docs/learn/branch-diversity-research.md`,
+and a `branch_diversity_target.root_cause` report. The current diagnosis is a
+critical `target_routing_gap`; the next map item is routing/logit/representation
+audit repair before another branch objective.

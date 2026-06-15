@@ -29,6 +29,7 @@ from .answer_model import (
     semantic_feature_names,
     write_lessons,
 )
+from .branch_diversity_diagnostics import branch_diversity_root_cause_summary
 from .candidate_quarantine import (
     build_candidate_quarantine_manifest,
     candidate_quarantine_summary,
@@ -4718,6 +4719,7 @@ def summarize_branch_diversity_target(
             else 0.0
         ),
         "blocking_evals": blocking_evals,
+        "root_cause": branch_diversity_root_cause_summary(branch_profiles),
     }
 
 

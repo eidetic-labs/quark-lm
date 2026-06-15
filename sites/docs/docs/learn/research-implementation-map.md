@@ -137,7 +137,13 @@ direct-answer objective mode:
    rejections, `6` fallbacks, `1` accepted profile-specific update shape, and
    exact `219/219` retrieval; rejected for promotion on
    `branch_diversity_target`.
-38. **v0.112.0+:** per-profile acceptance-delta repair, tokenizer growth, or
+38. **v0.112.0:** branch-diversity root-cause diagnostics. Implemented with
+   `BRANCH_DIVERSITY_RESEARCH.md`, Learn docs, root-cause taxonomy under
+   `branch_diversity_target.root_cause`, `24` profile-specific missing-token
+   attempts, `0` direct missing-token acceptances, `8` fallbacks, exact
+   `219/219` retrieval, and a critical `target_routing_gap` diagnosis;
+   rejected for promotion on `branch_diversity_target`.
+39. **v0.113.0+:** routing/logit/representation audit repair, tokenizer growth, or
    learned verifier experiments.
 
 ## Current Gap
@@ -230,13 +236,15 @@ QuarkLM already has:
   `runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
 - v0.111.0 profile-specific remaining-collapsed missing-token evidence:
   `runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+- v0.112.0 branch-diversity root-cause evidence:
+  `runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
 
 It still needs:
 
-- per-profile repair that uses v0.111.0 target-map and acceptance-delta evidence
-  to improve zero-coverage `paraphrases`, remaining `owner` collapse, and
-  re-emergent `glossary` collapse without regressing retrieval provenance or
-  relaxing promotion gates.
+- routing/logit/representation audit repair that uses v0.112.0 root-cause
+  evidence to improve zero-coverage `paraphrases`, collapsed `owner` and
+  `learning`, and buried-target profiles without regressing retrieval
+  provenance or relaxing promotion gates.
 
 ## Operating Rule
 

@@ -63,9 +63,10 @@ the update improves behavior without breaking older evidence.
 | [Self-improvement loop](./self-improvement-loop.md) | You want the corpus-to-memory-to-weight-update lifecycle. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
 | [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.111.0 profile-specific consolidation screen. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.111.0 consolidation handoff. |
-| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.111.0 memory-consolidation evidence. |
+| [Branch diversity research](./branch-diversity-research.md) | You want the v0.112 root-cause taxonomy and external research on branch collapse. |
+| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.112.0 branch-diversity root-cause screen. |
+| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.112.0 root-cause handoff. |
+| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.112.0 branch-diversity evidence. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
 
 ## Core Idea
