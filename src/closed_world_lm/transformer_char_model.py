@@ -47,7 +47,6 @@ from .corpus_hygiene import (
     write_json_artifact,
 )
 from .experiment_registry import (
-    ExperimentIntent,
     record_experiment_decision,
     write_experiment_intent,
 )
@@ -64,17 +63,36 @@ from .replay_plan import (
 from .tokenizer import CharTokenizer
 from .training_recipe import (
     attach_recipe_summary,
-    build_training_recipe,
     transformer_constraint_report,
     write_constraint_first_report,
     write_training_recipe,
+)
+from .transformer_experiment import (
+    TRAINING_DATA_DESCRIPTION,
+    TRANSFORMER_RECIPE_VERSION,
+    TransformerRunArtifacts,
+    direct_answer_is_profile_aware,
+    is_profile_aware_direct_answer_mode,
+    parse_experiment_gate,
+    transformer_experiment_acceptance_gates,
+    transformer_experiment_decision,
+    transformer_experiment_intent,
+    transformer_training_recipe as build_transformer_training_recipe,
+    transformer_training_recipe_id,
+)
+from .transformer_objectives import (
+    DIRECT_ANSWER_OBJECTIVE_MODES,
+)
+from .transformer_training import (
+    JsonlHistoryWriter,
+    LossAccumulator,
+    ShuffledTrainingCursor,
 )
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_RUN_DIR = PROJECT_DIR / "runs" / "transformer-latest"
 DEFAULT_CHECKPOINT = DEFAULT_RUN_DIR / "transformer.json"
-TRANSFORMER_RECIPE_VERSION = "v0.77"
 DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "qa.jsonl",
     PROJECT_DIR / "evals" / "unknowns.jsonl",
@@ -82,10 +100,6 @@ DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "paraphrases.jsonl",
 ]
 ANSWER_TERMINATOR = "\n"
-PROFILE_AWARE_DIRECT_ANSWER_MODES = {
-    "branch-context-profile-coverage-preserving-deficit-unlikelihood",
-    "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
-}
 
 
 @dataclass
@@ -3352,169 +3366,6 @@ def ensure_curriculum(corpus_path: Path, valid_path: Path) -> None:
     write_curriculum(curriculum, DEFAULT_OUTPUT_DIR)
 
 
-def parse_experiment_gate(raw_gate: str) -> dict[str, Any]:
-    if ":" in raw_gate:
-        name, rule = raw_gate.split(":", 1)
-    else:
-        name = raw_gate
-        rule = raw_gate
-    name = name.strip().replace(" ", "_")
-    rule = rule.strip()
-    if not name or not rule:
-        raise ValueError("experiment gates must be formatted as name:rule")
-    return {"name": name, "rule": rule, "required": True}
-
-
-def is_profile_aware_direct_answer_mode(mode: str) -> bool:
-    return mode in PROFILE_AWARE_DIRECT_ANSWER_MODES
-
-
-def transformer_training_recipe_id(args: argparse.Namespace) -> str:
-    mode = (
-        getattr(args, "direct_answer_mode", "target-loss")
-        if getattr(args, "direct_answer_steps", 0) > 0
-        else "target-loss"
-    )
-    return f"transformer-answer:{mode}:{TRANSFORMER_RECIPE_VERSION}"
-
-
-def transformer_experiment_acceptance_gates(args: argparse.Namespace) -> list[dict[str, Any]]:
-    gates = [
-        {
-            "name": "baseline_snapshot_recorded",
-            "rule": "Record a step-0 baseline before training updates.",
-            "required": True,
-        },
-        {
-            "name": "final_snapshot_recorded",
-            "rule": "Record a final snapshot after training updates.",
-            "required": True,
-        },
-        {
-            "name": "closed_world_training_data",
-            "rule": "Use only corpus-derived AnswerExample lessons and declared eval probes.",
-            "required": True,
-        },
-        {
-            "name": "training_recipe",
-            "rule": "A recipe artifact must bind model, data, objective, optimizer, artifacts, and gates.",
-            "required": True,
-        },
-        {
-            "name": "closed_world_verifier",
-            "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
-            "required": True,
-        },
-        {
-            "name": "constraint_first_promotion",
-            "rule": "Loss, NLL, rank, and top-k evidence may influence promotion only after constraints pass.",
-            "required": True,
-        },
-        {
-            "name": "no_pretrained_weights",
-            "rule": (
-                "Initialize transformer weights randomly or from declared "
-                "QuarkLM checkpoints only."
-            ),
-            "required": True,
-        },
-        {
-            "name": "no_pretrained_tokenizer",
-            "rule": "Train the tokenizer from admitted corpus text.",
-            "required": True,
-        },
-        {
-            "name": "no_external_embeddings",
-            "rule": "Do not import external embeddings or pretrained representation tables.",
-            "required": True,
-        },
-    ]
-    if getattr(args, "direct_answer_steps", 0) > 0:
-        gates.extend(
-            [
-                {
-                    "name": "branch_context_gate_recorded",
-                    "rule": "Record semantic branch-context coverage for direct-answer screens.",
-                    "required": True,
-                },
-                {
-                    "name": "branch_diversity_recorded",
-                    "rule": "Record branch diversity for each direct-answer snapshot.",
-                    "required": True,
-                },
-                {
-                    "name": "target_coverage_recorded",
-                    "rule": "Record target coverage by branch profile.",
-                    "required": True,
-                },
-            ]
-        )
-    gates.extend(
-        parse_experiment_gate(raw_gate)
-        for raw_gate in (getattr(args, "experiment_acceptance_gate", None) or [])
-    )
-    return gates
-
-
-def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
-    hypothesis = getattr(args, "experiment_hypothesis", None) or (
-        "A tiny decoder-only transformer can improve corpus-derived answer "
-        "evidence under declared gates without leaving the closed-world data boundary."
-    )
-    notes = list(getattr(args, "experiment_note", None) or [])
-    notes.append("Eval probe paths are declared for measurement, not as hidden training data.")
-    failure_criteria = [
-        "Metrics omit baseline or final snapshots.",
-        "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
-        "Direct-answer screens omit branch-context, branch-diversity, or target-coverage evidence.",
-        "A screen writes checkpoints without experiment intent and metrics artifacts.",
-        "A screen writes checkpoints without a matching training recipe artifact.",
-        "The deterministic closed-world verifier rejects the training plan.",
-        "The constraint-first promotion gate rejects the run before quality metrics are eligible.",
-    ]
-    failure_criteria.extend(getattr(args, "experiment_failure_criterion", None) or [])
-    direct_profile_aware = (
-        getattr(args, "direct_answer_steps", 0) > 0
-        and is_profile_aware_direct_answer_mode(getattr(args, "direct_answer_mode", ""))
-    )
-    planned_artifacts = [
-        str(args.run / "transformer_answer.json"),
-        str(args.run / "optimizer_state.json"),
-        str(args.run / "tokenizer.json"),
-        str(args.run / "corpus_hygiene.json"),
-        str(args.run / "training_plan.json"),
-        str(args.run / "training_recipe.json"),
-        str(args.run / "candidate_quarantine.json"),
-        str(args.run / "closed_world_verifier.json"),
-        str(args.run / "constraint_first_promotion.json"),
-        str(args.run / "transformer_answer_metrics.json"),
-        str(args.run / "transformer_answer_metrics.jsonl"),
-        str(args.run / "transformer_answer_lessons.jsonl"),
-        str(args.run / "experiment_intent.json"),
-    ]
-    if direct_profile_aware:
-        planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
-    intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", TRANSFORMER_RECIPE_VERSION),
-        run_id=args.run.name,
-        component="transformer-answer-train",
-        hypothesis=hypothesis,
-        allowed_data_sources=[
-            str(args.train_text),
-            str(args.valid),
-            str(args.corpus_dir),
-            *[str(path) for path in DEFAULT_ANSWER_EVALS],
-        ],
-        planned_artifacts=planned_artifacts,
-        training_recipe_id=transformer_training_recipe_id(args),
-        acceptance_gates=transformer_experiment_acceptance_gates(args),
-        failure_criteria=failure_criteria,
-        replay_plan_id="direct_answer_replay_plan.json" if direct_profile_aware else None,
-        notes=notes,
-    )
-    return intent.to_record()
-
-
 def transformer_training_recipe(
     args: argparse.Namespace,
     tokenizer: CharTokenizer,
@@ -3522,179 +3373,15 @@ def transformer_training_recipe(
     acceptance_gates: list[dict[str, Any]],
     replay_plan_path: Path | None = None,
 ) -> dict[str, Any]:
-    direct_enabled = args.direct_answer_steps > 0
-    return build_training_recipe(
-        version=getattr(args, "experiment_version", TRANSFORMER_RECIPE_VERSION),
-        component="transformer-answer-train",
-        run_id=args.run.name,
-        recipe_id=transformer_training_recipe_id(args),
-        purpose=(
-            "Train a tiny decoder-only transformer from admitted corpus text and "
-            "evaluate reliable-answer behavior under constraint-first gates."
-        ),
-        model={
-            "architecture": "tiny-decoder-only-transformer",
-            "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
-            "initialization": (
-                "declared QuarkLM checkpoint"
-                if args.resume_checkpoint is not None
-                else "random"
-            ),
-            "resume_checkpoint": (
-                str(args.resume_checkpoint)
-                if args.resume_checkpoint is not None
-                else None
-            ),
-            "pretrained_weights": False,
-        },
-        tokenizer={
-            "type": "closed_world_lm.tokenizer.CharTokenizer",
-            "source": str(args.train_text),
-            "vocab_size": tokenizer.vocab_size,
-            "pretrained_tokenizer": False,
-        },
-        data={
-            "train_text": str(args.train_text),
-            "valid_text": str(args.valid),
-            "corpus_dir": str(args.corpus_dir),
-            "eval_sets": [str(path) for path in DEFAULT_ANSWER_EVALS],
-            "training_examples": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
-        },
-        objective={
-            "target_loss": {
-                "steps": args.steps,
-                "learning_rate": args.learning_rate,
-                "eval_every": args.eval_every,
-                "target_loss_weight": args.target_loss_weight,
-                "choice_loss_weight": args.choice_loss_weight,
-                "choice_negatives": args.choice_negatives,
-            },
-            "direct_answer": {
-                "enabled": direct_enabled,
-                "steps": args.direct_answer_steps,
-                "mode": args.direct_answer_mode,
-                "learning_rate": args.direct_answer_learning_rate,
-                "branch_position": args.direct_answer_branch_position,
-                "branch_span": args.direct_answer_branch_span,
-                "snapshot_mode": args.direct_answer_snapshot_mode,
-                "require_branch_context_gate": (
-                    args.direct_answer_require_branch_context_gate
-                ),
-            },
-            "generation": asdict(generation_config_from_args(args)),
-        },
-        optimizer=asdict(optimization_config_from_args(args)),
-        replay={
-            "status": "planned" if replay_plan_path is not None else "not_applicable",
-            "path": str(replay_plan_path) if replay_plan_path is not None else None,
-            "profile_aware": (
-                direct_enabled
-                and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
-            ),
-        },
-        artifacts=planned_artifacts,
-        gates=acceptance_gates,
-        rerun={
-            "entry_point": "quark-lm-transformer answer-train",
-            "arguments": {
-                "train_text": str(args.train_text),
-                "valid": str(args.valid),
-                "corpus_dir": str(args.corpus_dir),
-                "run": str(args.run),
-                "steps": args.steps,
-                "context_size": args.context_size,
-                "embedding_dim": args.embedding_dim,
-                "feedforward_dim": args.feedforward_dim,
-                "direct_answer_steps": args.direct_answer_steps,
-                "direct_answer_mode": args.direct_answer_mode,
-                "seed": args.seed,
-            },
-        },
-        notes=["Recipe uses admitted corpus text, corpus-trained tokenizer, and no external model."],
-    )
-
-
-def transformer_experiment_decision(
-    metrics: dict[str, Any],
-) -> tuple[str, str, list[dict[str, Any]]]:
-    constraint_gate = metrics.get("constraint_first_promotion", {})
-    evidence = [
-        {"name": "baseline_snapshot_recorded", "passed": bool(metrics.get("baseline"))},
-        {"name": "final_snapshot_recorded", "passed": bool(metrics.get("final"))},
-        {
-            "name": "closed_world_training_data",
-            "passed": metrics.get("training_data")
-            == "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
-        },
-        {
-            "name": "closed_world_verifier",
-            "passed": metrics.get("closed_world_verifier", {}).get("passed") is True,
-        },
-        {
-            "name": "training_recipe",
-            "passed": "training_recipe" in metrics,
-        },
-        {
-            "name": "constraint_first_promotion",
-            "passed": constraint_gate.get("passed") is True,
-            "status": constraint_gate.get("status"),
-        },
-        {"name": "no_pretrained_weights", "passed": metrics.get("pretrained_weights") is False},
-        {
-            "name": "no_pretrained_tokenizer",
-            "passed": metrics.get("pretrained_tokenizer") is False,
-        },
-        {"name": "no_external_embeddings", "passed": metrics.get("external_embeddings") is False},
-    ]
-    direct_answer = metrics.get("direct_answer")
-    if isinstance(direct_answer, dict):
-        branch_gate = direct_answer.get("direct_answer_branch_context_gate")
-        final_snapshot = direct_answer.get("final", {})
-        diversity = final_snapshot.get("branch_diversity_target", {})
-        coverage = final_snapshot.get("branch_target_coverage_by_profile", {})
-        evidence.extend(
-            [
-                {
-                    "name": "branch_context_gate_recorded",
-                    "passed": isinstance(branch_gate, dict),
-                },
-                {
-                    "name": "branch_diversity_recorded",
-                    "passed": isinstance(diversity, dict),
-                },
-                {
-                    "name": "target_coverage_recorded",
-                    "passed": isinstance(coverage, dict),
-                },
-            ]
-        )
-        if isinstance(branch_gate, dict):
-            evidence.append(
-                {
-                    "name": "branch_context_gate",
-                    "passed": bool(branch_gate.get("passed")),
-                }
-            )
-        if isinstance(diversity, dict):
-            evidence.append(
-                {
-                    "name": "branch_diversity_target",
-                    "passed": bool(diversity.get("passed")),
-                }
-            )
-    if constraint_gate.get("passed") is True:
-        return (
-            "promoted",
-            "Transformer run passed the constraint-first promotion gate.",
-            evidence,
-        )
-    return (
-        "rejected",
-        (
-            "Transformer run rejected by the constraint-first promotion gate; "
-            "quality metrics cannot promote unless constraints pass first."
-        ),
-        evidence,
+    return build_transformer_training_recipe(
+        args,
+        tokenizer,
+        planned_artifacts,
+        acceptance_gates,
+        asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
+        asdict(optimization_config_from_args(args)),
+        asdict(generation_config_from_args(args)),
+        replay_plan_path,
     )
 
 
@@ -3883,81 +3570,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     answer_parser.add_argument(
         "--direct-answer-mode",
-        choices=[
-            "first-error",
-            "first-error-unlikelihood",
-            "random-char",
-            "rollout-unlikelihood",
-            "hybrid-unlikelihood",
-            "staged-unlikelihood",
-            "periodic-rollout-unlikelihood",
-            "early-stop-unlikelihood",
-            "periodic-early-stop-unlikelihood",
-            "repeat-loop-unlikelihood",
-            "periodic-repeat-loop-unlikelihood",
-            "balanced-repair-unlikelihood",
-            "periodic-balanced-repair-unlikelihood",
-            "generated-prefix-recovery-unlikelihood",
-            "periodic-generated-prefix-recovery-unlikelihood",
-            "sequence-repair-unlikelihood",
-            "periodic-sequence-repair-unlikelihood",
-            "loop-escape-unlikelihood",
-            "periodic-loop-escape-unlikelihood",
-            "periodic-sequence-loop-escape-unlikelihood",
-            "branch-repair-unlikelihood",
-            "periodic-branch-repair-unlikelihood",
-            "branch-collapse-unlikelihood",
-            "periodic-branch-collapse-unlikelihood",
-            "branch-batch-contrast-unlikelihood",
-            "periodic-branch-batch-contrast-unlikelihood",
-            "branch-diversity-unlikelihood",
-            "periodic-branch-diversity-unlikelihood",
-            "branch-target-softmax-unlikelihood",
-            "periodic-branch-target-softmax-unlikelihood",
-            "branch-target-margin-unlikelihood",
-            "periodic-branch-target-margin-unlikelihood",
-            "branch-representation-contrast-unlikelihood",
-            "branch-balanced-representation-contrast-unlikelihood",
-            "branch-output-binding-unlikelihood",
-            "branch-bidirectional-binding-unlikelihood",
-            "branch-balanced-bidirectional-binding-unlikelihood",
-            "branch-coverage-binding-unlikelihood",
-            "branch-balanced-coverage-binding-unlikelihood",
-            "branch-target-set-coverage-unlikelihood",
-            "branch-balanced-target-set-coverage-unlikelihood",
-            "branch-target-diversity-unlikelihood",
-            "branch-balanced-target-diversity-unlikelihood",
-            "branch-target-replay-coverage-unlikelihood",
-            "branch-balanced-target-replay-coverage-unlikelihood",
-            "branch-context-replay-coverage-unlikelihood",
-            "branch-balanced-context-replay-coverage-unlikelihood",
-            "branch-context-coverage-anchor-unlikelihood",
-            "branch-balanced-context-coverage-anchor-unlikelihood",
-            "branch-context-target-balanced-anchor-unlikelihood",
-            "branch-balanced-context-target-balanced-anchor-unlikelihood",
-            "branch-context-coverage-deficit-unlikelihood",
-            "branch-balanced-context-coverage-deficit-unlikelihood",
-            "branch-context-coverage-preserving-deficit-unlikelihood",
-            "branch-balanced-context-coverage-preserving-deficit-unlikelihood",
-            "branch-context-profile-coverage-preserving-deficit-unlikelihood",
-            "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
-            "branch-rank-margin-unlikelihood",
-            "branch-balanced-rank-margin-unlikelihood",
-            "branch-topk-softmax-unlikelihood",
-            "branch-balanced-topk-softmax-unlikelihood",
-            "periodic-branch-representation-contrast-unlikelihood",
-            "branch-span-repair-unlikelihood",
-            "periodic-branch-span-repair-unlikelihood",
-            "branch-contrast-unlikelihood",
-            "periodic-branch-contrast-unlikelihood",
-            "branch-span-contrast-unlikelihood",
-            "periodic-branch-span-contrast-unlikelihood",
-            "hard-branch-contrast-unlikelihood",
-            "periodic-hard-branch-contrast-unlikelihood",
-            "periodic-branch-repair-contrast-unlikelihood",
-            "periodic-branch-span-repair-contrast-unlikelihood",
-            "periodic-hard-branch-repair-contrast-unlikelihood",
-        ],
+        choices=DIRECT_ANSWER_OBJECTIVE_MODES,
         default="first-error",
         help="Direct transformer update policy for greedy answer completion.",
     )
@@ -7559,39 +7172,27 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     generation_config = generation_config_from_args(args)
     rng = random.Random(args.seed)
     args.run.mkdir(parents=True, exist_ok=True)
-    experiment_path = args.run / "experiment_intent.json"
+    artifacts = TransformerRunArtifacts.from_run(
+        args.run,
+        direct_profile_aware=direct_answer_is_profile_aware(args),
+    )
+    experiment_path = artifacts.experiment_intent
     experiment_intent = transformer_experiment_intent(args)
     write_experiment_intent(experiment_path, experiment_intent)
-    hygiene_path = args.run / "corpus_hygiene.json"
-    training_plan_path = args.run / "training_plan.json"
-    training_recipe_path = args.run / "training_recipe.json"
-    candidate_quarantine_path = args.run / "candidate_quarantine.json"
-    verifier_path = args.run / "closed_world_verifier.json"
-    constraint_first_path = args.run / "constraint_first_promotion.json"
+    hygiene_path = artifacts.corpus_hygiene
+    training_plan_path = artifacts.training_plan
+    training_recipe_path = artifacts.training_recipe
+    candidate_quarantine_path = artifacts.candidate_quarantine
+    verifier_path = artifacts.closed_world_verifier
+    constraint_first_path = artifacts.constraint_first_promotion
     candidate_quarantine = build_candidate_quarantine_manifest(
         "transformer-answer-train",
         args.run.name,
     )
     write_candidate_quarantine(candidate_quarantine_path, candidate_quarantine)
     candidate_summary = candidate_quarantine_summary(candidate_quarantine)
-    planned_replay_path = (
-        args.run / "direct_answer_replay_plan.json"
-        if args.direct_answer_steps > 0
-        and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
-        else None
-    )
-    planned_artifacts = [
-        args.run / "transformer_answer.json",
-        args.run / "optimizer_state.json",
-        args.run / "tokenizer.json",
-        hygiene_path,
-        training_plan_path,
-        training_recipe_path,
-        candidate_quarantine_path,
-        verifier_path,
-        constraint_first_path,
-        args.run / "transformer_answer_metrics.json",
-    ]
+    planned_replay_path = artifacts.replay_plan
+    planned_artifacts = artifacts.training_plan_artifacts()
     training_recipe = transformer_training_recipe(
         args,
         tokenizer,
@@ -7644,9 +7245,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     write_json_artifact(training_plan_path, training_plan)
     if not closed_world_verifier["passed"]:
         raise ValueError("closed-world verifier rejected the training plan")
-    history_path = args.run / "transformer_answer_metrics.jsonl"
-    lessons_path = args.run / "transformer_answer_lessons.jsonl"
+    history_path = artifacts.metrics_history
+    lessons_path = artifacts.lessons
     write_lessons(examples, lessons_path)
+    history_writer = JsonlHistoryWriter(history_path)
     eval_records = {
         path.stem: read_jsonl(path)
         for path in DEFAULT_ANSWER_EVALS
@@ -7701,26 +7303,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 for name, records in sorted(eval_records.items())
             },
         }
-        with history_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, sort_keys=True) + "\n")
-        return record
+        return history_writer.append(record)
 
     baseline = snapshot(0, None)
-    running_loss = 0.0
-    running_target_loss = 0.0
-    running_choice_loss = 0.0
-    running_choice_candidates = 0.0
+    loss_accumulator = LossAccumulator()
     last_snapshot = baseline
     last_snapshot_step = 0
-    pool_order = training_pool[:]
-    rng.shuffle(pool_order)
-    pool_index = 0
+    training_cursor = ShuffledTrainingCursor(training_pool, rng)
     for step in range(1, args.steps + 1):
-        if pool_index == len(pool_order):
-            rng.shuffle(pool_order)
-            pool_index = 0
-        example = pool_order[pool_index]
-        pool_index += 1
+        example = training_cursor.next()
         if args.choice_loss_weight > 0.0 or args.target_loss_weight != 1.0:
             step_result = train_answer_mixed_step(
                 model,
@@ -7734,40 +7325,30 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 args.choice_negatives,
                 args.choice_max_chars,
             )
-            running_loss += step_result["loss"]
-            running_target_loss += step_result["target_loss"]
-            running_choice_loss += step_result["choice_loss"]
-            running_choice_candidates += step_result["choice_candidate_count"]
+            loss_accumulator.add(
+                step_result["loss"],
+                step_result["target_loss"],
+                step_result["choice_loss"],
+                step_result["choice_candidate_count"],
+            )
         else:
             loss = train_answer_char(model, tokenizer, example, rng, args.learning_rate)
-            running_loss += loss
-            running_target_loss += loss
+            loss_accumulator.add(loss)
         if args.eval_every > 0 and step % args.eval_every == 0:
-            train_loss = running_loss / args.eval_every
-            train_target_loss = running_target_loss / args.eval_every
-            train_choice_loss = (
-                running_choice_loss / args.eval_every
-                if args.choice_loss_weight > 0.0
-                else None
-            )
-            train_choice_candidates = (
-                running_choice_candidates / args.eval_every
-                if args.choice_loss_weight > 0.0
-                else None
+            averages = loss_accumulator.average(
+                args.eval_every,
+                include_choice=args.choice_loss_weight > 0.0,
             )
             last_snapshot = snapshot(
                 step,
-                train_loss,
-                train_target_loss,
-                train_choice_loss,
-                train_choice_candidates,
+                averages["train_loss"],
+                averages["train_target_loss"],
+                averages["train_choice_loss"],
+                averages["train_choice_candidates"],
             )
             last_snapshot_step = step
-            print(f"step={step} train_loss={train_loss:.4f}")
-            running_loss = 0.0
-            running_target_loss = 0.0
-            running_choice_loss = 0.0
-            running_choice_candidates = 0.0
+            print(f"step={step} train_loss={averages['train_loss']:.4f}")
+            loss_accumulator.reset()
 
     if last_snapshot_step != args.steps:
         last_snapshot = snapshot(args.steps, None)
@@ -7796,6 +7377,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         }
         direct_rng = random.Random(args.seed + 307)
         direct_history_path = args.run / "direct_answer_metrics.jsonl"
+        direct_history_writer = JsonlHistoryWriter(direct_history_path)
         direct_profile_aware_targets = is_profile_aware_direct_answer_mode(
             args.direct_answer_mode
         )
@@ -7901,9 +7483,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             )
             if extra is not None:
                 record.update(extra)
-            with direct_history_path.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record, sort_keys=True) + "\n")
-            return record
+            return direct_history_writer.append(record)
 
         direct_baseline = direct_snapshot(0, None)
         best_direct_snapshot_step = 0
@@ -7944,9 +7524,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         running_direct_loss = 0.0
         last_direct_snapshot = direct_baseline
         last_direct_snapshot_step = 0
-        direct_pool_order = direct_training_pool[:]
-        direct_rng.shuffle(direct_pool_order)
-        direct_pool_index = 0
+        direct_training_cursor = ShuffledTrainingCursor(direct_training_pool, direct_rng)
         model.freeze_lower_layers_for_updates = (
             args.direct_answer_train_top_layer_only and model.config.num_layers > 1
         )
@@ -7958,11 +7536,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         if args.direct_answer_freeze_output_bias:
             direct_params = exclude_scalars(direct_params, model.bout)
         for direct_step in range(1, direct_steps_to_run + 1):
-            if direct_pool_index == len(direct_pool_order):
-                direct_rng.shuffle(direct_pool_order)
-                direct_pool_index = 0
-            example = direct_pool_order[direct_pool_index]
-            direct_pool_index += 1
+            example = direct_training_cursor.next()
             if args.direct_answer_mode == "first-error":
                 running_direct_loss += train_direct_answer_first_error(
                     model,
@@ -9625,7 +9199,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
-            "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+            "training_data": TRAINING_DATA_DESCRIPTION,
         }
 
     selector_metrics: dict[str, Any] | None = None
@@ -9633,6 +9207,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         selector = build_answer_selector(examples, args.seed + 101)
         selector_rng = random.Random(args.seed + 101)
         selector_history_path = args.run / "answer_selector_metrics.jsonl"
+        selector_history_writer = JsonlHistoryWriter(selector_history_path)
 
         def selector_snapshot(step: int, train_loss: float | None) -> dict[str, Any]:
             record = {
@@ -9652,24 +9227,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     for name, records in sorted(eval_records.items())
                 },
             }
-            with selector_history_path.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record, sort_keys=True) + "\n")
-            return record
+            return selector_history_writer.append(record)
 
         selector_baseline = selector_snapshot(0, None)
         running_selector_loss = 0.0
         last_selector_snapshot = selector_baseline
         last_selector_snapshot_step = 0
-        selector_pool_order = training_pool[:]
-        selector_rng.shuffle(selector_pool_order)
-        selector_pool_index = 0
+        selector_training_cursor = ShuffledTrainingCursor(training_pool, selector_rng)
         selector_candidates = selector.config.labels
         for selector_step in range(1, args.selector_steps + 1):
-            if selector_pool_index == len(selector_pool_order):
-                selector_rng.shuffle(selector_pool_order)
-                selector_pool_index = 0
-            example = selector_pool_order[selector_pool_index]
-            selector_pool_index += 1
+            example = selector_training_cursor.next()
             if args.selector_negatives > 0:
                 selector_batch = sampled_choice_candidates(
                     example.target,
@@ -9716,7 +9283,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
-            "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+            "training_data": TRAINING_DATA_DESCRIPTION,
         }
 
     generator_metrics: dict[str, Any] | None = None
@@ -9732,6 +9299,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         )
         generator_rng = random.Random(args.seed + 211)
         generator_history_path = args.run / "answer_generator_metrics.jsonl"
+        generator_history_writer = JsonlHistoryWriter(generator_history_path)
 
         def generator_snapshot(step: int, train_loss: float | None) -> dict[str, Any]:
             record = {
@@ -9747,9 +9315,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     for name, records in sorted(eval_records.items())
                 },
             }
-            with generator_history_path.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record, sort_keys=True) + "\n")
-            return record
+            return generator_history_writer.append(record)
 
         generator_baseline = generator_snapshot(0, None)
         generator_lessons = {
@@ -9767,15 +9333,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         running_generator_loss = 0.0
         last_generator_snapshot = generator_baseline
         last_generator_snapshot_step = 0
-        generator_pool_order = generator_training_pool[:]
-        generator_rng.shuffle(generator_pool_order)
-        generator_pool_index = 0
+        generator_training_cursor = ShuffledTrainingCursor(
+            generator_training_pool,
+            generator_rng,
+        )
         for generator_step in range(1, args.generator_steps + 1):
-            if generator_pool_index == len(generator_pool_order):
-                generator_rng.shuffle(generator_pool_order)
-                generator_pool_index = 0
-            example = generator_pool_order[generator_pool_index]
-            generator_pool_index += 1
+            example = generator_training_cursor.next()
             running_generator_loss += train_transformer_answer_generator_lesson(
                 generator,
                 generator_lessons[example],
@@ -9814,11 +9377,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
-            "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+            "training_data": TRAINING_DATA_DESCRIPTION,
         }
 
-    checkpoint_path = args.run / "transformer_answer.json"
-    optimizer_path = args.run / "optimizer_state.json"
+    checkpoint_path = artifacts.checkpoint
+    optimizer_path = artifacts.optimizer_state
     save_optimizer_state(optimizer_path, optimizer)
     checkpoint_metadata = transformer_run_metadata(
         args,
@@ -9828,7 +9391,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         resume_metadata,
     )
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
-    tokenizer.save(args.run / "tokenizer.json")
+    tokenizer.save(artifacts.tokenizer)
     metrics = {
         "architecture": "tiny-decoder-only-transformer",
         "checkpoint": str(checkpoint_path),
@@ -9890,12 +9453,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "closed_world_verifier_path": str(verifier_path),
         "constraint_first_promotion_path": str(constraint_first_path),
         "experiment_intent_path": str(experiment_path),
-        "metrics_path": str(args.run / "transformer_answer_metrics.json"),
+        "metrics_path": str(artifacts.metrics),
         "run_id": args.run.name,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
-        "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+        "training_data": TRAINING_DATA_DESCRIPTION,
     }
     metrics["constraint_first_promotion"] = transformer_constraint_report(metrics)
     write_constraint_first_report(
@@ -9910,7 +9473,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         evidence,
     )
     write_experiment_intent(experiment_path, metrics["experiment_intent"])
-    with (args.run / "transformer_answer_metrics.json").open("w", encoding="utf-8") as handle:
+    with artifacts.metrics.open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2, sort_keys=True)
         handle.write("\n")
     print(f"saved {checkpoint_path}")

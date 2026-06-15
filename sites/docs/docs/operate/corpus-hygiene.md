@@ -53,4 +53,6 @@ or proposed examples still must not become training data without a later
 admission and verification path. v0.76 adds `closed_world_verifier.json`, so
 the training plan can be approved or rejected before its evidence influences
 the next version. v0.77 adds `training_recipe.json`, so the plan also links the
-recipe that can reconstruct the run.
+recipe that can reconstruct the run. v0.78 adds transformer responsibility
+surfaces that consume the same training plan, recipe, verifier, and promotion
+artifacts without changing their names.

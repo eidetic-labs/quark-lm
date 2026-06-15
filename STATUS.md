@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.77 training recipes and constraint-first promotion gates; promoted
+**Active version:** v0.78 transformer responsibility surfaces; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -100,6 +100,13 @@ Working tagline: Big idea. Tiny package.
   `constraint_first_promotion.json`; transformer decisions cannot promote from
   loss, NLL, rank, or top-k evidence unless closed-world constraints pass
   first.
+- Transformer responsibility surfaces in
+  `src/closed_world_lm/transformer_experiment.py`,
+  `src/closed_world_lm/transformer_training.py`, and
+  `src/closed_world_lm/transformer_objectives.py`. Answer-training now keeps
+  artifact contracts, experiment/recipe decisions, JSONL snapshot writing,
+  shuffled training cursors, loss averaging, and the direct-answer objective
+  catalog behind narrow modules while preserving the public CLI.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -205,8 +212,9 @@ page. It cross-references transformer, continual-learning, small-data,
 self-generated-data, verifier, tokenizer, data-curation, transparent open-model,
 and public training-stack sources against QuarkLM's implementation gaps. The
 decision is to treat candidate quarantine as v0.75, deterministic verifier
-checks as v0.76, recipe and constraint-first promotion as v0.77, and transformer
-responsibility refactoring as v0.78 before another larger repair run.
+checks as v0.76, recipe and constraint-first promotion as v0.77, and the first
+transformer responsibility surfaces as v0.78 before deeper model/checkpoint
+extraction and another larger repair run.
 
 v0.75 adds `src/closed_world_lm/candidate_quarantine.py`, the Docusaurus
 Operate page for candidate quarantine, and `candidate_quarantine.json` artifacts
@@ -226,8 +234,16 @@ page for training recipes and constraint-first promotion, and
 self-improvement and transformer answer-training paths. Recipes bind model,
 tokenizer, data, objective, optimizer, artifacts, gates, replay status, and
 rerun surfaces. Constraint-first reports block quality metrics until
-closed-world constraints pass. The next code mechanic is v0.78 transformer
-responsibility refactoring behind the recipe and gate surfaces.
+closed-world constraints pass.
+
+v0.78 adds `src/closed_world_lm/transformer_experiment.py`,
+`src/closed_world_lm/transformer_training.py`, and
+`src/closed_world_lm/transformer_objectives.py`. Transformer answer-training
+keeps the CLI stable while extracting the artifact contract, intent/recipe
+decision logic, JSONL history writing, shuffled training cursors, loss
+averaging, and direct-answer objective catalog into narrow, separately tested
+surfaces. The next transformer mechanic is deeper model/checkpoint extraction
+before another objective-repair screen.
 
 ## Latest Evidence
 

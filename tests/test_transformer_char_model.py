@@ -5015,7 +5015,7 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertIn("custom_gate", gates)
         self.assertEqual(
             intent["training_recipe_id"],
-            "transformer-answer:branch-context-profile-coverage-preserving-deficit-unlikelihood:v0.77",
+            "transformer-answer:branch-context-profile-coverage-preserving-deficit-unlikelihood:v0.78",
         )
         self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
         self.assertIn(
@@ -5094,7 +5094,7 @@ class TransformerCharModelTest(unittest.TestCase):
             decay_steps=10,
             min_learning_rate=0.0,
             gradient_accumulation_steps=2,
-            experiment_version="v0.77",
+            experiment_version="v0.78",
         )
         tokenizer = CharTokenizer.train("abc")
 
@@ -5126,7 +5126,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "pretrained_tokenizer": False,
             "external_embeddings": False,
             "closed_world_verifier": {"passed": True},
-            "training_recipe": {"recipe_id": "transformer-answer:test:v0.77"},
+            "training_recipe": {"recipe_id": "transformer-answer:test:v0.78"},
             "constraint_first_promotion": {
                 "passed": False,
                 "status": "blocked_before_quality_metrics",

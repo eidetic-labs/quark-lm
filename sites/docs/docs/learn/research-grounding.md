@@ -62,8 +62,9 @@ system before more objective modes. v0.71 implements the experiment registry;
 v0.72 extracts replay planning; v0.73 adds corpus hygiene and training-plan
 artifacts; v0.74 adds the research implementation map; v0.75 adds candidate
 quarantine; v0.76 adds deterministic verifier checks; v0.77 adds training
-recipes and constraint-first promotion gates. The remaining work is transformer
-responsibility refactoring behind those surfaces. See
+recipes and constraint-first promotion gates; v0.78 adds transformer
+experiment/artifact surfaces, trainer utilities, and an objective catalog. The
+remaining work is deeper model/checkpoint extraction behind those surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -174,7 +175,8 @@ loops become fragile.
   planning; v0.73 added corpus hygiene and training plans; v0.74 added the
   research implementation map; v0.75 added candidate quarantine; v0.76 added
   verifier checks; v0.77 added training recipes and constraint-first promotion;
-  next is transformer responsibility refactoring.
+  v0.78 added transformer experiment/artifact surfaces, trainer utilities, and
+  an objective catalog. Next is deeper model/checkpoint extraction.
 
 ## Defer
 

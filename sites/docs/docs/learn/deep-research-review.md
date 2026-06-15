@@ -74,9 +74,10 @@ the same discipline before another major repair screen.
 5. **v0.75:** candidate quarantine. Implemented.
 6. **v0.76:** deterministic closed-world verifier. Implemented.
 7. **v0.77:** recipes and constraint-first promotion gates. Implemented.
-8. **v0.78+:** transformer responsibility refactor, new anti-collapse objective,
-   tokenizer growth, or learned
-   verifier experiments.
+8. **v0.78:** transformer experiment/artifact surfaces, trainer utilities,
+   and objective catalog. Implemented.
+9. **v0.79+:** deeper transformer model/checkpoint extraction, new
+   anti-collapse objective, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
 
@@ -95,5 +96,7 @@ v0.74 adds the [Research implementation map](./research-implementation-map.md)
 so the next mechanics are tied to sources, gaps, and acceptance evidence. v0.75
 adds candidate quarantine artifacts and lifecycle state. v0.76 adds
 deterministic closed-world verifier checks. v0.77 adds recipes and
-constraint-first promotion. The remaining required mechanic before another
-larger transformer screen is transformer responsibility refactoring.
+constraint-first promotion. v0.78 adds transformer experiment/artifact
+surfaces, trainer utilities, and an objective catalog. The remaining required
+mechanic before another larger transformer screen is deeper model/checkpoint
+extraction.

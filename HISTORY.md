@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.78
+
+- Extracted transformer experiment, artifact, trainer utility, and objective catalog surfaces.
+
 ## v0.77
 
 - Added training recipes and constraint-first promotion gates.

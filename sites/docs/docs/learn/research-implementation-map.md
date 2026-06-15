@@ -57,7 +57,8 @@ direct-answer objective mode:
 1. **v0.75:** candidate quarantine artifacts and lifecycle states. Implemented.
 2. **v0.76:** deterministic closed-world verifier checks. Implemented.
 3. **v0.77:** recipe objects and constraint-first promotion gates. Implemented.
-4. **v0.78:** transformer responsibility refactor behind those surfaces.
+4. **v0.78:** transformer responsibility surfaces for experiments,
+   artifacts, trainer utilities, and objective catalog. Implemented.
 5. **v0.79+:** anti-collapse objective, tokenizer growth, or learned verifier
    experiments.
 
@@ -71,11 +72,14 @@ QuarkLM already has:
 - v0.75 candidate quarantine artifacts and lifecycle states;
 - v0.76 deterministic closed-world verifier checks;
 - v0.77 recipe objects and constraint-first promotion gates.
+- v0.78 transformer experiment/artifact surfaces, trainer utilities, and
+  direct-answer objective catalog.
 
 It still needs:
 
-- transformer responsibility refactoring so model, training loop, objectives,
-  evals, recipes, gates, and reporting can evolve behind narrower modules.
+- deeper transformer model/checkpoint extraction so the model class,
+  checkpoint format, evals, and future objective repairs can evolve behind
+  narrower modules.
 
 ## Operating Rule
 

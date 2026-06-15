@@ -137,8 +137,18 @@ rerun surface so a screen is reproducible from an artifact rather than hidden
 argparse memory. Constraint-first promotion reports make quality metrics
 advisory until closed-world constraints pass; transformer runs can no longer
 promote from loss, NLL, rank, or top-k evidence ahead of verifier,
-contamination, branch-context, coverage, and diversity gates. Transformer
-responsibility refactoring moves to v0.78.
+contamination, branch-context, coverage, and diversity gates.
+
+v0.78 adds `src/closed_world_lm/transformer_experiment.py`,
+`src/closed_world_lm/transformer_training.py`, and
+`src/closed_world_lm/transformer_objectives.py`. Transformer answer-training
+now uses a shared artifact contract for intent, recipe, verifier,
+constraint-first, checkpoint, tokenizer, and metrics paths; JSONL snapshot
+writing, shuffled training cursors, and loss averaging live in small trainer
+utilities; and direct-answer objective names live in a testable objective
+catalog rather than inside the CLI parser. This is a responsibility-refactor
+checkpoint, not a model-quality claim. The next transformer mechanic is deeper
+model/checkpoint extraction before another objective-repair screen.
 
 ## Latest Evidence
 

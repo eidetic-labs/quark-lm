@@ -59,7 +59,7 @@ Not allowed:
 | Deterministic verifier | Verifier/process-supervision research and verifiable rewards | v0.76 writes `closed_world_verifier.json` and embeds verifier summaries in training plans. | Use verifier approval as the required pre-training integrity gate before recipes or promotion gates trust a run. |
 | Recipe layer | GPT-NeoX/OLMo/LitGPT recipe/config practice | v0.77 writes `training_recipe.json` for self-improvement and transformer answer-training paths. | Use recipe artifacts as the reproducible bridge between intent, training plans, replay, and promotion gates. |
 | Constraint-first promotion | Continual-learning forgetting literature and QuarkLM v0.68 rejection evidence | v0.77 writes `constraint_first_promotion.json` and makes transformer decisions depend on it. | Keep loss, NLL, rank, top-k, and exact quality checks advisory until closed-world constraints pass first. |
-| Transformer boundaries | nanoGPT keeps model and trainer readable; OLMo/GPT-NeoX separate configs, train/eval, data | `transformer_char_model.py` still owns too many responsibilities in one module. | Split model/config/checkpoint, training loop, direct-answer objective, eval, replay, recipe, and reporting surfaces after verifier/recipe gates are defined. |
+| Transformer boundaries | nanoGPT keeps model and trainer readable; OLMo/GPT-NeoX separate configs, train/eval, data | v0.78 extracts transformer experiment/artifact contracts, trainer utilities, and the direct-answer objective catalog; the model class and checkpoint format still live in `transformer_char_model.py`. | Continue splitting model/config/checkpoint and eval surfaces before another objective-repair screen. |
 | Learned verifier or repair policy | Self-reward/self-feedback work is promising but fragile | Current self-diagnosis is deterministic and explicitly `uses_external_model: false`. | Defer learned self-improvement until accepted/rejected candidate history and verifier evals exist. |
 
 ## Implementation Ladder
@@ -118,15 +118,18 @@ Acceptance:
 
 ### v0.78
 
-Refactor transformer responsibilities behind the new recipe and verifier
-surfaces.
+Implemented the first transformer responsibility refactor behind the new
+recipe and verifier surfaces. Added `transformer_experiment.py`,
+`transformer_training.py`, and `transformer_objectives.py`.
 
 Acceptance:
 
-- New objectives become small additions rather than broad edits across the
-  transformer monolith.
-- Tests target model, trainer, replay, verifier, recipe, and eval behavior
-  separately.
+- Artifact contracts, experiment intent, recipe creation, and promotion
+  decision logic are separate from the transformer monolith.
+- JSONL history writing, shuffled training cursors, and loss averaging are
+  separately tested trainer utilities.
+- Direct-answer objective names live in a testable objective catalog instead
+  of the CLI parser.
 
 ### v0.79+
 

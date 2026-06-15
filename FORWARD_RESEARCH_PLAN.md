@@ -445,10 +445,19 @@ answer-training runs now write `training_recipe.json` and
 `constraint_first_promotion.json`, and transformer decisions cannot promote
 from loss, rank, top-k, or NLL movement unless constraints pass first.
 
-### v0.78+
+### v0.78
 
-Only after the above should QuarkLM add a new anti-collapse transformer
-objective, revisit tokenizer growth, or begin a learned verifier experiment.
+Implemented the first transformer responsibility split. Transformer
+answer-training now uses `transformer_experiment.py` for artifact contracts,
+intent/recipe surfaces, and promotion decisions; `transformer_training.py` for
+JSONL snapshot writing, shuffled training cursors, and loss averaging; and
+`transformer_objectives.py` for the direct-answer objective catalog.
+
+### v0.79+
+
+Only after deeper model/checkpoint extraction should QuarkLM add a new
+anti-collapse transformer objective, revisit tokenizer growth, or begin a
+learned verifier experiment.
 
 ## Stop Doing For Now
 

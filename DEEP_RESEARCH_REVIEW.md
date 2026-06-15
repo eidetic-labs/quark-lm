@@ -432,10 +432,18 @@ Implemented recipe objects and constraint-first promotion gates. Runs now write
 screens cannot promote from loss, rank, top-k, or NLL movement unless
 constraints pass first.
 
-### v0.78+
+### v0.78
 
-Only after the above should QuarkLM add a new anti-collapse transformer
-objective, revisit tokenizer growth, or begin a learned verifier experiment.
+Implemented the first transformer responsibility split. Answer-training now
+keeps experiment/artifact contracts, recipe surfaces, promotion decisions,
+trainer utilities, and the direct-answer objective catalog outside the
+transformer monolith.
+
+### v0.79+
+
+Only after deeper model/checkpoint extraction should QuarkLM add a new
+anti-collapse transformer objective, revisit tokenizer growth, or begin a
+learned verifier experiment.
 
 ## Decision
 

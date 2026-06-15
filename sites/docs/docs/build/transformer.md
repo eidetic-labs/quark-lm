@@ -95,6 +95,12 @@ constraint-first report blocks loss, NLL, rank, top-k, or exact quality
 evidence until verifier, contamination, branch-context, coverage, and diversity
 constraints pass first.
 
+From v0.78 onward, the answer-training stack starts using separate
+[transformer responsibility surfaces](./transformer-responsibilities.md) for
+artifact contracts, experiment/recipe decisions, trainer utilities, and the
+direct-answer objective catalog. The public CLI and artifact names remain
+stable.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

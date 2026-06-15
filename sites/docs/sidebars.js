@@ -27,6 +27,7 @@ const sidebars = {
         'build/admission-workflow',
         'build/generated-probes',
         'build/transformer',
+        'build/transformer-responsibilities',
       ],
     },
   ],

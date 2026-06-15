@@ -78,6 +78,7 @@ const primitives = [
   ['diagnosis.report', 'Self-diagnosis', 'Rule-based repair recommendations derived from the run report, with no external model.'],
   ['verifier.report', 'Closed-world verifier', 'Deterministic approval for candidate checks and training plans, with no external model.'],
   ['recipe.run', 'Training recipe', 'A reproducible record of model, tokenizer, data, objective, optimizer, artifacts, gates, and rerun details.'],
+  ['transformer.surface', 'Transformer surfaces', 'Experiment, artifact, trainer, and objective catalog boundaries for answer-training screens.'],
   ['docs.release', 'Docs gate', 'README, docs, and marketing content updated with each release when they reference current state.'],
 ];
 

@@ -18,6 +18,7 @@ product name are now QuarkLM / `quark-lm`.
 | Teach a new fact | [Admission workflow](./admission-workflow.md) |
 | Keep evals generated | [Generated probes](./generated-probes.md) |
 | Train the transformer prototype | [Transformer](./transformer.md) |
+| Understand transformer surfaces | [Transformer responsibilities](./transformer-responsibilities.md) |
 
 ## Rule
 

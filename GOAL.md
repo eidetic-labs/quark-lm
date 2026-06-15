@@ -99,8 +99,10 @@ provenance, and the goal framework itself.
     QuarkLM gaps into a versioned implementation ladder; v0.75 adds candidate
     quarantine artifacts and lifecycle states; v0.76 adds deterministic
     closed-world verifier checks; v0.77 adds recipe boundaries and
-    constraint-first promotion gates. The remaining sequence is transformer
-    responsibility refactoring.
+    constraint-first promotion gates; v0.78 extracts transformer experiment,
+    artifact, trainer utility, and objective catalog surfaces. The remaining
+    sequence is deeper model/checkpoint extraction before another transformer
+    repair screen.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
