@@ -986,6 +986,16 @@ Promotion still rejects the transformer on `branch_diversity_target`, but the
 update guard now records accepted coverage deltas and proves the strict
 monotonic screen is currently too conservative for full missing-target repair.
 
+v0.98 adds coverage-prep frontier acceptance to that path. The diagnostic
+screen in
+`runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer coverage-prep profile-scale update, `43`
+profile-scale attempts, `9` accepted source-profile updates, `3` coverage
+gains, `6` coverage-preparation moves, `28` floor regressions, `4` coverage
+ties without score gain, and `2` coverage regressions. Promotion still rejects
+the transformer on `branch_diversity_target`, but the update guard now
+separates direct coverage gains from safe preparation moves.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -28,6 +28,10 @@ PROFILE_SCALE_COVERAGE_FRONTIER_MODE = (
     "branch-context-profile-baseline-floor-diversity-coverage-frontier-profile-scale-"
     "calibrated-sequential-profile-stabilization-unlikelihood"
 )
+PROFILE_SCALE_COVERAGE_PREP_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-"
+    "profile-scale-calibrated-sequential-profile-stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -46,6 +50,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     PROFILE_SCALE_DIVERSITY_MODE,
     PROFILE_SCALE_FRONTIER_MODE,
     PROFILE_SCALE_COVERAGE_FRONTIER_MODE,
+    PROFILE_SCALE_COVERAGE_PREP_FRONTIER_MODE,
 }
 
 
@@ -294,6 +299,31 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                         "update-shape counts, replay plan, branch-context gate, "
                         "coverage floor, diversity target, recipe, verifier, "
                         "and constraint-first promotion artifacts."
+                    ),
+                    "required": True,
+                }
+            )
+        if (
+            getattr(args, "direct_answer_mode", "")
+            == PROFILE_SCALE_COVERAGE_PREP_FRONTIER_MODE
+        ):
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_coverage_prep_frontier_"
+                        "calibrated_sequential_stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records coverage-prep frontier activation, "
+                        "outer/search scales, source-profile scale attempts, "
+                        "frontier anchor counts, coverage gain/tie/regression "
+                        "counts, coverage-preparation acceptances, coverage "
+                        "rejection reasons, accepted preparation outcomes, "
+                        "diversity outcome counts, floor regression "
+                        "rejections, accepted profile scales, update-shape "
+                        "counts, replay plan, branch-context gate, coverage "
+                        "floor, diversity target, recipe, verifier, and "
+                        "constraint-first promotion artifacts."
                     ),
                     "required": True,
                 }

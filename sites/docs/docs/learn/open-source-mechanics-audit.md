@@ -122,7 +122,10 @@ finishing target-token coverage. v0.97 adds coverage-frontier acceptance,
 accepts `1` coverage-gaining source-profile update, rejects `15` coverage ties
 and `2` coverage regressions, and shifts the next mechanics change toward
 isolated missing-target repairs that keep the audit without starving later
-profiles.
+profiles. v0.98 adds coverage-prep frontier acceptance, accepts `9`
+source-profile updates, separates `3` coverage gains from `6`
+coverage-preparation moves, and shifts the next mechanics change toward turning
+safe setup movement into direct target-token coverage.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

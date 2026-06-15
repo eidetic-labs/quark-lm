@@ -103,7 +103,10 @@ to `0.9`, and shows the next repair should convert frontier movement into full
 branch-diversity target coverage. v0.97 adds coverage-frontier acceptance,
 accepts `1` coverage-gaining source-profile update across `68` attempts, and
 shows the next repair should keep the audit while isolating missing-target
-repairs so later profiles are not starved.
+repairs so later profiles are not starved. v0.98 adds coverage-prep frontier
+acceptance, accepts `9` source-profile updates, separates `3` coverage gains
+from `6` coverage-preparation moves, and shows the next repair should turn
+safe preparation moves into direct missing-target coverage recovery.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

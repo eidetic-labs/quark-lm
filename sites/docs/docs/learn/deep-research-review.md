@@ -103,8 +103,10 @@ the same discipline before another major repair screen.
 26. **v0.96:** frontier-driven branch diversity under the full baseline
     target-token floor. Implemented with nine score-improving source-profile
     updates; rejected for promotion.
-27. **v0.97+:** coverage-frontier audited missing-target repair, tokenizer
-    growth, or learned verifier experiments.
+27. **v0.97:** coverage-frontier audited missing-target repair. Implemented
+    with one coverage-gaining update; rejected for promotion.
+28. **v0.98+:** coverage-prep frontier repair, tokenizer growth, or learned
+    verifier experiments.
 
 ## Operating Rule
 
@@ -172,4 +174,7 @@ attempts, lowers max dominant predicted rate to `0.9`, and still rejects
 promotion on branch diversity. v0.97 adds coverage-frontier acceptance, accepts
 `1` coverage-gaining source-profile update across `68` attempts, rejects `15`
 coverage ties and `2` coverage regressions, and still rejects promotion on
-branch diversity.
+branch diversity. v0.98 adds coverage-prep frontier acceptance, accepts `9`
+source-profile updates across `43` attempts, separates `3` coverage gains from
+`6` coverage-preparation moves, and still rejects promotion on branch
+diversity.

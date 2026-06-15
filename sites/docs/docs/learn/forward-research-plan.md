@@ -110,7 +110,10 @@ across `43` profile-scale attempts, lowers max dominant predicted rate to
 coverage-frontier acceptance, accepts `1` coverage-gaining source-profile update
 across `68` attempts, rejects `15` coverage ties plus `2` coverage regressions,
 and shows the next repair should keep coverage auditing while allowing later
-missing-target repairs to continue.
+missing-target repairs to continue. v0.98 adds coverage-prep frontier
+acceptance, accepts `9` source-profile updates across `43` attempts, separates
+`3` coverage gains from `6` coverage-preparation moves, and shows the next
+repair should turn preparation moves into direct coverage recovery.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -261,3 +264,14 @@ rejects `50` floor regressions, `15` coverage ties, and `2` coverage
 regressions, and preserves accepted coverage deltas in the update guard. The
 next repair should keep the coverage-frontier audit but isolate missing-target
 repairs so one monotonic gain does not starve later source profiles.
+
+v0.98 adds
+`branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run keeps `52` missing-target frontier anchors active, records `43`
+profile-scale attempts, accepts `9` source-profile updates, separates `3`
+coverage gains from `6` coverage-preparation moves, rejects `28` floor
+regressions, `4` coverage ties without score gain, and `2` coverage
+regressions, and preserves the branch-diversity floor. The next repair should
+turn coverage-preparation moves into direct missing-target coverage recovery.

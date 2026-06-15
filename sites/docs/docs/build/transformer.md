@@ -229,6 +229,14 @@ accepts one coverage-gaining source-profile update, rejects coverage ties and
 coverage regressions explicitly, and shows the strict monotonic screen is
 auditable but too conservative to recover full branch diversity yet.
 
+v0.98 adds
+`branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.97 coverage audit but allows coverage-tied preparation moves
+when they improve the branch-diversity score. The diagnostic screen restores
+the nine accepted source-profile frontier updates while separating three
+coverage gains from six coverage-preparation moves, so the self-improvement
+ledger can distinguish real coverage recovery from safe setup movement.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1622,6 +1630,28 @@ Latest coverage-frontier profile-scale floor stabilization screen:
 | Diversity target | failed, `0/9` multi-target profiles passed; strict coverage gating accepted only one source-profile update |
 | Promotion status | rejected for model promotion; monotonic coverage gains are now auditable, but the screen starves later source-profile repairs |
 
+Latest coverage-prep frontier profile-scale floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | coverage-preparation acceptance: keep coverage-frontier accounting, accept coverage gains, and also accept coverage-tied moves only when branch-diversity score improves |
+| Unit coverage | focused transformer tests pass; the mode records coverage-prep activation, gain/preparation acceptances, rejection reasons, accepted preparation outcomes, and the new update shape |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001` |
+| Frontier anchors | `52` anchors across `10` source-profile groups and `52` source-profile targets |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0` |
+| Profile-scale attempts | `43` attempted; `9` accepted; `34` rejected |
+| Coverage outcomes | `3` coverage gains; `10` coverage ties; `30` coverage regressions |
+| Coverage-prep outcomes | `3` gain acceptances; `6` preparation acceptances; `34` rejections |
+| Coverage rejection reasons | `28` floor regressions; `4` coverage ties without score gain; `2` coverage regressions |
+| Accepted profile scales | `bridge:owner 0.0025`, `fact:learning 0.0025`, `fact:owner 0.0025`, `fact:place 0.25`, `qa:glossary 0.05`, `qa:learning 0.05`, `qa:owner 0.01`, `qa:place 0.0005`, `qa:self 0.05` |
+| Accepted update shapes | `profile_scale_coverage_prep_frontier_diversity_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed; max dominant predicted rate remains `0.9`; minimum target-token coverage remains `0.1667` |
+| Promotion status | rejected for model promotion; coverage-prep restores frontier movement while preserving explicit coverage-gain accounting |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1750,5 +1780,7 @@ and v0.96 adds frontier target anchors, preserving nine score-improving
 source-profile updates while lowering max dominant predicted rate to `0.9`.
 v0.97 adds coverage-frontier acceptance and shows strict monotonic coverage
 gating is auditable but too conservative, accepting only one coverage-gaining
-source-profile update. The next repair should convert that coverage accounting
-into isolated missing-target repairs that do not starve later profiles.
+source-profile update. v0.98 adds coverage-prep acceptance, restores nine
+source-profile updates, and separates three coverage gains from six safe setup
+moves. The next repair should turn those preparation moves into direct
+missing-target coverage recovery.

@@ -390,6 +390,20 @@ regressions. Promotion remains rejected on `branch_diversity_target`; the screen
 shows strict monotonic coverage acceptance is auditable but currently too
 conservative to recover all missing target tokens.
 
+v0.98 adds
+`branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.97 coverage audit but permits a coverage-tied update only when
+the source-profile move improves the branch-diversity score, making the
+preparation step explicit instead of treating it as promotion-quality coverage.
+The matching diagnostic screen ran at
+`runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `43` profile-scale updates, accepted
+`9` source-profile updates, separated `3` coverage gains from `6`
+coverage-preparation moves, rejected `28` floor regressions, `4` coverage ties
+without score gain, and `2` coverage regressions. Promotion remains rejected on
+`branch_diversity_target`, but v0.98 restores the v0.96 frontier movement while
+keeping coverage-gain accounting explicit.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1046,6 +1060,11 @@ Current transformer answer-lesson run:
   accepts `1` coverage-gaining source-profile update, rejects `15` coverage
   ties and `2` coverage regressions after floor checks, and still rejects
   promotion on `branch_diversity_target`.
+- v0.98 adds coverage-prep frontier acceptance. The diagnostic run
+  `runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `9` source-profile updates, separates `3` coverage gains from `6`
+  coverage-preparation moves, and still rejects promotion on
+  `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
