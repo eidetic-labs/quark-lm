@@ -42,6 +42,7 @@ visible before promotion gates or transformer screens interpret metrics.
 - eval-set counts;
 - base and scheduled training-example mixture;
 - candidate policy status;
+- training recipe path and summary when v0.77 recipes are written;
 - replay-plan path and summary when profile-aware replay writes one;
 - closed-world verifier path and summary when v0.76 approval is written;
 - planned artifacts.
@@ -51,4 +52,5 @@ Candidate ratio is reported in v0.73. v0.75 adds
 or proposed examples still must not become training data without a later
 admission and verification path. v0.76 adds `closed_world_verifier.json`, so
 the training plan can be approved or rejected before its evidence influences
-the next version.
+the next version. v0.77 adds `training_recipe.json`, so the plan also links the
+recipe that can reconstruct the run.

@@ -49,5 +49,6 @@ Transformer answer-training runs write:
 
 Verifier approval is not a claim that the model answered better. It is a claim
 that the next weight update or screen stayed inside the closed-world data
-boundary. Recipes and constraint-first promotion gates still need to decide
-whether a trained snapshot should be promoted.
+boundary. From v0.77 onward, [training recipes](./training-recipes.md) and
+constraint-first promotion reports decide whether quality metrics are eligible
+to affect promotion.

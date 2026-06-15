@@ -77,6 +77,7 @@ const primitives = [
   ['forgetting.audit', 'Forgetting audit', 'A comparison against the previous promoted report.'],
   ['diagnosis.report', 'Self-diagnosis', 'Rule-based repair recommendations derived from the run report, with no external model.'],
   ['verifier.report', 'Closed-world verifier', 'Deterministic approval for candidate checks and training plans, with no external model.'],
+  ['recipe.run', 'Training recipe', 'A reproducible record of model, tokenizer, data, objective, optimizer, artifacts, gates, and rerun details.'],
   ['docs.release', 'Docs gate', 'README, docs, and marketing content updated with each release when they reference current state.'],
 ];
 

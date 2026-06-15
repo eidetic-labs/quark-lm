@@ -24,6 +24,11 @@ from closed_world_lm.self_improve import (
     self_improvement_experiment_intent,
     write_report_artifacts,
 )
+from closed_world_lm.training_recipe import (
+    build_constraint_first_promotion_report,
+    build_training_recipe,
+    promotion_check,
+)
 
 
 def current_admission_count() -> int:
@@ -86,7 +91,9 @@ class SelfImproveTest(unittest.TestCase):
             )
 
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn("training_recipe", gates)
         self.assertIn("closed_world_verifier", gates)
+        self.assertIn("constraint_first_promotion", gates)
         self.assertIn("promotion_gate", gates)
         self.assertIn("exact_eval_audit", gates)
         self.assertIn(
@@ -95,6 +102,14 @@ class SelfImproveTest(unittest.TestCase):
         )
         self.assertIn(
             str(attempt_dir / "closed_world_verifier.json"),
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            str(attempt_dir / "training_recipe.json"),
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            str(attempt_dir / "constraint_first_promotion.json"),
             intent["planned_artifacts"],
         )
         self.assertEqual(intent["decision"]["status"], "planned")
@@ -116,6 +131,26 @@ class SelfImproveTest(unittest.TestCase):
                 "corpus_diff": {"status": "evaluated"},
                 "corpus_hygiene": {"schema_version": 1, "kind": "corpus_hygiene_report"},
                 "training_plan": {"schema_version": 1, "kind": "training_plan"},
+                "training_recipe": build_training_recipe(
+                    version="v0.77",
+                    component="self-improvement-answer-cycle",
+                    run_id="attempt-001",
+                    recipe_id="self-improve-answer-cycle:v0.77",
+                    purpose="Test recipe.",
+                    model={"component": "answer"},
+                    tokenizer={"type": "char"},
+                    data={"train_text": "build/train.txt"},
+                    objective={"mode": "answer-cycle"},
+                    optimizer={"seed": 7},
+                    artifacts=["training_recipe.json"],
+                    gates=[
+                        {
+                            "name": "training_recipe",
+                            "rule": "Recipe exists.",
+                            "required": True,
+                        }
+                    ],
+                ),
                 "candidate_quarantine": build_candidate_quarantine_manifest(
                     "self-improvement-answer-cycle",
                     "attempt-001",
@@ -131,6 +166,13 @@ class SelfImproveTest(unittest.TestCase):
                             "Test verifier evidence passes.",
                         )
                     ],
+                ),
+                "constraint_first_promotion": build_constraint_first_promotion_report(
+                    "self-improvement-answer-cycle",
+                    "attempt-001",
+                    "self_improvement_report",
+                    [promotion_check("constraint", True, "Constraint passes.")],
+                    [promotion_check("quality", True, "Quality passes.")],
                 ),
                 "promotion_gate": {"passed": False},
                 "experiment_intent": self_improvement_experiment_intent(
@@ -155,10 +197,14 @@ class SelfImproveTest(unittest.TestCase):
             self.assertTrue((run_dir / "corpus_diff.json").exists())
             self.assertTrue((attempt_dir / "corpus_hygiene.json").exists())
             self.assertTrue((run_dir / "training_plan.json").exists())
+            self.assertTrue((attempt_dir / "training_recipe.json").exists())
+            self.assertTrue((run_dir / "training_recipe.json").exists())
             self.assertTrue((attempt_dir / "candidate_quarantine.json").exists())
             self.assertTrue((run_dir / "candidate_quarantine.json").exists())
             self.assertTrue((attempt_dir / "closed_world_verifier.json").exists())
             self.assertTrue((run_dir / "closed_world_verifier.json").exists())
+            self.assertTrue((attempt_dir / "constraint_first_promotion.json").exists())
+            self.assertTrue((run_dir / "constraint_first_promotion.json").exists())
             self.assertTrue((attempt_dir / "experiment_intent.json").exists())
             self.assertTrue((run_dir / "experiment_intent.json").exists())
 

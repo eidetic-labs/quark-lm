@@ -397,7 +397,7 @@ Implemented experiment registry and run-intent schemas in
 `src/closed_world_lm/experiment_registry.py`. Self-improvement answer cycles
 and transformer answer-training runs now record hypothesis, allowed data,
 planned artifacts, gates, failure criteria, and a result decision. Transformer
-screens remain evidence-only until v0.76 promotion gates exist.
+screens close through constraint-first promotion reports from v0.77 onward.
 
 ### v0.72
 
@@ -439,8 +439,11 @@ approval.
 
 ### v0.77
 
-Wire recipe objects and promotion gates so transformer screens cannot promote
-from loss, rank, or top-k movement unless constraints pass.
+Implemented recipe objects and constraint-first promotion gates in
+`src/closed_world_lm/training_recipe.py`. Self-improvement and transformer
+answer-training runs now write `training_recipe.json` and
+`constraint_first_promotion.json`, and transformer decisions cannot promote
+from loss, rank, top-k, or NLL movement unless constraints pass first.
 
 ### v0.78+
 

@@ -73,8 +73,9 @@ the same discipline before another major repair screen.
 4. **v0.74:** research implementation map. Implemented.
 5. **v0.75:** candidate quarantine. Implemented.
 6. **v0.76:** deterministic closed-world verifier. Implemented.
-7. **v0.77:** recipes and constraint-first promotion gates.
-8. **v0.78+:** new anti-collapse objective, tokenizer growth, or learned
+7. **v0.77:** recipes and constraint-first promotion gates. Implemented.
+8. **v0.78+:** transformer responsibility refactor, new anti-collapse objective,
+   tokenizer growth, or learned
    verifier experiments.
 
 ## Operating Rule
@@ -93,5 +94,6 @@ training-plan part by writing `corpus_hygiene.json` and `training_plan.json`.
 v0.74 adds the [Research implementation map](./research-implementation-map.md)
 so the next mechanics are tied to sources, gaps, and acceptance evidence. v0.75
 adds candidate quarantine artifacts and lifecycle state. v0.76 adds
-deterministic closed-world verifier checks. The remaining required mechanics
-are recipes and constraint-first promotion.
+deterministic closed-world verifier checks. v0.77 adds recipes and
+constraint-first promotion. The remaining required mechanic before another
+larger transformer screen is transformer responsibility refactoring.

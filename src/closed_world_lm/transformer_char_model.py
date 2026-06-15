@@ -62,11 +62,19 @@ from .replay_plan import (
     direct_answer_profile_key,
 )
 from .tokenizer import CharTokenizer
+from .training_recipe import (
+    attach_recipe_summary,
+    build_training_recipe,
+    transformer_constraint_report,
+    write_constraint_first_report,
+    write_training_recipe,
+)
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_RUN_DIR = PROJECT_DIR / "runs" / "transformer-latest"
 DEFAULT_CHECKPOINT = DEFAULT_RUN_DIR / "transformer.json"
+TRANSFORMER_RECIPE_VERSION = "v0.77"
 DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "qa.jsonl",
     PROJECT_DIR / "evals" / "unknowns.jsonl",
@@ -3361,6 +3369,15 @@ def is_profile_aware_direct_answer_mode(mode: str) -> bool:
     return mode in PROFILE_AWARE_DIRECT_ANSWER_MODES
 
 
+def transformer_training_recipe_id(args: argparse.Namespace) -> str:
+    mode = (
+        getattr(args, "direct_answer_mode", "target-loss")
+        if getattr(args, "direct_answer_steps", 0) > 0
+        else "target-loss"
+    )
+    return f"transformer-answer:{mode}:{TRANSFORMER_RECIPE_VERSION}"
+
+
 def transformer_experiment_acceptance_gates(args: argparse.Namespace) -> list[dict[str, Any]]:
     gates = [
         {
@@ -3379,8 +3396,18 @@ def transformer_experiment_acceptance_gates(args: argparse.Namespace) -> list[di
             "required": True,
         },
         {
+            "name": "training_recipe",
+            "rule": "A recipe artifact must bind model, data, objective, optimizer, artifacts, and gates.",
+            "required": True,
+        },
+        {
             "name": "closed_world_verifier",
             "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
+            "required": True,
+        },
+        {
+            "name": "constraint_first_promotion",
+            "rule": "Loss, NLL, rank, and top-k evidence may influence promotion only after constraints pass.",
             "required": True,
         },
         {
@@ -3441,7 +3468,9 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
         "Direct-answer screens omit branch-context, branch-diversity, or target-coverage evidence.",
         "A screen writes checkpoints without experiment intent and metrics artifacts.",
+        "A screen writes checkpoints without a matching training recipe artifact.",
         "The deterministic closed-world verifier rejects the training plan.",
+        "The constraint-first promotion gate rejects the run before quality metrics are eligible.",
     ]
     failure_criteria.extend(getattr(args, "experiment_failure_criterion", None) or [])
     direct_profile_aware = (
@@ -3454,8 +3483,10 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
         str(args.run / "tokenizer.json"),
         str(args.run / "corpus_hygiene.json"),
         str(args.run / "training_plan.json"),
+        str(args.run / "training_recipe.json"),
         str(args.run / "candidate_quarantine.json"),
         str(args.run / "closed_world_verifier.json"),
+        str(args.run / "constraint_first_promotion.json"),
         str(args.run / "transformer_answer_metrics.json"),
         str(args.run / "transformer_answer_metrics.jsonl"),
         str(args.run / "transformer_answer_lessons.jsonl"),
@@ -3464,7 +3495,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
     if direct_profile_aware:
         planned_artifacts.append(str(args.run / "direct_answer_replay_plan.json"))
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.76"),
+        version=getattr(args, "experiment_version", TRANSFORMER_RECIPE_VERSION),
         run_id=args.run.name,
         component="transformer-answer-train",
         hypothesis=hypothesis,
@@ -3475,11 +3506,7 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
             *[str(path) for path in DEFAULT_ANSWER_EVALS],
         ],
         planned_artifacts=planned_artifacts,
-        training_recipe_id=(
-            f"transformer-answer:{getattr(args, 'direct_answer_mode', 'target-loss')}"
-            if getattr(args, "direct_answer_steps", 0) > 0
-            else "transformer-answer:target-loss"
-        ),
+        training_recipe_id=transformer_training_recipe_id(args),
         acceptance_gates=transformer_experiment_acceptance_gates(args),
         failure_criteria=failure_criteria,
         replay_plan_id="direct_answer_replay_plan.json" if direct_profile_aware else None,
@@ -3488,9 +3515,109 @@ def transformer_experiment_intent(args: argparse.Namespace) -> dict[str, Any]:
     return intent.to_record()
 
 
+def transformer_training_recipe(
+    args: argparse.Namespace,
+    tokenizer: CharTokenizer,
+    planned_artifacts: list[Path],
+    acceptance_gates: list[dict[str, Any]],
+    replay_plan_path: Path | None = None,
+) -> dict[str, Any]:
+    direct_enabled = args.direct_answer_steps > 0
+    return build_training_recipe(
+        version=getattr(args, "experiment_version", TRANSFORMER_RECIPE_VERSION),
+        component="transformer-answer-train",
+        run_id=args.run.name,
+        recipe_id=transformer_training_recipe_id(args),
+        purpose=(
+            "Train a tiny decoder-only transformer from admitted corpus text and "
+            "evaluate reliable-answer behavior under constraint-first gates."
+        ),
+        model={
+            "architecture": "tiny-decoder-only-transformer",
+            "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
+            "initialization": (
+                "declared QuarkLM checkpoint"
+                if args.resume_checkpoint is not None
+                else "random"
+            ),
+            "resume_checkpoint": (
+                str(args.resume_checkpoint)
+                if args.resume_checkpoint is not None
+                else None
+            ),
+            "pretrained_weights": False,
+        },
+        tokenizer={
+            "type": "closed_world_lm.tokenizer.CharTokenizer",
+            "source": str(args.train_text),
+            "vocab_size": tokenizer.vocab_size,
+            "pretrained_tokenizer": False,
+        },
+        data={
+            "train_text": str(args.train_text),
+            "valid_text": str(args.valid),
+            "corpus_dir": str(args.corpus_dir),
+            "eval_sets": [str(path) for path in DEFAULT_ANSWER_EVALS],
+            "training_examples": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+        },
+        objective={
+            "target_loss": {
+                "steps": args.steps,
+                "learning_rate": args.learning_rate,
+                "eval_every": args.eval_every,
+                "target_loss_weight": args.target_loss_weight,
+                "choice_loss_weight": args.choice_loss_weight,
+                "choice_negatives": args.choice_negatives,
+            },
+            "direct_answer": {
+                "enabled": direct_enabled,
+                "steps": args.direct_answer_steps,
+                "mode": args.direct_answer_mode,
+                "learning_rate": args.direct_answer_learning_rate,
+                "branch_position": args.direct_answer_branch_position,
+                "branch_span": args.direct_answer_branch_span,
+                "snapshot_mode": args.direct_answer_snapshot_mode,
+                "require_branch_context_gate": (
+                    args.direct_answer_require_branch_context_gate
+                ),
+            },
+            "generation": asdict(generation_config_from_args(args)),
+        },
+        optimizer=asdict(optimization_config_from_args(args)),
+        replay={
+            "status": "planned" if replay_plan_path is not None else "not_applicable",
+            "path": str(replay_plan_path) if replay_plan_path is not None else None,
+            "profile_aware": (
+                direct_enabled
+                and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
+            ),
+        },
+        artifacts=planned_artifacts,
+        gates=acceptance_gates,
+        rerun={
+            "entry_point": "quark-lm-transformer answer-train",
+            "arguments": {
+                "train_text": str(args.train_text),
+                "valid": str(args.valid),
+                "corpus_dir": str(args.corpus_dir),
+                "run": str(args.run),
+                "steps": args.steps,
+                "context_size": args.context_size,
+                "embedding_dim": args.embedding_dim,
+                "feedforward_dim": args.feedforward_dim,
+                "direct_answer_steps": args.direct_answer_steps,
+                "direct_answer_mode": args.direct_answer_mode,
+                "seed": args.seed,
+            },
+        },
+        notes=["Recipe uses admitted corpus text, corpus-trained tokenizer, and no external model."],
+    )
+
+
 def transformer_experiment_decision(
     metrics: dict[str, Any],
 ) -> tuple[str, str, list[dict[str, Any]]]:
+    constraint_gate = metrics.get("constraint_first_promotion", {})
     evidence = [
         {"name": "baseline_snapshot_recorded", "passed": bool(metrics.get("baseline"))},
         {"name": "final_snapshot_recorded", "passed": bool(metrics.get("final"))},
@@ -3502,6 +3629,15 @@ def transformer_experiment_decision(
         {
             "name": "closed_world_verifier",
             "passed": metrics.get("closed_world_verifier", {}).get("passed") is True,
+        },
+        {
+            "name": "training_recipe",
+            "passed": "training_recipe" in metrics,
+        },
+        {
+            "name": "constraint_first_promotion",
+            "passed": constraint_gate.get("passed") is True,
+            "status": constraint_gate.get("status"),
         },
         {"name": "no_pretrained_weights", "passed": metrics.get("pretrained_weights") is False},
         {
@@ -3546,11 +3682,17 @@ def transformer_experiment_decision(
                     "passed": bool(diversity.get("passed")),
                 }
             )
+    if constraint_gate.get("passed") is True:
+        return (
+            "promoted",
+            "Transformer run passed the constraint-first promotion gate.",
+            evidence,
+        )
     return (
         "rejected",
         (
-            "Transformer run recorded structured screen evidence; promotion "
-            "awaits a dedicated transformer promotion gate."
+            "Transformer run rejected by the constraint-first promotion gate; "
+            "quality metrics cannot promote unless constraints pass first."
         ),
         evidence,
     )
@@ -3967,7 +4109,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
-    answer_parser.add_argument("--experiment-version", default="v0.76")
+    answer_parser.add_argument("--experiment-version", default=TRANSFORMER_RECIPE_VERSION)
     answer_parser.add_argument("--experiment-hypothesis", default=None)
     answer_parser.add_argument(
         "--experiment-acceptance-gate",
@@ -7422,8 +7564,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     write_experiment_intent(experiment_path, experiment_intent)
     hygiene_path = args.run / "corpus_hygiene.json"
     training_plan_path = args.run / "training_plan.json"
+    training_recipe_path = args.run / "training_recipe.json"
     candidate_quarantine_path = args.run / "candidate_quarantine.json"
     verifier_path = args.run / "closed_world_verifier.json"
+    constraint_first_path = args.run / "constraint_first_promotion.json"
     candidate_quarantine = build_candidate_quarantine_manifest(
         "transformer-answer-train",
         args.run.name,
@@ -7436,6 +7580,26 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
         else None
     )
+    planned_artifacts = [
+        args.run / "transformer_answer.json",
+        args.run / "optimizer_state.json",
+        args.run / "tokenizer.json",
+        hygiene_path,
+        training_plan_path,
+        training_recipe_path,
+        candidate_quarantine_path,
+        verifier_path,
+        constraint_first_path,
+        args.run / "transformer_answer_metrics.json",
+    ]
+    training_recipe = transformer_training_recipe(
+        args,
+        tokenizer,
+        planned_artifacts,
+        experiment_intent["acceptance_gates"],
+        planned_replay_path,
+    )
+    write_training_recipe(training_recipe_path, training_recipe)
     corpus_hygiene = build_corpus_hygiene_report(
         "transformer-answer-train",
         args.corpus_dir,
@@ -7452,19 +7616,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         examples,
         training_pool,
         hygiene_path,
-        planned_artifacts=[
-            args.run / "transformer_answer.json",
-            args.run / "optimizer_state.json",
-            args.run / "tokenizer.json",
-            hygiene_path,
-            training_plan_path,
-            candidate_quarantine_path,
-            verifier_path,
-            args.run / "transformer_answer_metrics.json",
-        ],
+        planned_artifacts=planned_artifacts,
         replay_plan_path=planned_replay_path,
         candidate_quarantine_path=candidate_quarantine_path,
         candidate_quarantine_summary=candidate_summary,
+    )
+    training_plan = attach_recipe_summary(
+        training_plan,
+        training_recipe,
+        training_recipe_path,
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
@@ -9722,16 +9882,26 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "corpus_hygiene_path": str(hygiene_path),
         "training_plan": training_plan,
         "training_plan_path": str(training_plan_path),
+        "training_recipe": training_recipe,
+        "training_recipe_path": str(training_recipe_path),
         "candidate_quarantine": candidate_quarantine,
         "candidate_quarantine_path": str(candidate_quarantine_path),
         "closed_world_verifier": closed_world_verifier,
         "closed_world_verifier_path": str(verifier_path),
+        "constraint_first_promotion_path": str(constraint_first_path),
         "experiment_intent_path": str(experiment_path),
+        "metrics_path": str(args.run / "transformer_answer_metrics.json"),
+        "run_id": args.run.name,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "tokenizer": "closed_world_lm.tokenizer.CharTokenizer",
         "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
     }
+    metrics["constraint_first_promotion"] = transformer_constraint_report(metrics)
+    write_constraint_first_report(
+        constraint_first_path,
+        metrics["constraint_first_promotion"],
+    )
     status, summary, evidence = transformer_experiment_decision(metrics)
     metrics["experiment_intent"] = record_experiment_decision(
         experiment_intent,

@@ -62,8 +62,8 @@ From v0.71 onward, `answer-train` writes `experiment_intent.json` before
 training and closes it with a decision in `transformer_answer_metrics.json`.
 Use `--experiment-hypothesis`, `--experiment-acceptance-gate name:rule`,
 `--experiment-failure-criterion`, and `--experiment-note` to make a screen's
-intent more specific. Transformer screens remain evidence-only until a
-dedicated transformer promotion gate exists.
+intent more specific. From v0.77 onward, transformer screens close through the
+constraint-first promotion report.
 
 From v0.72 onward, profile-aware replay planning lives in
 `src/closed_world_lm/replay_plan.py`. The transformer still emits the same
@@ -87,6 +87,13 @@ From v0.76 onward, `answer-train` also writes
 closed-world data boundary, candidate exclusion policy, quarantine manifest, and
 protected train/eval overlap all pass before transformer screen evidence is
 trusted.
+
+From v0.77 onward, `answer-train` also writes `training_recipe.json` and
+`constraint_first_promotion.json`. The recipe records model, tokenizer, data,
+objective, optimizer, replay, artifacts, gates, and rerun details. The
+constraint-first report blocks loss, NLL, rank, top-k, or exact quality
+evidence until verifier, contamination, branch-context, coverage, and diversity
+constraints pass first.
 
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer

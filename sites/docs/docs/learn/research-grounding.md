@@ -61,8 +61,9 @@ implementation step. The decision is to build the self-improvement operating
 system before more objective modes. v0.71 implements the experiment registry;
 v0.72 extracts replay planning; v0.73 adds corpus hygiene and training-plan
 artifacts; v0.74 adds the research implementation map; v0.75 adds candidate
-quarantine; v0.76 adds deterministic verifier checks; the remaining work is
-training recipes and constraint-first promotion gates. See
+quarantine; v0.76 adds deterministic verifier checks; v0.77 adds training
+recipes and constraint-first promotion gates. The remaining work is transformer
+responsibility refactoring behind those surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -172,7 +173,8 @@ loops become fragile.
   mode: v0.71 implemented experiment registry and v0.72 extracted replay
   planning; v0.73 added corpus hygiene and training plans; v0.74 added the
   research implementation map; v0.75 added candidate quarantine; v0.76 added
-  verifier checks; next are training recipes and constraint-first promotion.
+  verifier checks; v0.77 added training recipes and constraint-first promotion;
+  next is transformer responsibility refactoring.
 
 ## Defer
 

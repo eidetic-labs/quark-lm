@@ -19,6 +19,8 @@ public surfaces synchronized.
 | `training_plan.json` | Allowed data sources, scheduled example mixture, replay summary, and planned artifacts. |
 | `candidate_quarantine.json` | Candidate lifecycle state and proof that generated candidates are not training data until admitted. |
 | `closed_world_verifier.json` | Deterministic pass/fail evidence for candidate checks and training-plan approval. |
+| `training_recipe.json` | Reproducible model, data, objective, optimizer, artifact, and gate recipe. |
+| `constraint_first_promotion.json` | Promotion gate that blocks quality metrics until closed-world constraints pass. |
 | `corpus_snapshot.json` | Current ledger source hashes and record counts. |
 | `corpus_diff.json` | Comparison to the previous promoted run. |
 | README / Docusaurus / marketing | Public state that must not drift. |
@@ -26,5 +28,6 @@ public surfaces synchronized.
 Start with [release discipline](./release-discipline.md), then read
 [experiment registry](./experiment-registry.md), [corpus hygiene](./corpus-hygiene.md),
 [candidate quarantine](./candidate-quarantine.md),
-[closed-world verifier](./closed-world-verifier.md), [provenance](./provenance.md),
-and [docs drift](./docs-drift.md).
+[closed-world verifier](./closed-world-verifier.md),
+[training recipes](./training-recipes.md), [provenance](./provenance.md), and
+[docs drift](./docs-drift.md).

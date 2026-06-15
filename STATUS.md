@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.76 deterministic closed-world verifier checks; promoted
+**Active version:** v0.77 training recipes and constraint-first promotion gates; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -94,6 +94,12 @@ Working tagline: Big idea. Tiny package.
   embed verifier summaries in `training_plan.json`, and declare verifier
   approval as a required run-intent gate before training evidence can be
   trusted.
+- Training recipe and constraint-first promotion artifacts in
+  `src/closed_world_lm/training_recipe.py`. Self-improvement and transformer
+  answer-training runs now write `training_recipe.json` and
+  `constraint_first_promotion.json`; transformer decisions cannot promote from
+  loss, NLL, rank, or top-k evidence unless closed-world constraints pass
+  first.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -179,8 +185,8 @@ implementation target.
 v0.71 implements that target in `src/closed_world_lm/experiment_registry.py`.
 Self-improvement answer cycles and transformer answer-training runs now write
 `experiment_intent.json` before training and include the final intent decision
-in their reports or metrics. Transformer screens close as rejected screen
-evidence until a dedicated transformer promotion gate is implemented.
+in their reports or metrics. From v0.77 onward, transformer screens close
+through the constraint-first promotion report.
 
 v0.72 extracts replay planning into `src/closed_world_lm/replay_plan.py`.
 Transformer training still uses the existing profile-aware replay behavior, but
@@ -212,8 +218,16 @@ Operate page for closed-world verifier checks, and `closed_world_verifier.json`
 artifacts for self-improvement and transformer answer-training paths. The
 verifier approves training plans only when the data boundary is closed,
 candidate records are excluded from training, candidate quarantine is valid, and
-protected train/eval overlap checks pass. The next code mechanic is v0.77
-recipe objects and constraint-first promotion gates.
+protected train/eval overlap checks pass.
+
+v0.77 adds `src/closed_world_lm/training_recipe.py`, the Docusaurus Operate
+page for training recipes and constraint-first promotion, and
+`training_recipe.json` plus `constraint_first_promotion.json` artifacts for
+self-improvement and transformer answer-training paths. Recipes bind model,
+tokenizer, data, objective, optimizer, artifacts, gates, replay status, and
+rerun surfaces. Constraint-first reports block quality metrics until
+closed-world constraints pass. The next code mechanic is v0.78 transformer
+responsibility refactoring behind the recipe and gate surfaces.
 
 ## Latest Evidence
 

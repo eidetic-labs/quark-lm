@@ -98,9 +98,9 @@ provenance, and the goal framework itself.
     implementation map that cross-references papers, open-source mechanics, and
     QuarkLM gaps into a versioned implementation ladder; v0.75 adds candidate
     quarantine artifacts and lifecycle states; v0.76 adds deterministic
-    closed-world verifier checks. The remaining sequence is recipe boundaries,
-    constraint-first promotion gates, and transformer responsibility
-    refactoring.
+    closed-world verifier checks; v0.77 adds recipe boundaries and
+    constraint-first promotion gates. The remaining sequence is transformer
+    responsibility refactoring.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before
@@ -129,6 +129,12 @@ provenance, and the goal framework itself.
     `closed_world_verifier.json` shows the closed-world data boundary is intact,
     candidates are excluded from training, candidate quarantine is valid, and
     protected train/eval overlap checks pass without using an external model.
+26. Treat recipes and constraint-first promotion as required run evidence.
+    `training_recipe.json` should make each screen reproducible from a named
+    artifact, and `constraint_first_promotion.json` should block loss, NLL,
+    rank, top-k, or other quality evidence until verifier, contamination,
+    branch-context, coverage, diversity, retention, and leakage constraints
+    pass first.
 
 ## Weight Update Policy
 

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.77
+
+- Added training recipes and constraint-first promotion gates.
+
 ## v0.76
 
 - Added deterministic closed-world verifier checks.

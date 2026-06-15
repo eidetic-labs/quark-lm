@@ -28,9 +28,9 @@ The final intent is copied into the attempt report and the latest run report.
 Transformer answer-training runs also write `experiment_intent.json` before
 training. They record baseline/final snapshot gates, closed-world data checks,
 no-pretrained-weight/tokenizer/embedding checks, and direct-answer branch
-screen gates when applicable. Until QuarkLM has a dedicated transformer
-promotion gate, transformer runs close as rejected screen evidence rather than
-promoted model evidence.
+screen gates when applicable. From v0.77 onward, transformer runs close through
+the constraint-first promotion report: quality metrics can affect promotion
+only after the closed-world constraints pass.
 
 The registry is intentionally small: JSON artifacts, pure validation, and no
 hidden promotion behavior.

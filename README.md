@@ -87,8 +87,8 @@ capture run version, component, hypothesis, allowed data sources, planned
 artifacts, training recipe id, acceptance gates, failure criteria, notes, and a
 decision. Self-improvement answer cycles write `experiment_intent.json` before
 training and close it with the promotion-gate decision. Transformer
-answer-training runs also write an intent before training and close as
-structured screen evidence until a dedicated transformer promotion gate exists.
+answer-training runs also write an intent before training and, from v0.77
+onward, close through the constraint-first promotion report.
 
 v0.72 extracts replay planning into `src/closed_world_lm/replay_plan.py` with
 focused tests. The transformer path still uses the same profile-aware replay
@@ -128,6 +128,17 @@ quarantine is declared and valid, and protected train/eval overlap checks pass.
 Training plans now embed verifier summaries, and verifier approval is declared
 as a required gate in run intent artifacts. Recipe objects and
 constraint-first promotion gates move to v0.77.
+
+v0.77 adds `src/closed_world_lm/training_recipe.py` and wires
+`training_recipe.json` plus `constraint_first_promotion.json` into
+self-improvement and transformer answer-training runs. Recipes bind the model,
+tokenizer, data, objective, optimizer, artifacts, gates, replay status, and
+rerun surface so a screen is reproducible from an artifact rather than hidden
+argparse memory. Constraint-first promotion reports make quality metrics
+advisory until closed-world constraints pass; transformer runs can no longer
+promote from loss, NLL, rank, or top-k evidence ahead of verifier,
+contamination, branch-context, coverage, and diversity gates. Transformer
+responsibility refactoring moves to v0.78.
 
 ## Latest Evidence
 
@@ -819,8 +830,9 @@ Add `--use-prompt-attention-summary` to test a trainable attention-pooled
 summary of the current context through a zero-initialized output projection.
 Add `--direct-answer-require-branch-context-gate` to require complete,
 unambiguous branch contexts before direct-answer training runs.
-The direct transformer path is not yet part of the promotion gate for reliable
-answers.
+The direct transformer path now has a constraint-first promotion gate, but
+current transformer evidence remains rejected until branch-context, diversity,
+coverage, and exact-answer checks pass.
 
 `closed_world_lm.admit` appends a new structured memory to
 `corpus/admissions.jsonl`. That is the operational meaning of "I learned

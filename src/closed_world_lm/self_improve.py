@@ -43,12 +43,20 @@ from .probes import read_jsonl
 from .provenance import corpus_diff_for_report, corpus_snapshot
 from .respond import CorpusResponder
 from .self_diagnose import diagnose_report
+from .training_recipe import (
+    attach_recipe_summary,
+    build_training_recipe,
+    self_improvement_constraint_report,
+    write_constraint_first_report,
+    write_training_recipe,
+)
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_BUILD_DIR = PROJECT_DIR / "build"
 DEFAULT_RUN_DIR = PROJECT_DIR / "runs" / "self-improve-latest"
 ATTEMPT_DIR_RE = re.compile(r"^attempt-(?P<number>\d+)$")
+SELF_IMPROVEMENT_RECIPE_ID = "self-improve-answer-cycle:v0.77"
 
 
 def evaluate_responder(train_text: str) -> dict[str, Any]:
@@ -268,9 +276,16 @@ def promotion_gate(report: dict[str, Any]) -> dict[str, Any]:
                 "passed": report["closed_world_verifier"]["passed"],
             }
         )
+    if "constraint_first_promotion" in report:
+        checks.append(
+            {
+                "name": "constraint_first_promotion",
+                "passed": report["constraint_first_promotion"]["passed"],
+            }
+        )
     return {
         "passed": all(check["passed"] for check in checks),
-        "rule": "Promote only when generated probes, verifier, prompt leakage, forgetting, and exact eval audits all pass.",
+        "rule": "Promote only when generated probes, verifier, constraint-first checks, prompt leakage, forgetting, and exact eval audits all pass.",
         "checks": checks,
     }
 
@@ -305,6 +320,11 @@ def write_report_artifacts(
         write_json_artifact(attempt_dir / "corpus_hygiene.json", report["corpus_hygiene"])
     if "training_plan" in report:
         write_json_artifact(attempt_dir / "training_plan.json", report["training_plan"])
+    if "training_recipe" in report:
+        write_training_recipe(
+            attempt_dir / "training_recipe.json",
+            report["training_recipe"],
+        )
     if "candidate_quarantine" in report:
         write_candidate_quarantine(
             attempt_dir / "candidate_quarantine.json",
@@ -314,6 +334,11 @@ def write_report_artifacts(
         write_verifier_report(
             attempt_dir / "closed_world_verifier.json",
             report["closed_world_verifier"],
+        )
+    if "constraint_first_promotion" in report:
+        write_constraint_first_report(
+            attempt_dir / "constraint_first_promotion.json",
+            report["constraint_first_promotion"],
         )
     if "experiment_intent" in report:
         write_experiment_intent(
@@ -327,6 +352,11 @@ def write_report_artifacts(
         write_json_artifact(run_dir / "corpus_hygiene.json", report["corpus_hygiene"])
     if "training_plan" in report:
         write_json_artifact(run_dir / "training_plan.json", report["training_plan"])
+    if "training_recipe" in report:
+        write_training_recipe(
+            run_dir / "training_recipe.json",
+            report["training_recipe"],
+        )
     if "candidate_quarantine" in report:
         write_candidate_quarantine(
             run_dir / "candidate_quarantine.json",
@@ -336,6 +366,11 @@ def write_report_artifacts(
         write_verifier_report(
             run_dir / "closed_world_verifier.json",
             report["closed_world_verifier"],
+        )
+    if "constraint_first_promotion" in report:
+        write_constraint_first_report(
+            run_dir / "constraint_first_promotion.json",
+            report["constraint_first_promotion"],
         )
     if "experiment_intent" in report:
         write_experiment_intent(
@@ -358,7 +393,7 @@ def self_improvement_experiment_intent(
     )
     notes = getattr(args, "experiment_note", None) or []
     intent = ExperimentIntent(
-        version=getattr(args, "experiment_version", "v0.76"),
+        version=getattr(args, "experiment_version", "v0.77"),
         run_id=attempt_dir.name or run_dir.name,
         component="self-improvement-answer-cycle",
         hypothesis=hypothesis,
@@ -375,22 +410,36 @@ def self_improvement_experiment_intent(
             str(attempt_dir / "corpus_diff.json"),
             str(attempt_dir / "corpus_hygiene.json"),
             str(attempt_dir / "training_plan.json"),
+            str(attempt_dir / "training_recipe.json"),
             str(attempt_dir / "candidate_quarantine.json"),
             str(attempt_dir / "closed_world_verifier.json"),
+            str(attempt_dir / "constraint_first_promotion.json"),
             str(attempt_dir / "experiment_intent.json"),
             str(attempt_dir / "self_improvement_report.json"),
             str(run_dir / "corpus_hygiene.json"),
             str(run_dir / "training_plan.json"),
+            str(run_dir / "training_recipe.json"),
             str(run_dir / "candidate_quarantine.json"),
             str(run_dir / "closed_world_verifier.json"),
+            str(run_dir / "constraint_first_promotion.json"),
             str(run_dir / "experiment_intent.json"),
             str(run_dir / "self_improvement_report.json"),
         ],
-        training_recipe_id="self-improve-answer-cycle:v0.76",
+        training_recipe_id=SELF_IMPROVEMENT_RECIPE_ID,
         acceptance_gates=[
+            {
+                "name": "training_recipe",
+                "rule": "A recipe artifact must bind model, data, objective, optimizer, artifacts, and gates.",
+                "required": True,
+            },
             {
                 "name": "closed_world_verifier",
                 "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
+                "required": True,
+            },
+            {
+                "name": "constraint_first_promotion",
+                "rule": "Quality metrics can influence promotion only after closed-world constraints pass.",
                 "required": True,
             },
             {
@@ -440,14 +489,95 @@ def self_improvement_experiment_intent(
     return intent.to_record()
 
 
+def self_improvement_training_recipe(
+    args: argparse.Namespace,
+    run_dir: Path,
+    attempt_dir: Path,
+    train_text_path: Path,
+    planned_artifacts: list[Path],
+    acceptance_gates: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return build_training_recipe(
+        version=getattr(args, "experiment_version", "v0.77"),
+        component="self-improvement-answer-cycle",
+        run_id=attempt_dir.name or run_dir.name,
+        recipe_id=SELF_IMPROVEMENT_RECIPE_ID,
+        purpose=(
+            "Train answer_model and answer_decoder from admitted closed-world "
+            "curriculum while preserving verifier, leakage, forgetting, and exact eval gates."
+        ),
+        model={
+            "components": ["answer_model", "answer_decoder"],
+            "initialization": "random or declared QuarkLM checkpoint only",
+            "pretrained_weights": False,
+        },
+        tokenizer={
+            "type": "closed_world_lm.tokenizer.CharTokenizer",
+            "source": str(train_text_path),
+            "pretrained_tokenizer": False,
+        },
+        data={
+            "corpus_dir": str(args.corpus_dir),
+            "train_text": str(train_text_path),
+            "allowed_sources": [
+                str(args.corpus_dir / "admissions.jsonl"),
+                str(args.corpus_dir / "glossary.json"),
+                str(args.corpus_dir / "grammar.json"),
+                str(train_text_path),
+            ],
+        },
+        objective={
+            "answer_model": {
+                "steps": args.steps,
+                "learning_rate": args.learning_rate,
+                "eval_every": args.eval_every,
+            },
+            "answer_decoder": {
+                "steps": args.decoder_steps,
+                "learning_rate": args.decoder_learning_rate,
+                "eval_every": args.decoder_eval_every,
+                "max_answer_chars": args.max_answer_chars,
+            },
+        },
+        optimizer={
+            "answer_model": "closed_world_lm.answer_model train_model",
+            "answer_decoder": "closed_world_lm.answer_decoder train_decoder",
+            "seed": args.seed,
+        },
+        artifacts=planned_artifacts,
+        gates=acceptance_gates,
+        replay={"status": "not_applicable"},
+        rerun={
+            "entry_point": "quark-lm-self-improve answer-cycle",
+            "arguments": {
+                "corpus_dir": str(args.corpus_dir),
+                "build_dir": str(args.build_dir),
+                "run": str(run_dir),
+                "steps": args.steps,
+                "decoder_steps": args.decoder_steps,
+                "seed": args.seed,
+            },
+        },
+        notes=["Recipe uses admitted curriculum only and no external model."],
+    )
+
+
 def self_improvement_experiment_decision(
     report: dict[str, Any],
 ) -> tuple[str, str, list[dict[str, Any]]]:
     gate = report["promotion_gate"]
     evidence = [
         {
+            "name": "training_recipe",
+            "passed": "training_recipe" in report,
+        },
+        {
             "name": "closed_world_verifier",
             "passed": report.get("closed_world_verifier", {}).get("passed", False),
+        },
+        {
+            "name": "constraint_first_promotion",
+            "passed": report.get("constraint_first_promotion", {}).get("passed", False),
         },
         {
             "name": "admission_probe_audit",
@@ -503,8 +633,10 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     write_experiment_intent(attempt_dir / "experiment_intent.json", experiment_intent)
     hygiene_path = attempt_dir / "corpus_hygiene.json"
     training_plan_path = attempt_dir / "training_plan.json"
+    training_recipe_path = attempt_dir / "training_recipe.json"
     candidate_quarantine_path = attempt_dir / "candidate_quarantine.json"
     verifier_path = attempt_dir / "closed_world_verifier.json"
+    constraint_first_path = attempt_dir / "constraint_first_promotion.json"
     candidate_quarantine = build_candidate_quarantine_manifest(
         "self-improvement-answer-cycle",
         attempt_dir.name,
@@ -518,6 +650,26 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         DEFAULT_EVALS,
         training_examples,
     )
+    planned_artifacts = [
+        answer_run / "answer_model.json",
+        decoder_run / "answer_decoder.json",
+        hygiene_path,
+        training_plan_path,
+        training_recipe_path,
+        candidate_quarantine_path,
+        verifier_path,
+        constraint_first_path,
+        attempt_dir / "self_improvement_report.json",
+    ]
+    training_recipe = self_improvement_training_recipe(
+        args,
+        run_dir,
+        attempt_dir,
+        train_text_path,
+        planned_artifacts,
+        experiment_intent["acceptance_gates"],
+    )
+    write_training_recipe(training_recipe_path, training_recipe)
     training_plan = build_training_plan(
         "self-improvement-answer-cycle",
         attempt_dir.name,
@@ -527,17 +679,14 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         training_examples,
         scheduled_training_examples,
         hygiene_path,
-        planned_artifacts=[
-            answer_run / "answer_model.json",
-            decoder_run / "answer_decoder.json",
-            hygiene_path,
-            training_plan_path,
-            candidate_quarantine_path,
-            verifier_path,
-            attempt_dir / "self_improvement_report.json",
-        ],
+        planned_artifacts=planned_artifacts,
         candidate_quarantine_path=candidate_quarantine_path,
         candidate_quarantine_summary=candidate_summary,
+    )
+    training_plan = attach_recipe_summary(
+        training_plan,
+        training_recipe,
+        training_recipe_path,
     )
     write_json_artifact(hygiene_path, corpus_hygiene)
     write_json_artifact(training_plan_path, training_plan)
@@ -631,6 +780,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         "curriculum_manifest": curriculum.manifest,
         "corpus_hygiene": corpus_hygiene,
         "training_plan": training_plan,
+        "training_recipe": training_recipe,
         "candidate_quarantine": candidate_quarantine,
         "closed_world_verifier": closed_world_verifier,
         "corpus_snapshot": snapshot,
@@ -660,6 +810,11 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
     }
     report["forgetting_audit"] = audit_forgetting(report, args.compare_report)
     report["exact_eval_audit"] = audit_exact_promotion(report)
+    report["constraint_first_promotion"] = self_improvement_constraint_report(report)
+    write_constraint_first_report(
+        constraint_first_path,
+        report["constraint_first_promotion"],
+    )
     report["promotion_gate"] = promotion_gate(report)
     report["self_diagnosis"] = diagnose_report(report)
     status, summary, evidence = self_improvement_experiment_decision(report)
@@ -695,7 +850,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     answer.add_argument("--max-answer-chars", type=int, default=64)
     answer.add_argument("--seed", type=int, default=7)
     answer.add_argument("--compare-report", type=Path, default=None)
-    answer.add_argument("--experiment-version", default="v0.76")
+    answer.add_argument("--experiment-version", default="v0.77")
     answer.add_argument("--experiment-hypothesis", default=None)
     answer.add_argument("--experiment-note", action="append", default=None)
     return parser.parse_args(argv)

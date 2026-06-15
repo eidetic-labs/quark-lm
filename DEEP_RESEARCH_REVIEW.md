@@ -427,8 +427,10 @@ summaries.
 
 ### v0.77
 
-Wire recipe objects and promotion gates so transformer screens cannot promote
-from loss, rank, or top-k movement unless constraints pass.
+Implemented recipe objects and constraint-first promotion gates. Runs now write
+`training_recipe.json` and `constraint_first_promotion.json`, and transformer
+screens cannot promote from loss, rank, top-k, or NLL movement unless
+constraints pass first.
 
 ### v0.78+
 
