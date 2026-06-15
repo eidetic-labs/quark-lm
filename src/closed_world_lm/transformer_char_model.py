@@ -50,6 +50,10 @@ from .experiment_registry import (
     record_experiment_decision,
     write_experiment_intent,
 )
+from .memory_retrieval import (
+    build_retrieval_memory_report,
+    write_retrieval_memory_report,
+)
 from .neural_char_model import context_before, continuation_nll, make_context
 from .probes import read_jsonl, score_records, summarize
 from .replay_plan import (
@@ -7782,6 +7786,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     candidate_quarantine_path = artifacts.candidate_quarantine
     verifier_path = artifacts.closed_world_verifier
     constraint_first_path = artifacts.constraint_first_promotion
+    retrieval_memory_path = artifacts.retrieval_memory
     candidate_quarantine = build_candidate_quarantine_manifest(
         "transformer-answer-train",
         args.run.name,
@@ -7850,6 +7855,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         path.stem: read_jsonl(path)
         for path in DEFAULT_ANSWER_EVALS
     }
+    retrieval_memory = build_retrieval_memory_report(
+        args.corpus_dir,
+        DEFAULT_ANSWER_EVALS,
+    )
+    write_retrieval_memory_report(retrieval_memory_path, retrieval_memory)
     context_coverage = {
         name: audit_prompt_context_coverage(records, args.context_size)
         for name, records in sorted(eval_records.items())
@@ -13306,6 +13316,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "answer_generator": generator_metrics,
         "corpus_hygiene": corpus_hygiene,
         "corpus_hygiene_path": str(hygiene_path),
+        "retrieval_memory": {
+            "path": str(retrieval_memory_path),
+            "summary": retrieval_memory["summary"],
+            "memory": retrieval_memory["memory"],
+            "dataset_exclusivity": retrieval_memory["dataset_exclusivity"],
+            "self_improvement": retrieval_memory["self_improvement"],
+        },
         "training_plan": training_plan,
         "training_plan_path": str(training_plan_path),
         "training_recipe": training_recipe,

@@ -5908,8 +5908,17 @@ class TransformerCharModelTest(unittest.TestCase):
             metrics = train_transformer_answers(args)
 
         direct_answer = metrics["direct_answer"]
+        retrieval_memory = metrics["retrieval_memory"]
         guard = direct_answer["direct_answer_update_guard"]
         replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertEqual(retrieval_memory["summary"]["exact_rate"], 1.0)
+        self.assertFalse(
+            retrieval_memory["dataset_exclusivity"]["external_embeddings"]
+        )
+        self.assertFalse(
+            retrieval_memory["dataset_exclusivity"]["updates_weights"]
+        )
+        self.assertTrue(retrieval_memory["path"].endswith("retrieval_memory_report.json"))
         self.assertTrue(
             direct_answer[
                 "direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active"

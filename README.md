@@ -499,6 +499,22 @@ regressions, `4` score regressions). Promotion remains blocked on
 `0.25` and predicted diversity `2`; the residual collapsed profiles are
 `owner`, `paraphrases`, plus `glossary`.
 
+v0.105.0 adds `src/closed_world_lm/memory_retrieval.py`, a deterministic
+closed-world retrieval memory that builds answer cards only from the ledgered
+corpus: story facts, admitted memories, self facts, learning rules, and the
+glossary. Transformer answer-training runs now declare and write
+`retrieval_memory_report.json` alongside the training recipe, verifier,
+quarantine, and promotion artifacts. The diagnostic screen ran at
+`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+The retrieval report records `497` corpus-only memory cards and answers
+`219/219` eval probes exactly with `uses_external_model: false`,
+`external_embeddings: false`, `pretrained_retriever: false`, and
+`updates_weights: false`. This proves admitted knowledge can be served
+immediately by memory before expensive weight consolidation. The neural
+direct-answer screen remains unpromoted, still blocked on
+`branch_diversity_target` with the same owner/paraphrase binding counters as
+v0.104.0.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1199,6 +1215,13 @@ Current transformer answer-lesson run:
   source-profile updates, runs `75` learning-preservation checks, rejects `24`
   preservation failures, keeps `learning` non-collapsed at coverage `0.25`,
   and still rejects promotion on `branch_diversity_target`.
+- v0.105.0 adds corpus-only retrieval memory as a separate low-compute evidence
+  rail. The diagnostic run
+  `runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+  writes `retrieval_memory_report.json`, builds `497` cards from the closed
+  corpus, answers `219/219` eval probes exactly, uses no external model or
+  embeddings, updates no weights, and keeps neural promotion separate from
+  memory success.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1496,9 +1519,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Add an anti-collapse preservation mechanism inside the profile-aware replay
-   plan so rank gains cannot come from reducing profile target-token coverage
-   or branch diversity.
+5. Use retrieval-memory success as the immediate "I learned this" rail, then
+   consolidate only the memories that still need neural weight behavior under
+   anti-collapse and branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

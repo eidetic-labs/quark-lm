@@ -354,3 +354,12 @@ acceptances, `10` prioritized rejections, `75` learning-preservation checks,
 rejections. The next repair should convert those owner/paraphrase attempts
 from protected ties into target-token coverage or predicted-token diversity
 gains.
+
+v0.105.0 adds corpus-only retrieval memory and screens it at
+`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+The run writes `retrieval_memory_report.json`, builds `497` cards from the
+closed corpus, answers `219/219` eval probes exactly, and records no external
+model, no external embeddings, no pretrained retriever, and no weight updates.
+The next repair should use retrieval success as an immediate memory-serving
+rail and train only the neural behavior that still fails branch-diversity and
+owner/paraphrase target-token diversity gates.

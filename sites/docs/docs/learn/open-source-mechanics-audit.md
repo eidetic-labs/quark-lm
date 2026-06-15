@@ -147,6 +147,11 @@ mechanics change toward preserving that gain while separating `owner` and
 v0.104.0 adds owner/paraphrase residual binding, rejects `24` protected
 learning regressions, keeps `learning` non-collapsed, and shifts the next
 mechanics change toward owner/paraphrase target-token diversification.
+v0.105.0 adds a separate closed-world retrieval-memory rail, writes
+`retrieval_memory_report.json`, and proves `219/219` exact corpus-memory evals
+without external embeddings or weight updates. The next mechanics change
+should consolidate from that memory rail into neural behavior only when
+branch-diversity and target-token gates pass.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

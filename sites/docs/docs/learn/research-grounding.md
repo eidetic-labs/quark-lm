@@ -128,6 +128,10 @@ v0.104.0 adds owner/paraphrase residual binding, records `16` prioritized
 attempts, accepts `6` prioritized updates, rejects `24` preservation failures,
 and shows the next repair should convert protected owner/paraphrase attempts
 from ties into real target-token diversity.
+v0.105.0 adds corpus-only retrieval memory, records `497` memory cards and
+`219/219` exact retrieval evals with no external model, embeddings, pretrained
+retriever, or weight updates, and shows that immediate memory serving should be
+separated from slower neural consolidation.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.104.0 owner/paraphrase binding frontier screen;
+**Active version:** v0.105.0 retrieval memory frontier screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -22,6 +22,9 @@ Working tagline: Big idea. Tiny package.
 - Tiny decoder-only transformer trained from random initialization with a
   dependency-free scalar autodiff engine.
 - Reliable corpus responder for exact closed-world answers.
+- Corpus-only retrieval memory in `src/closed_world_lm/memory_retrieval.py`
+  that serves admitted/story/self/learning/glossary knowledge immediately
+  without external embeddings or weight updates.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -521,14 +524,15 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-The screen keeps the v0.103.0 remaining-profile curriculum, narrows residual
-binding targets to `owner` and `paraphrases`, and records `learning` as a
-protected profile. It records `16` owner/paraphrase-prioritized attempts,
-accepts `6` prioritized updates, runs `75` preservation checks, rejects `24`
-preservation failures, keeps `learning` non-collapsed at coverage `0.25`, and
-still rejects promotion on `branch_diversity_target`; `owner`, `paraphrases`,
-and `glossary` remain collapsed.
+`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+The run adds `retrieval_memory_report.json` as a separate low-compute evidence
+rail. Retrieval builds `497` corpus-only memory cards, answers `219/219` eval
+probes exactly, uses no external model or embeddings, and updates no weights.
+The neural direct-answer screen still records `16` owner/paraphrase-prioritized
+attempts, accepts `6` prioritized updates, runs `75` preservation checks,
+rejects `24` preservation failures, and remains blocked on
+`branch_diversity_target`; memory success is not counted as transformer weight
+promotion.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

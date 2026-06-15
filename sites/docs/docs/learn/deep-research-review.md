@@ -122,8 +122,11 @@ the same discipline before another major repair screen.
 34. **v0.104.0:** owner/paraphrase residual binding. Implemented with six
     prioritized acceptances and protected-learning rejection evidence; rejected
     for promotion.
-35. **v0.105.0+:** owner/paraphrase target diversification, tokenizer growth,
-    or learned verifier experiments.
+35. **v0.105.0:** closed-world retrieval memory. Implemented with a corpus-only
+    retrieval report, `497` memory cards, and `219/219` exact retrieval evals
+    without external embeddings or weight updates.
+36. **v0.106.0+:** memory-guided consolidation, owner/paraphrase target
+    diversification, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
 
@@ -214,3 +217,8 @@ v0.104.0 adds owner/paraphrase residual binding, records `16` prioritized
 attempts, accepts `6` prioritized updates, runs `75` learning-preservation
 checks, rejects `24` preservation failures, keeps `learning` non-collapsed, and
 still rejects promotion on branch diversity.
+v0.105.0 adds corpus-only retrieval memory as an explicit non-parametric
+evidence rail. The retrieval report builds `497` memory cards from the closed
+corpus and answers `219/219` eval probes exactly with no external model,
+embeddings, pretrained retriever, or weight updates. This is retrieval success,
+not neural promotion; the transformer remains blocked on branch diversity.

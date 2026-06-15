@@ -102,6 +102,7 @@ class TransformerRunArtifacts:
     candidate_quarantine: Path
     closed_world_verifier: Path
     constraint_first_promotion: Path
+    retrieval_memory: Path
     metrics: Path
     metrics_history: Path
     lessons: Path
@@ -124,6 +125,7 @@ class TransformerRunArtifacts:
             candidate_quarantine=run_dir / "candidate_quarantine.json",
             closed_world_verifier=run_dir / "closed_world_verifier.json",
             constraint_first_promotion=run_dir / "constraint_first_promotion.json",
+            retrieval_memory=run_dir / "retrieval_memory_report.json",
             metrics=run_dir / "transformer_answer_metrics.json",
             metrics_history=run_dir / "transformer_answer_metrics.jsonl",
             lessons=run_dir / "transformer_answer_lessons.jsonl",
@@ -146,6 +148,7 @@ class TransformerRunArtifacts:
             self.candidate_quarantine,
             self.closed_world_verifier,
             self.constraint_first_promotion,
+            self.retrieval_memory,
             self.metrics,
         ]
 
@@ -160,6 +163,7 @@ class TransformerRunArtifacts:
             self.candidate_quarantine,
             self.closed_world_verifier,
             self.constraint_first_promotion,
+            self.retrieval_memory,
             self.metrics,
             self.metrics_history,
             self.lessons,

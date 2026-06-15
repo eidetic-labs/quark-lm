@@ -96,6 +96,10 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Latest screen direct loss</td><td><code>{state.transformerLatestScreenDirectLoss}</code></td></tr>
     <tr><td>Latest screen direct exact</td><td><code>{state.transformerLatestScreenDirectExact}</code></td></tr>
     <tr><td>Latest screen post-direct candidate snapshot skipped</td><td><code>{String(state.transformerLatestScreenCandidateSnapshotSkipped)}</code></td></tr>
+    <tr><td>Latest retrieval memory report</td><td><code>{state.transformerLatestRetrievalMemoryRun}</code></td></tr>
+    <tr><td>Retrieval memory artifact</td><td><code>{state.transformerRetrievalMemoryArtifact}</code></td></tr>
+    <tr><td>Retrieval memory summary</td><td><code>{state.transformerRetrievalMemorySummary}</code></td></tr>
+    <tr><td>Retrieval memory status</td><td><code>{state.transformerRetrievalMemoryStatus}</code></td></tr>
     <tr><td>Latest transformer diagnostic run</td><td><code>{state.transformerLatestDiagnosticRun}</code></td></tr>
     <tr><td>Latest transformer diagnostic</td><td><code>{state.transformerLatestDiagnostic}</code></td></tr>
     <tr><td>Latest diagnostic QA branch accuracy</td><td><code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code></td></tr>
@@ -1066,6 +1070,16 @@ prioritized rejections, `75` learning-preservation checks, `24` preservation
 failures, and `33` narrowed collapsed-profile binding rejections. Promotion
 still rejects the transformer on `branch_diversity_target`, but `learning`
 finishes non-collapsed with coverage `0.25` and predicted diversity `2`.
+
+v0.105.0 adds corpus-only retrieval memory as a separate evidence rail before
+weight consolidation. The diagnostic screen in
+`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+writes `retrieval_memory_report.json`, builds `497` memory cards from the
+closed-world corpus, answers `219/219` eval probes exactly, and records
+`uses_external_model: false`, `external_embeddings: false`,
+`pretrained_retriever: false`, and `updates_weights: false`. The neural
+transformer still rejects promotion on `branch_diversity_target`; v0.105.0
+therefore proves immediate memory serving, not completed weight learning.
 
 The v0.42 self-improvement run passed:
 

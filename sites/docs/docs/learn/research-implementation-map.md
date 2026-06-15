@@ -105,8 +105,11 @@ direct-answer objective mode:
 30. **v0.104.0:** owner/paraphrase residual binding. Implemented with six
    prioritized acceptances and protected-learning rejection evidence; rejected
    for promotion.
-31. **v0.105.0+:** owner/paraphrase target diversification, tokenizer growth,
-   or learned verifier experiments.
+31. **v0.105.0:** closed-world retrieval memory. Implemented with a corpus-only
+   `retrieval_memory_report.json` artifact, `497` memory cards, and `219/219`
+   exact retrieval evals without external embeddings or weight updates.
+32. **v0.106.0+:** memory-guided consolidation, owner/paraphrase target
+   diversification, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
 
@@ -184,13 +187,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.104.0 owner/paraphrase binding frontier profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.105.0 closed-world retrieval memory evidence:
+  `runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- owner/paraphrase target diversification that converts v0.104.0 protected
-  residual-binding evidence into target-token coverage and predicted-token
-  diversity for `owner` and `paraphrases`, while preserving the `learning`
-  coverage gain.
+- memory-guided consolidation that uses v0.105.0 retrieval success as immediate
+  knowledge serving while training only the neural weight behavior that still
+  fails branch-diversity and owner/paraphrase target-token diversity gates.
 
 ## Operating Rule
 

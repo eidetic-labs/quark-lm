@@ -290,6 +290,18 @@ learning-preservation checks, rejects twenty-four preservation failures, keeps
 `learning` non-collapsed at coverage `0.25`, and keeps promotion blocked on
 branch diversity.
 
+v0.105.0 adds deterministic closed-world retrieval memory in
+`src/closed_world_lm/memory_retrieval.py`. Transformer answer-training runs now
+write `retrieval_memory_report.json` as a separate artifact from neural weight
+metrics. The diagnostic screen at
+`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+builds `497` memory cards from story facts, admitted memories, self facts,
+learning rules, and glossary entries; answers `219/219` eval probes exactly;
+uses no external model, no pretrained retriever, and no external embeddings;
+and performs no weight updates. The direct-answer transformer screen remains
+blocked on branch diversity, so retrieval success is evidence for the
+memory-first rail, not neural promotion.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
