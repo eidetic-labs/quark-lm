@@ -100,6 +100,9 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Retrieval memory artifact</td><td><code>{state.transformerRetrievalMemoryArtifact}</code></td></tr>
     <tr><td>Retrieval memory summary</td><td><code>{state.transformerRetrievalMemorySummary}</code></td></tr>
     <tr><td>Retrieval memory status</td><td><code>{state.transformerRetrievalMemoryStatus}</code></td></tr>
+    <tr><td>Latest memory consolidation plan</td><td><code>{state.transformerLatestMemoryConsolidationPlan}</code></td></tr>
+    <tr><td>Memory consolidation summary</td><td><code>{state.transformerMemoryConsolidationSummary}</code></td></tr>
+    <tr><td>Memory consolidation status</td><td><code>{state.transformerMemoryConsolidationStatus}</code></td></tr>
     <tr><td>Latest transformer diagnostic run</td><td><code>{state.transformerLatestDiagnosticRun}</code></td></tr>
     <tr><td>Latest transformer diagnostic</td><td><code>{state.transformerLatestDiagnostic}</code></td></tr>
     <tr><td>Latest diagnostic QA branch accuracy</td><td><code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code></td></tr>
@@ -1080,6 +1083,14 @@ closed-world corpus, answers `219/219` eval probes exactly, and records
 `pretrained_retriever: false`, and `updates_weights: false`. The neural
 transformer still rejects promotion on `branch_diversity_target`; v0.105.0
 therefore proves immediate memory serving, not completed weight learning.
+
+v0.106.0 adds memory-guided consolidation planning. The diagnostic screen in
+`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+writes `memory_consolidation_plan.json`, keeps retrieval at `219/219`, records
+`9` memory-backed neural failed profiles, and ranks `owner`, `paraphrases`,
+`glossary`, `admission_paraphrases`, and `admissions` as the top consolidation
+priorities. The collapsed memory-backed profiles are `owner`, `paraphrases`,
+and `glossary`; neural promotion still rejects on `branch_diversity_target`.
 
 The v0.42 self-improvement run passed:
 

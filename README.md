@@ -515,6 +515,19 @@ direct-answer screen remains unpromoted, still blocked on
 `branch_diversity_target` with the same owner/paraphrase binding counters as
 v0.104.0.
 
+v0.106.0 adds `src/closed_world_lm/memory_consolidation.py`, a deterministic
+memory-guided consolidation planner. Transformer answer-training runs now
+write `memory_consolidation_plan.json` after the retrieval report and
+direct-answer branch diagnostics exist. The diagnostic screen ran at
+`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+It keeps retrieval exact at `219/219`, records `9` memory-backed neural failed
+profiles, and ranks the collapsed memory-backed profiles as `owner`,
+`paraphrases`, and `glossary`. The top priority profiles are `owner`,
+`paraphrases`, `glossary`, `admission_paraphrases`, and `admissions`.
+The plan uses no external model, no external embeddings, no pretrained
+retriever, and no weight updates; it is a target list for the next gated
+consolidation step, not promotion evidence.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1222,6 +1235,12 @@ Current transformer answer-lesson run:
   corpus, answers `219/219` eval probes exactly, uses no external model or
   embeddings, updates no weights, and keeps neural promotion separate from
   memory success.
+- v0.106.0 adds memory-guided consolidation planning. The diagnostic run
+  `runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+  writes `memory_consolidation_plan.json`, keeps retrieval at `219/219`, ranks
+  `9` memory-backed neural failed profiles, identifies collapsed
+  memory-backed profiles `owner`, `paraphrases`, and `glossary`, and still
+  rejects neural promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1519,9 +1538,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use retrieval-memory success as the immediate "I learned this" rail, then
-   consolidate only the memories that still need neural weight behavior under
-   anti-collapse and branch-diversity gates.
+5. Convert the v0.106.0 memory-consolidation plan into a gated training
+   objective for the top memory-backed failed profiles without counting
+   retrieval success as transformer weight learning.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

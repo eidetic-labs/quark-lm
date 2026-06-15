@@ -78,10 +78,16 @@ class TransformerExperimentTests(unittest.TestCase):
             artifacts.retrieval_memory,
             Path("runs/profile-screen/retrieval_memory_report.json"),
         )
+        self.assertEqual(
+            artifacts.memory_consolidation_plan,
+            Path("runs/profile-screen/memory_consolidation_plan.json"),
+        )
         self.assertIn(artifacts.constraint_first_promotion, artifacts.training_plan_artifacts())
         self.assertIn(artifacts.retrieval_memory, artifacts.training_plan_artifacts())
+        self.assertIn(artifacts.memory_consolidation_plan, artifacts.training_plan_artifacts())
         self.assertIn(str(artifacts.replay_plan), artifacts.intent_artifacts())
         self.assertIn(str(artifacts.retrieval_memory), artifacts.intent_artifacts())
+        self.assertIn(str(artifacts.memory_consolidation_plan), artifacts.intent_artifacts())
 
     def test_experiment_intent_uses_v078_recipe_and_artifact_surface(self) -> None:
         args = _args()
@@ -98,6 +104,10 @@ class TransformerExperimentTests(unittest.TestCase):
         self.assertIn("runs/profile-screen/training_recipe.json", intent["planned_artifacts"])
         self.assertIn(
             "runs/profile-screen/retrieval_memory_report.json",
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            "runs/profile-screen/memory_consolidation_plan.json",
             intent["planned_artifacts"],
         )
         self.assertIn(

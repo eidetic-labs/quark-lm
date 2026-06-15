@@ -363,3 +363,11 @@ model, no external embeddings, no pretrained retriever, and no weight updates.
 The next repair should use retrieval success as an immediate memory-serving
 rail and train only the neural behavior that still fails branch-diversity and
 owner/paraphrase target-token diversity gates.
+
+v0.106.0 adds memory-guided consolidation planning and screens it at
+`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+The run writes `memory_consolidation_plan.json`, records `9` memory-backed
+neural failed profiles, and ranks `owner`, `paraphrases`, `glossary`,
+`admission_paraphrases`, and `admissions` as the top consolidation priorities.
+The next repair should consume this plan as a gated training target list, not
+as proof that the transformer weights already learned the retrieved memories.

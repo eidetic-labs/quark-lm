@@ -5909,6 +5909,7 @@ class TransformerCharModelTest(unittest.TestCase):
 
         direct_answer = metrics["direct_answer"]
         retrieval_memory = metrics["retrieval_memory"]
+        consolidation_plan = metrics["memory_consolidation_plan"]
         guard = direct_answer["direct_answer_update_guard"]
         replay_plan = direct_answer["direct_answer_replay_plan_summary"]
         self.assertEqual(retrieval_memory["summary"]["exact_rate"], 1.0)
@@ -5919,6 +5920,16 @@ class TransformerCharModelTest(unittest.TestCase):
             retrieval_memory["dataset_exclusivity"]["updates_weights"]
         )
         self.assertTrue(retrieval_memory["path"].endswith("retrieval_memory_report.json"))
+        self.assertTrue(
+            consolidation_plan["path"].endswith("memory_consolidation_plan.json")
+        )
+        self.assertGreater(
+            consolidation_plan["summary"]["memory_backed_failed_profiles"],
+            0,
+        )
+        self.assertFalse(
+            consolidation_plan["dataset_exclusivity"]["updates_weights"]
+        )
         self.assertTrue(
             direct_answer[
                 "direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active"

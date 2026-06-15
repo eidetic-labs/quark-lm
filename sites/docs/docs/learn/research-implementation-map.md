@@ -108,7 +108,11 @@ direct-answer objective mode:
 31. **v0.105.0:** closed-world retrieval memory. Implemented with a corpus-only
    `retrieval_memory_report.json` artifact, `497` memory cards, and `219/219`
    exact retrieval evals without external embeddings or weight updates.
-32. **v0.106.0+:** memory-guided consolidation, owner/paraphrase target
+32. **v0.106.0:** memory-guided consolidation planning. Implemented with
+   `memory_consolidation_plan.json`, `9` memory-backed neural failed profiles,
+   and top priorities `owner`, `paraphrases`, `glossary`,
+   `admission_paraphrases`, and `admissions`.
+33. **v0.107.0+:** gated memory-consolidation training, owner/paraphrase target
    diversification, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -189,12 +193,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.105.0 closed-world retrieval memory evidence:
   `runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+- v0.106.0 memory-guided consolidation planning evidence:
+  `runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- memory-guided consolidation that uses v0.105.0 retrieval success as immediate
-  knowledge serving while training only the neural weight behavior that still
-  fails branch-diversity and owner/paraphrase target-token diversity gates.
+- a gated consolidation objective that consumes the v0.106.0 priority plan and
+  trains only memory-backed neural failures that can improve branch diversity
+  and target-token coverage without regressing retrieval provenance.
 
 ## Operating Rule
 

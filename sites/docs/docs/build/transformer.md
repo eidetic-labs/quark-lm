@@ -302,6 +302,17 @@ and performs no weight updates. The direct-answer transformer screen remains
 blocked on branch diversity, so retrieval success is evidence for the
 memory-first rail, not neural promotion.
 
+v0.106.0 adds deterministic memory-guided consolidation planning in
+`src/closed_world_lm/memory_consolidation.py`. Transformer answer-training runs
+now write `memory_consolidation_plan.json` after retrieval and branch
+diagnostics are available. The diagnostic screen at
+`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
+keeps retrieval at `219/219`, records `9` memory-backed neural failed profiles,
+and ranks `owner`, `paraphrases`, `glossary`, `admission_paraphrases`, and
+`admissions` as the top consolidation priorities. It identifies collapsed
+memory-backed profiles `owner`, `paraphrases`, and `glossary`; the transformer
+still rejects promotion on branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

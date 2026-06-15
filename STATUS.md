@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.105.0 retrieval memory frontier screen;
+**Active version:** v0.106.0 memory-guided consolidation planning screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -25,6 +25,9 @@ Working tagline: Big idea. Tiny package.
 - Corpus-only retrieval memory in `src/closed_world_lm/memory_retrieval.py`
   that serves admitted/story/self/learning/glossary knowledge immediately
   without external embeddings or weight updates.
+- Memory-guided consolidation planning in
+  `src/closed_world_lm/memory_consolidation.py` that ranks retrieval-served
+  profiles whose neural branch predictions still fail branch-diversity gates.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -524,15 +527,16 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
-The run adds `retrieval_memory_report.json` as a separate low-compute evidence
-rail. Retrieval builds `497` corpus-only memory cards, answers `219/219` eval
-probes exactly, uses no external model or embeddings, and updates no weights.
-The neural direct-answer screen still records `16` owner/paraphrase-prioritized
-attempts, accepts `6` prioritized updates, runs `75` preservation checks,
-rejects `24` preservation failures, and remains blocked on
-`branch_diversity_target`; memory success is not counted as transformer weight
-promotion.
+`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
+The run keeps `retrieval_memory_report.json` at `219/219` exact retrieval and
+adds `memory_consolidation_plan.json`. The plan records `9` memory-backed
+neural failed profiles, ranks `owner`, `paraphrases`, `glossary`,
+`admission_paraphrases`, and `admissions` as the top consolidation priorities,
+and identifies collapsed memory-backed profiles `owner`, `paraphrases`, and
+`glossary`. It uses no external model, no embeddings, no pretrained retriever,
+and no weight updates. The transformer remains blocked on
+`branch_diversity_target`; the plan is the next gated weight-consolidation
+target list.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

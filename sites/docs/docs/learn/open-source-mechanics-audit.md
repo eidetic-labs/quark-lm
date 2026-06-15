@@ -152,6 +152,10 @@ v0.105.0 adds a separate closed-world retrieval-memory rail, writes
 without external embeddings or weight updates. The next mechanics change
 should consolidate from that memory rail into neural behavior only when
 branch-diversity and target-token gates pass.
+v0.106.0 adds `memory_consolidation_plan.json`, ranks `9` memory-backed neural
+failed profiles, and names the collapsed memory-backed profiles before any
+training objective consumes them. The next mechanics change should train from
+that plan under the same constraint-first promotion rules.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

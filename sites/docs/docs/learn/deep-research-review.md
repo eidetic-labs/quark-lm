@@ -125,7 +125,11 @@ the same discipline before another major repair screen.
 35. **v0.105.0:** closed-world retrieval memory. Implemented with a corpus-only
     retrieval report, `497` memory cards, and `219/219` exact retrieval evals
     without external embeddings or weight updates.
-36. **v0.106.0+:** memory-guided consolidation, owner/paraphrase target
+36. **v0.106.0:** memory-guided consolidation planning. Implemented with a
+    consolidation plan that ranks `9` memory-backed neural failed profiles and
+    names `owner`, `paraphrases`, and `glossary` as collapsed memory-backed
+    priorities.
+37. **v0.107.0+:** gated memory-consolidation training, owner/paraphrase target
     diversification, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -222,3 +226,8 @@ evidence rail. The retrieval report builds `497` memory cards from the closed
 corpus and answers `219/219` eval probes exactly with no external model,
 embeddings, pretrained retriever, or weight updates. This is retrieval success,
 not neural promotion; the transformer remains blocked on branch diversity.
+v0.106.0 adds memory-guided consolidation planning, writes
+`memory_consolidation_plan.json`, ranks `9` retrieval-served neural failures,
+and identifies `owner`, `paraphrases`, and `glossary` as collapsed
+memory-backed profiles. This creates a target list for gated training without
+counting memory retrieval as weight learning.

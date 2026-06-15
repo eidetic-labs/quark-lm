@@ -132,6 +132,9 @@ v0.105.0 adds corpus-only retrieval memory, records `497` memory cards and
 `219/219` exact retrieval evals with no external model, embeddings, pretrained
 retriever, or weight updates, and shows that immediate memory serving should be
 separated from slower neural consolidation.
+v0.106.0 adds memory-guided consolidation planning, ranks `9` retrieval-served
+neural failed profiles, and turns the memory/weight separation into an explicit
+target list for future gated consolidation training.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

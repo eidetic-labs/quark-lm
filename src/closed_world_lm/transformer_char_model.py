@@ -50,6 +50,10 @@ from .experiment_registry import (
     record_experiment_decision,
     write_experiment_intent,
 )
+from .memory_consolidation import (
+    build_memory_consolidation_plan,
+    write_memory_consolidation_plan,
+)
 from .memory_retrieval import (
     build_retrieval_memory_report,
     write_retrieval_memory_report,
@@ -7787,6 +7791,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     verifier_path = artifacts.closed_world_verifier
     constraint_first_path = artifacts.constraint_first_promotion
     retrieval_memory_path = artifacts.retrieval_memory
+    memory_consolidation_plan_path = artifacts.memory_consolidation_plan
     candidate_quarantine = build_candidate_quarantine_manifest(
         "transformer-answer-train",
         args.run.name,
@@ -13323,6 +13328,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "dataset_exclusivity": retrieval_memory["dataset_exclusivity"],
             "self_improvement": retrieval_memory["self_improvement"],
         },
+        "memory_consolidation_plan_path": str(memory_consolidation_plan_path),
         "training_plan": training_plan,
         "training_plan_path": str(training_plan_path),
         "training_recipe": training_recipe,
@@ -13340,6 +13346,20 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "external_embeddings": False,
         "tokenizer": TRANSFORMER_TOKENIZER,
         "training_data": TRAINING_DATA_DESCRIPTION,
+    }
+    memory_consolidation_plan = build_memory_consolidation_plan(
+        retrieval_memory,
+        metrics,
+    )
+    write_memory_consolidation_plan(
+        memory_consolidation_plan_path,
+        memory_consolidation_plan,
+    )
+    metrics["memory_consolidation_plan"] = {
+        "path": str(memory_consolidation_plan_path),
+        "summary": memory_consolidation_plan["summary"],
+        "dataset_exclusivity": memory_consolidation_plan["dataset_exclusivity"],
+        "self_improvement": memory_consolidation_plan["self_improvement"],
     }
     metrics["constraint_first_promotion"] = transformer_constraint_report(metrics)
     write_constraint_first_report(
