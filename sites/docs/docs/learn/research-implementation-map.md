@@ -61,7 +61,8 @@ direct-answer objective mode:
    artifacts, trainer utilities, and objective catalog. Implemented.
 5. **v0.79:** transformer model/config and checkpoint metadata surfaces.
    Implemented.
-6. **v0.80+:** anti-collapse objective, tokenizer growth, or learned verifier
+6. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
+7. **v0.81+:** anti-collapse objective, tokenizer growth, or learned verifier
    experiments.
 
 ## Current Gap
@@ -77,11 +78,12 @@ QuarkLM already has:
 - v0.78 transformer experiment/artifact surfaces, trainer utilities, and
   direct-answer objective catalog.
 - v0.79 transformer model/config and checkpoint metadata surfaces.
+- v0.80 transformer eval/checkpoint-load surfaces.
 
 It still needs:
 
-- eval and checkpoint-load extraction so the model class, evals, and future
-  objective repairs can evolve behind narrower modules.
+- future objective repairs to use these narrower surfaces rather than broad
+  monolith patches.
 
 ## Operating Rule
 

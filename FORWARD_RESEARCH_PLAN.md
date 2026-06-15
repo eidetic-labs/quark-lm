@@ -460,9 +460,17 @@ Implemented transformer model/config and checkpoint metadata extraction.
 generation configs, validation, checkpoint identity, closed-world dataset
 metadata, arg-to-config adapters, and run metadata.
 
-### v0.80+
+### v0.80
 
-Only after eval/checkpoint-load extraction should QuarkLM add a new
+Implemented transformer eval/checkpoint-load extraction.
+`src/closed_world_lm/transformer_checkpoint.py` now owns checkpoint payload
+loading and identity validation. `src/closed_world_lm/transformer_eval.py` now
+owns probe loading, candidate collection, generic scoring, report assembly,
+samples JSONL writing, and eval JSON writing.
+
+### v0.81+
+
+Only after these operating surfaces are explicit should QuarkLM add a new
 anti-collapse transformer objective, revisit tokenizer growth, or begin a
 learned verifier experiment.
 

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.80
+
+- Extracted transformer checkpoint loading and eval report surfaces.
+
 ## v0.79
 
 - Extracted transformer model configuration and checkpoint metadata surfaces.

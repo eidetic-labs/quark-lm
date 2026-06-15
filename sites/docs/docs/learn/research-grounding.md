@@ -64,8 +64,9 @@ artifacts; v0.74 adds the research implementation map; v0.75 adds candidate
 quarantine; v0.76 adds deterministic verifier checks; v0.77 adds training
 recipes and constraint-first promotion gates; v0.78 adds transformer
 experiment/artifact surfaces, trainer utilities, and an objective catalog;
-v0.79 adds transformer model/config and checkpoint metadata surfaces. The
-remaining work is eval/checkpoint-load extraction behind those surfaces. See
+v0.79 adds transformer model/config and checkpoint metadata surfaces; v0.80
+adds transformer eval/checkpoint-load surfaces. Future objective repairs should
+use those narrower surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -178,7 +179,8 @@ loops become fragile.
   verifier checks; v0.77 added training recipes and constraint-first promotion;
   v0.78 added transformer experiment/artifact surfaces, trainer utilities, and
   an objective catalog; v0.79 added transformer model/config and checkpoint
-  metadata surfaces. Next is eval/checkpoint-load extraction.
+  metadata surfaces; v0.80 added transformer eval/checkpoint-load surfaces.
+  Next objective-repair work should use those surfaces.
 
 ## Defer
 

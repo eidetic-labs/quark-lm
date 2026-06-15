@@ -59,7 +59,7 @@ Not allowed:
 | Deterministic verifier | Verifier/process-supervision research and verifiable rewards | v0.76 writes `closed_world_verifier.json` and embeds verifier summaries in training plans. | Use verifier approval as the required pre-training integrity gate before recipes or promotion gates trust a run. |
 | Recipe layer | GPT-NeoX/OLMo/LitGPT recipe/config practice | v0.77 writes `training_recipe.json` for self-improvement and transformer answer-training paths. | Use recipe artifacts as the reproducible bridge between intent, training plans, replay, and promotion gates. |
 | Constraint-first promotion | Continual-learning forgetting literature and QuarkLM v0.68 rejection evidence | v0.77 writes `constraint_first_promotion.json` and makes transformer decisions depend on it. | Keep loss, NLL, rank, top-k, and exact quality checks advisory until closed-world constraints pass first. |
-| Transformer boundaries | nanoGPT keeps model and trainer readable; OLMo/GPT-NeoX separate configs, train/eval, data | v0.78 extracts transformer experiment/artifact contracts, trainer utilities, and the direct-answer objective catalog; v0.79 extracts model/config and checkpoint metadata surfaces. | Continue splitting eval and checkpoint-load surfaces before another objective-repair screen. |
+| Transformer boundaries | nanoGPT keeps model and trainer readable; OLMo/GPT-NeoX separate configs, train/eval, data | v0.78 extracts transformer experiment/artifact contracts, trainer utilities, and the direct-answer objective catalog; v0.79 extracts model/config and checkpoint metadata surfaces; v0.80 extracts eval/checkpoint-load surfaces. | Use the narrower surfaces before another objective-repair screen. |
 | Learned verifier or repair policy | Self-reward/self-feedback work is promising but fragile | Current self-diagnosis is deterministic and explicitly `uses_external_model: false`. | Defer learned self-improvement until accepted/rejected candidate history and verifier evals exist. |
 
 ## Implementation Ladder
@@ -144,9 +144,23 @@ Acceptance:
   metadata, and run metadata are centralized and tested.
 - `transformer_char_model.py` re-exports the old names for compatibility.
 
-### v0.80+
+### v0.80
 
-Only after eval/checkpoint-load extraction should QuarkLM add another
+Implemented transformer eval/checkpoint-load surfaces in
+`src/closed_world_lm/transformer_checkpoint.py` and
+`src/closed_world_lm/transformer_eval.py`.
+
+Acceptance:
+
+- Checkpoint payload loading and identity validation live outside the model
+  class.
+- Generic transformer eval scoring, probe loading, candidate collection,
+  report assembly, and eval artifact writing live outside the monolith.
+- The public eval CLI and artifact shapes remain stable.
+
+### v0.81+
+
+Only after these operating surfaces are explicit should QuarkLM add another
 anti-collapse transformer objective, revisit subword tokenization, or begin a
 learned verifier/repair-policy experiment.
 

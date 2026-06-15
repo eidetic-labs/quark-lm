@@ -1,19 +1,22 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.79 transformer responsibility surfaces.
+description: The v0.78-v0.80 transformer responsibility surfaces.
 ---
 
 # Transformer Responsibilities
 
 v0.78 starts splitting transformer answer-training behind the recipe and
 verifier surfaces without changing the public CLI. v0.79 adds the
-model/config/checkpoint metadata surface.
+model/config/checkpoint metadata surface. v0.80 adds checkpoint-load and eval
+report surfaces.
 
 The current surfaces are:
 
 | Surface | File | Responsibility |
 | --- | --- | --- |
 | Model and checkpoint metadata | `src/closed_world_lm/transformer_model.py` | Model, optimizer, and generation configs; validation; checkpoint identity; closed-world dataset metadata; run metadata. |
+| Checkpoint loading | `src/closed_world_lm/transformer_checkpoint.py` | Checkpoint payload loading, identity validation, and checkpoint summaries. |
+| Eval reports | `src/closed_world_lm/transformer_eval.py` | Probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing. |
 | Experiment and artifacts | `src/closed_world_lm/transformer_experiment.py` | Run artifact paths, intent gates, recipe construction, and promotion decisions. |
 | Trainer utilities | `src/closed_world_lm/transformer_training.py` | JSONL snapshot writing, shuffled training cursors, and loss averaging. |
 | Objective catalog | `src/closed_world_lm/transformer_objectives.py` | Direct-answer objective names and small objective-selection primitives. |
@@ -33,9 +36,13 @@ repair work smaller and more auditable:
   transformer monolith.
 - Checkpoint architecture, format, tokenizer identity, and run metadata are
   centralized in a tested surface.
+- Checkpoint payload loading and identity checks are no longer hidden inside
+  the model class.
+- Generic eval report assembly and file writing are no longer owned by the CLI
+  command body.
 - Direct-answer objective names are no longer owned by the CLI parser.
 - Training cursors and history writing have focused tests outside the model.
 
-The model class, checkpoint loading internals, and several eval helpers still
-live in `transformer_char_model.py`. Those are the next transformer boundaries
-to extract before another objective-repair screen.
+The model class and direct-answer eval helpers still live in
+`transformer_char_model.py`. Future objective-repair work should use the
+narrower surfaces rather than adding another broad monolith patch.

@@ -56,4 +56,6 @@ the next version. v0.77 adds `training_recipe.json`, so the plan also links the
 recipe that can reconstruct the run. v0.78 adds transformer responsibility
 surfaces that consume the same training plan, recipe, verifier, and promotion
 artifacts without changing their names. v0.79 adds model/config and checkpoint
-metadata surfaces that keep run metadata aligned with those artifacts.
+metadata surfaces that keep run metadata aligned with those artifacts. v0.80
+adds eval/checkpoint-load surfaces that preserve eval artifact shapes while
+moving report mechanics out of the transformer monolith.

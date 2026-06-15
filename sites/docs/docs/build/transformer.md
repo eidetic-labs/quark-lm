@@ -106,6 +106,13 @@ optimizer, and generation config validation, checkpoint identity, closed-world
 dataset metadata, and run metadata. `transformer_char_model.py` still exports
 the old names for compatibility.
 
+From v0.80 onward, `src/closed_world_lm/transformer_checkpoint.py` owns
+checkpoint payload loading and identity validation, and
+`src/closed_world_lm/transformer_eval.py` owns generic transformer probe
+loading, candidate collection, scoring, eval report assembly, samples JSONL
+writing, and eval JSON writing. The public `eval` CLI and artifact shapes
+remain stable.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

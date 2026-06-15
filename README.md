@@ -154,8 +154,16 @@ configuration, optimizer configuration, generation configuration, validation,
 checkpoint identity, closed-world dataset metadata, and run-metadata
 construction. `transformer_char_model.py` still exports the old names for
 compatibility, but the model/config/checkpoint surface is now testable outside
-the monolith. The next transformer mechanic is eval/checkpoint-load extraction
-before another objective-repair screen.
+the monolith.
+
+v0.80 adds `src/closed_world_lm/transformer_checkpoint.py` and
+`src/closed_world_lm/transformer_eval.py`. Checkpoint payload loading and
+identity validation now live outside the model class, and the generic
+transformer `eval` command delegates probe loading, candidate collection,
+scoring, report assembly, samples JSONL writing, and eval JSON writing to a
+separate eval surface. The public CLI and artifact shapes stay stable. The
+next transformer mechanic can return to objective-repair work with these
+boundaries in place.
 
 ## Latest Evidence
 

@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.79 transformer model/checkpoint surfaces; promoted
+**Active version:** v0.80 transformer eval/checkpoint-load surfaces; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-14
 **Buildable:** yes, with Python standard library only
@@ -112,6 +112,12 @@ Working tagline: Big idea. Tiny package.
   config dataclasses, validation, checkpoint identity, closed-world dataset
   metadata, arg-to-config adapters, and run metadata now live outside the
   transformer monolith while remaining re-exported for compatibility.
+- Transformer eval/checkpoint-load surfaces in
+  `src/closed_world_lm/transformer_checkpoint.py` and
+  `src/closed_world_lm/transformer_eval.py`. Checkpoint payload validation,
+  checkpoint summaries, probe loading, eval candidate collection, generic
+  transformer scoring, eval report assembly, samples JSONL writing, and eval
+  JSON writing now live outside the transformer monolith.
 - Profile-aware direct-answer replay records, per-profile deficit and
   preservation accounting, replay-plan artifacts, and profile-isolation tests
   for transformer repair screens.
@@ -219,8 +225,8 @@ and public training-stack sources against QuarkLM's implementation gaps. The
 decision is to treat candidate quarantine as v0.75, deterministic verifier
 checks as v0.76, recipe and constraint-first promotion as v0.77, and the first
 transformer responsibility surfaces as v0.78. v0.79 extracts model/config and
-checkpoint metadata surfaces before eval/checkpoint-load extraction and another
-larger repair run.
+checkpoint metadata surfaces, and v0.80 extracts eval/checkpoint-load surfaces
+before another larger repair run.
 
 v0.75 adds `src/closed_world_lm/candidate_quarantine.py`, the Docusaurus
 Operate page for candidate quarantine, and `candidate_quarantine.json` artifacts
@@ -254,9 +260,15 @@ v0.79 adds `src/closed_world_lm/transformer_model.py`. Model, optimizer, and
 generation config dataclasses, validation, checkpoint format identity,
 closed-world dataset metadata, arg-to-config adapters, and run metadata now
 live behind a model/checkpoint surface outside the transformer monolith while
-remaining re-exported from `transformer_char_model.py` for compatibility. The
-next transformer mechanic is eval/checkpoint-load extraction before another
-objective-repair screen.
+remaining re-exported from `transformer_char_model.py` for compatibility.
+
+v0.80 adds `src/closed_world_lm/transformer_checkpoint.py` and
+`src/closed_world_lm/transformer_eval.py`. Checkpoint payload loading and
+identity validation, checkpoint summaries, probe loading, candidate collection,
+generic eval scoring, report assembly, samples JSONL writing, and eval JSON
+writing now live behind focused surfaces while preserving CLI behavior and
+artifact shapes. The next transformer mechanic can return to objective-repair
+work with the operating surfaces in place.
 
 ## Latest Evidence
 

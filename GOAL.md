@@ -101,9 +101,9 @@ provenance, and the goal framework itself.
     closed-world verifier checks; v0.77 adds recipe boundaries and
     constraint-first promotion gates; v0.78 extracts transformer experiment,
     artifact, trainer utility, and objective catalog surfaces; v0.79 extracts
-    transformer model/config and checkpoint metadata surfaces. The remaining
-    sequence is eval/checkpoint-load extraction before another transformer
-    repair screen.
+    transformer model/config and checkpoint metadata surfaces; v0.80 extracts
+    transformer eval and checkpoint-load surfaces. The remaining sequence can
+    return to objective-repair work under those operating constraints.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

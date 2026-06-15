@@ -67,6 +67,16 @@ from .training_recipe import (
     write_constraint_first_report,
     write_training_recipe,
 )
+from .transformer_checkpoint import load_checkpoint_payload
+from .transformer_eval import (
+    build_transformer_eval_report,
+    eval_candidates_from_records,
+    load_probe_records,
+    score_transformer_evals,
+    score_transformer_records,
+    write_eval_report,
+    write_eval_samples,
+)
 from .transformer_experiment import (
     TRAINING_DATA_DESCRIPTION,
     TRANSFORMER_RECIPE_VERSION,
@@ -2546,8 +2556,7 @@ class TinyTransformerLM:
 
     @classmethod
     def load(cls, path: Path) -> tuple["TinyTransformerLM", CharTokenizer | None]:
-        with path.open("r", encoding="utf-8") as handle:
-            return cls.from_dict(json.load(handle))
+        return cls.from_dict(load_checkpoint_payload(path))
 
 
 @dataclass
@@ -3803,121 +3812,30 @@ def eval_transformer(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("checkpoint does not contain a tokenizer")
     generation_config = generation_config_from_args(args)
     probe_paths = args.probe if args.probe is not None else DEFAULT_PROBES
-    probe_records = {path.stem: read_jsonl(path) for path in probe_paths}
-    candidates = sorted(
-        {
-            record["target"]
-            for records in probe_records.values()
-            for record in records
-        }
+    probe_records = load_probe_records(probe_paths)
+    candidates = eval_candidates_from_records(probe_records)
+    scored_by_eval = score_transformer_evals(
+        model,
+        tokenizer,
+        probe_records,
+        args.max_new_chars,
+        generation_config,
+        candidates,
     )
-    scored_by_eval = {
-        name: score_transformer_records(
-            model,
-            tokenizer,
-            records,
-            args.max_new_chars,
-            generation_config,
-            candidates=candidates,
-        )
-        for name, records in sorted(probe_records.items())
-    }
-    result = {
-        "checkpoint": str(args.checkpoint),
-        "candidate_count": len(candidates),
-        "generation_config": asdict(generation_config),
-        "eval_manifest": {
-            "probe_paths": [str(path) for path in probe_paths],
-            "probe_counts": {
-                name: len(records)
-                for name, records in sorted(probe_records.items())
-            },
-            "samples_jsonl": str(args.samples_jsonl) if args.samples_jsonl else None,
-        },
-        "evals": {
-            name: summarize(records)
-            for name, records in sorted(scored_by_eval.items())
-        },
-    }
+    result = build_transformer_eval_report(
+        args.checkpoint,
+        probe_paths,
+        probe_records,
+        scored_by_eval,
+        candidates,
+        generation_config,
+        args.samples_jsonl,
+    )
     if args.samples_jsonl:
-        args.samples_jsonl.parent.mkdir(parents=True, exist_ok=True)
-        with args.samples_jsonl.open("w", encoding="utf-8") as handle:
-            for name, records in sorted(scored_by_eval.items()):
-                for record in records:
-                    handle.write(
-                        json.dumps(
-                            {"eval": name, **record},
-                            sort_keys=True,
-                        )
-                        + "\n"
-                    )
+        write_eval_samples(args.samples_jsonl, scored_by_eval)
     if args.json:
-        args.json.parent.mkdir(parents=True, exist_ok=True)
-        with args.json.open("w", encoding="utf-8") as handle:
-            json.dump(result, handle, indent=2, sort_keys=True)
-            handle.write("\n")
+        write_eval_report(args.json, result)
     return result
-
-
-def score_transformer_records(
-    model: TinyTransformerLM,
-    tokenizer: CharTokenizer,
-    records: list[dict[str, Any]],
-    max_new_chars: int,
-    generation_config: GenerationConfig,
-    candidates: list[str] | None = None,
-) -> list[dict[str, Any]]:
-    scored: list[dict[str, Any]] = []
-    for record in records:
-        generation = model.generate_with_trace(
-            tokenizer,
-            record["prompt"],
-            max_new_chars,
-            generation_config,
-        )
-        candidate_scores = []
-        predicted_candidate = None
-        if candidates is not None:
-            candidate_scores = [
-                {
-                    "target": candidate,
-                    "target_nll": continuation_nll(
-                        model,
-                        tokenizer,
-                        record["prompt"],
-                        candidate,
-                    ),
-                }
-                for candidate in candidates
-            ]
-            predicted_candidate = min(
-                candidate_scores,
-                key=lambda item: float(item["target_nll"]),
-            )["target"]
-        target = record["target"]
-        scored.append(
-            {
-                "id": record["id"],
-                "prompt": record["prompt"],
-                "target": target,
-                "completion": generation["text"],
-                "generation_trace": generation["trace"],
-                "generation_cache": generation["cache"],
-                "exact_match": generation["text"][: len(target)] == target,
-                "candidate_match": predicted_candidate == target
-                if predicted_candidate is not None
-                else None,
-                "predicted_candidate": predicted_candidate,
-                "candidate_scores": candidate_scores,
-                "target_nll": continuation_nll(
-                    model,
-                    tokenizer,
-                    record["prompt"],
-                    target,
-                ),
-            }
-        )
-    return scored
 
 
 def answer_sequence_nll(
