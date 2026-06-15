@@ -281,11 +281,34 @@ Acceptance:
 - Promotion remains rejected because no scaled update is accepted and
   `branch_diversity_target` still fails across all `9` multi-target profiles.
 
-### v0.87+
+### v0.87
+
+Implemented and screened baseline-floor repair retries:
+`branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The mode keeps adaptive scaled retries, then applies one bounded
+baseline-covered anchor repair before deciding whether to keep or roll back the
+candidate update.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show the mode records repair-anchor and repaired-attempt
+  accounting.
+- The clean full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors, `227`
+  repair anchors, and one repair step per failed retry.
+- The update guard checks `50/50` steps, attempts `200` updates, runs `200`
+  one-step repairs, and rejects `200/200`, preserving QA/heldout coverage at the
+  baseline `0.25` floor.
+- Promotion remains rejected because no repaired update is accepted and
+  `branch_diversity_target` still fails across all `9` multi-target profiles.
+
+### v0.88+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair with a different update shape under the full baseline
-target-token floor, revisit subword tokenization, or begin a learned
+branch-diversity repair that makes the objective floor-preserving before
+optimizer application, revisit subword tokenization, or begin a learned
 verifier/repair-policy experiment.
 
 ## Decision

@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.86 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.87 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -20,7 +20,9 @@ the baseline QA/heldout coverage floor. v0.85 adds baseline-floor update gating
 and rejects the screen because all attempted updates fall below the floor. v0.86
 adds adaptive baseline-floor retries across smaller learning-rate scales and
 rejects the screen because all `200/200` attempted retry updates still fall
-below the floor.
+below the floor. v0.87 adds one bounded baseline-covered repair after each
+failed retry and rejects the screen because all `200/200` repaired attempts
+still fall below the floor.
 
 The current surfaces are:
 
@@ -69,6 +71,9 @@ repair work smaller and more auditable:
 - The v0.86 adaptive baseline-floor retry guard shows smaller direct-answer
   learning-rate scales are not enough; the next repair must change update shape
   while staying under the full baseline coverage floor.
+- The v0.87 baseline-floor repair guard shows post-update anchor repair is not
+  enough; the next repair must make the objective floor-preserving before
+  optimizer application.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

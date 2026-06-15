@@ -521,11 +521,23 @@ records `562` active baseline prediction anchors and `200/200` rejected scaled
 attempts. It is still rejected evidence: step-size retry alone does not produce
 accepted safe updates.
 
-### v0.87+
+### v0.87
 
-The next transformer repair should change the direct-answer update shape under
-the full baseline target-token floor before tokenizer growth or a learned
-verifier experiment.
+Implemented baseline-floor repair retries with
+`branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new mode keeps the adaptive retry guard, then applies one bounded
+baseline-covered anchor repair before each failed retry is accepted or rejected.
+Focused tests pass, and the clean full screen in
+`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` repair anchors, `200`
+one-step repairs, and `200/200` rejected attempts. It is still rejected
+evidence: post-update repair does not produce accepted safe updates.
+
+### v0.88+
+
+The next transformer repair should make the direct-answer objective
+floor-preserving before optimizer application under the full baseline
+target-token floor before tokenizer growth or a learned verifier experiment.
 
 ## Decision
 

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.87
+
+- Added baseline-floor repair retries for guarded prompt-ownership training.
+
 ## v0.86
 
 - Added adaptive baseline-floor retries for guarded prompt-ownership training.

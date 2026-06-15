@@ -139,19 +139,30 @@ BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE = (
     "branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-"
     "target-share-preserving-deficit-unlikelihood"
 )
+BASELINE_FLOOR_REPAIRED_PROMPT_MODE = (
+    "branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-"
+    "target-share-preserving-deficit-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
+    BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
+}
+BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
+BASELINE_FLOOR_REPAIR_STEPS = 1
 
 
 class ScalarOptimizer:
@@ -5033,6 +5044,61 @@ def direct_answer_profiled_replay_records(
     return records
 
 
+def baseline_floor_repair_anchor_records(
+    replay_records: list[BranchReplayRecord],
+) -> list[BranchReplayRecord]:
+    targets_by_profile: dict[str, set[int]] = {}
+    for branch in replay_records:
+        _context, target, _predicted, profile = branch_replay_parts(branch)
+        targets_by_profile.setdefault(profile, set()).add(target)
+    anchors: list[BranchReplayRecord] = []
+    seen: set[tuple[tuple[int, ...], int, str]] = set()
+    for branch in replay_records:
+        context, _target, predicted, profile = branch_replay_parts(branch)
+        if predicted not in targets_by_profile.get(profile, set()):
+            continue
+        key = (tuple(context), predicted, profile)
+        if key in seen:
+            continue
+        seen.add(key)
+        anchors.append((context, predicted, predicted, profile))
+    return anchors
+
+
+def train_direct_answer_baseline_floor_anchor_repair(
+    model: TinyTransformerLM,
+    anchors: list[BranchReplayRecord],
+    rng: random.Random,
+    learning_rate: float,
+    batch_size: int,
+    params: list[Scalar] | None = None,
+) -> float:
+    if not anchors:
+        return 0.0
+    params = model.parameters() if params is None else params
+    anchors_by_target: dict[int, list[tuple[list[int], int]]] = {}
+    for branch in anchors:
+        context, target, _predicted, _profile = branch_replay_parts(branch)
+        anchors_by_target.setdefault(target, []).append((context, target))
+    target_ids = list(anchors_by_target)
+    rng.shuffle(target_ids)
+    selected: list[tuple[list[int], int]] = []
+    for target_id in target_ids:
+        if len(selected) >= max(1, batch_size):
+            break
+        selected.append(rng.choice(anchors_by_target[target_id]))
+    if not selected:
+        return 0.0
+    zero_grad(params)
+    loss = Scalar(0.0)
+    for context, target in selected:
+        loss = loss + cross_entropy_scalars(model._forward_scalars(context), target)
+    loss = loss / len(selected)
+    loss.backward()
+    model.apply_gradients(params, learning_rate)
+    return loss.data
+
+
 def direct_answer_hard_branch_contrast(
     model: TinyTransformerLM,
     tokenizer: CharTokenizer,
@@ -7245,6 +7311,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_answer_baseline_floor_adaptive_updates_active = (
             args.direct_answer_mode in BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_repaired_updates_active = (
+            args.direct_answer_mode in BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES
+        )
+        direct_replay_records: list[BranchReplayRecord] = []
+        direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
         if direct_profile_aware_targets:
             replay_records = direct_answer_profiled_replay_records(
                 model,
@@ -7253,6 +7324,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 args.direct_answer_branch_position,
                 direct_answer_terminator,
             )
+            direct_replay_records = replay_records
+            if direct_answer_baseline_floor_repaired_updates_active:
+                direct_baseline_floor_repair_anchors = (
+                    baseline_floor_repair_anchor_records(direct_replay_records)
+                )
             direct_replay_prediction_overrides = {
                 (tuple(context), target, profile): predicted
                 for context, target, predicted, profile in (
@@ -7278,6 +7354,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             )
             direct_replay_plan["baseline_floor_adaptive_updates_active"] = (
                 direct_answer_baseline_floor_adaptive_updates_active
+            )
+            direct_replay_plan["baseline_floor_repaired_updates_active"] = (
+                direct_answer_baseline_floor_repaired_updates_active
+            )
+            direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
+                direct_baseline_floor_repair_anchors
+            )
+            direct_replay_plan["baseline_floor_repair_steps"] = (
+                BASELINE_FLOOR_REPAIR_STEPS
+                if direct_answer_baseline_floor_repaired_updates_active
+                else 0
             )
             if direct_answer_baseline_floor_adaptive_updates_active:
                 direct_replay_plan["adaptive_learning_rate_scales"] = list(
@@ -7427,18 +7514,30 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         direct_answer_update_guard = {
             "active": direct_answer_baseline_floor_update_gate_active,
             "adaptive": direct_answer_baseline_floor_adaptive_updates_active,
+            "repair_active": direct_answer_baseline_floor_repaired_updates_active,
             "learning_rate_scales": list(
                 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
             )
             if direct_answer_baseline_floor_adaptive_updates_active
             else [1.0],
+            "repair_anchor_count": len(direct_baseline_floor_repair_anchors),
+            "repair_steps_per_attempt": (
+                BASELINE_FLOOR_REPAIR_STEPS
+                if direct_answer_baseline_floor_repaired_updates_active
+                else 0
+            ),
             "checked_steps": 0,
             "attempted_updates": 0,
+            "repair_attempts": 0,
+            "repair_updates": 0,
             "accepted_steps": 0,
             "accepted_attempts": 0,
+            "repaired_steps": 0,
+            "repaired_attempts": 0,
             "rejected_steps": 0,
             "rejected_attempts": 0,
             "accepted_learning_rate_scale_counts": {},
+            "accepted_update_shape_counts": {},
             "rejected_step_sample": [],
         }
 
@@ -7501,6 +7600,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_step: int,
             probe_snapshot: dict[str, Any],
             learning_rate_scale: float,
+            update_shape: str = "direct",
         ) -> None:
             rejected_sample = direct_answer_update_guard["rejected_step_sample"]
             if isinstance(rejected_sample, list) and len(rejected_sample) < 12:
@@ -7508,6 +7608,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     {
                         "step": direct_step,
                         "learning_rate_scale": learning_rate_scale,
+                        "update_shape": update_shape,
                         "coverage": (
                             branch_diversity_snapshot_target_coverage_by_profile(
                                 probe_snapshot
@@ -7516,15 +7617,44 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     }
                 )
 
-        def record_guard_acceptance(learning_rate_scale: float) -> None:
+        def record_guard_acceptance(
+            learning_rate_scale: float,
+            update_shape: str = "direct",
+        ) -> None:
             direct_answer_update_guard["accepted_steps"] += 1
             direct_answer_update_guard["accepted_attempts"] += 1
+            if update_shape == "repaired":
+                direct_answer_update_guard["repaired_steps"] += 1
+                direct_answer_update_guard["repaired_attempts"] += 1
             scale_key = f"{learning_rate_scale:g}"
             scale_counts = direct_answer_update_guard[
                 "accepted_learning_rate_scale_counts"
             ]
             if isinstance(scale_counts, dict):
                 scale_counts[scale_key] = int(scale_counts.get(scale_key, 0)) + 1
+            shape_counts = direct_answer_update_guard["accepted_update_shape_counts"]
+            if isinstance(shape_counts, dict):
+                shape_counts[update_shape] = int(shape_counts.get(update_shape, 0)) + 1
+
+        def train_baseline_floor_anchor_repair(
+            update_learning_rate: float,
+        ) -> float:
+            repair_loss = 0.0
+            repair_batch_size = max(
+                args.direct_answer_branch_batch_size,
+                args.direct_answer_branch_batch_size + max(0, args.direct_answer_hard_negatives),
+            )
+            for _repair_step in range(BASELINE_FLOOR_REPAIR_STEPS):
+                direct_answer_update_guard["repair_updates"] += 1
+                repair_loss += train_direct_answer_baseline_floor_anchor_repair(
+                    model,
+                    direct_baseline_floor_repair_anchors,
+                    direct_rng,
+                    update_learning_rate,
+                    repair_batch_size,
+                    params=direct_params,
+                )
+            return repair_loss / max(BASELINE_FLOOR_REPAIR_STEPS, 1)
 
         def train_adaptive_baseline_floor_update(
             direct_step: int,
@@ -7555,6 +7685,35 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 ):
                     record_guard_acceptance(learning_rate_scale)
                     return last_loss
+                if (
+                    direct_answer_baseline_floor_repaired_updates_active
+                    and direct_baseline_floor_repair_anchors
+                ):
+                    direct_answer_update_guard["repair_attempts"] += 1
+                    repair_loss = train_baseline_floor_anchor_repair(
+                        args.direct_answer_learning_rate * learning_rate_scale
+                    )
+                    repaired_probe_snapshot = direct_snapshot_record(
+                        direct_step,
+                        None,
+                        {
+                            "baseline_floor_update_guard_probe": True,
+                            "baseline_floor_repair_probe": True,
+                            "learning_rate_scale": learning_rate_scale,
+                        },
+                    )
+                    if branch_diversity_snapshot_preserves_target_coverage(
+                        repaired_probe_snapshot,
+                        direct_baseline,
+                    ):
+                        record_guard_acceptance(learning_rate_scale, "repaired")
+                        return (last_loss + repair_loss) / 2.0
+                    append_rejected_update_sample(
+                        direct_step,
+                        repaired_probe_snapshot,
+                        learning_rate_scale,
+                        "repaired",
+                    )
                 direct_answer_update_guard["rejected_attempts"] += 1
                 append_rejected_update_sample(
                     direct_step,
@@ -9308,6 +9467,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_adaptive_updates_active": (
                 direct_answer_baseline_floor_adaptive_updates_active
+            ),
+            "direct_answer_baseline_floor_repaired_updates_active": (
+                direct_answer_baseline_floor_repaired_updates_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

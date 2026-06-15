@@ -325,6 +325,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Baseline-floor adaptive gate</td><td><code>{state.transformerBaselineFloorAdaptiveGate}</code></td></tr>
     <tr><td>Baseline-floor adaptive history</td><td><code>{state.transformerBaselineFloorAdaptiveHistory}</code></td></tr>
     <tr><td>Baseline-floor adaptive status</td><td><code>{state.transformerBaselineFloorAdaptiveStatus}</code></td></tr>
+    <tr><td>Latest baseline-floor repaired run</td><td><code>{state.transformerLatestBaselineFloorRepairedRun}</code></td></tr>
+    <tr><td>Baseline-floor repaired mode</td><td><code>{state.transformerBaselineFloorRepairedMode}</code></td></tr>
+    <tr><td>Baseline-floor repaired unit test</td><td><code>{state.transformerBaselineFloorRepairedUnitTest}</code></td></tr>
+    <tr><td>Baseline-floor repaired gate</td><td><code>{state.transformerBaselineFloorRepairedGate}</code></td></tr>
+    <tr><td>Baseline-floor repaired history</td><td><code>{state.transformerBaselineFloorRepairedHistory}</code></td></tr>
+    <tr><td>Baseline-floor repaired status</td><td><code>{state.transformerBaselineFloorRepairedStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -878,6 +884,14 @@ updates across `50` checked direct-answer steps. Scales `1.0`, `0.25`, `0.05`,
 and `0.01` all still violate at least one profile-wise baseline coverage floor,
 so the guard rejects `200/200` attempts. It is still rejected evidence:
 step-size retry alone does not produce accepted safe updates.
+
+v0.87 adds one bounded baseline-covered anchor repair after each unsafe adaptive
+retry. The clean full screen in
+`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, `227` repair anchors, `200`
+repair attempts, and `200/200` rejected update attempts. QA and heldout coverage
+remain at `0.25`, but no repaired update is accepted, so post-update repair is
+also rejected as the missing mechanic.
 
 The v0.42 self-improvement run passed:
 

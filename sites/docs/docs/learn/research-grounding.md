@@ -75,8 +75,10 @@ only half of the baseline QA/heldout coverage floor. v0.85 adds a baseline-floor
 update guard and rejects the screen because all attempted updates are unsafe
 under that floor. v0.86 adds adaptive baseline-floor retries and rejects the
 screen because all `200/200` retry attempts remain unsafe under the same floor.
-Future objective repairs should use those narrower surfaces to change update
-shape, not only learning-rate scale.
+v0.87 adds one bounded baseline-covered repair after each failed retry and
+rejects the screen because all `200/200` repaired attempts remain unsafe under
+the same floor. Future objective repairs should use those narrower surfaces to
+make the objective floor-preserving before optimizer application.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -199,8 +201,11 @@ loops become fragile.
   the `0.25` floor; v0.85 added a baseline-floor update guard and rejected the
   screen because it preserved the floor by rejecting `50/50` attempted updates;
   v0.86 added adaptive baseline-floor retries and rejected the screen because
-  all `200/200` retry attempts remained unsafe. The next objective repair should
-  change update shape under the full baseline target-token floor.
+  all `200/200` retry attempts remained unsafe; v0.87 added one bounded
+  baseline-covered repair after each failed retry and rejected the screen
+  because all `200/200` repaired attempts remained unsafe. The next objective
+  repair should make the objective floor-preserving under the full baseline
+  target-token floor before optimizer application.
 
 ## Defer
 

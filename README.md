@@ -245,6 +245,19 @@ one profile-wise coverage floor, so the guard accepted `0` updates. Promotion
 remains rejected, but the evidence is sharper: the next repair needs a different
 update shape, not only smaller step sizes.
 
+v0.87 adds
+`branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the adaptive floor guard, then adds one bounded baseline-covered anchor
+repair before each retry is accepted or rejected. The clean matching screen ran
+at
+`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`.
+It recorded `562` active baseline prediction anchors, `227` repair anchors, and
+`200` one-step repair attempts across `50` checked steps. All `200` attempts
+still fell below at least one profile-wise coverage floor, so the guard accepted
+`0` updates. Promotion remains rejected; the next repair needs to make the
+direct-answer objective floor-preserving before optimizer application rather
+than repairing unsafe updates afterward.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -846,6 +859,12 @@ Current transformer answer-lesson run:
   `0.25`, `0.05`, and `0.01`. It rejects `200/200` attempts, preserving QA and
   heldout coverage at `0.25` but accepting no weight updates. This rejects step
   size alone as the missing ingredient.
+- v0.87 adds baseline-covered repair retries around the same guard. The clean
+  full-stack run
+  `runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`
+  records `227` repair anchors and `200` one-step repair attempts, but still
+  rejects `200/200` attempts and accepts no weight updates. This rejects
+  post-update repair as the missing ingredient.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

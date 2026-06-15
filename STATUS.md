@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.86 adaptive baseline-floor retry screen; promoted
+**Active version:** v0.87 baseline-floor repair retry screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -354,8 +354,23 @@ checked `50/50` steps, attempted `200` scaled updates, and rejected all `200` as
 unsafe. Every recorded snapshot preserved baseline/final QA and heldout
 target-token coverage at `0.25`, predicted diversity at `3/8`, QA average target
 rank at `13.25`, and heldout average rank at `13.375`. This is rejected evidence:
-step-size retry alone is insufficient, and the next repair needs a different
-safe update shape.
+smaller learning-rate scales do not make the update safe, which sets up the
+v0.87 repair-retry screen.
+
+v0.87 adds
+`branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps the v0.86 adaptive guard and adds one bounded baseline-covered anchor
+repair before a failed retry is accepted or rejected. Focused tests prove anchor
+selection and repaired guard accounting. The clean matching screen at
+`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+`227` repair anchors, checked `50/50` steps, attempted `200` updates, ran `200`
+one-step repairs, and rejected all `200` attempts as unsafe. Every recorded
+snapshot preserved baseline/final QA and heldout target-token coverage at
+`0.25`, predicted diversity at `3/8`, QA average target rank at `13.25`, and
+heldout average rank at `13.375`. This is rejected evidence: post-update
+baseline-covered repair is insufficient, and the next repair needs an objective
+whose gradients preserve the floor before optimizer application.
 
 ## Latest Evidence
 

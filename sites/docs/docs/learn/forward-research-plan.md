@@ -80,7 +80,9 @@ the baseline QA/heldout coverage floor. v0.85 adds baseline-floor update gating
 and rejects the screen because the guard preserves the floor only by rejecting
 all attempted direct-answer updates. v0.86 adds adaptive baseline-floor retries
 and rejects the screen because all `200/200` retry attempts still violate the
-floor, so v0.87 should change the update shape rather than only the step size.
+floor. v0.87 adds baseline-covered repair retries and rejects the screen because
+all `200/200` repaired attempts still violate the floor, so v0.88 should make
+the objective floor-preserving before optimizer application.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -131,3 +133,12 @@ The run tries learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01` for each
 guarded direct-answer step. It records `200` attempted retry updates, rejects
 all `200`, preserves QA/heldout coverage at `0.25`, and accepts no weight
 updates.
+
+v0.87 adds
+`branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`.
+The run records `227` repair anchors and applies one bounded baseline-covered
+anchor repair before each failed adaptive retry is accepted or rejected. It
+records `200` repaired attempts, rejects all `200`, preserves QA/heldout
+coverage at `0.25`, and accepts no weight updates.

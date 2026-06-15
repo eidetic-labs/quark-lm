@@ -86,7 +86,8 @@ the same discipline before another major repair screen.
 14. **v0.84:** baseline replay anchors. Implemented and rejected.
 15. **v0.85:** baseline-floor update gating. Implemented and rejected.
 16. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
-17. **v0.87+:** a different safe update shape under the full baseline
+17. **v0.87:** baseline-floor repair retries. Implemented and rejected.
+18. **v0.88+:** a floor-preserving objective under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -123,4 +124,8 @@ produce accepted updates under the guard. v0.86 adds adaptive baseline-floor
 retries across learning-rate scales `1.0`, `0.25`, `0.05`, and `0.01`; it
 rejects all `200/200` attempted retry updates, showing step size alone is not
 the missing mechanic and the next repair must change update shape under the
-same baseline floor.
+same baseline floor. v0.87 adds one bounded baseline-covered anchor repair
+after each failed retry; it records `227` repair anchors and rejects all
+`200/200` repaired attempts, showing post-update repair is also not the missing
+mechanic. The next repair must make the objective floor-preserving before
+optimizer application.

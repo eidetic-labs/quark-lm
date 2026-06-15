@@ -92,7 +92,10 @@ baseline coverage floor. v0.85 adds baseline-floor update gating, preserves the
 floor by rejecting all attempted unsafe updates, and remains rejected because no
 update is accepted. v0.86 adds adaptive baseline-floor retries, rejects
 `200/200` retry attempts across smaller learning-rate scales, and shows the next
-mechanics change must alter update shape while preserving the same floor.
+mechanics change must alter update shape while preserving the same floor. v0.87
+adds baseline-covered repair retries, rejects `200/200` repaired attempts, and
+shows the next mechanics change must put the floor-preserving constraint inside
+the objective before optimizer application.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
