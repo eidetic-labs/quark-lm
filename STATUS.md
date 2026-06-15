@@ -1,9 +1,9 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.81 profile target-share objective repair; promoted
+**Active version:** v0.82 profile target-share full-stack screen; promoted
 responder evidence remains v0.42
-**Last updated:** 2026-06-14
+**Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
 
 QuarkLM explores bounded epistemic growth: a model starts from random weights
@@ -278,6 +278,18 @@ loss, so a multi-target profile gets explicit pressure for every replay target
 instead of over-preserving a single represented target. This is a focused
 objective-mechanics checkpoint; model-quality promotion still requires a
 future full-stack screen to pass the closed-world constraints.
+
+v0.82 runs the matching full-stack screen at
+`runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`
+and fixes the transformer metrics purity report so the constraint-first gate
+sees `external_embeddings: false`. The screen wrote experiment intent, corpus
+hygiene, training plan, candidate quarantine, verifier, recipe, replay plan,
+constraint-first report, metrics, tokenizer, optimizer, lessons, and checkpoint
+artifacts. It completed `50/50` direct steps with `7` JSONL rows; the
+branch-context gate passed and coverage preservation restored step `0`, but
+branch diversity still failed. Step `40` improved QA average target rank to
+`9.125` while collapsing QA and heldout to one `"c"` prediction with `0.0`
+target-token coverage, so the run is rejected evidence.
 
 ## Latest Evidence
 

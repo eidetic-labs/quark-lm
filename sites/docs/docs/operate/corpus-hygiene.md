@@ -60,4 +60,7 @@ metadata surfaces that keep run metadata aligned with those artifacts. v0.80
 adds eval/checkpoint-load surfaces that preserve eval artifact shapes while
 moving report mechanics out of the transformer monolith. v0.81 uses those
 surfaces for a profile target-share objective repair while preserving the same
-training-plan and replay-plan evidence trail.
+training-plan and replay-plan evidence trail. v0.82 screens that objective with
+the same artifacts, rejects the result on branch diversity, and keeps the
+corpus-hygiene trail as part of the evidence bundle rather than a quality
+promotion shortcut.

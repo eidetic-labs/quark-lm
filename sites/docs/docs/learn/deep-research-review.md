@@ -80,7 +80,9 @@ the same discipline before another major repair screen.
    Implemented.
 10. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
 11. **v0.81:** profile target-share anti-collapse objective. Implemented.
-12. **v0.82+:** full objective screen, tokenizer growth, or learned verifier
+12. **v0.82:** profile target-share full-stack screen. Implemented and
+    rejected.
+13. **v0.83+:** branch-diversity repair, tokenizer growth, or learned verifier
     experiments.
 
 ## Operating Rule
@@ -104,6 +106,8 @@ constraint-first promotion. v0.78 adds transformer experiment/artifact
 surfaces, trainer utilities, and an objective catalog. v0.79 adds transformer
 model/config and checkpoint metadata surfaces. v0.80 adds transformer
 eval/checkpoint-load surfaces. v0.81 adds balanced profile target-share
-pressure to the preserving-deficit direct-answer objective. Future larger
+pressure to the preserving-deficit direct-answer objective. v0.82 screens that
+objective, preserves coverage only by restoring step `0`, and rejects trained
+snapshots that collapse QA and heldout branch diversity. Future larger
 transformer screens should use these narrower surfaces rather than broad
 monolith patches.

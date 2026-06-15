@@ -175,10 +175,31 @@ Acceptance:
 - Focused tests prove the balanced target-share term lifts a minority replay
   target more than the previous profile-aware replay loss.
 
-### v0.82+
+### v0.82
+
+Screened the profile target-share objective under the full modern artifact and
+constraint-first gates in
+`runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
+The run passed the deterministic verifier, wrote experiment intent, corpus
+hygiene, training plan, candidate quarantine, recipe, replay plan, metrics, and
+constraint-first artifacts, and fixed the transformer metrics purity report so
+`external_embeddings: false` reaches the promotion gate.
+
+Acceptance:
+
+- Replay plan records `9144` branch/replay records across `21` profiles.
+- Branch-context gate passes across `219/219` semantic records.
+- Constraint-first promotion sees no pretrained weights, no pretrained
+  tokenizer, and no external embeddings.
+- Target coverage is preserved after best-snapshot restore.
+- Promotion remains rejected because `branch_diversity_target` fails; step `40`
+  improves QA rank only by collapsing QA/heldout to one `"c"` token with
+  `0.0` target-token coverage.
+
+### v0.83+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-larger transformer screen, revisit subword tokenization, or begin a learned
+branch-diversity repair, revisit subword tokenization, or begin a learned
 verifier/repair-policy experiment.
 
 ## Decision

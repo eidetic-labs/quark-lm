@@ -101,6 +101,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_lesson,
     flatten_scalars,
     parse_args,
+    train_transformer_answers,
     transformer_experiment_decision,
     transformer_experiment_intent,
     transformer_training_recipe,
@@ -5207,6 +5208,43 @@ class TransformerCharModelTest(unittest.TestCase):
         self.assertFalse(evidence_by_name["constraint_first_promotion"]["passed"])
         self.assertTrue(evidence_by_name["branch_context_gate_recorded"]["passed"])
         self.assertFalse(evidence_by_name["branch_diversity_target"]["passed"])
+
+    def test_transformer_answer_metrics_declare_external_embedding_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "answer-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--direct-answer-steps",
+                    "0",
+                    "--selector-steps",
+                    "0",
+                    "--generator-steps",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "8",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        self.assertFalse(metrics["pretrained_weights"])
+        self.assertFalse(metrics["pretrained_tokenizer"])
+        self.assertFalse(metrics["external_embeddings"])
+        failed_constraints = metrics["constraint_first_promotion"]["failed_constraints"]
+        self.assertNotIn("no_external_embeddings", failed_constraints)
 
     def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
         args = parse_args(

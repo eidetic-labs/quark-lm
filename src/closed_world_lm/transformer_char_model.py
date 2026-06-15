@@ -9268,6 +9268,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         "run_id": args.run.name,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
+        "external_embeddings": False,
         "tokenizer": TRANSFORMER_TOKENIZER,
         "training_data": TRAINING_DATA_DESCRIPTION,
     }

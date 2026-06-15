@@ -63,7 +63,9 @@ direct-answer objective mode:
    Implemented.
 6. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
 7. **v0.81:** profile target-share anti-collapse objective. Implemented.
-8. **v0.82+:** full objective screen, tokenizer growth, or learned verifier
+8. **v0.82:** profile target-share full-stack screen. Implemented and
+   rejected.
+9. **v0.83+:** branch-diversity repair, tokenizer growth, or learned verifier
    experiments.
 
 ## Current Gap
@@ -82,10 +84,13 @@ QuarkLM already has:
 - v0.80 transformer eval/checkpoint-load surfaces.
 - v0.81 profile target-share objective mode:
   `branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+- v0.82 full target-share screen evidence:
+  `runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
 
 It still needs:
 
-- a full v0.81 objective screen under the existing constraint-first gates.
+- a prompt-specific branch-diversity repair that does not trade away
+  target-token coverage.
 
 ## Operating Rule
 

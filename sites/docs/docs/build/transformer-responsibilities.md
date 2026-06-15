@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.81 transformer responsibility and objective surfaces.
+description: The v0.78-v0.82 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -9,7 +9,10 @@ v0.78 starts splitting transformer answer-training behind the recipe and
 verifier surfaces without changing the public CLI. v0.79 adds the
 model/config/checkpoint metadata surface. v0.80 adds checkpoint-load and eval
 report surfaces. v0.81 uses those surfaces to add profile target-share
-anti-collapse pressure to the direct-answer objective path.
+anti-collapse pressure to the direct-answer objective path. v0.82 screens that
+objective under the modern artifact stack, rejects it on branch diversity, and
+fixes the transformer purity metrics so `external_embeddings: false` is
+declared for constraint-first checks.
 
 The current surfaces are:
 
@@ -44,6 +47,10 @@ repair work smaller and more auditable:
 - Direct-answer objective names are no longer owned by the CLI parser.
 - Profile-aware preserving-deficit replay can add balanced target-share
   pressure across each profile's replay targets.
+- Transformer answer metrics explicitly declare the closed-world embedding
+  boundary before constraint-first promotion reads them.
+- The v0.82 profile target-share screen shows rank lift is not enough when it
+  depends on prompt-collapse and lost target-token coverage.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

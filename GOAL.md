@@ -104,8 +104,11 @@ provenance, and the goal framework itself.
     transformer model/config and checkpoint metadata surfaces; v0.80 extracts
     transformer eval and checkpoint-load surfaces; v0.81 adds profile
     target-share anti-collapse pressure inside the profile-aware direct-answer
-    objective path. The remaining sequence should screen that objective under
-    the operating constraints before broader tokenizer or verifier changes.
+    objective path; v0.82 screens that objective under the modern artifact and
+    constraint-first gates, rejects it as insufficient, and fixes the
+    transformer metrics purity field for external embeddings. The remaining
+    sequence should address prompt-specific branch diversity before broader
+    tokenizer or verifier changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

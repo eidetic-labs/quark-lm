@@ -66,8 +66,9 @@ recipes and constraint-first promotion gates; v0.78 adds transformer
 experiment/artifact surfaces, trainer utilities, and an objective catalog;
 v0.79 adds transformer model/config and checkpoint metadata surfaces; v0.80
 adds transformer eval/checkpoint-load surfaces; v0.81 adds balanced profile
-target-share pressure inside the preserving-deficit direct-answer objective.
-Future full objective screens should use those narrower surfaces. See
+target-share pressure inside the preserving-deficit direct-answer objective;
+v0.82 screens that objective and rejects trained snapshots that collapse branch
+diversity. Future objective repairs should use those narrower surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -181,8 +182,9 @@ loops become fragile.
   v0.78 added transformer experiment/artifact surfaces, trainer utilities, and
   an objective catalog; v0.79 added transformer model/config and checkpoint
   metadata surfaces; v0.80 added transformer eval/checkpoint-load surfaces;
-  v0.81 added profile target-share anti-collapse pressure. The next objective
-  screen should use those surfaces.
+  v0.81 added profile target-share anti-collapse pressure; v0.82 screened it
+  and rejected it on branch diversity. The next objective repair should use
+  those surfaces to target prompt-specific branch diversity.
 
 ## Defer
 

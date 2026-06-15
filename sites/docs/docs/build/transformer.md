@@ -121,6 +121,12 @@ deficit focus, and represented-target preservation, but adds a per-target
 anti-collapse term so one represented target cannot dominate a multi-target
 profile without pressure on the remaining replay targets.
 
+v0.82 screens that objective under the modern artifact stack and
+constraint-first gates. The screen fixes the transformer metrics purity field
+for `external_embeddings`, passes the verifier and branch-context gate, and
+preserves coverage by restoring step `0`, but trained snapshots still collapse
+QA and heldout branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1157,6 +1163,29 @@ Latest profile-aware full-stack repair screen:
 | Training heldout note | step `40` improved heldout average target rank to `6.875` and top-5 coverage to `0.5`, but target-token coverage regressed to `0.125` and predicted diversity collapsed to `1/8` |
 | Promotion status | rejected; profile-aware rank gains still trade away coverage and diversity |
 
+Latest profile target-share full-stack screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood` |
+| Artifact stack | experiment intent, corpus hygiene, training plan, candidate quarantine, deterministic verifier, recipe, replay plan, constraint-first report, metrics, tokenizer, optimizer, lessons, checkpoint |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Foundation stack | AdamW, two heads, RMSNorm, gated MLP, tied output embeddings, rotary positions, cache-aware metadata |
+| Context / representation | context `80`, `--use-pre-layer-norm`, `--use-prompt-position-projection` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Purity gates | no pretrained weights, no pretrained tokenizer, no external embeddings |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` after restore |
+| Final QA average target rank | `13.25` after restore |
+| Final QA target-token coverage | `0.25` after restore |
+| Training snapshot note | step `40` improved QA average target rank to `9.125` and top-5 coverage to `0.375`, but QA target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
+| Training heldout note | step `40` improved heldout average target rank to `9.25` and top-5 coverage to `0.375`, but heldout target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
+| Promotion status | rejected; target-share pressure still trades coverage and diversity away for rank |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1260,5 +1289,6 @@ correct targets upward in the ranked list, but only by collapsing target-token
 coverage and branch diversity, so the snapshot gate restored baseline. The next
 trainer change needs anti-collapse preservation inside the profile-aware plan.
 v0.81 implements that trainer change as a profile target-share objective
-mechanic. It is not promoted model-quality evidence until a full screen passes
-the existing constraint-first gates.
+mechanic. v0.82 screens it and rejects the trained snapshots because rank lift
+still comes from branch collapse; the next repair should target prompt-specific
+branch diversity directly.

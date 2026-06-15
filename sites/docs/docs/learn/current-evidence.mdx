@@ -295,6 +295,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Profile target-share objective</td><td><code>{state.transformerProfileTargetShare}</code></td></tr>
     <tr><td>Profile target-share decision</td><td><code>{state.transformerProfileTargetShareDecision}</code></td></tr>
     <tr><td>Profile target-share unit test</td><td><code>{state.transformerProfileTargetShareUnitTest}</code></td></tr>
+    <tr><td>Latest profile target-share run</td><td><code>{state.transformerLatestProfileTargetShareRun}</code></td></tr>
+    <tr><td>Profile target-share mode</td><td><code>{state.transformerProfileTargetShareMode}</code></td></tr>
+    <tr><td>Profile target-share artifacts</td><td><code>{state.transformerProfileTargetShareArtifacts}</code></td></tr>
+    <tr><td>Profile target-share gate</td><td><code>{state.transformerProfileTargetShareGate}</code></td></tr>
+    <tr><td>Profile target-share history</td><td><code>{state.transformerProfileTargetShareHistory}</code></td></tr>
+    <tr><td>Profile target-share status</td><td><code>{state.transformerProfileTargetShareStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -799,8 +805,15 @@ v0.81 keeps the context-coverage audit, profile-wise coverage floor, and
 replay-plan artifact, then adds balanced profile target-share pressure inside
 the profile-local direct-answer objective. Focused tests verify the minority
 replay target gains more share than under the previous profile-aware replay
-loss. The next required evidence is a full screen proving that objective can
-improve rank without erasing target-token coverage or branch diversity.
+loss. v0.82 then screens that objective in
+`runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
+The run records the modern artifact stack and passes the verifier,
+branch-context, purity, and coverage-preservation gates, but it still fails
+branch diversity. Step `40` improves QA average target rank to `9.125`, yet
+does so by collapsing QA and heldout to one `"c"` prediction with `0.0`
+target-token coverage. Best-snapshot scoring restores step `0`, so this is
+rejected evidence and the next repair should target prompt-specific branch
+diversity directly.
 
 The v0.42 self-improvement run passed:
 

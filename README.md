@@ -174,6 +174,20 @@ profile replay set. Focused tests verify the minority replay target gains more
 share than the previous profile-aware replay loss. This is objective-mechanics
 evidence, not promoted responder evidence.
 
+v0.82 screens that objective in
+`runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
+The run writes the full modern artifact set: experiment intent, corpus hygiene,
+training plan, candidate quarantine, deterministic verifier, recipe, replay
+plan, constraint-first promotion report, metrics JSON/JSONL, tokenizer,
+optimizer, lessons, and checkpoint. It also fixes the transformer metrics
+purity report so `external_embeddings: false` reaches the constraint-first
+gate. The screen completed `50/50` direct steps with `7` clean JSONL rows and a
+replay plan covering `9144` branch/replay records across `21` profiles. The
+branch-context gate passed and target coverage was preserved after best-snapshot
+restore, but training step `40` improved QA average rank only by collapsing QA
+and heldout to one `"c"` branch token with `0.0` target-token coverage.
+Constraint-first promotion rejected the run on `branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -719,6 +733,18 @@ Current transformer answer-lesson run:
   to `1/8`. Best-snapshot scoring restored step `0`, so this is rejected
   evidence and the next repair needs explicit anti-collapse preservation inside
   the profile-aware plan.
+- v0.82 runs the matching full-stack screen with
+  `branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
+  The modern run artifacts are present, the deterministic verifier passed, and
+  the constraint-first purity gates now correctly see `external_embeddings:
+  false`. The branch-context gate passed across `219/219` semantic records, the
+  replay plan covered `9144` branch/replay records across `21` profiles, and
+  `50/50` direct steps completed with `7` JSONL rows. Step `40` lowered train
+  loss to `19.7378` and improved QA average target rank to `9.125`, but QA and
+  heldout collapsed to one `"c"` prediction with target-token coverage `0.0`.
+  Best-snapshot scoring restored step `0`, preserving QA/heldout coverage at
+  `0.25` but leaving branch diversity failed across all `9` multi-target
+  profiles. This rejects profile target-share pressure as sufficient by itself.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

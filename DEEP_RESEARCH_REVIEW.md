@@ -462,11 +462,20 @@ It adds balanced owned target-share pressure across replay targets inside each
 profile-aware group, so the preserving-deficit objective no longer protects
 only the currently represented target token.
 
-### v0.82+
+### v0.82
 
-After the v0.81 objective mechanic has been screened under the existing
-constraint-first gates, QuarkLM can revisit tokenizer growth or begin a learned
-verifier experiment.
+Screened the v0.81 objective mechanic under the existing constraint-first gates
+in `runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
+The run writes the modern artifact set, fixes the transformer metrics
+`external_embeddings` purity field, passes the verifier and branch-context
+gate, and preserves target coverage after restore. It is rejected evidence:
+trained snapshots still collapse QA and heldout branch diversity before any
+rank gain can be trusted.
+
+### v0.83+
+
+The next transformer repair should target prompt-specific branch diversity
+directly before tokenizer growth or a learned verifier experiment.
 
 ## Decision
 

@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.82
+
+- Added gated profile target-share full-stack screen evidence.
+
 ## v0.81
 
 - Added profile target-share anti-collapse pressure for transformer direct-answer replay.
