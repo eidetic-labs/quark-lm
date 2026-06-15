@@ -205,6 +205,12 @@ BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABI
     "frontier-profile-scale-calibrated-sequential-profile-stabilization-"
     "unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-"
+    "stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -225,6 +231,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -245,6 +252,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -264,6 +272,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -286,6 +295,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -303,6 +313,7 @@ BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
@@ -316,6 +327,7 @@ BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
@@ -328,6 +340,7 @@ BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
@@ -339,6 +352,7 @@ BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
@@ -349,6 +363,7 @@ BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
@@ -364,6 +379,7 @@ BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_STABILIZATION_DIRECT_ANSWER_
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
@@ -371,24 +387,32 @@ BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANS
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -408,6 +432,11 @@ BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES = (
     "owner",
     "paraphrases",
 )
+BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES = (
+    "owner",
+    "paraphrases",
+)
+BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES = ("learning",)
 BASELINE_FLOOR_REMAINING_PROFILE_BINDING_PARAPHRASE_SOURCE_LABELS = (
     "color",
     "owner",
@@ -8026,6 +8055,22 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
+        direct_remaining_profile_binding_target_profiles = list(
+            BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES
+            if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+            else BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
+        )
+        direct_remaining_profile_binding_source_labels = (
+            remaining_profile_binding_source_labels(
+                direct_remaining_profile_binding_target_profiles
+            )
+            if direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
+            else []
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8159,6 +8204,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -8246,25 +8296,39 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if (
                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
             ):
-                remaining_target_profiles = list(
-                    BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
-                )
-                remaining_source_labels = remaining_profile_binding_source_labels(
-                    remaining_target_profiles
-                )
                 direct_replay_plan[
                     "remaining_profile_binding_target_profiles"
-                ] = remaining_target_profiles
+                ] = direct_remaining_profile_binding_target_profiles
                 direct_replay_plan[
                     "remaining_profile_binding_source_labels"
-                ] = remaining_source_labels
+                ] = direct_remaining_profile_binding_source_labels
                 direct_replay_plan[
                     "remaining_profile_binding_source_profiles"
                 ] = [
                     profile
                     for profile in sorted(direct_replay_plan["profiles"])
-                    if source_profile_label(profile) in set(remaining_source_labels)
+                    if source_profile_label(profile)
+                    in set(direct_remaining_profile_binding_source_labels)
                 ]
+                if (
+                    direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                ):
+                    direct_replay_plan[
+                        "owner_paraphrase_binding_target_profiles"
+                    ] = list(BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES)
+                    direct_replay_plan[
+                        "owner_paraphrase_binding_preserved_profiles"
+                    ] = list(
+                        BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES
+                    )
+                    direct_replay_plan[
+                        "owner_paraphrase_binding_source_labels"
+                    ] = direct_remaining_profile_binding_source_labels
+                    direct_replay_plan[
+                        "owner_paraphrase_binding_source_profiles"
+                    ] = direct_replay_plan[
+                        "remaining_profile_binding_source_profiles"
+                    ]
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
@@ -8465,6 +8529,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_remaining_profile_binding_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
             ),
+            "profile_scale_owner_paraphrase_binding_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+            ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
                 if direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
@@ -8645,14 +8712,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_collapsed_profile_binding_frontier_profile_deltas": {},
             "profile_scale_collapsed_profile_binding_frontier_probe_sample": [],
             "profile_scale_remaining_profile_binding_target_profiles": (
-                list(BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES)
+                direct_remaining_profile_binding_target_profiles
                 if direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                 else []
             ),
             "profile_scale_remaining_profile_binding_source_labels": (
-                remaining_profile_binding_source_labels(
-                    BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
-                )
+                direct_remaining_profile_binding_source_labels
                 if direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                 else []
             ),
@@ -8673,6 +8738,40 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_remaining_profile_binding_prioritized_acceptances": 0,
             "profile_scale_remaining_profile_binding_prioritized_rejections": 0,
             "profile_scale_remaining_profile_binding_probe_sample": [],
+            "profile_scale_owner_paraphrase_binding_target_profiles": (
+                list(BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES)
+                if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_owner_paraphrase_binding_source_labels": (
+                direct_remaining_profile_binding_source_labels
+                if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_owner_paraphrase_binding_source_profiles": (
+                list(
+                    direct_replay_plan.get(
+                        "owner_paraphrase_binding_source_profiles",
+                        [],
+                    )
+                )
+                if (
+                    direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                    and isinstance(direct_replay_plan, dict)
+                )
+                else []
+            ),
+            "profile_scale_owner_paraphrase_binding_preserved_profiles": (
+                list(BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES)
+                if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_owner_paraphrase_binding_prioritized_attempts": 0,
+            "profile_scale_owner_paraphrase_binding_prioritized_acceptances": 0,
+            "profile_scale_owner_paraphrase_binding_prioritized_rejections": 0,
+            "profile_scale_owner_paraphrase_binding_preservation_checks": 0,
+            "profile_scale_owner_paraphrase_binding_preservation_failures": 0,
+            "profile_scale_owner_paraphrase_binding_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8888,6 +8987,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_branch_diversity_recovery_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization",
                 "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization",
+                "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8942,9 +9042,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         if (
                             direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                         ):
-                            update_shape = (
-                                "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization"
-                            )
+                            if (
+                                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                            ):
+                                update_shape = (
+                                    "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization"
+                                )
+                            else:
+                                update_shape = (
+                                    "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization"
+                                )
                         else:
                             update_shape = (
                                 "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization"
@@ -8997,7 +9104,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 loss_count = 0
                 accepted_any = False
                 remaining_binding_target_profiles = list(
-                    BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_PROFILES
+                    direct_remaining_profile_binding_target_profiles
                 )
                 if (
                     direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
@@ -9029,6 +9136,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_answer_update_guard[
                         "profile_scale_remaining_profile_binding_source_profiles"
                     ] = remaining_source_profiles
+                    if (
+                        direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                    ):
+                        direct_answer_update_guard[
+                            "profile_scale_owner_paraphrase_binding_source_profiles"
+                        ] = remaining_source_profiles
                 else:
                     profile_items = list(profile_groups.items())
                     remaining_source_labels = set()
@@ -9036,6 +9149,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 for profile, profile_anchors in profile_items:
                     remaining_profile_binding_prioritized = (
                         direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
+                        and profile in remaining_source_profiles
+                    )
+                    owner_paraphrase_binding_prioritized = (
+                        direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
                         and profile in remaining_source_profiles
                     )
                     profile_model_payload = model.to_dict(tokenizer)
@@ -9122,6 +9239,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             direct_answer_update_guard[
                                 "profile_scale_remaining_profile_binding_prioritized_attempts"
                             ] += 1
+                        if owner_paraphrase_binding_prioritized:
+                            direct_answer_update_guard[
+                                "profile_scale_owner_paraphrase_binding_prioritized_attempts"
+                            ] += 1
                         direct_answer_update_guard[
                             "sequential_profile_records"
                         ] += len(profile_batch)
@@ -9159,6 +9280,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 ),
                                 "remaining_profile_binding_prioritized": (
                                     remaining_profile_binding_prioritized
+                                ),
+                                "owner_paraphrase_binding_prioritized": (
+                                    owner_paraphrase_binding_prioritized
                                 ),
                             },
                         )
@@ -9285,6 +9409,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         )
                         collapsed_profile_binding_score: tuple[float, ...] | None = None
                         collapsed_profile_binding_delta: dict[str, Any] | None = None
+                        owner_paraphrase_binding_preserved = True
+                        owner_paraphrase_binding_preservation_delta: dict[
+                            str, Any
+                        ] | None = None
                         if (
                             direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
                             and coverage_prep_accepted
@@ -9515,6 +9643,36 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             or diversity_outcome in {"improved", "tied"}
                         )
                         if (
+                            direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                            and profile_base_snapshot is not None
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_owner_paraphrase_binding_preservation_checks"
+                            ] += 1
+                            owner_paraphrase_binding_preservation_delta = (
+                                branch_diversity_snapshot_profile_diversity_delta(
+                                    profile_probe_snapshot,
+                                    profile_base_snapshot,
+                                    BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES,
+                                )
+                            )
+                            if (
+                                int(
+                                    owner_paraphrase_binding_preservation_delta[
+                                        "regressed_profile_count"
+                                    ]
+                                )
+                                > 0
+                            ):
+                                owner_paraphrase_binding_preserved = False
+                                direct_answer_update_guard[
+                                    "profile_scale_owner_paraphrase_binding_preservation_failures"
+                                ] += 1
+                                diversity_accepted = False
+                                diversity_rejection_reason = (
+                                    "owner_paraphrase_preservation_regression"
+                                )
+                        if (
                             direct_answer_baseline_floor_profile_scale_coverage_prep_frontier_stabilization_active
                             and floor_preserved
                             and coverage_outcome == "tied"
@@ -9723,6 +9881,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     profile_probe_snapshot
                                 )
                             )
+                            if (
+                                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                            ):
+                                owner_paraphrase_targets = set(
+                                    BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES
+                                )
+                                collapsed_profile_binding_target_profiles = [
+                                    name
+                                    for name in collapsed_profile_binding_target_profiles
+                                    if name in owner_paraphrase_targets
+                                ]
                             if collapsed_profile_binding_target_profiles:
                                 direct_answer_update_guard[
                                     "profile_scale_collapsed_profile_binding_frontier_candidates"
@@ -9792,6 +9961,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                             "collapsed_profile_binding_target_profiles": (
                                                 collapsed_profile_binding_target_profiles
                                             ),
+                                            "owner_paraphrase_binding_preserved_profiles": (
+                                                list(
+                                                    BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES
+                                                )
+                                                if direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                                                else []
+                                            ),
                                         },
                                     )
                                     collapsed_binding_floor_preserved = branch_diversity_snapshot_preserves_target_coverage(
@@ -9813,10 +9989,41 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         profile_probe_snapshot,
                                         collapsed_profile_binding_target_profiles,
                                     )
+                                    owner_paraphrase_collapsed_preservation_regressed = (
+                                        False
+                                    )
+                                    if (
+                                        direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                                    ):
+                                        direct_answer_update_guard[
+                                            "profile_scale_owner_paraphrase_binding_preservation_checks"
+                                        ] += 1
+                                        owner_paraphrase_binding_preservation_delta = branch_diversity_snapshot_profile_diversity_delta(
+                                            collapsed_binding_probe_snapshot,
+                                            profile_probe_snapshot,
+                                            BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES,
+                                        )
+                                        owner_paraphrase_collapsed_preservation_regressed = (
+                                            int(
+                                                owner_paraphrase_binding_preservation_delta[
+                                                    "regressed_profile_count"
+                                                ]
+                                            )
+                                            > 0
+                                        )
                                     collapsed_profile_binding_delta = {
                                         "coverage_delta": collapsed_binding_coverage_delta,
                                         "profile_delta": collapsed_binding_profile_delta,
                                     }
+                                    if (
+                                        owner_paraphrase_binding_preservation_delta
+                                        is not None
+                                    ):
+                                        collapsed_profile_binding_delta[
+                                            "owner_paraphrase_preservation_delta"
+                                        ] = (
+                                            owner_paraphrase_binding_preservation_delta
+                                        )
                                     if not collapsed_binding_floor_preserved:
                                         collapsed_profile_binding_outcome = (
                                             "floor_regressed"
@@ -9852,6 +10059,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         collapsed_profile_binding_rejection_reason = (
                                             "profile_diversity_regression"
                                         )
+                                    elif owner_paraphrase_collapsed_preservation_regressed:
+                                        collapsed_profile_binding_outcome = (
+                                            "preserved_profile_regressed"
+                                        )
+                                        collapsed_profile_binding_rejection_reason = (
+                                            "owner_paraphrase_preservation_regression"
+                                        )
+                                        direct_answer_update_guard[
+                                            "profile_scale_owner_paraphrase_binding_preservation_failures"
+                                        ] += 1
                                     elif (
                                         collapsed_profile_binding_base_score
                                         is not None
@@ -9942,6 +10159,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             if remaining_profile_binding_prioritized:
                                 direct_answer_update_guard[
                                     "profile_scale_remaining_profile_binding_prioritized_acceptances"
+                                ] += 1
+                            if owner_paraphrase_binding_prioritized:
+                                direct_answer_update_guard[
+                                    "profile_scale_owner_paraphrase_binding_prioritized_acceptances"
                                 ] += 1
                             if (
                                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
@@ -10184,6 +10405,32 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 sample[
                                     "remaining_profile_binding_source_profiles"
                                 ] = remaining_source_profiles
+                            if (
+                                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                            ):
+                                sample[
+                                    "owner_paraphrase_binding_prioritized"
+                                ] = owner_paraphrase_binding_prioritized
+                                sample[
+                                    "owner_paraphrase_binding_target_profiles"
+                                ] = list(
+                                    BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_TARGET_PROFILES
+                                )
+                                sample[
+                                    "owner_paraphrase_binding_preserved_profiles"
+                                ] = list(
+                                    BASELINE_FLOOR_OWNER_PARAPHRASE_BINDING_PRESERVED_PROFILES
+                                )
+                                sample[
+                                    "owner_paraphrase_binding_preserved"
+                                ] = owner_paraphrase_binding_preserved
+                                if (
+                                    owner_paraphrase_binding_preservation_delta
+                                    is not None
+                                ):
+                                    sample[
+                                        "owner_paraphrase_binding_preservation_delta"
+                                    ] = owner_paraphrase_binding_preservation_delta
                             if (
                                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
                                 and profile_score is not None
@@ -10430,6 +10677,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(remaining_binding_sample) < 12
                             ):
                                 remaining_binding_sample.append(sample)
+                            owner_paraphrase_sample = direct_answer_update_guard[
+                                "profile_scale_owner_paraphrase_binding_probe_sample"
+                            ]
+                            if (
+                                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                                and
+                                isinstance(owner_paraphrase_sample, list)
+                                and len(owner_paraphrase_sample) < 12
+                            ):
+                                owner_paraphrase_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -10440,6 +10697,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         if remaining_profile_binding_prioritized:
                             direct_answer_update_guard[
                                 "profile_scale_remaining_profile_binding_prioritized_rejections"
+                            ] += 1
+                        if owner_paraphrase_binding_prioritized:
+                            direct_answer_update_guard[
+                                "profile_scale_owner_paraphrase_binding_prioritized_rejections"
                             ] += 1
                         if (
                             direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
@@ -10806,9 +11067,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             if (
                                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
                             ):
-                                attempt_update_shape = (
-                                    "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization"
-                                )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
+                                ):
+                                    attempt_update_shape = (
+                                        "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization"
+                                    )
+                                else:
+                                    attempt_update_shape = (
+                                        "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization"
+                                    )
                             else:
                                 attempt_update_shape = (
                                     "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization"
@@ -12748,6 +13016,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

@@ -144,6 +144,9 @@ v0.103.0 adds remaining-profile binding, accepts `6` prioritized updates,
 improves `learning` coverage from `0.0` to `0.25`, and shifts the next
 mechanics change toward preserving that gain while separating `owner` and
 `paraphrases` from the remaining collapse.
+v0.104.0 adds owner/paraphrase residual binding, rejects `24` protected
+learning regressions, keeps `learning` non-collapsed, and shifts the next
+mechanics change toward owner/paraphrase target-token diversification.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

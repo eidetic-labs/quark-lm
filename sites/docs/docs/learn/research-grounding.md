@@ -124,6 +124,10 @@ v0.103.0 adds remaining-profile binding, records `21` prioritized attempts,
 accepts `6` prioritized updates, improves `learning` coverage from `0.0` to
 `0.25`, and shows the next repair should preserve that gain while targeting
 `owner` and `paraphrases`.
+v0.104.0 adds owner/paraphrase residual binding, records `16` prioritized
+attempts, accepts `6` prioritized updates, rejects `24` preservation failures,
+and shows the next repair should convert protected owner/paraphrase attempts
+from ties into real target-token diversity.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

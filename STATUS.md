@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.103.0 remaining-profile binding frontier screen;
+**Active version:** v0.104.0 owner/paraphrase binding frontier screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -521,14 +521,14 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-The screen keeps the v0.102.0 collapsed-profile binding guard and adds
-remaining-profile curriculum ordering for `learning`, `owner`, and
-paraphrase-adjacent source labels. It records `21` prioritized attempts,
-accepts `6` prioritized updates, improves `learning` coverage from `0.0` to
-`0.25`, preserves target coverage, and still rejects promotion on
-`branch_diversity_target`; `learning`, `owner`, and `paraphrases` remain the
-explicit collapsed eval profiles.
+`runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The screen keeps the v0.103.0 remaining-profile curriculum, narrows residual
+binding targets to `owner` and `paraphrases`, and records `learning` as a
+protected profile. It records `16` owner/paraphrase-prioritized attempts,
+accepts `6` prioritized updates, runs `75` preservation checks, rejects `24`
+preservation failures, keeps `learning` non-collapsed at coverage `0.25`, and
+still rejects promotion on `branch_diversity_target`; `owner`, `paraphrases`,
+and `glossary` remain collapsed.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

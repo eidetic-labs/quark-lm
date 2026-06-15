@@ -57,6 +57,12 @@ PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_MODE = (
     "frontier-profile-scale-calibrated-sequential-profile-stabilization-"
     "unlikelihood"
 )
+PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-collapsed-profile-binding-remaining-profile-"
+    "owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-"
+    "stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -81,6 +87,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_MODE,
     PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_MODE,
     PROFILE_SCALE_REMAINING_PROFILE_BINDING_FRONTIER_MODE,
+    PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_MODE,
 }
 
 
@@ -497,6 +504,34 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                         "profile binding candidates, attempts, acceptances, "
                         "fallback acceptances, rejection reasons, profile-"
                         "diversity deltas, update-shape counts, replay plan, "
+                        "branch-context gate, coverage floor, diversity target, "
+                        "recipe, verifier, and constraint-first promotion "
+                        "artifacts."
+                    ),
+                    "required": True,
+                }
+            )
+        if (
+            getattr(args, "direct_answer_mode", "")
+            == PROFILE_SCALE_OWNER_PARAPHRASE_BINDING_FRONTIER_MODE
+        ):
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_owner_paraphrase_"
+                        "binding_frontier_calibrated_sequential_"
+                        "stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records owner/paraphrase binding frontier "
+                        "activation, residual target eval profiles, preserved "
+                        "learning profile, prioritized source labels and source "
+                        "profiles, prioritized attempts, prioritized "
+                        "acceptances and rejections, preservation checks, "
+                        "preservation failures, collapsed-profile binding "
+                        "candidates, attempts, acceptances, fallback "
+                        "acceptances, rejection reasons, profile-diversity "
+                        "deltas, update-shape counts, replay plan, "
                         "branch-context gate, coverage floor, diversity target, "
                         "recipe, verifier, and constraint-first promotion "
                         "artifacts."

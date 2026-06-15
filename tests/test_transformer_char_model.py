@@ -5856,6 +5856,131 @@ class TransformerCharModelTest(unittest.TestCase):
             shape_counts,
         )
 
+    def test_profile_scale_owner_paraphrase_binding_frontier_mode_records_residual_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / (
+                            "baseline-floor-profile-scale-owner-paraphrase-"
+                            "binding-frontier-screen"
+                        )
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "branch-stable-coverage-recovery-branch-diversity-"
+                        "collapsed-profile-binding-remaining-profile-"
+                        "owner-paraphrase-frontier-profile-scale-calibrated-"
+                        "sequential-profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_owner_paraphrase_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_owner_paraphrase_binding_frontier_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            guard["profile_scale_remaining_profile_binding_target_profiles"],
+            ["owner", "paraphrases"],
+        )
+        self.assertEqual(
+            guard["profile_scale_owner_paraphrase_binding_target_profiles"],
+            ["owner", "paraphrases"],
+        )
+        self.assertEqual(
+            guard["profile_scale_owner_paraphrase_binding_preserved_profiles"],
+            ["learning"],
+        )
+        self.assertEqual(
+            guard["profile_scale_owner_paraphrase_binding_source_labels"],
+            ["color", "owner", "place", "training_data"],
+        )
+        self.assertTrue(
+            guard["profile_scale_owner_paraphrase_binding_source_profiles"]
+        )
+        self.assertEqual(
+            guard["profile_scale_owner_paraphrase_binding_source_profiles"],
+            replay_plan["owner_paraphrase_binding_source_profiles"],
+        )
+        self.assertEqual(
+            replay_plan["owner_paraphrase_binding_target_profiles"],
+            ["owner", "paraphrases"],
+        )
+        self.assertEqual(
+            replay_plan["owner_paraphrase_binding_preserved_profiles"],
+            ["learning"],
+        )
+        self.assertEqual(
+            guard[
+                "profile_scale_owner_paraphrase_binding_prioritized_attempts"
+            ],
+            guard[
+                "profile_scale_owner_paraphrase_binding_prioritized_acceptances"
+            ]
+            + guard[
+                "profile_scale_owner_paraphrase_binding_prioritized_rejections"
+            ],
+        )
+        if guard[
+            "profile_scale_owner_paraphrase_binding_prioritized_acceptances"
+        ]:
+            self.assertTrue(
+                guard["profile_scale_owner_paraphrase_binding_probe_sample"]
+            )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_owner_paraphrase_binding_frontier_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
     def test_branch_diversity_target_coverage_delta_records_profile_gains(
         self,
     ) -> None:

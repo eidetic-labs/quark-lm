@@ -119,8 +119,11 @@ the same discipline before another major repair screen.
 33. **v0.103.0:** remaining-profile binding. Implemented with six prioritized
     remaining-profile acceptances and a learning coverage gain; rejected for
     promotion.
-34. **v0.104.0+:** owner/paraphrase binding, tokenizer growth, or learned
-    verifier experiments.
+34. **v0.104.0:** owner/paraphrase residual binding. Implemented with six
+    prioritized acceptances and protected-learning rejection evidence; rejected
+    for promotion.
+35. **v0.105.0+:** owner/paraphrase target diversification, tokenizer growth,
+    or learned verifier experiments.
 
 ## Operating Rule
 
@@ -207,3 +210,7 @@ v0.103.0 adds remaining-profile binding after collapsed-profile binding,
 records `21` prioritized attempts, accepts `6` prioritized updates, improves
 `learning` coverage from `0.0` to `0.25`, preserves target coverage, and still
 rejects promotion on branch diversity.
+v0.104.0 adds owner/paraphrase residual binding, records `16` prioritized
+attempts, accepts `6` prioritized updates, runs `75` learning-preservation
+checks, rejects `24` preservation failures, keeps `learning` non-collapsed, and
+still rejects promotion on branch diversity.

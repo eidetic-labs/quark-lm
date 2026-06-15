@@ -343,3 +343,14 @@ acceptances, `15` prioritized rejections, `3` branch-diversity refinements, and
 `2` collapsed-profile binding updates. The next repair should preserve the new
 `learning` coverage gain while targeting the still-collapsed `owner` and
 `paraphrases` profiles.
+
+v0.104.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run records `16` owner/paraphrase-prioritized attempts, `6` prioritized
+acceptances, `10` prioritized rejections, `75` learning-preservation checks,
+`24` preservation failures, and `33` narrowed collapsed-profile binding
+rejections. The next repair should convert those owner/paraphrase attempts
+from protected ties into target-token coverage or predicted-token diversity
+gains.

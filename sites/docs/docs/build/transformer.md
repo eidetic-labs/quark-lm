@@ -280,6 +280,16 @@ twenty-one prioritized attempts, accepts six prioritized updates, improves
 `learning` coverage from `0.0` to `0.25`, preserves target coverage, and keeps
 promotion blocked on branch diversity.
 
+v0.104.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.103.0 remaining-profile curriculum, narrows residual binding
+targets to `owner` and `paraphrases`, and protects `learning` as a preserved
+profile. The diagnostic screen records sixteen owner/paraphrase-prioritized
+attempts, accepts six prioritized source-profile updates, runs seventy-five
+learning-preservation checks, rejects twenty-four preservation failures, keeps
+`learning` non-collapsed at coverage `0.25`, and keeps promotion blocked on
+branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

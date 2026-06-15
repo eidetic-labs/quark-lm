@@ -484,6 +484,21 @@ and preserved the target-coverage floor. Promotion remains blocked on
 `0.25` while the remaining collapsed profiles stay explicit: `learning`,
 `owner`, and `paraphrases`.
 
+v0.104.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-owner-paraphrase-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.103.0 remaining-profile curriculum but narrows residual
+collapsed-profile binding to `owner` and `paraphrases`, while treating
+`learning` as a protected profile. The matching diagnostic screen ran at
+`runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, recorded `16` owner/paraphrase-prioritized
+attempts, accepted `6` prioritized source-profile updates, ran `75`
+preservation checks, rejected `24` preservation failures, and rejected all
+`33` narrowed collapsed-profile binding attempts (`27` ties, `2` preservation
+regressions, `4` score regressions). Promotion remains blocked on
+`branch_diversity_target`, but `learning` finishes non-collapsed with coverage
+`0.25` and predicted diversity `2`; the residual collapsed profiles are
+`owner`, `paraphrases`, plus `glossary`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1177,6 +1192,13 @@ Current transformer answer-lesson run:
   those prioritized updates, improves `learning` coverage from `0.0` to
   `0.25`, preserves target coverage, and still rejects promotion on
   `branch_diversity_target`.
+- v0.104.0 adds owner/paraphrase residual binding after remaining-profile
+  binding. The diagnostic run
+  `runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  records `16` owner/paraphrase-prioritized attempts, accepts `6` prioritized
+  source-profile updates, runs `75` learning-preservation checks, rejects `24`
+  preservation failures, keeps `learning` non-collapsed at coverage `0.25`,
+  and still rejects promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
