@@ -110,7 +110,10 @@ recovery. v0.99 adds
 coverage-recovery frontier retry, accepts `6` source-profile updates, converts
 `2` prepared candidates into direct coverage recoveries, keeps `4` preparation
 fallbacks, and shows the next repair should stabilize branch diversity after
-coverage recovery.
+coverage recovery. v0.100.0 adds branch-stable coverage-recovery acceptance,
+keeps the `2` recovery conversions, records `15` branch-stability checks,
+rejects `1` retry for branch-score regression, and shows the next repair should
+increase branch diversity without weakening the recovery floor.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

@@ -420,6 +420,21 @@ itself rejected `7` floor regressions and `6` coverage ties. Promotion remains
 rejected on `branch_diversity_target`, but v0.99 proves the self-improvement
 loop can distinguish "I prepared to learn" from "I recovered coverage."
 
+v0.100.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.99 recovery retry but requires recovered candidates to preserve
+the branch-diversity score of the prepared candidate before the recovery state
+can be accepted. The matching diagnostic screen ran at
+`runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `54` profile-scale updates, accepted
+`6` source-profile updates, identified `6` recovery-prepared candidates, ran
+`15` branch-stability checks, converted `2` candidates into branch-stable
+coverage recoveries, and retained `4` coverage-preparation fallbacks. The
+recovery retry rejected `7` floor regressions, `5` coverage ties, and `1`
+branch-score regression. Promotion remains rejected on
+`branch_diversity_target`, but v0.100.0 proves recovery conversion can be
+audited against branch-stability rather than coverage alone.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1086,6 +1101,12 @@ Current transformer answer-lesson run:
   accepts `6` source-profile updates, converts `2` preparation candidates into
   direct coverage recoveries, keeps `4` preparation fallbacks, and still rejects
   promotion on `branch_diversity_target`.
+- v0.100.0 adds branch-stable coverage-recovery frontier retry. The diagnostic
+  run
+  `runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  keeps the `2` recovery conversions, records `15` branch-stability checks,
+  rejects `1` retry for branch-score regression, and still rejects promotion on
+  `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1338,6 +1359,8 @@ of the promotion gate. README, STATUS, GOAL, QUALITY, Docusaurus docs, and the
 standalone marketing page should be updated with every promoted version so docs
 do not drift from the current state. If they reference current product state,
 release evidence, evals, or commands, they must be updated with the release.
+New release identifiers use SemVer-style `vMAJOR.MINOR.PATCH` tags and run
+paths, such as `v0.100.0`; historical artifacts keep their existing names.
 
 ## Purity Boundary
 

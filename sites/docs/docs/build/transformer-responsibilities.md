@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.99 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.100.0 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -49,6 +49,9 @@ coverage-preparation moves.
 v0.99 adds coverage-recovery frontier retry, accepts six source-profile updates,
 converts two prepared candidates into direct coverage recoveries, and keeps four
 preparation fallbacks while branch diversity still blocks promotion.
+v0.100.0 adds branch-stable coverage-recovery acceptance, keeps the two
+recovery conversions, records fifteen branch-stability checks, and rejects one
+retry for branch-score regression while branch diversity still blocks promotion.
 
 The current surfaces are:
 
@@ -134,6 +137,9 @@ repair work smaller and more auditable:
 - The v0.99 coverage-recovery frontier guard shows prepared movement can be
   tested as direct missing-target recovery: `6` source-profile updates survive,
   with `2` recovery conversions and `4` preparation fallbacks.
+- The v0.100.0 branch-stable coverage-recovery guard shows recovery can be
+  checked against the prepared branch-diversity score: `2` recovery conversions
+  survive and `1` retry is rejected for branch-score regression.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

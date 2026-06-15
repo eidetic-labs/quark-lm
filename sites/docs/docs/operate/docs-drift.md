@@ -13,6 +13,8 @@ The current rule:
 - Docusaurus docs are reviewed every promoted version.
 - The marketing page is reviewed every promoted version when it references
   current state, evals, commands, domains, or roadmap commitments.
+- New release identifiers use SemVer-style `vMAJOR.MINOR.PATCH`; historical
+  run paths keep their original names for provenance.
 
 The anti-drift mechanism starts with `sites/shared/current-state.json`. Docs and
 marketing should read promoted-version facts from that shared source wherever

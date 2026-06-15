@@ -105,8 +105,12 @@ the same discipline before another major repair screen.
     updates; rejected for promotion.
 27. **v0.97:** coverage-frontier audited missing-target repair. Implemented
     with one coverage-gaining update; rejected for promotion.
-28. **v0.99+:** coverage-recovery frontier repair, tokenizer growth, or learned
-    verifier experiments.
+28. **v0.98:** coverage-prep frontier repair. Implemented with six safe
+    preparation moves; rejected for promotion.
+29. **v0.99:** coverage-recovery frontier retry. Implemented with two recovery
+    conversions; rejected for promotion.
+30. **v0.100.0+:** branch-stable recovery, tokenizer growth, or learned verifier
+    experiments.
 
 ## Operating Rule
 
@@ -180,4 +184,7 @@ source-profile updates across `43` attempts, separates `3` coverage gains from
 diversity. v0.99 adds coverage-recovery frontier retry, accepts `6`
 source-profile updates across `54` attempts, converts `2` prepared candidates
 into direct coverage recoveries, keeps `4` preparation fallbacks, and still
-rejects promotion on branch diversity.
+rejects promotion on branch diversity. v0.100.0 adds branch-stable
+coverage-recovery acceptance, keeps the `2` recovery conversions, records `15`
+branch-stability checks, rejects `1` retry for branch-score regression, and
+still rejects promotion on branch diversity.

@@ -1,8 +1,8 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.94 profile-scale calibrated floor stabilization screen; promoted
-responder evidence remains v0.42
+**Active version:** v0.100.0 branch-stable coverage-recovery frontier screen;
+promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
 

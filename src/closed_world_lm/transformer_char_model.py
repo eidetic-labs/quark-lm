@@ -184,6 +184,11 @@ BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION
     "branch-context-profile-baseline-floor-diversity-coverage-recovery-frontier-"
     "profile-scale-calibrated-sequential-profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-frontier-profile-scale-calibrated-sequential-profile-"
+    "stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -200,6 +205,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -216,6 +222,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -231,6 +238,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -249,6 +257,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -262,6 +271,7 @@ BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
@@ -271,6 +281,7 @@ BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
@@ -279,6 +290,7 @@ BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
@@ -286,24 +298,32 @@ BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -7754,6 +7774,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -7866,6 +7890,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active"
             ] = (
                 direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
+            )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
             )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
@@ -8133,6 +8162,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_coverage_recovery_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
             ),
+            "profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+            ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
                 if direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
@@ -8275,6 +8307,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_coverage_recovery_frontier_rejection_reasons": {},
             "profile_scale_coverage_recovery_frontier_profile_acceptance_outcomes": {},
             "profile_scale_coverage_recovery_frontier_probe_sample": [],
+            "profile_scale_branch_stable_coverage_recovery_frontier_checks": 0,
+            "profile_scale_branch_stable_coverage_recovery_frontier_acceptances": 0,
+            "profile_scale_branch_stable_coverage_recovery_frontier_rejections": 0,
+            "profile_scale_branch_stable_coverage_recovery_frontier_fallback_preparations": 0,
+            "profile_scale_branch_stable_coverage_recovery_frontier_rejection_reasons": {},
+            "profile_scale_branch_stable_coverage_recovery_frontier_profile_acceptance_outcomes": {},
+            "profile_scale_branch_stable_coverage_recovery_frontier_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8486,6 +8525,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_coverage_frontier_diversity_calibrated_sequential_profile_stabilization",
                 "profile_scale_coverage_prep_frontier_diversity_calibrated_sequential_profile_stabilization",
                 "profile_scale_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization",
+                "profile_scale_branch_stable_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8532,6 +8572,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             set(),
                         ).add(target)
                 if (
+                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                ):
+                    update_shape = (
+                        "profile_scale_branch_stable_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization"
+                    )
+                elif (
                     direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
                 ):
                     update_shape = (
@@ -8777,6 +8823,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         coverage_recovery_learning_rate_scale: float | None = None
                         coverage_recovery_records = 0
                         coverage_recovery_delta: dict[str, Any] | None = None
+                        coverage_recovery_prepared_score = profile_score
+                        coverage_recovery_score: tuple[float, ...] | None = None
+                        coverage_recovery_branch_stable_checked = False
+                        coverage_recovery_branch_stable_accepted = False
+                        coverage_recovery_branch_stability_preserved: bool | None = None
                         if (
                             direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
                             and coverage_prep_accepted
@@ -8858,6 +8909,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 recovery_score = branch_diversity_snapshot_score(
                                     recovery_probe_snapshot
                                 )
+                                coverage_recovery_score = recovery_score
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                ):
+                                    coverage_recovery_branch_stable_checked = True
+                                    direct_answer_update_guard[
+                                        "profile_scale_branch_stable_coverage_recovery_frontier_checks"
+                                    ] += 1
                                 recovery_delta = branch_diversity_snapshot_target_coverage_delta(
                                     recovery_probe_snapshot,
                                     profile_base_snapshot,
@@ -8887,11 +8946,35 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         "coverage_regression"
                                     )
                                 elif (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                    and coverage_recovery_prepared_score is not None
+                                    and recovery_score
+                                    < coverage_recovery_prepared_score
+                                ):
+                                    coverage_recovery_outcome = (
+                                        "branch_score_regressed"
+                                    )
+                                    coverage_recovery_rejection_reason = (
+                                        "branch_score_regression"
+                                    )
+                                    coverage_recovery_branch_stability_preserved = (
+                                        False
+                                    )
+                                elif (
                                     int(
                                         recovery_delta["improved_profile_count"]
                                     )
                                     > 0
                                 ):
+                                    if (
+                                        direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                    ):
+                                        coverage_recovery_branch_stability_preserved = (
+                                            True
+                                        )
+                                        coverage_recovery_branch_stable_accepted = (
+                                            True
+                                        )
                                     coverage_recovery_outcome = "gained"
                                     coverage_recovery_rejection_reason = ""
                                     coverage_recovery_accepted = True
@@ -8914,6 +8997,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     direct_answer_update_guard[
                                         "profile_scale_coverage_recovery_frontier_acceptances"
                                     ] += 1
+                                    if (
+                                        direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                    ):
+                                        direct_answer_update_guard[
+                                            "profile_scale_branch_stable_coverage_recovery_frontier_acceptances"
+                                        ] += 1
                                     break
                                 else:
                                     coverage_recovery_outcome = "coverage_tied"
@@ -8938,6 +9027,27 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         )
                                         + 1
                                     )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                ):
+                                    direct_answer_update_guard[
+                                        "profile_scale_branch_stable_coverage_recovery_frontier_rejections"
+                                    ] += 1
+                                    branch_stable_reasons = direct_answer_update_guard[
+                                        "profile_scale_branch_stable_coverage_recovery_frontier_rejection_reasons"
+                                    ]
+                                    if isinstance(branch_stable_reasons, dict):
+                                        branch_stable_reasons[
+                                            coverage_recovery_rejection_reason
+                                        ] = (
+                                            int(
+                                                branch_stable_reasons.get(
+                                                    coverage_recovery_rejection_reason,
+                                                    0,
+                                                )
+                                            )
+                                            + 1
+                                        )
                             if not coverage_recovery_accepted:
                                 restore_direct_update_state(
                                     prep_model_payload,
@@ -9025,6 +9135,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 direct_answer_update_guard[
                                     "profile_scale_coverage_recovery_frontier_fallback_preparations"
                                 ] += 1
+                            if (
+                                direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                and coverage_prep_accepted
+                                and coverage_recovery_attempted
+                                and not coverage_recovery_accepted
+                            ):
+                                direct_answer_update_guard[
+                                    "profile_scale_branch_stable_coverage_recovery_frontier_fallback_preparations"
+                                ] += 1
                             accepted_counts = direct_answer_update_guard[
                                 "sequential_profile_acceptance_counts"
                             ]
@@ -9078,6 +9197,26 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     )
                                 elif coverage_outcome == "gained":
                                     recovery_outcomes[profile] = "coverage_gain"
+                            branch_stable_outcomes = direct_answer_update_guard[
+                                "profile_scale_branch_stable_coverage_recovery_frontier_profile_acceptance_outcomes"
+                            ]
+                            if isinstance(branch_stable_outcomes, dict):
+                                if coverage_recovery_branch_stable_accepted:
+                                    branch_stable_outcomes[profile] = (
+                                        "branch_stable_coverage_recovery"
+                                    )
+                                elif (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                    and coverage_recovery_attempted
+                                ):
+                                    branch_stable_outcomes[profile] = (
+                                        "branch_stable_preparation_fallback"
+                                    )
+                                elif (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                    and coverage_outcome == "gained"
+                                ):
+                                    branch_stable_outcomes[profile] = "coverage_gain"
                             accepted_any = True
                             profile_accepted = True
                             sample = {
@@ -9131,6 +9270,32 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     sample["coverage_recovery_delta"] = (
                                         coverage_recovery_delta
                                     )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                ):
+                                    sample[
+                                        "coverage_recovery_branch_stable_checked"
+                                    ] = coverage_recovery_branch_stable_checked
+                                    sample[
+                                        "coverage_recovery_branch_stable_accepted"
+                                    ] = coverage_recovery_branch_stable_accepted
+                                    if (
+                                        coverage_recovery_branch_stability_preserved
+                                        is not None
+                                    ):
+                                        sample[
+                                            "coverage_recovery_branch_stability_preserved"
+                                        ] = (
+                                            coverage_recovery_branch_stability_preserved
+                                        )
+                                    if coverage_recovery_prepared_score is not None:
+                                        sample[
+                                            "coverage_recovery_prepared_score"
+                                        ] = list(coverage_recovery_prepared_score)
+                                    if coverage_recovery_score is not None:
+                                        sample["coverage_recovery_score"] = list(
+                                            coverage_recovery_score
+                                        )
                             if (
                                 isinstance(probe_sample, list)
                                 and len(probe_sample) < 12
@@ -9175,6 +9340,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(recovery_sample) < 12
                             ):
                                 recovery_sample.append(sample)
+                            branch_stable_sample = direct_answer_update_guard[
+                                "profile_scale_branch_stable_coverage_recovery_frontier_probe_sample"
+                            ]
+                            if (
+                                direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                                and
+                                isinstance(branch_stable_sample, list)
+                                and len(branch_stable_sample) < 12
+                            ):
+                                branch_stable_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -9539,6 +9714,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
                 ):
                     if (
+                        direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+                    ):
+                        attempt_update_shape = (
+                            "profile_scale_branch_stable_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization"
+                        )
+                    elif (
                         direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
                     ):
                         attempt_update_shape = (
@@ -11451,6 +11632,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

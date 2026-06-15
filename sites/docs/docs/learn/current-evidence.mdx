@@ -1008,6 +1008,18 @@ transformer on `branch_diversity_target`, but the guard now proves preparation
 can be tested as direct missing-target recovery before it is admitted as
 self-improvement evidence.
 
+v0.100.0 adds branch-stable coverage-recovery acceptance to that path. The
+diagnostic screen in
+`runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer branch-stable recovery update, `54` profile-scale
+attempts, `6` accepted source-profile updates, `6` prepared recovery
+candidates, `15` branch-stability checks, `2` branch-stable coverage
+recoveries, `4` preparation fallbacks, `7` floor-regressed recovery retries,
+`5` coverage-tied retries, and `1` branch-score regression rejection. Promotion
+still rejects the transformer on `branch_diversity_target`, but the guard now
+proves recovery can be checked against the prepared branch-diversity score
+instead of coverage alone.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

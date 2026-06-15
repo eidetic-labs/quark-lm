@@ -36,6 +36,11 @@ A promoted QuarkLM run must have:
 - corpus snapshot and diff
 - docs updated for the current state
 
+New release identifiers use SemVer-style `vMAJOR.MINOR.PATCH` tags and run
+paths. The next release after `v0.99` is `v0.100.0`, not `v1.00`; `v1.0.0`
+is reserved for a deliberate stable milestone. Historical artifacts keep their
+existing names so provenance remains exact.
+
 The release is not complete until the docs are complete. If a page references
 current eval counts, commands, run ids, hosting targets, or roadmap commitments,
 that page must move with the version.

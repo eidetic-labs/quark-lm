@@ -129,7 +129,10 @@ safe setup movement into direct target-token coverage. v0.99 adds
 coverage-recovery frontier retry, accepts `6` source-profile updates, converts
 `2` prepared candidates into direct coverage recoveries, keeps `4` preparation
 fallbacks, and shifts the next mechanics change toward stabilizing branch
-diversity after recovery.
+diversity after recovery. v0.100.0 adds branch-stable coverage-recovery
+acceptance, keeps the `2` recovery conversions, records `15` branch-stability
+checks, rejects `1` retry for branch-score regression, and shifts the next
+mechanics change toward branch diversity that preserves recovery evidence.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

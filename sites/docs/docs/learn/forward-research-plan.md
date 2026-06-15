@@ -117,7 +117,11 @@ repair should turn preparation moves into direct coverage recovery. v0.99 adds
 coverage-recovery frontier retry, accepts `6` source-profile updates across
 `54` attempts, converts `2` prepared candidates into direct coverage
 recoveries, keeps `4` preparation fallbacks, and shows the next repair should
-stabilize branch diversity after recovery.
+stabilize branch diversity after recovery. v0.100.0 adds branch-stable
+coverage-recovery acceptance, keeps the `2` recovery conversions, records `15`
+branch-stability checks, rejects `1` retry for branch-score regression, and
+shows the next repair should increase branch diversity without weakening the
+recovery floor.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -292,3 +296,14 @@ fallbacks, rejects `38` floor regressions, `7` coverage ties without score
 gain, and `3` coverage regressions, and preserves coverage while still failing
 branch diversity. The next repair should make recovery-compatible updates less
 branch-collapsing.
+
+v0.100.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run records `54` profile-scale attempts, `6` accepted source-profile
+updates, `6` prepared recovery candidates, `15` branch-stability checks, `2`
+branch-stable coverage recoveries, `4` preparation fallbacks, `7` floor
+regressions, `5` coverage ties, and `1` branch-score regression inside the
+recovery retry. The next repair should improve branch-diversity coverage while
+preserving this stricter recovery acceptance surface.
