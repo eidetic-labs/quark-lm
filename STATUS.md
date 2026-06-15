@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.90 baseline-floor rejection diagnostics screen; promoted
+**Active version:** v0.91 profile-targeted floor stabilization screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -421,6 +421,24 @@ deficit is `0.25` on `learning` (`0.25 -> 0.0`). The verifier passed without an
 external model, but promotion remains rejected on `branch_diversity_target`; the
 next repair should use these profile-level diagnostics before adding branch
 pressure back.
+
+v0.91 adds
+`branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood`.
+It uses the v0.90 diagnostic result by replacing the random 32-anchor
+stabilization batch with the full baseline-covered floor-anchor profile-target
+surface. The matching screen at
+`runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `227` floor anchors, requested a
+profile-targeted batch size of `227`, covered `12` profile-target groups, and
+ran `200` profile-targeted anchor batches covering `2400` anchor records. The
+guard checked `50/50` steps, attempted `200` profile-targeted stabilization
+updates, rejected all `200`, and accepted `0`. Rejected shape counts were
+`profile_targeted_stabilization: 200`; each adaptive scale failed `50` times;
+violation counts remained `heldout: 200`, `admissions: 150`, `glossary: 150`,
+`qa: 150`, `self: 100`, `learning: 50`, and `owner: 50`; the worst deficit
+remained `0.25` on `learning` (`0.25 -> 0.0`). The verifier passed without an
+external model, but promotion remains rejected on `branch_diversity_target`;
+full floor-anchor profile-target coverage alone is not the missing mechanic.
 
 ## Latest Evidence
 

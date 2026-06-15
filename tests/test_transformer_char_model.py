@@ -51,6 +51,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_profiled_replay_records,
     baseline_floor_repair_anchor_records,
     baseline_floor_objective_anchor_batch,
+    baseline_floor_anchor_profile_target_count,
     train_direct_answer_baseline_floor_anchor_batch,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
@@ -4260,6 +4261,7 @@ class TransformerCharModelTest(unittest.TestCase):
             profile_targets,
             {("qa:place", 4), ("qa:owner", 8), ("qa:owner", 9)},
         )
+        self.assertEqual(baseline_floor_anchor_profile_target_count(anchors), 3)
 
     def test_baseline_floor_anchor_batch_update_lowers_anchor_nll(self) -> None:
         text = "where? near.\nwho? owner.\n"
@@ -4532,6 +4534,79 @@ class TransformerCharModelTest(unittest.TestCase):
             self.assertIn(
                 "worst_violation",
                 guard["rejected_floor_diagnostic_sample"][0],
+            )
+
+    def test_profile_targeted_stabilization_mode_records_full_floor_surface(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-profile-targeted-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-profile-targeted-"
+                        "stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_targeted_stabilization_active"
+            ]
+        )
+        self.assertTrue(guard["profile_targeted_stabilization_active"])
+        self.assertEqual(
+            guard["stabilization_anchor_batch_size"],
+            guard["stabilization_anchor_count"],
+        )
+        self.assertEqual(
+            replay_plan["baseline_floor_stabilization_anchor_batch_size"],
+            replay_plan["baseline_floor_stabilization_anchor_count"],
+        )
+        self.assertEqual(
+            guard["stabilization_profile_target_count"],
+            replay_plan["baseline_floor_stabilization_profile_target_count"],
+        )
+        self.assertEqual(
+            guard["stabilization_anchor_profile_counts"],
+            replay_plan["baseline_floor_stabilization_anchor_profile_counts"],
+        )
+        if guard["rejected_attempts"]:
+            self.assertIn(
+                "profile_targeted_stabilization",
+                guard["rejected_update_shape_counts"],
             )
 
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
@@ -5498,6 +5573,10 @@ class TransformerCharModelTest(unittest.TestCase):
                 "prompt-ownership-target-share-preserving-deficit-unlikelihood"
             ),
             "branch-context-profile-baseline-floor-stabilization-unlikelihood",
+            (
+                "branch-context-profile-baseline-floor-profile-targeted-"
+                "stabilization-unlikelihood"
+            ),
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",

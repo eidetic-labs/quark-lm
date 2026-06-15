@@ -368,11 +368,26 @@ for the stabilization screen:
   `branch_diversity_target` still fails, but the next repair now has
   profile-level floor evidence.
 
-### v0.91+
+### v0.91
 
-The next transformer step should use v0.90 diagnostics to target consistently
-violating profiles before reintroducing branch-diversity pressure, revisiting
-subword tokenization, or beginning a learned verifier/repair-policy experiment.
+Implemented and screened profile-targeted baseline-floor stabilization:
+`branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood`.
+
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`.
+- Replay-plan evidence records `227` floor anchors, batch size `227`, `12`
+  profile-target groups, and source-profile anchor counts.
+- The guard checks `50/50` steps, attempts `200` profile-targeted stabilization
+  updates, runs `200` profile-targeted anchor batches covering `2400` anchor
+  records, and rejects `200/200`.
+- Promotion remains rejected because the violation pattern is unchanged from
+  v0.90.
+
+### v0.92+
+
+The next transformer step should change the floor repair shape itself before
+reintroducing branch-diversity pressure, revisiting subword tokenization, or
+beginning a learned verifier/repair-policy experiment.
 
 ## Decision
 

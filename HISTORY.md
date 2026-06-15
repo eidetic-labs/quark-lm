@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.91
+
+- Added profile-targeted baseline-floor stabilization for guarded transformer updates.
+
 ## v0.90
 
 - Added baseline-floor rejection diagnostics for guarded transformer updates.

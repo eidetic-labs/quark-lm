@@ -176,6 +176,13 @@ The guard now records rejected update-shape counts, rejected learning-rate scale
 counts, violation profile counts, compact per-attempt floor diagnostics, and the
 worst rejected coverage violation.
 
+v0.91 adds
+`branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood`.
+It covers every baseline-covered floor-anchor profile-target group in each
+guarded attempt. The screen shows that broader floor-anchor coverage is still
+not enough: all profile-targeted attempts are rejected with the same violation
+pattern as v0.90.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1432,6 +1439,26 @@ Latest baseline-floor rejection diagnostics screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected for model promotion, but diagnostic evidence is usable for the next profile-targeted floor repair |
 
+Latest profile-targeted baseline-floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood` |
+| Added mechanic | guarded attempts train the full baseline-covered floor-anchor profile-target surface instead of a random 32-anchor sample |
+| Unit coverage | focused transformer tests pass; the new mode records profile-target activity, full floor batch sizing, profile-target counts, and source-profile anchor counts |
+| Floor anchors | `227` recorded; requested batch size `227`; `12` profile-target groups |
+| Anchor profile counts | `qa:owner 48`, `qa:place 41`, `fact:owner 40`, `fact:place 40`, `bridge:owner 20`, `bridge:place 16`, `fact:learning 8`, `qa:glossary 6`, `qa:learning 5`, `qa:self 3` |
+| Update guard | checked `50/50` steps; attempted `200` updates; accepted `0`; rejected `200` |
+| Rejected update shapes | `profile_targeted_stabilization: 200` |
+| Rejected adaptive scales | `1: 50`, `0.25: 50`, `0.05: 50`, `0.01: 50` |
+| Violation profile counts | `heldout: 200`, `admissions: 150`, `glossary: 150`, `qa: 150`, `self: 100`, `learning: 50`, `owner: 50` |
+| Worst rejected floor violation | `learning`, baseline coverage `0.25`, snapshot coverage `0.0`, deficit `0.25` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected; full profile-target floor coverage alone does not make guarded updates safe |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1549,5 +1576,6 @@ v0.88 moves floor anchors into the objective and still rejects every attempt;
 v0.89 removes branch pressure and still rejects every floor-stabilization
 attempt. v0.90 records the rejected profile floors directly, showing `heldout`
 violates every attempt and the worst deficit is `0.25` on `learning`. The next
-repair should target those profiles before adding branch-diversity pressure
-back.
+v0.91 repair covers the full profile-target floor surface and still rejects
+every attempt, so the next repair should change the floor repair shape before
+adding branch-diversity pressure back.

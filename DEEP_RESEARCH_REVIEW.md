@@ -568,12 +568,24 @@ samples, and a worst rejected floor deficit of `0.25` on `learning`. It is still
 rejected evidence for promotion, but it turns the next repair into a
 profile-targeted floor repair instead of another blind objective change.
 
-### v0.91+
+### v0.91
 
-The next transformer repair should use the v0.90 rejection diagnostics to
-stabilize the consistently violating profiles, especially `heldout`,
-`admissions`, `glossary`, and `qa`, before branch-diversity pressure is added
-back, before tokenizer growth or a learned verifier experiment.
+Implemented profile-targeted baseline-floor stabilization with
+`branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood`.
+The full screen in
+`runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`
+records `227` floor anchors, batch size `227`, `12` profile-target groups,
+`200` profile-targeted anchor batches, `2400` anchor records, and `200/200`
+rejected attempts. It is still rejected evidence: full baseline-covered
+profile-target floor coverage does not change the v0.90 violation pattern.
+
+### v0.92+
+
+The next transformer repair should change the floor repair shape itself rather
+than only broadening anchor coverage: likely per-profile sequential repair,
+profile-specific rollback probes, or targeted profile adapters before
+branch-diversity pressure is added back, before tokenizer growth or a learned
+verifier experiment.
 
 ## Decision
 

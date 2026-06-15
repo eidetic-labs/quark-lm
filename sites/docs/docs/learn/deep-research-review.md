@@ -91,7 +91,8 @@ the same discipline before another major repair screen.
 19. **v0.89:** stabilization-only baseline-floor updates. Implemented and
     rejected.
 20. **v0.90:** baseline-floor rejection diagnostics. Implemented.
-21. **v0.91+:** profile-targeted floor repair under the full baseline
+21. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
+22. **v0.92+:** floor repair shape change under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -142,4 +143,6 @@ guard. The next repair should diagnose the guard/update interaction before
 branch-diversity pressure is added back. v0.90 adds that diagnostic layer: the
 screen records `200/200` rejected stabilization-shaped attempts, `50`
 rejections at each adaptive scale, `heldout: 200` profile-floor violations, and
-a worst rejected floor deficit of `0.25` on `learning`.
+a worst rejected floor deficit of `0.25` on `learning`. v0.91 covers all `227`
+baseline-covered floor anchors across `12` profile-target groups and still
+rejects `200/200` profile-targeted attempts with the same violation pattern.

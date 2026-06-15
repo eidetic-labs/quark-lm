@@ -80,4 +80,7 @@ adds stabilization-only baseline-floor anchors and uses the same artifact trail
 to reject all `200/200` floor-only attempts before they can become trusted model
 state. v0.90 adds floor-rejection diagnostics to that artifact trail so rejected
 attempts name their update shape, scale, violating profiles, and worst floor
-deficit before future repairs can become trusted model state.
+deficit before future repairs can become trusted model state. v0.91 adds
+profile-targeted floor anchors to the same trail and still rejects every
+attempt, proving broader floor-anchor coverage cannot become trusted model state
+by itself.

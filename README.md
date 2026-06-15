@@ -292,6 +292,20 @@ deficit was `0.25` on `learning` (`0.25 -> 0.0`). Promotion remains rejected,
 but the next repair now has measured profile targets instead of a blind
 objective guess.
 
+v0.91 adds
+`branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood`.
+It uses the v0.90 diagnostics by replacing the random 32-anchor stabilization
+batch with the full baseline-covered floor-anchor profile-target surface. The
+matching screen ran at
+`runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`.
+It recorded `227` floor anchors, requested a profile-targeted batch size of
+`227`, covered `12` profile-target groups, attempted `200` profile-targeted
+stabilization updates, and rejected all `200`. The violation profile counts
+matched v0.90: `heldout: 200`, `admissions: 150`, `glossary: 150`, `qa: 150`,
+`self: 100`, `learning: 50`, and `owner: 50`, with the same worst `0.25`
+deficit on `learning`. Promotion remains rejected; full baseline-covered
+profile-target floor coverage is not sufficient by itself.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -916,6 +930,11 @@ Current transformer answer-lesson run:
   records `stabilization: 200` rejected update-shape counts, `50` rejected
   attempts at each adaptive scale, `heldout: 200` floor violations, and a worst
   deficit of `0.25` on `learning`.
+- v0.91 adds profile-targeted floor stabilization. The full-stack run
+  `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`
+  records `227` floor anchors, `12` profile-target groups, and
+  `profile_targeted_stabilization: 200` rejected attempts with the same
+  violation pattern as v0.90.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

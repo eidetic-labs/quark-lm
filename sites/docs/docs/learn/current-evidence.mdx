@@ -923,6 +923,15 @@ attempts at each adaptive scale, `heldout: 200` violation counts, and a worst
 floor deficit of `0.25` on `learning`. Promotion still rejects the transformer,
 but the next repair now has measured profile-level floor evidence.
 
+v0.91 applies that evidence by covering the full baseline-covered profile-target
+floor surface. The full screen in
+`runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`
+records `227` floor anchors, `12` profile-target groups,
+`profile_targeted_stabilization: 200` rejected attempts, and the same violation
+profile counts as v0.90. Promotion still rejects the transformer, and the next
+repair must change the floor repair shape rather than only broaden anchor
+coverage.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -103,7 +103,9 @@ stabilization-shaped attempts, and shows floor-only anchors are still not
 enough. v0.90 adds rejected-attempt diagnostics showing every rejected attempt
 is stabilization-shaped, `heldout` violates every attempt, and the next
 mechanics change should target violating profiles before branch pressure is
-added back.
+added back. v0.91 covers the full profile-target floor surface and still rejects
+every attempt, so the next mechanics change should alter the repair shape rather
+than only broaden anchor coverage.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it
