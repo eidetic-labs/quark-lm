@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.89 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.90 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -26,7 +26,8 @@ still fall below the floor. v0.88 adds objective-side baseline-floor anchors
 and rejects the screen because all `200/200` objective-shaped attempts still
 fall below the floor. v0.89 removes branch-diversity pressure and trains only
 baseline-covered floor anchors, but still rejects all `200/200`
-stabilization-only attempts.
+stabilization-only attempts. v0.90 adds rejected-attempt diagnostics so the
+guard reports update shape, scale, violating profiles, and worst floor deficit.
 
 The current surfaces are:
 
@@ -80,8 +81,10 @@ repair work smaller and more auditable:
 - The v0.88 objective-side floor-anchor guard shows coupling floor anchors with
   branch pressure in one step is not enough.
 - The v0.89 floor-stabilization guard shows floor-only anchor updates are still
-  not enough under the current guard; the next repair should diagnose the
-  guard/update interaction before branch pressure is added back.
+  not enough under the current guard.
+- The v0.90 floor-diagnostic guard shows all `200` rejected attempts are
+  stabilization-shaped, each adaptive scale fails `50` times, `heldout`
+  violates every attempt, and the worst floor deficit is `0.25` on `learning`.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

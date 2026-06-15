@@ -171,6 +171,11 @@ It removes branch-diversity pressure from guarded attempts and trains only
 baseline-covered floor anchors. The screen shows that floor-only stabilization
 is still not enough: all stabilization-shaped attempts are rejected.
 
+v0.90 adds baseline-floor rejection diagnostics to the same stabilization mode.
+The guard now records rejected update-shape counts, rejected learning-rate scale
+counts, violation profile counts, compact per-attempt floor diagnostics, and the
+worst rejected coverage violation.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1409,6 +1414,24 @@ Latest stabilization-only baseline-floor full-stack screen:
 | Training heldout note | every recorded trained snapshot preserved heldout target-token coverage at `0.25`, but stabilization-only floor anchors accepted no updates |
 | Promotion status | rejected; floor-only anchor updates are insufficient under the current guard, so the next repair should diagnose the guard/update interaction before branch pressure is added back |
 
+Latest baseline-floor rejection diagnostics screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-stabilization-unlikelihood` |
+| Added mechanic | guard records rejected update-shape counts, rejected scale counts, violation profile counts, diagnostic samples, and worst rejected floor violation |
+| Unit coverage | focused transformer tests pass; the reusable coverage diagnostic helper reports profile deficits and the stabilization guard records rejection diagnostics |
+| Update guard | checked `50/50` steps; attempted `200` updates; accepted `0`; rejected `200` |
+| Rejected update shapes | `stabilization: 200` |
+| Rejected adaptive scales | `1: 50`, `0.25: 50`, `0.05: 50`, `0.01: 50` |
+| Violation profile counts | `heldout: 200`, `admissions: 150`, `glossary: 150`, `qa: 150`, `self: 100`, `learning: 50`, `owner: 50` |
+| Worst rejected floor violation | `learning`, baseline coverage `0.25`, snapshot coverage `0.0`, deficit `0.25` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected for model promotion, but diagnostic evidence is usable for the next profile-targeted floor repair |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1524,5 +1547,7 @@ at four smaller scales and still rejects every attempt. v0.87 adds one
 baseline-covered repair after each failed retry and still rejects every attempt;
 v0.88 moves floor anchors into the objective and still rejects every attempt;
 v0.89 removes branch pressure and still rejects every floor-stabilization
-attempt. The next repair should diagnose why floor-only updates still violate
-the baseline floor before adding branch-diversity pressure back.
+attempt. v0.90 records the rejected profile floors directly, showing `heldout`
+violates every attempt and the worst deficit is `0.25` on `learning`. The next
+repair should target those profiles before adding branch-diversity pressure
+back.

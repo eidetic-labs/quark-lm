@@ -73,7 +73,8 @@ direct-answer objective mode:
 14. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
 15. **v0.89:** stabilization-only baseline-floor updates. Implemented and
    rejected.
-16. **v0.90+:** guard/update diagnosis under the full baseline
+16. **v0.90:** baseline-floor rejection diagnostics. Implemented.
+17. **v0.91+:** profile-targeted floor repair under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -122,11 +123,13 @@ QuarkLM already has:
   `branch-context-profile-baseline-floor-stabilization-unlikelihood`.
 - v0.89 full baseline-floor stabilization screen evidence:
   `runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
+- v0.90 baseline-floor rejection diagnostic evidence:
+  `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
 
 It still needs:
 
-- a diagnosis of why floor-only anchor updates still violate the baseline
-  target-token coverage floor before branch-diversity pressure is added back.
+- a profile-targeted floor repair that uses the v0.90 violation counts before
+  branch-diversity pressure is added back.
 
 ## Operating Rule
 

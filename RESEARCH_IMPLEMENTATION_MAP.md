@@ -350,13 +350,29 @@ Acceptance:
   and `branch_diversity_target` still fails across all `9` multi-target
   profiles.
 
-### v0.90+
+### v0.90
 
 Only after these operating surfaces are explicit should QuarkLM add another
-branch-diversity repair. The next transformer step should first diagnose why
-floor-only anchor updates still violate the baseline target-token floor before
-reintroducing branch-diversity pressure, revisiting subword tokenization, or
-beginning a learned verifier/repair-policy experiment.
+branch-diversity repair. v0.90 implements baseline-floor rejection diagnostics
+for the stabilization screen:
+
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
+- The guard records rejected update-shape counts, rejected learning-rate scale
+  counts, violation profile counts, compact rejected floor diagnostic samples,
+  and the worst rejected coverage violation.
+- Evidence records `200/200` rejected stabilization-shaped attempts, `50`
+  rejections at each adaptive scale, `heldout: 200` floor violations, and a
+  worst deficit of `0.25` on `learning`.
+- Promotion remains rejected because no update is accepted and
+  `branch_diversity_target` still fails, but the next repair now has
+  profile-level floor evidence.
+
+### v0.91+
+
+The next transformer step should use v0.90 diagnostics to target consistently
+violating profiles before reintroducing branch-diversity pressure, revisiting
+subword tokenization, or beginning a learned verifier/repair-policy experiment.
 
 ## Decision
 

@@ -99,9 +99,11 @@ the objective before optimizer application. v0.88 does that with objective-side
 floor anchors, rejects `200/200` objective-shaped attempts, and shows coupling
 floor anchors with branch pressure is not enough. v0.89 removes branch pressure
 and trains only baseline-covered floor anchors, rejects `200/200`
-stabilization-shaped attempts, and shows the next mechanics change should
-diagnose why floor-only updates still violate the baseline floor before branch
-pressure is added back.
+stabilization-shaped attempts, and shows floor-only anchors are still not
+enough. v0.90 adds rejected-attempt diagnostics showing every rejected attempt
+is stabilization-shaped, `heldout` violates every attempt, and the next
+mechanics change should target violating profiles before branch pressure is
+added back.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

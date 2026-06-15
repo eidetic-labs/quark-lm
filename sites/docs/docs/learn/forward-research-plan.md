@@ -87,8 +87,10 @@ objective-side baseline-floor anchors and rejects the screen because all
 `200/200` objective-shaped attempts still violate the floor. v0.89 removes
 branch-diversity pressure and trains only baseline-covered floor anchors, but
 all `200/200` stabilization-only attempts still violate the floor, so v0.90
-should diagnose the guard/update interaction before branch-diversity pressure is
-added back.
+adds guard diagnostics before branch-diversity pressure is added back. v0.90
+shows all `200` rejected attempts are stabilization-shaped, every adaptive scale
+fails `50` times, `heldout` violates all attempts, and the worst deficit is
+`0.25` on `learning`.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -165,3 +167,11 @@ The run removes branch-diversity pressure from guarded attempts and trains only
 baseline-covered floor anchors. It records `227` stabilization anchors, `200`
 stabilization anchor batches, rejects all `200` attempted updates, preserves
 QA/heldout coverage at `0.25`, and accepts no weight updates.
+
+v0.90 adds baseline-floor rejection diagnostics and screens them at
+`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
+The run records rejected update-shape counts, rejected learning-rate scale
+counts, violation profile counts, compact floor diagnostic samples, and the
+worst rejected floor violation. It still rejects `200/200` attempts, but it now
+identifies the next repair targets: `heldout`, `admissions`, `glossary`, `qa`,
+and the worst-deficit `learning` profile.

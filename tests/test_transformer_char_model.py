@@ -60,6 +60,7 @@ from closed_world_lm.transformer_char_model import (
     summarize_branch_context_coverage_gate,
     summarize_branch_diversity_target,
     branch_diversity_snapshot_score,
+    branch_diversity_snapshot_target_coverage_diagnostics,
     branch_diversity_snapshot_preserves_target_coverage,
     evaluate_direct_answer_records,
     evaluate_answer_generator_records,
@@ -1517,6 +1518,21 @@ class TransformerCharModelTest(unittest.TestCase):
                 coverage_preserved,
                 baseline,
             )
+        )
+        diagnostics = branch_diversity_snapshot_target_coverage_diagnostics(
+            rank_lifted_but_forgetting,
+            baseline,
+        )
+        self.assertFalse(diagnostics["preserved"])
+        self.assertEqual(diagnostics["violating_profile_count"], 1)
+        self.assertEqual(
+            diagnostics["worst_violation"],
+            {
+                "profile": "qa",
+                "baseline_coverage": 0.25,
+                "snapshot_coverage": 0.0,
+                "deficit": 0.25,
+            },
         )
 
     def test_branch_context_coverage_marks_truncated_semantic_branch(self) -> None:
@@ -4496,6 +4512,27 @@ class TransformerCharModelTest(unittest.TestCase):
             guard["accepted_attempts"] + guard["rejected_attempts"],
             guard["attempted_updates"],
         )
+        self.assertTrue(guard["floor_diagnostics_active"])
+        self.assertIn("rejected_update_shape_counts", guard)
+        self.assertIn("rejected_learning_rate_scale_counts", guard)
+        self.assertIn("rejected_violation_profile_counts", guard)
+        self.assertIn("rejected_floor_diagnostic_sample", guard)
+        self.assertGreaterEqual(guard["worst_rejected_coverage_deficit"], 0.0)
+        if guard["rejected_attempts"]:
+            self.assertEqual(
+                sum(guard["rejected_update_shape_counts"].values()),
+                guard["rejected_attempts"],
+            )
+            self.assertEqual(
+                sum(guard["rejected_learning_rate_scale_counts"].values()),
+                guard["rejected_attempts"],
+            )
+            self.assertIn("stabilization", guard["rejected_update_shape_counts"])
+            self.assertTrue(guard["rejected_floor_diagnostic_sample"])
+            self.assertIn(
+                "worst_violation",
+                guard["rejected_floor_diagnostic_sample"][0],
+            )
 
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")

@@ -90,7 +90,8 @@ the same discipline before another major repair screen.
 18. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
 19. **v0.89:** stabilization-only baseline-floor updates. Implemented and
     rejected.
-20. **v0.90+:** guard/update diagnosis under the full baseline
+20. **v0.90:** baseline-floor rejection diagnostics. Implemented.
+21. **v0.91+:** profile-targeted floor repair under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -138,4 +139,7 @@ only baseline-covered floor anchors; it runs `200` stabilization anchor batches
 covering `2400` anchor records and still rejects all `200/200` attempts,
 showing floor-only updates are also not the missing mechanic under the current
 guard. The next repair should diagnose the guard/update interaction before
-branch-diversity pressure is added back.
+branch-diversity pressure is added back. v0.90 adds that diagnostic layer: the
+screen records `200/200` rejected stabilization-shaped attempts, `50`
+rejections at each adaptive scale, `heldout: 200` profile-floor violations, and
+a worst rejected floor deficit of `0.25` on `learning`.

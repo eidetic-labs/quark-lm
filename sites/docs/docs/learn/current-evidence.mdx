@@ -916,6 +916,13 @@ rejected update attempts. QA and heldout coverage remain at `0.25`, but no
 stabilization-only update is accepted, so the next repair should diagnose why
 floor-only updates still violate the baseline floor.
 
+v0.90 adds the missing rejection diagnosis. The full screen in
+`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`
+records `stabilization: 200` rejected update-shape counts, `50` rejected
+attempts at each adaptive scale, `heldout: 200` violation counts, and a worst
+floor deficit of `0.25` on `learning`. Promotion still rejects the transformer,
+but the next repair now has measured profile-level floor evidence.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

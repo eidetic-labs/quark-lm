@@ -82,8 +82,10 @@ and rejects the screen because all `200/200` objective-shaped attempts remain
 unsafe under the same floor. v0.89 removes branch-diversity pressure and trains
 only baseline-covered floor anchors, but all `200/200` stabilization-only
 attempts remain unsafe under the same floor. Future objective repairs should
-use those narrower surfaces to diagnose the guard/update interaction before
-branch-diversity pressure is added back.
+use those narrower surfaces and the v0.90 rejection diagnostics before
+branch-diversity pressure is added back. v0.90 shows all `200` rejected attempts
+are stabilization-shaped, `heldout` violates every attempt, and the worst floor
+deficit is `0.25` on `learning`.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -213,8 +215,9 @@ loops become fragile.
   `200/200` objective-shaped attempts remained unsafe; v0.89 added
   stabilization-only floor anchors and rejected the screen because all
   `200/200` stabilization-shaped attempts remained unsafe. The next objective
-  repair should diagnose why floor-only updates still violate the full baseline
-  target-token floor before branch-diversity pressure is added back.
+  repair should use the v0.90 profile-level floor diagnostics to target
+  consistently violating profiles before branch-diversity pressure is added
+  back.
 
 ## Defer
 

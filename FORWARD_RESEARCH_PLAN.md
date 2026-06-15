@@ -571,11 +571,23 @@ records `562` active baseline prediction anchors, `227` stabilization anchors,
 rejected attempts. It is still rejected evidence: floor-only stabilization
 updates do not produce accepted safe updates under the current guard.
 
-### v0.90+
+### v0.90
 
-The next transformer repair should diagnose why floor-only anchor updates still
-violate the baseline target-token floor before branch-diversity pressure is
-added back, before tokenizer growth or a learned verifier experiment.
+Implemented baseline-floor rejection diagnostics for the v0.89 stabilization
+mode. The full screen in
+`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`
+records `200/200` rejected stabilization-shaped attempts, rejected scale counts
+of `50` for each adaptive scale, violation profile counts, compact diagnostic
+samples, and a worst rejected floor deficit of `0.25` on `learning`. It is still
+rejected evidence for promotion, but it turns the next repair into a
+profile-targeted floor repair instead of another blind objective change.
+
+### v0.91+
+
+The next transformer repair should use the v0.90 rejection diagnostics to
+stabilize the consistently violating profiles, especially `heldout`,
+`admissions`, `glossary`, and `qa`, before branch-diversity pressure is added
+back, before tokenizer growth or a learned verifier experiment.
 
 ## Stop Doing For Now
 

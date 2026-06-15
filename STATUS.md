@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.89 baseline-floor stabilization screen; promoted
+**Active version:** v0.90 baseline-floor rejection diagnostics screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -404,6 +404,23 @@ branch-context gate and baseline/final QA and heldout target-token coverage at
 rejected evidence: even floor-only anchor updates are not yet accepted by the
 guard, so the next repair should diagnose the guard/update interaction before
 branch-diversity pressure is added back.
+
+v0.90 adds baseline-floor rejection diagnostics to the same
+`branch-context-profile-baseline-floor-stabilization-unlikelihood` screen. The
+guard now records rejected update-shape counts, rejected learning-rate scale
+counts, violation profile counts, a worst rejected coverage deficit, and compact
+per-attempt floor diagnostics. The matching screen at
+`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`
+wrote the modern artifacts, checked `50/50` steps, attempted `200`
+stabilization-only updates, rejected all `200`, and recorded rejected shape
+counts `stabilization: 200` plus rejected scale counts of `50` each for `1`,
+`0.25`, `0.05`, and `0.01`. Violation counts show `heldout` failed all `200`
+attempts; `admissions`, `glossary`, and `qa` failed `150` each; `self` failed
+`100`; and `learning` and `owner` failed `50` each. The worst measured floor
+deficit is `0.25` on `learning` (`0.25 -> 0.0`). The verifier passed without an
+external model, but promotion remains rejected on `branch_diversity_target`; the
+next repair should use these profile-level diagnostics before adding branch
+pressure back.
 
 ## Latest Evidence
 

@@ -277,9 +277,20 @@ It recorded `562` active baseline prediction anchors, `227` stabilization
 anchors, `200` stabilization anchor batches, and `2400` anchor records across
 `50` checked steps. All `200` stabilization-only attempts still fell below at
 least one profile-wise coverage floor, so the guard accepted `0` updates.
-Promotion remains rejected; the next repair should diagnose why floor-only
-updates still violate the baseline floor before branch-diversity pressure is
-added back.
+Promotion remains rejected; that result set up the v0.90 diagnostic screen.
+
+v0.90 keeps the v0.89 stabilization update shape and adds baseline-floor
+rejection diagnostics. The matching screen ran at
+`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
+It checked `50/50` steps, attempted `200` stabilization-only updates, rejected
+all `200`, and recorded rejected update-shape counts, rejected scale counts,
+per-profile violation counts, worst rejected coverage deficit, and compact
+per-attempt diagnostic samples. The run shows every rejected attempt has
+`update_shape: stabilization`; each scale (`1`, `0.25`, `0.05`, `0.01`) failed
+`50` times; `heldout` violated the floor on all `200` attempts; and the worst
+deficit was `0.25` on `learning` (`0.25 -> 0.0`). Promotion remains rejected,
+but the next repair now has measured profile targets instead of a blind
+objective guess.
 
 ## Latest Evidence
 
@@ -900,6 +911,11 @@ Current transformer answer-lesson run:
   `2400` anchor records, but still rejects `200/200` attempts and accepts no
   weight updates. This rejects floor-only anchor updates as sufficient under the
   current guard.
+- v0.90 adds baseline-floor rejection diagnostics. The full-stack run
+  `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`
+  records `stabilization: 200` rejected update-shape counts, `50` rejected
+  attempts at each adaptive scale, `heldout: 200` floor violations, and a worst
+  deficit of `0.25` on `learning`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

@@ -119,9 +119,12 @@ provenance, and the goal framework itself.
     all `200/200` repaired attempts; v0.88 moves balanced baseline-floor anchors
     inside the update objective and still rejects all `200/200` attempted
     updates; v0.89 trains only baseline-covered floor anchors and still rejects
-    all `200/200` stabilization-only attempts. The remaining sequence should
-    diagnose why floor-only updates still violate the baseline floor before
-    broader tokenizer, verifier, or branch-diversity changes.
+    all `200/200` stabilization-only attempts; v0.90 records rejection
+    diagnostics showing all `200` rejected attempts are stabilization-shaped,
+    all four adaptive scales fail `50` times, `heldout` violates the floor on
+    every attempt, and the worst measured deficit is `0.25` on `learning`. The
+    remaining sequence should use those profile-level diagnostics before broader
+    tokenizer, verifier, or branch-diversity changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

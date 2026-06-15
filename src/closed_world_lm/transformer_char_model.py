@@ -4438,18 +4438,47 @@ def branch_diversity_snapshot_target_coverage_by_profile(
     return coverage_by_profile
 
 
+def branch_diversity_snapshot_target_coverage_diagnostics(
+    snapshot: dict[str, Any],
+    baseline: dict[str, Any],
+) -> dict[str, Any]:
+    baseline_coverage = branch_diversity_snapshot_target_coverage_by_profile(baseline)
+    snapshot_coverage = branch_diversity_snapshot_target_coverage_by_profile(snapshot)
+    violations: list[dict[str, Any]] = []
+    for name, baseline_value in sorted(baseline_coverage.items()):
+        snapshot_value = float(snapshot_coverage.get(name, -1.0))
+        deficit = float(baseline_value - snapshot_value)
+        if snapshot_value + 1e-12 < baseline_value:
+            violations.append(
+                {
+                    "profile": name,
+                    "baseline_coverage": float(baseline_value),
+                    "snapshot_coverage": snapshot_value,
+                    "deficit": deficit,
+                }
+            )
+    violations.sort(key=lambda item: (-float(item["deficit"]), item["profile"]))
+    worst_violation = violations[0] if violations else None
+    return {
+        "preserved": not violations,
+        "baseline_profile_count": len(baseline_coverage),
+        "snapshot_profile_count": len(snapshot_coverage),
+        "violating_profile_count": len(violations),
+        "worst_deficit": float(worst_violation["deficit"]) if worst_violation else 0.0,
+        "worst_violation": worst_violation,
+        "violations": violations,
+    }
+
+
 def branch_diversity_snapshot_preserves_target_coverage(
     snapshot: dict[str, Any],
     baseline: dict[str, Any],
 ) -> bool:
-    baseline_coverage = branch_diversity_snapshot_target_coverage_by_profile(baseline)
-    if not baseline_coverage:
-        return True
-    snapshot_coverage = branch_diversity_snapshot_target_coverage_by_profile(snapshot)
-    for name, baseline_value in baseline_coverage.items():
-        if snapshot_coverage.get(name, -1.0) + 1e-12 < baseline_value:
-            return False
-    return True
+    diagnostics = branch_diversity_snapshot_target_coverage_diagnostics(
+        snapshot,
+        baseline,
+    )
+    return bool(diagnostics["preserved"])
 
 
 def train_direct_answer_lesson(
@@ -7710,6 +7739,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "rejected_attempts": 0,
             "accepted_learning_rate_scale_counts": {},
             "accepted_update_shape_counts": {},
+            "rejected_learning_rate_scale_counts": {},
+            "rejected_update_shape_counts": {},
+            "rejected_violation_profile_counts": {},
+            "floor_diagnostics_active": direct_answer_baseline_floor_update_gate_active,
+            "rejected_floor_diagnostic_sample": [],
+            "worst_rejected_coverage_deficit": 0.0,
+            "worst_rejected_coverage_violation": None,
             "rejected_step_sample": [],
         }
 
@@ -7791,12 +7827,71 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 ),
             )
 
-        def append_rejected_update_sample(
+        def record_guard_rejection_attempt(
             direct_step: int,
             probe_snapshot: dict[str, Any],
             learning_rate_scale: float,
             update_shape: str = "direct",
         ) -> None:
+            direct_answer_update_guard["rejected_attempts"] += 1
+            scale_key = f"{learning_rate_scale:g}"
+            rejected_scale_counts = direct_answer_update_guard[
+                "rejected_learning_rate_scale_counts"
+            ]
+            if isinstance(rejected_scale_counts, dict):
+                rejected_scale_counts[scale_key] = (
+                    int(rejected_scale_counts.get(scale_key, 0)) + 1
+                )
+            rejected_shape_counts = direct_answer_update_guard[
+                "rejected_update_shape_counts"
+            ]
+            if isinstance(rejected_shape_counts, dict):
+                rejected_shape_counts[update_shape] = (
+                    int(rejected_shape_counts.get(update_shape, 0)) + 1
+                )
+            floor_diagnostics = (
+                branch_diversity_snapshot_target_coverage_diagnostics(
+                    probe_snapshot,
+                    direct_baseline,
+                )
+            )
+            violation_profile_counts = direct_answer_update_guard[
+                "rejected_violation_profile_counts"
+            ]
+            if isinstance(violation_profile_counts, dict):
+                for violation in floor_diagnostics["violations"]:
+                    profile = str(violation["profile"])
+                    violation_profile_counts[profile] = (
+                        int(violation_profile_counts.get(profile, 0)) + 1
+                    )
+            worst_deficit = float(floor_diagnostics["worst_deficit"])
+            if worst_deficit > float(
+                direct_answer_update_guard["worst_rejected_coverage_deficit"]
+            ):
+                direct_answer_update_guard["worst_rejected_coverage_deficit"] = (
+                    worst_deficit
+                )
+                direct_answer_update_guard["worst_rejected_coverage_violation"] = (
+                    floor_diagnostics["worst_violation"]
+                )
+            diagnostic_sample = direct_answer_update_guard[
+                "rejected_floor_diagnostic_sample"
+            ]
+            if isinstance(diagnostic_sample, list) and len(diagnostic_sample) < 12:
+                diagnostic_sample.append(
+                    {
+                        "step": direct_step,
+                        "learning_rate_scale": learning_rate_scale,
+                        "update_shape": update_shape,
+                        "preserved": floor_diagnostics["preserved"],
+                        "violating_profile_count": floor_diagnostics[
+                            "violating_profile_count"
+                        ],
+                        "worst_deficit": floor_diagnostics["worst_deficit"],
+                        "worst_violation": floor_diagnostics["worst_violation"],
+                        "violations": floor_diagnostics["violations"][:5],
+                    }
+                )
             rejected_sample = direct_answer_update_guard["rejected_step_sample"]
             if isinstance(rejected_sample, list) and len(rejected_sample) < 12:
                 rejected_sample.append(
@@ -7809,6 +7904,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 probe_snapshot
                             )
                         ),
+                        "floor_diagnostics": {
+                            "preserved": floor_diagnostics["preserved"],
+                            "violating_profile_count": floor_diagnostics[
+                                "violating_profile_count"
+                            ],
+                            "worst_deficit": floor_diagnostics["worst_deficit"],
+                            "worst_violation": floor_diagnostics["worst_violation"],
+                        },
                     }
                 )
 
@@ -7913,6 +8016,8 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 ):
                     record_guard_acceptance(learning_rate_scale, attempt_update_shape)
                     return last_loss
+                rejection_snapshot = probe_snapshot
+                rejection_update_shape = attempt_update_shape
                 if (
                     direct_answer_baseline_floor_repaired_updates_active
                     and direct_baseline_floor_repair_anchors
@@ -7936,18 +8041,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     ):
                         record_guard_acceptance(learning_rate_scale, "repaired")
                         return (last_loss + repair_loss) / 2.0
-                    append_rejected_update_sample(
-                        direct_step,
-                        repaired_probe_snapshot,
-                        learning_rate_scale,
-                        "repaired",
-                    )
-                direct_answer_update_guard["rejected_attempts"] += 1
-                append_rejected_update_sample(
+                    rejection_snapshot = repaired_probe_snapshot
+                    rejection_update_shape = "repaired"
+                record_guard_rejection_attempt(
                     direct_step,
-                    probe_snapshot,
+                    rejection_snapshot,
                     learning_rate_scale,
-                    attempt_update_shape,
+                    rejection_update_shape,
                 )
             direct_answer_update_guard["rejected_steps"] += 1
             restore_direct_update_state(base_model_payload, base_optimizer_payload)
@@ -9606,8 +9706,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     record_guard_acceptance(1.0)
                 else:
                     direct_answer_update_guard["rejected_steps"] += 1
-                    direct_answer_update_guard["rejected_attempts"] += 1
-                    append_rejected_update_sample(direct_step, probe_snapshot, 1.0)
+                    record_guard_rejection_attempt(direct_step, probe_snapshot, 1.0)
                     if (
                         pre_update_model_payload is not None
                         and pre_update_optimizer_payload is not None
