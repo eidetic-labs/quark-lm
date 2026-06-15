@@ -377,3 +377,10 @@ rejections, keeps retrieval exact at `219/219`, and still rejects promotion on
 `branch_diversity_target`. The next repair should use this evidence to improve
 branch diversity without treating retrieved answers as learned transformer
 weights.
+
+v0.108.0 expands the source-plan window in
+`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.107.0 plan, targets `owner`, `paraphrases`, `heldout`,
+`qa`, and `glossary`, maps target-only profiles to admitted source labels, and
+keeps retrieval exact at `219/219`. Branch diversity still blocks promotion, so
+the next repair should target missing first-token diversity directly.

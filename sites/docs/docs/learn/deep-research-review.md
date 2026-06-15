@@ -133,8 +133,12 @@ the same discipline before another major repair screen.
     source-plan-consuming direct-answer mode that targets `owner`,
     `paraphrases`, and `glossary`, records `26` prioritized attempts, accepts
     `8`, rejects `18`, and still rejects promotion on `branch_diversity_target`.
-38. **v0.108.0+:** branch-diversity repair from the v0.107.0 consolidation
-    evidence, tokenizer growth, or learned verifier experiments.
+38. **v0.108.0:** expanded memory-consolidation target window. Implemented with
+    explicit source-label mapping for target-only profiles and a five-target
+    screen for `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`; still
+    rejects promotion on `branch_diversity_target`.
+39. **v0.109.0+:** missing first-token diversity repair, tokenizer growth, or
+    learned verifier experiments.
 
 ## Operating Rule
 
@@ -239,3 +243,7 @@ v0.107.0 consumes that plan in a gated direct-answer mode, targets `owner`,
 `paraphrases`, and `glossary`, records `26` prioritized attempts with `8`
 acceptances and `18` rejections, keeps retrieval exact at `219/219`, and still
 rejects promotion on `branch_diversity_target`.
+v0.108.0 expands the consumed target window to `owner`, `paraphrases`,
+`heldout`, `qa`, and `glossary`, adds explicit target-to-source label mapping,
+keeps retrieval exact at `219/219`, and still rejects promotion on
+`branch_diversity_target`.

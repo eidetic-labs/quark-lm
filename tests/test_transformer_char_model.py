@@ -5747,6 +5747,18 @@ class TransformerCharModelTest(unittest.TestCase):
         )
         self.assertEqual(ordered[-1][0], "fact:self")
 
+    def test_remaining_profile_binding_maps_memory_consolidation_targets(
+        self,
+    ) -> None:
+        source_labels = remaining_profile_binding_source_labels(
+            ["owner", "paraphrases", "heldout", "qa", "glossary"]
+        )
+
+        self.assertEqual(
+            source_labels,
+            ["color", "glossary", "owner", "place", "training_data"],
+        )
+
     def test_profile_scale_remaining_profile_binding_frontier_mode_records_priority_memory(
         self,
     ) -> None:

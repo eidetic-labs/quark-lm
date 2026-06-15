@@ -484,6 +484,17 @@ BASELINE_FLOOR_REMAINING_PROFILE_BINDING_PARAPHRASE_SOURCE_LABELS = (
     "place",
     "training_data",
 )
+BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_SOURCE_LABELS = {
+    "admission_paraphrases": ("color", "owner", "place", "training_data"),
+    "admissions": ("color", "owner", "place", "training_data"),
+    "glossary": ("glossary",),
+    "heldout": ("color", "owner", "place"),
+    "learning": ("learning",),
+    "owner": ("owner",),
+    "paraphrases": BASELINE_FLOOR_REMAINING_PROFILE_BINDING_PARAPHRASE_SOURCE_LABELS,
+    "qa": ("color", "owner", "place"),
+    "self": ("self",),
+}
 BASELINE_FLOOR_REPAIR_STEPS = 1
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE = 32
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT = 10.0
@@ -4958,10 +4969,15 @@ def source_profile_label(profile: str) -> str:
 def remaining_profile_binding_source_labels(
     target_profiles: list[str] | set[str] | tuple[str, ...],
 ) -> list[str]:
-    labels = set(target_profiles)
-    if "paraphrases" in labels:
-        labels.update(BASELINE_FLOOR_REMAINING_PROFILE_BINDING_PARAPHRASE_SOURCE_LABELS)
-        labels.discard("paraphrases")
+    labels: set[str] = set()
+    for target_profile in target_profiles:
+        mapped_labels = BASELINE_FLOOR_REMAINING_PROFILE_BINDING_TARGET_SOURCE_LABELS.get(
+            target_profile
+        )
+        if mapped_labels is None:
+            labels.add(target_profile)
+        else:
+            labels.update(mapped_labels)
     return sorted(labels)
 
 

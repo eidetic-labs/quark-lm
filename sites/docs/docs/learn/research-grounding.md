@@ -139,6 +139,10 @@ v0.107.0 implements that gated consolidation handoff: it consumes the v0.106.0
 plan, targets `owner`, `paraphrases`, and `glossary`, records `26` prioritized
 attempts with `8` acceptances and `18` rejections, and still rejects neural
 promotion on `branch_diversity_target`.
+v0.108.0 consumes the v0.107.0 plan, expands the target window to `owner`,
+`paraphrases`, `heldout`, `qa`, and `glossary`, and shows that the next
+mechanic needs missing first-token diversity pressure rather than another
+target-window expansion.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

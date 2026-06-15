@@ -162,6 +162,11 @@ acceptances and `18` rejections, and still rejects promotion on
 `branch_diversity_target`. The next mechanics change should improve target-token
 diversity inside those memory-backed failures without relaxing the promotion
 gate.
+v0.108.0 expands the source-plan target window to `owner`, `paraphrases`,
+`heldout`, `qa`, and `glossary` and maps target-only profile names back to
+admitted source labels. The screen keeps retrieval exact and still rejects on
+`branch_diversity_target`, so the next mechanics change should apply direct
+missing first-token diversity pressure.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

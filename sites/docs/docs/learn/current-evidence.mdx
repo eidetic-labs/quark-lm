@@ -1100,6 +1100,13 @@ records `26` memory-consolidation prioritized attempts with `8` acceptances and
 rejects neural promotion on `branch_diversity_target`, so this is plan-guided
 weight-consolidation evidence rather than promoted model evidence.
 
+v0.108.0 expands that consolidation window. The diagnostic screen in
+`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.107.0 plan, targets `owner`, `paraphrases`, `heldout`, `qa`,
+and `glossary`, maps target-only profiles back to admitted source labels, and
+keeps retrieval at `219/219`. Branch-diversity still blocks promotion, which
+means the next repair needs direct missing first-token diversity pressure.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

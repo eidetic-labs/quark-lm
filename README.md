@@ -542,6 +542,19 @@ rejects neural promotion on `branch_diversity_target`. The run proves the
 memory plan can guide gated weight updates without treating retrieval success
 as transformer promotion.
 
+v0.108.0 expands the source-plan target window. `remaining_profile_binding`
+now maps target-only profiles such as `heldout`, `qa`, `admissions`, and
+`admission_paraphrases` back to admitted corpus source labels instead of
+treating those target names as literal source labels. The diagnostic screen ran
+at
+`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
+It consumes the v0.107.0 plan with `--memory-consolidation-max-profiles 5`,
+targets `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`, keeps source
+labels to `color`, `glossary`, `owner`, `place`, and `training_data`, records
+`26` memory-consolidation prioritized attempts with `8` acceptances and `18`
+rejections, keeps retrieval exact at `219/219`, and still rejects neural
+promotion on `branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1261,6 +1274,13 @@ Current transformer answer-lesson run:
   records `26` memory-consolidation prioritized attempts with `8` acceptances
   and `18` rejections, keeps retrieval at `219/219`, and still rejects neural
   promotion on `branch_diversity_target`.
+- v0.108.0 expands gated memory-consolidation training to the five collapsed
+  memory-backed profiles in the v0.107.0 plan. The diagnostic run
+  `runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
+  targets `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`, records the
+  explicit source labels `color`, `glossary`, `owner`, `place`, and
+  `training_data`, keeps retrieval at `219/219`, and still rejects neural
+  promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1558,9 +1578,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.107.0 gated memory-consolidation evidence to improve the remaining
-   branch-diversity failures, especially collapsed `glossary`, `owner`, and
-   `paraphrases`, without counting retrieval success as transformer promotion.
+5. Use v0.108.0 expanded memory-consolidation evidence to add a direct missing
+   first-token diversity repair for `owner`, `paraphrases`, `heldout`, `qa`,
+   and `glossary` without counting retrieval success as transformer promotion.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

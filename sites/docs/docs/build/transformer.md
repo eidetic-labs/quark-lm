@@ -324,6 +324,18 @@ rejections, keeps retrieval exact at `219/219`, and still rejects promotion on
 new mode proves a plan-to-weight-update handoff under gates, not completed
 neural learning.
 
+v0.108.0 expands the memory-consolidation target window. Target-only profiles
+such as `heldout`, `qa`, `admissions`, and `admission_paraphrases` now map back
+to admitted corpus source labels before replay ordering. The diagnostic screen
+at
+`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.107.0 plan with five target profiles: `owner`, `paraphrases`,
+`heldout`, `qa`, and `glossary`. Retrieval remains exact at `219/219`, the
+guard again records `26` prioritized attempts with `8` acceptances and `18`
+rejections, and promotion still rejects on `branch_diversity_target`. The next
+mechanic should directly target missing first-token diversity for that expanded
+profile set.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
