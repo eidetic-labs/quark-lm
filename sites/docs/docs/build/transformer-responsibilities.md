@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.98 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.99 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -46,6 +46,9 @@ but the strict screen accepts only one coverage-gaining source-profile update.
 v0.98 adds coverage-prep frontier acceptance, restoring nine accepted
 source-profile updates while separating three coverage gains from six
 coverage-preparation moves.
+v0.99 adds coverage-recovery frontier retry, accepts six source-profile updates,
+converts two prepared candidates into direct coverage recoveries, and keeps four
+preparation fallbacks while branch diversity still blocks promotion.
 
 The current surfaces are:
 
@@ -128,6 +131,9 @@ repair work smaller and more auditable:
 - The v0.98 coverage-prep frontier guard shows safe setup moves can be
   separated from coverage gains: `9` source-profile updates survive, with `3`
   coverage gains and `6` coverage-preparation moves.
+- The v0.99 coverage-recovery frontier guard shows prepared movement can be
+  tested as direct missing-target recovery: `6` source-profile updates survive,
+  with `2` recovery conversions and `4` preparation fallbacks.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

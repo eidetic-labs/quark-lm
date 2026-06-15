@@ -5223,6 +5223,112 @@ class TransformerCharModelTest(unittest.TestCase):
             shape_counts,
         )
 
+    def test_profile_scale_coverage_recovery_frontier_mode_records_retry_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / "baseline-floor-profile-scale-coverage-recovery-frontier-screen"
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "coverage-recovery-frontier-profile-scale-calibrated-"
+                        "sequential-profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard["profile_scale_coverage_recovery_frontier_stabilization_active"]
+        )
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_recovery_learning_rate_scales"],
+            [1.0, 0.25, 0.05],
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_prep_frontier_attempts"],
+            guard["profile_scale_memory_attempts"],
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_recovery_frontier_attempts"],
+            guard["profile_scale_coverage_recovery_frontier_acceptances"]
+            + guard["profile_scale_coverage_recovery_frontier_rejections"],
+        )
+        self.assertLessEqual(
+            guard["profile_scale_coverage_recovery_frontier_fallback_preparations"],
+            guard["profile_scale_coverage_recovery_frontier_prepared_candidates"],
+        )
+        self.assertIn("profile_scale_coverage_recovery_frontier_probe_sample", guard)
+        if guard["profile_scale_coverage_recovery_frontier_attempts"]:
+            self.assertGreater(
+                guard["profile_scale_coverage_recovery_frontier_records"],
+                0,
+            )
+            self.assertTrue(
+                guard["profile_scale_coverage_recovery_frontier_probe_sample"]
+            )
+        if guard["profile_scale_coverage_recovery_frontier_acceptances"]:
+            self.assertTrue(
+                guard[
+                    "profile_scale_coverage_recovery_frontier_profile_acceptance_outcomes"
+                ]
+            )
+        if guard["profile_scale_coverage_recovery_frontier_rejections"]:
+            self.assertTrue(
+                guard["profile_scale_coverage_recovery_frontier_rejection_reasons"]
+            )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
     def test_branch_diversity_target_coverage_delta_records_profile_gains(
         self,
     ) -> None:

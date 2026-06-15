@@ -88,7 +88,7 @@ direct-answer objective mode:
    updates; rejected for promotion.
 23. **v0.97:** coverage-frontier audited missing-target repair. Implemented
    with one coverage-gaining update; rejected for promotion.
-24. **v0.98+:** coverage-prep frontier repair, tokenizer growth, or learned
+24. **v0.99+:** coverage-recovery frontier repair, tokenizer growth, or learned
    verifier experiments.
 
 ## Current Gap
@@ -155,10 +155,13 @@ QuarkLM already has:
   `runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.98 coverage-prep frontier profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.99 coverage-recovery frontier profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- direct missing-target coverage recovery from the v0.98 preparation moves.
+- branch-diversity stabilization after v0.99 proves direct missing-target
+  recovery can convert prepared candidates.
 
 ## Operating Rule
 

@@ -125,7 +125,11 @@ isolated missing-target repairs that keep the audit without starving later
 profiles. v0.98 adds coverage-prep frontier acceptance, accepts `9`
 source-profile updates, separates `3` coverage gains from `6`
 coverage-preparation moves, and shifts the next mechanics change toward turning
-safe setup movement into direct target-token coverage.
+safe setup movement into direct target-token coverage. v0.99 adds
+coverage-recovery frontier retry, accepts `6` source-profile updates, converts
+`2` prepared candidates into direct coverage recoveries, keeps `4` preparation
+fallbacks, and shifts the next mechanics change toward stabilizing branch
+diversity after recovery.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

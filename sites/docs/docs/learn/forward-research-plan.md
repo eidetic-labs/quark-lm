@@ -113,7 +113,11 @@ and shows the next repair should keep coverage auditing while allowing later
 missing-target repairs to continue. v0.98 adds coverage-prep frontier
 acceptance, accepts `9` source-profile updates across `43` attempts, separates
 `3` coverage gains from `6` coverage-preparation moves, and shows the next
-repair should turn preparation moves into direct coverage recovery.
+repair should turn preparation moves into direct coverage recovery. v0.99 adds
+coverage-recovery frontier retry, accepts `6` source-profile updates across
+`54` attempts, converts `2` prepared candidates into direct coverage
+recoveries, keeps `4` preparation fallbacks, and shows the next repair should
+stabilize branch diversity after recovery.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -273,5 +277,18 @@ The run keeps `52` missing-target frontier anchors active, records `43`
 profile-scale attempts, accepts `9` source-profile updates, separates `3`
 coverage gains from `6` coverage-preparation moves, rejects `28` floor
 regressions, `4` coverage ties without score gain, and `2` coverage
-regressions, and preserves the branch-diversity floor. The next repair should
-turn coverage-preparation moves into direct missing-target coverage recovery.
+regressions, and preserves the branch-diversity floor. This sets up the v0.99
+coverage-recovery retry.
+
+v0.99 adds
+`branch-context-profile-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run keeps `52` missing-target frontier anchors active, records `54`
+profile-scale attempts, accepts `6` source-profile updates, identifies `6`
+prepared recovery candidates, runs `15` recovery retries over `95` records,
+converts `2` candidates into direct coverage recoveries, keeps `4` preparation
+fallbacks, rejects `38` floor regressions, `7` coverage ties without score
+gain, and `3` coverage regressions, and preserves coverage while still failing
+branch diversity. The next repair should make recovery-compatible updates less
+branch-collapsing.

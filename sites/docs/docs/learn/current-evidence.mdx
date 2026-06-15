@@ -996,6 +996,18 @@ ties without score gain, and `2` coverage regressions. Promotion still rejects
 the transformer on `branch_diversity_target`, but the update guard now
 separates direct coverage gains from safe preparation moves.
 
+v0.99 adds coverage-recovery frontier retry to that path. The diagnostic screen
+in
+`runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer coverage-recovery profile-scale update, `54`
+profile-scale attempts, `6` accepted source-profile updates, `6` prepared
+recovery candidates, `15` recovery retries, `2` direct coverage recoveries,
+`4` preparation fallbacks, `38` floor regressions, `7` coverage ties without
+score gain, and `3` coverage regressions. Promotion still rejects the
+transformer on `branch_diversity_target`, but the guard now proves preparation
+can be tested as direct missing-target recovery before it is admitted as
+self-improvement evidence.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

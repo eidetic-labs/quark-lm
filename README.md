@@ -404,6 +404,22 @@ without score gain, and `2` coverage regressions. Promotion remains rejected on
 `branch_diversity_target`, but v0.98 restores the v0.96 frontier movement while
 keeping coverage-gain accounting explicit.
 
+v0.99 adds
+`branch-context-profile-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.98 preparation path and gives each safe preparation candidate a
+small missing-target recovery retry before falling back to the prepared state.
+The matching diagnostic screen ran at
+`runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `54` profile-scale updates, accepted
+`6` source-profile updates, identified `6` recovery-prepared candidates, ran
+`15` recovery retries over `95` recovery records, converted `2` candidates into
+direct coverage recoveries, and retained `4` coverage-preparation fallbacks.
+It rejected `38` floor regressions, `7` coverage ties without score gain, and
+`3` coverage regressions at the profile-scale guard, while the recovery retry
+itself rejected `7` floor regressions and `6` coverage ties. Promotion remains
+rejected on `branch_diversity_target`, but v0.99 proves the self-improvement
+loop can distinguish "I prepared to learn" from "I recovered coverage."
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1065,6 +1081,11 @@ Current transformer answer-lesson run:
   accepts `9` source-profile updates, separates `3` coverage gains from `6`
   coverage-preparation moves, and still rejects promotion on
   `branch_diversity_target`.
+- v0.99 adds coverage-recovery frontier retry. The diagnostic run
+  `runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `6` source-profile updates, converts `2` preparation candidates into
+  direct coverage recoveries, keeps `4` preparation fallbacks, and still rejects
+  promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

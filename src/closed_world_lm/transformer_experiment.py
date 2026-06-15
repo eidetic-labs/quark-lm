@@ -32,6 +32,10 @@ PROFILE_SCALE_COVERAGE_PREP_FRONTIER_MODE = (
     "branch-context-profile-baseline-floor-diversity-coverage-prep-frontier-"
     "profile-scale-calibrated-sequential-profile-stabilization-unlikelihood"
 )
+PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-coverage-recovery-frontier-"
+    "profile-scale-calibrated-sequential-profile-stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -51,6 +55,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     PROFILE_SCALE_FRONTIER_MODE,
     PROFILE_SCALE_COVERAGE_FRONTIER_MODE,
     PROFILE_SCALE_COVERAGE_PREP_FRONTIER_MODE,
+    PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_MODE,
 }
 
 
@@ -324,6 +329,33 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                         "counts, replay plan, branch-context gate, coverage "
                         "floor, diversity target, recipe, verifier, and "
                         "constraint-first promotion artifacts."
+                    ),
+                    "required": True,
+                }
+            )
+        if (
+            getattr(args, "direct_answer_mode", "")
+            == PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_MODE
+        ):
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_coverage_recovery_frontier_"
+                        "calibrated_sequential_stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records coverage-recovery frontier activation, "
+                        "outer/search scales, source-profile scale attempts, "
+                        "frontier anchor counts, coverage-preparation "
+                        "candidates, recovery retry scales, recovery attempts, "
+                        "recovery acceptances, fallback preparations, recovery "
+                        "rejection reasons, accepted recovery outcomes, "
+                        "coverage gain/tie/regression counts, diversity "
+                        "outcome counts, floor regression rejections, accepted "
+                        "profile scales, update-shape counts, replay plan, "
+                        "branch-context gate, coverage floor, diversity "
+                        "target, recipe, verifier, and constraint-first "
+                        "promotion artifacts."
                     ),
                     "required": True,
                 }
