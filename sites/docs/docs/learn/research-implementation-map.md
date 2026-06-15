@@ -131,7 +131,13 @@ direct-answer objective mode:
    `16` attempts, `1` accepted guarded coverage-gain update, `15` rejections,
    `5` fallback acceptances, and exact `219/219` retrieval; rejected for
    promotion on `branch_diversity_target`.
-37. **v0.111.0+:** profile-specific collapsed-profile repair, tokenizer growth, or
+37. **v0.111.0:** profile-specific remaining-collapsed missing first-token
+   pressure. Implemented with source-label-to-target-profile maps,
+   `6` candidates, `18` attempts, `0` direct missing-token acceptances, `18`
+   rejections, `6` fallbacks, `1` accepted profile-specific update shape, and
+   exact `219/219` retrieval; rejected for promotion on
+   `branch_diversity_target`.
+38. **v0.112.0+:** per-profile acceptance-delta repair, tokenizer growth, or
    learned verifier experiments.
 
 ## Current Gap
@@ -222,12 +228,15 @@ QuarkLM already has:
   `runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
 - v0.110.0 remaining-collapsed missing-token evidence:
   `runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+- v0.111.0 profile-specific remaining-collapsed missing-token evidence:
+  `runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
 
 It still needs:
 
-- profile-specific collapsed-profile repair that uses v0.110.0 remaining-target
-  evidence to improve `owner`, `paraphrases`, and `learning` target-token
-  coverage without regressing retrieval provenance or relaxing promotion gates.
+- per-profile repair that uses v0.111.0 target-map and acceptance-delta evidence
+  to improve zero-coverage `paraphrases`, remaining `owner` collapse, and
+  re-emergent `glossary` collapse without regressing retrieval provenance or
+  relaxing promotion gates.
 
 ## Operating Rule
 

@@ -1127,6 +1127,18 @@ at `219/219`; the missing-token phase records `6` candidates, `16` attempts,
 `1` accepted guarded coverage-gain update, `15` rejections, and `5` fallback
 acceptances. Branch-diversity still blocks promotion.
 
+v0.111.0 makes that pressure profile-specific. The diagnostic screen in
+`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.110.0 plan, keeps targets `owner`, `paraphrases`, and
+`learning`, and records the target map `learning -> learning`,
+`owner -> owner/paraphrases`, and `color/place/training_data -> paraphrases`.
+Retrieval remains exact at `219/219`; memory-prioritized consolidation records
+`16` attempts with `6` acceptances and `10` rejections, and the missing-token
+phase records `6` candidates, `18` attempts, `0` direct missing-token
+acceptances, `18` rejections, and `6` fallbacks. The guard records `1`
+accepted profile-specific update shape, but branch-diversity still blocks
+promotion.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

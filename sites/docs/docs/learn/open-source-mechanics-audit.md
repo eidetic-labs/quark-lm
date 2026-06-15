@@ -181,6 +181,13 @@ coverage-gain update, `15` rejections, and `5` fallback acceptances while
 keeping retrieval exact and promotion blocked. The next mechanics change should
 attach missing-token pressure and acceptance deltas to each remaining target
 profile, not only to the shared collapsed set.
+v0.111.0 attaches that pressure to profile-specific source-label maps. It maps
+`learning -> learning`, `owner -> owner/paraphrases`, and
+`color/place/training_data -> paraphrases`, records `18` guarded missing-token
+attempts, `6` fallbacks, and `1` accepted profile-specific update shape while
+keeping retrieval exact and promotion blocked. The next mechanics change should
+use those per-profile deltas to repair `paraphrases`, `owner`, and re-emergent
+`glossary` collapse without relaxing branch-diversity gates.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

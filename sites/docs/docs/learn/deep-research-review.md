@@ -148,7 +148,13 @@ the same discipline before another major repair screen.
     attempts, `1` accepted guarded coverage-gain update, `15` rejections, `5`
     fallback acceptances, and exact `219/219` retrieval; still rejects promotion
     on `branch_diversity_target`.
-41. **v0.111.0+:** profile-specific collapsed-profile repair, tokenizer growth, or
+41. **v0.111.0:** profile-specific remaining-collapsed missing first-token
+    pressure. Implemented with source-label-to-target-profile maps,
+    `6` candidates, `18` attempts, `0` direct missing-token acceptances, `18`
+    rejections, `6` fallbacks, `1` accepted profile-specific update shape, and
+    exact `219/219` retrieval; still rejects promotion on
+    `branch_diversity_target`.
+42. **v0.112.0+:** per-profile acceptance-delta repair, tokenizer growth, or
     learned verifier experiments.
 
 ## Operating Rule

@@ -24,7 +24,7 @@ closed-world probes.
 
 ## Model Philosophy
 
-QuarkLM is memory-native before it is weight-native:
+QuarkLM is memory-native before it is weight-native. The core learning loop is:
 
 ```text
 new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
@@ -41,6 +41,16 @@ That means retrieval success is not counted as neural learning. It is evidence
 that the closed world contains the knowledge. Weight updates are the slower,
 audited step that should teach language behavior, routing, paraphrase
 tolerance, compression, and generalization over the admitted world.
+
+| Stage | QuarkLM meaning |
+| --- | --- |
+| New lesson | A human-authored or generated candidate proposes something to learn. |
+| Corpus | The lesson becomes learnable only after ledgered admission. |
+| Retrieval memory | The corpus can answer immediately through provenance-rich memory cards. |
+| Training candidates | The trainer chooses source-backed examples from admitted data and failure reports. |
+| Guarded weight update | Random-initialized or closed-world checkpointed weights receive bounded pressure. |
+| Evaluation | Closed-world, retention, branch-diversity, leakage, and quality gates run. |
+| Accepted or rejected | Promotion happens only if the evidence passes; otherwise the run becomes diagnostic evidence. |
 
 ## Research Grounding
 
@@ -597,6 +607,21 @@ guard artifacts. The missing-token phase records `6` candidates, `16` attempts,
 acceptances; memory-consolidation prioritization records `29` attempts, `6`
 acceptances, and `23` rejections. Retrieval remains exact at `219/219`, and
 promotion is still correctly blocked by `branch_diversity_target`.
+
+v0.111.0 makes the missing-token pressure profile-specific. The diagnostic
+screen ran at
+`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+It consumes the v0.110.0 plan, keeps target profiles `owner`, `paraphrases`,
+and `learning`, and records the source-label-to-target-profile map:
+`learning -> learning`, `owner -> owner/paraphrases`, and
+`color/place/training_data -> paraphrases`. Retrieval remains exact at
+`219/219`. Memory-prioritized consolidation records `16` attempts with `6`
+acceptances and `10` rejections; the profile-specific missing-token phase
+records `6` candidates, `18` attempts, `0` direct missing-token acceptances,
+`18` rejections, and `6` fallbacks, while the guard records `1` accepted
+profile-specific update shape. Promotion is still correctly blocked by
+`branch_diversity_target`, so the run is diagnostic evidence, not a promoted
+neural model.
 
 ## Latest Evidence
 
@@ -1339,6 +1364,13 @@ Current transformer answer-lesson run:
   accepted guarded coverage-gain update, `15` rejections, and `5` fallback
   acceptances, keeps retrieval at `219/219`, and still rejects neural promotion
   on `branch_diversity_target`.
+- v0.111.0 makes remaining-collapsed missing-token pressure profile-specific.
+  The diagnostic run
+  `runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+  consumes the v0.110.0 plan, maps source labels to supported target profiles,
+  records `6` missing-token candidates, `18` attempts, `0` direct missing-token
+  acceptances, `18` rejections, and `6` fallbacks, keeps retrieval at
+  `219/219`, and still rejects neural promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
@@ -1636,10 +1668,9 @@ closed_world_lm.evaluate
    repair proposal and selection, without external model shaping.
 4. Add larger continual-learning batches using generated probes and forgetting
    checks.
-5. Use v0.110.0 remaining-collapsed evidence to design a profile-specific
-   repair for `owner`, `paraphrases`, and `learning`, especially the
-   zero-coverage `paraphrases` profile, without relaxing coverage or
-   branch-diversity gates.
+5. Use v0.111.0 profile-specific evidence to repair zero-coverage
+   `paraphrases`, remaining `owner` collapse, and the re-emergent `glossary`
+   collapse without relaxing coverage or branch-diversity gates.
 6. Consider a from-scratch corpus-derived subword tokenizer only after the
    character-token transformer evidence shows tokenizer length is the bottleneck.
 7. Fold the reliable decoder behavior back into the broader free-form character

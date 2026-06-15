@@ -19,6 +19,23 @@ first ledgered into the corpus, memory can answer it exactly, the trainer builds
 closed-world candidates from that evidence, and only guarded updates are allowed
 to modify weights.
 
+## Lifecycle Contract
+
+| Step | System responsibility | Evidence artifact |
+| --- | --- | --- |
+| New lesson | Receive a proposed fact, rule, probe, or repair with source context. | Candidate record or admission request. |
+| Corpus | Admit only verified material into the ledgered closed world. | Ledger, corpus diff, curriculum manifest. |
+| Retrieval memory | Make admitted knowledge answerable without weight movement. | Retrieval memory cards and exact retrieval evals. |
+| Training candidates | Convert admitted sources and failure reports into bounded examples. | Training plan, replay plan, candidate quarantine, source map. |
+| Guarded weight update | Apply only constrained pressure to random-initialized or closed-world checkpointed weights. | Update guard, accepted/rejected attempt records, checkpoint metadata. |
+| Evaluation | Test current behavior before promotion is allowed. | Constraint-first promotion, forgetting audit, probe audits, branch metrics. |
+| Accepted or rejected | Promote only passing evidence; keep failed runs as diagnostics. | Current-state docs, run report, release notes, archived attempt. |
+
+This is why QuarkLM can say "I learned something new" only after the admission
+and evidence chain is visible. A retrieved answer means the corpus can serve the
+knowledge. A promoted guarded update means the learned model consolidated
+behavior from that knowledge without breaking the boundary.
+
 Release loop:
 
 1. Admit or refine corpus data.

@@ -357,6 +357,21 @@ accepted guarded coverage-gain update, `15` rejections, and `5` fallback
 acceptances. Promotion still rejects on `branch_diversity_target`, so the next
 mechanic should repair those three profiles with more profile-specific pressure.
 
+v0.111.0 adds that profile-specific pressure. The diagnostic screen at
+`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
+consumes the v0.110.0 plan, keeps `owner`, `paraphrases`, and `learning` as
+the target profiles, and maps each admitted source label to only the unresolved
+targets it can support: `learning -> learning`, `owner -> owner/paraphrases`,
+and `color/place/training_data -> paraphrases`. Retrieval remains exact at
+`219/219`; memory-prioritized consolidation records `16` attempts with `6`
+acceptances and `10` rejections. The profile-specific missing-token phase
+records `6` candidates, `18` attempts, `0` direct missing-token acceptances,
+`18` rejections, and `6` fallbacks, while the guard records `1` accepted
+profile-specific update shape. Promotion still rejects on
+`branch_diversity_target`, so the next mechanic should use the per-profile
+acceptance deltas to repair `paraphrases`, `owner`, and re-emergent `glossary`
+collapse.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

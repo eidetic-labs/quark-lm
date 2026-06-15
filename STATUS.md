@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.110.0 remaining-collapsed missing first-token screen;
+**Active version:** v0.111.0 profile-specific missing first-token screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -43,6 +43,9 @@ Working tagline: Big idea. Tiny package.
   plan's `collapsed_memory_backed_profiles`, consumes only unresolved collapsed
   profiles, and records the collapsed-target contract in replay and guard
   artifacts.
+- Profile-specific missing first-token memory-consolidation targeting that maps
+  each admitted source label to only the unresolved target profiles it can
+  support before guarded weight updates are evaluated.
 - Learned answer classifier trained from random weights.
 - Generative answer decoder trained from random weights.
 - Operational self facts: dataset boundary, pretrained-weight policy, unknown
@@ -542,18 +545,20 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
-The run consumes the v0.109.0 `memory_consolidation_plan.json`, requires
-`collapsed_memory_backed_profiles`, targets only `owner`, `paraphrases`, and
-`learning`, keeps `retrieval_memory_report.json` at `219/219` exact retrieval,
-and records `29` memory-consolidation prioritized attempts with `6`
-acceptances and `23` rejections. Its remaining-collapsed missing first-token
-phase records `6` candidates, `16` attempts, `1` accepted guarded
-coverage-gain update, `15` rejections, and `5` fallback acceptances. It uses no
-external model, no embeddings, no pretrained retriever, and no retrieval weight
-updates. The transformer remains blocked on `branch_diversity_target`;
-v0.110.0 proves the narrowed collapsed-profile target contract, not neural
-promotion.
+`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.110.0 `memory_consolidation_plan.json`, keeps target
+profiles `owner`, `paraphrases`, and `learning`, and maps admitted source
+labels to supported target profiles before applying missing-token pressure:
+`learning -> learning`, `owner -> owner/paraphrases`, and
+`color/place/training_data -> paraphrases`. Retrieval remains exact at
+`219/219`. Memory-prioritized consolidation records `16` attempts with `6`
+acceptances and `10` rejections; the profile-specific missing-token phase
+records `6` candidates, `18` attempts, `0` direct missing-token acceptances,
+`18` rejections, and `6` fallbacks, while the guard records `1` accepted
+profile-specific update shape. It uses no external model, no embeddings, no
+pretrained retriever, and no retrieval weight updates. The transformer remains
+blocked on `branch_diversity_target`; v0.111.0 proves profile-specific
+pressure is auditable, not neural promotion.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

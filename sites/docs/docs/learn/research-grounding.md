@@ -33,6 +33,18 @@ stage must be constrained by the closed-world boundary:
 - evaluation means promotion gates that can reject an apparently better run if
   retention, diversity, unknown-policy, or leakage evidence regresses.
 
+In QuarkLM terms, the operating sequence is:
+
+```text
+new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+```
+
+That sequence deliberately inverts the usual large-model starting point. Most
+large models begin with broad knowledge already compressed into pretrained
+weights and then add retrieval or tuning around that base. QuarkLM begins with
+an auditable corpus boundary, lets retrieval memory serve admitted knowledge
+first, and treats neural consolidation as a later, guarded, rejectable event.
+
 The research does not make QuarkLM's thesis impossible. It makes the operating
 discipline stricter: accumulated admitted data must never be replaced by
 self-generated text, replay and retention gates need to be first-class, and any
@@ -154,8 +166,14 @@ consumes the v0.109.0 plan, requires collapsed-profile source evidence, targets
 only `owner`, `paraphrases`, and `learning`, records `16` guarded missing-token
 attempts with `1` accepted coverage-gain update, keeps retrieval exact at
 `219/219`, and still rejects neural promotion on `branch_diversity_target`.
-The next grounding point is profile-specific missing-token pressure for those
-three unresolved profiles.
+v0.111.0 adds that profile-specific pressure: it consumes the v0.110.0 plan,
+maps source labels to supported target profiles, records `6` missing-token
+candidates, `18` attempts, `0` direct missing-token acceptances, `18`
+rejections, `6` fallbacks, and `1` accepted profile-specific update shape,
+keeps retrieval exact at `219/219`, and still rejects neural promotion on
+`branch_diversity_target`. The next grounding point is using the profile map
+and acceptance deltas to repair remaining `paraphrases`, `owner`, and
+re-emergent `glossary` collapse without relaxing promotion gates.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

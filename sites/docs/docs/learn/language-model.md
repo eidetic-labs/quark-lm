@@ -42,6 +42,30 @@ paraphrase tolerance, compression, and generalization over that world. An update
 is accepted only when evaluation shows it improved the target behavior without
 violating the corpus boundary or regressing prior evidence.
 
+That creates three different evidence states:
+
+| State | Meaning |
+| --- | --- |
+| Corpus-known | The lesson is admitted and can be used by curricula, probes, and memory. |
+| Memory-served | Retrieval can answer from the admitted corpus with provenance. |
+| Weight-consolidated | The transformer learned behavior from guarded candidates and passed promotion gates. |
+
+QuarkLM keeps those states separate because mixing them would blur the central
+claim. If retrieval answers correctly, the system knows the corpus contains the
+answer. It does not prove the neural weights learned the answer. If a guarded
+update improves one target but fails retention or branch diversity, the update
+is useful evidence but rejected for promotion.
+
+## Contrast With Conventional LLM Growth
+
+| Question | Conventional large model | QuarkLM |
+| --- | --- | --- |
+| Where does broad knowledge enter? | During large-scale pretraining on broad corpora. | Through explicit corpus admission events. |
+| What serves a new fact first? | Often the pretrained model, sometimes retrieval. | Retrieval memory over admitted corpus records. |
+| When are weights updated? | During pretraining, fine-tuning, RL, adapters, or model editing. | Only after source-backed candidates pass guarded training checks. |
+| What counts as improvement? | Better aggregate task, benchmark, or preference scores. | A promoted run that passes closed-world, retention, coverage, and docs gates. |
+| What happens to failed updates? | They may be discarded or hidden in experiment history. | They remain versioned diagnostic evidence for the next repair. |
+
 ## Tokenizer
 
 QuarkLM already has its own tokenizer. `closed_world_lm.tokenizer.CharTokenizer`

@@ -402,3 +402,12 @@ missing-token attempts, accepts `1` coverage-gain update, keeps retrieval exact
 at `219/219`, and still rejects promotion on `branch_diversity_target`. The
 next repair should make the pressure specific to each remaining profile's
 missing tokens and acceptance deltas.
+
+v0.111.0 implements that profile-specific repair surface in
+`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
+The run consumes the v0.110.0 plan, maps source labels to supported targets
+before missing-token pressure is applied, records `18` guarded missing-token
+attempts, keeps retrieval exact at `219/219`, and still rejects promotion on
+`branch_diversity_target`. The next repair should use those target maps and
+acceptance deltas to recover `paraphrases`, `owner`, and re-emergent `glossary`
+target-token diversity without weakening constraint-first promotion.

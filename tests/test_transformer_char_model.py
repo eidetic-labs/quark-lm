@@ -70,6 +70,8 @@ from closed_world_lm.transformer_char_model import (
     memory_consolidation_missing_first_token_values,
     missing_first_token_ids_by_profile,
     missing_first_token_anchor_batch,
+    profile_specific_missing_first_token_targets,
+    profile_specific_missing_first_token_target_map,
     branch_diversity_profile_delta_has_coverage_gain,
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
@@ -5863,6 +5865,54 @@ class TransformerCharModelTest(unittest.TestCase):
                 require_collapsed_targets=True,
             )
 
+    def test_profile_specific_missing_first_token_targets_follow_source_labels(
+        self,
+    ) -> None:
+        ids_by_profile = {
+            "owner": [1, 2],
+            "paraphrases": [2, 3],
+            "learning": [4],
+        }
+        target_profiles = ["owner", "paraphrases", "learning"]
+
+        self.assertEqual(
+            profile_specific_missing_first_token_targets(
+                "fact:owner",
+                target_profiles,
+                ids_by_profile,
+            ),
+            ["owner", "paraphrases"],
+        )
+        self.assertEqual(
+            profile_specific_missing_first_token_targets(
+                "fact:learning",
+                target_profiles,
+                ids_by_profile,
+            ),
+            ["learning"],
+        )
+        self.assertEqual(
+            profile_specific_missing_first_token_targets(
+                "bridge:place",
+                target_profiles,
+                ids_by_profile,
+            ),
+            ["paraphrases"],
+        )
+        self.assertEqual(
+            profile_specific_missing_first_token_target_map(
+                target_profiles,
+                ids_by_profile,
+            ),
+            {
+                "color": ["paraphrases"],
+                "learning": ["learning"],
+                "owner": ["owner", "paraphrases"],
+                "place": ["paraphrases"],
+                "training_data": ["paraphrases"],
+            },
+        )
+
     def test_profile_scale_remaining_profile_binding_frontier_mode_records_priority_memory(
         self,
     ) -> None:
@@ -6654,6 +6704,185 @@ class TransformerCharModelTest(unittest.TestCase):
         shape_counts.update(guard["rejected_update_shape_counts"])
         self.assertIn(
             "profile_scale_memory_consolidation_remaining_collapsed_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
+    def test_profile_scale_memory_consolidation_profile_specific_missing_first_token_mode_records_contract(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            source_plan = Path(temp) / "source_memory_consolidation_plan.json"
+            with source_plan.open("w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "kind": "memory_consolidation_plan",
+                        "summary": {
+                            "collapsed_memory_backed_profiles": [
+                                "owner",
+                                "paraphrases",
+                                "learning",
+                            ],
+                            "top_priority_profiles": [
+                                "owner",
+                                "paraphrases",
+                                "learning",
+                                "admissions",
+                            ],
+                            "memory_backed_failed_profiles": 9,
+                            "retrieval_exact_rate": 1.0,
+                        },
+                        "profile_priorities": [
+                            {
+                                "profile": "owner",
+                                "priority_score": 5.075,
+                                "missing_target_tokens": [
+                                    {"value": "u", "count": 2},
+                                    {"value": "a", "count": 1},
+                                ],
+                            },
+                            {
+                                "profile": "paraphrases",
+                                "priority_score": 5.0,
+                                "missing_target_tokens": [
+                                    {"value": "u", "count": 3},
+                                    {"value": "g", "count": 1},
+                                ],
+                            },
+                            {
+                                "profile": "learning",
+                                "priority_score": 4.75,
+                                "missing_target_tokens": [
+                                    {"value": "i", "count": 1},
+                                    {"value": "w", "count": 1},
+                                ],
+                            },
+                            {
+                                "profile": "admissions",
+                                "priority_score": 4.0,
+                                "missing_target_tokens": [
+                                    {"value": "y", "count": 3},
+                                ],
+                            },
+                        ],
+                    },
+                    handle,
+                    indent=2,
+                    sort_keys=True,
+                )
+                handle.write("\n")
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / (
+                            "baseline-floor-profile-scale-memory-consolidation-"
+                            "remaining-collapsed-profile-specific-"
+                            "missing-first-token-screen"
+                        )
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "branch-stable-coverage-recovery-branch-diversity-"
+                        "collapsed-profile-binding-remaining-profile-owner-"
+                        "paraphrase-memory-consolidation-remaining-collapsed-"
+                        "profile-specific-missing-first-token-frontier-profile-"
+                        "scale-calibrated-sequential-profile-stabilization-"
+                        "unlikelihood"
+                    ),
+                    "--memory-consolidation-source-plan",
+                    str(source_plan),
+                    "--memory-consolidation-max-profiles",
+                    "3",
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        expected_targets = ["owner", "paraphrases", "learning"]
+        expected_map = {
+            "color": ["paraphrases"],
+            "learning": ["learning"],
+            "owner": ["owner", "paraphrases"],
+            "place": ["paraphrases"],
+            "training_data": ["paraphrases"],
+        }
+
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_remaining_collapsed_profile_specific_missing_first_token_consolidation_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_memory_consolidation_remaining_collapsed_profile_specific_missing_first_token_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            replay_plan[
+                "baseline_floor_profile_scale_memory_consolidation_remaining_collapsed_profile_specific_missing_first_token_frontier_stabilization_active"
+            ]
+        )
+        self.assertEqual(
+            direct_answer["direct_answer_memory_consolidation_target_profiles"],
+            expected_targets,
+        )
+        self.assertEqual(
+            guard[
+                "profile_scale_memory_consolidation_profile_specific_missing_first_token_target_map"
+            ],
+            expected_map,
+        )
+        self.assertEqual(
+            replay_plan[
+                "memory_consolidation_profile_specific_missing_first_token_target_map"
+            ],
+            expected_map,
+        )
+        self.assertEqual(
+            direct_answer[
+                "direct_answer_memory_consolidation_profile_specific_missing_first_token_target_map"
+            ],
+            expected_map,
+        )
+        self.assertNotIn(
+            "admissions",
+            guard[
+                "profile_scale_memory_consolidation_missing_first_token_target_tokens"
+            ],
+        )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_memory_consolidation_remaining_collapsed_profile_specific_missing_first_token_frontier_calibrated_sequential_profile_stabilization",
             shape_counts,
         )
 
