@@ -125,7 +125,10 @@ provenance, and the goal framework itself.
     every attempt, and the worst measured deficit is `0.25` on `learning`;
     v0.91 covers the full baseline-covered floor-anchor profile-target surface
     and still rejects all `200/200` attempts with the same violation pattern.
-    The remaining sequence should change the floor repair shape itself before
+    v0.92 changes the repair shape to sequential source-profile floor repair,
+    runs `2000` profile-local repair attempts, rejects every profile group, and
+    records `200` no-effective-update attempts. The remaining sequence should
+    create smaller or more isolated floor-preserving weight movement before
     broader tokenizer, verifier, or branch-diversity changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned

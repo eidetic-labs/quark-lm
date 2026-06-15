@@ -932,6 +932,15 @@ profile counts as v0.90. Promotion still rejects the transformer, and the next
 repair must change the floor repair shape rather than only broaden anchor
 coverage.
 
+v0.92 changes that shape to sequential source-profile floor repair. The full
+screen in
+`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`
+records `10` source-profile groups, `2000` profile-local repair attempts,
+`2000` profile-local rejections, and `200` no-effective-update outer attempts.
+Promotion still rejects the transformer, and the next repair must isolate
+floor-preserving weight movement rather than only broaden coverage or reorder
+profiles.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -75,7 +75,9 @@ direct-answer objective mode:
    rejected.
 16. **v0.90:** baseline-floor rejection diagnostics. Implemented.
 17. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
-18. **v0.92+:** floor repair shape change under the full baseline
+18. **v0.92:** sequential source-profile floor stabilization. Implemented and
+   rejected.
+19. **v0.93+:** isolated floor-preserving weight movement under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -128,10 +130,13 @@ QuarkLM already has:
   `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
 - v0.91 profile-targeted baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`.
+- v0.92 sequential source-profile baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
 
 It still needs:
 
-- a different floor repair shape before branch-diversity pressure is added back.
+- smaller or more isolated floor-preserving weight movement before
+  branch-diversity pressure is added back.
 
 ## Operating Rule
 

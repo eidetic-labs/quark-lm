@@ -109,6 +109,13 @@ class TransformerTrainingUtilityTests(unittest.TestCase):
             ),
             DIRECT_ANSWER_OBJECTIVE_MODES,
         )
+        self.assertIn(
+            (
+                "branch-context-profile-baseline-floor-sequential-profile-"
+                "stabilization-unlikelihood"
+            ),
+            DIRECT_ANSWER_OBJECTIVE_MODES,
+        )
         self.assertEqual(validate_direct_answer_objective_mode("first-error"), "first-error")
         with self.assertRaises(ValueError):
             validate_direct_answer_objective_mode("not-a-mode")

@@ -306,6 +306,20 @@ matched v0.90: `heldout: 200`, `admissions: 150`, `glossary: 150`, `qa: 150`,
 deficit on `learning`. Promotion remains rejected; full baseline-covered
 profile-target floor coverage is not sufficient by itself.
 
+v0.92 adds
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`.
+It changes the floor repair shape from one full profile-target batch to
+sequential source-profile batches, with rollback after each unsafe profile
+group. The matching screen ran at
+`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
+It recorded `227` floor anchors, `12` profile-target groups, `10`
+source-profile groups, `2000` sequential profile attempts, and `2400` anchor
+records. All `2000` source-profile attempts were rejected; all `200` outer
+updates were rejected as `sequential_profile_stabilization` with
+`200` no-effective-update attempts. Promotion remains rejected, and the next
+repair needs smaller or more isolated floor-preserving weight movement rather
+than broader anchor coverage.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -935,6 +949,10 @@ Current transformer answer-lesson run:
   records `227` floor anchors, `12` profile-target groups, and
   `profile_targeted_stabilization: 200` rejected attempts with the same
   violation pattern as v0.90.
+- v0.92 adds sequential source-profile floor stabilization. The full-stack run
+  `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`
+  records `10` source-profile groups, `2000` profile-local repair attempts,
+  `2000` profile-local rejections, and `200` no-effective-update attempts.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

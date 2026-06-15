@@ -183,6 +183,13 @@ guarded attempt. The screen shows that broader floor-anchor coverage is still
 not enough: all profile-targeted attempts are rejected with the same violation
 pattern as v0.90.
 
+v0.92 adds
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`.
+It changes the repair shape to sequential source-profile floor batches with
+rollback after each unsafe profile group. The screen shows that source-profile
+ordering is still not enough: all profile-local attempts are rejected before any
+effective guarded update survives.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1439,7 +1446,7 @@ Latest baseline-floor rejection diagnostics screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected for model promotion, but diagnostic evidence is usable for the next profile-targeted floor repair |
 
-Latest profile-targeted baseline-floor stabilization screen:
+Profile-targeted baseline-floor stabilization screen:
 
 | Signal | Value |
 | --- | --- |
@@ -1458,6 +1465,25 @@ Latest profile-targeted baseline-floor stabilization screen:
 | Deterministic verifier | passed with no external model |
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected; full profile-target floor coverage alone does not make guarded updates safe |
+
+Latest sequential profile-floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | guarded attempts train source-profile floor-anchor groups sequentially and roll back each unsafe group before trying the next one |
+| Unit coverage | focused transformer tests pass; the new mode records sequential profile attempts, accept/reject counts, no-effective-update attempts, and profile probe samples |
+| Floor anchors | `227` recorded; requested batch size `227`; `12` profile-target groups; `10` source-profile groups |
+| Sequential profile attempts | `2000` attempted; `0` accepted; `2000` rejected; `2400` anchor records |
+| Source-profile rejection counts | each of `bridge:owner`, `bridge:place`, `fact:learning`, `fact:owner`, `fact:place`, `qa:glossary`, `qa:learning`, `qa:owner`, `qa:place`, and `qa:self` rejected `200` times |
+| Update guard | checked `50/50` steps; attempted `200` updates; accepted `0`; rejected `200`; no-effective-update attempts `200` |
+| Rejected update shapes | `sequential_profile_stabilization: 200` |
+| Rejected adaptive scales | `1: 50`, `0.25: 50`, `0.05: 50`, `0.01: 50` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected; sequential source-profile repair still cannot produce safe weight movement |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
@@ -1575,7 +1601,8 @@ baseline-covered repair after each failed retry and still rejects every attempt;
 v0.88 moves floor anchors into the objective and still rejects every attempt;
 v0.89 removes branch pressure and still rejects every floor-stabilization
 attempt. v0.90 records the rejected profile floors directly, showing `heldout`
-violates every attempt and the worst deficit is `0.25` on `learning`. The next
-v0.91 repair covers the full profile-target floor surface and still rejects
-every attempt, so the next repair should change the floor repair shape before
-adding branch-diversity pressure back.
+violates every attempt and the worst deficit is `0.25` on `learning`. v0.91
+covers the full profile-target floor surface and still rejects every attempt.
+v0.92 changes the repair shape to sequential source-profile batches and still
+rejects every profile-local attempt, so the next repair should isolate smaller
+floor-preserving weight movement before adding branch-diversity pressure back.

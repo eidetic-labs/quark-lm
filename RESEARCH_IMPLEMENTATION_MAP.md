@@ -383,11 +383,27 @@ Implemented and screened profile-targeted baseline-floor stabilization:
 - Promotion remains rejected because the violation pattern is unchanged from
   v0.90.
 
-### v0.92+
+### v0.92
 
-The next transformer step should change the floor repair shape itself before
-reintroducing branch-diversity pressure, revisiting subword tokenization, or
-beginning a learned verifier/repair-policy experiment.
+Implemented and screened sequential source-profile baseline-floor
+stabilization:
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`.
+
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
+- Replay-plan evidence records `227` floor anchors, requested batch size `227`,
+  `12` profile-target groups, and `10` source-profile groups.
+- The guard checks `50/50` steps, attempts `200` sequential stabilization
+  updates, runs `2000` source-profile repair attempts covering `2400` anchor
+  records, and rejects every profile group.
+- Promotion remains rejected because no profile-local update survives the
+  baseline floor guard.
+
+### v0.93+
+
+The next transformer step should isolate floor-preserving weight movement
+before reintroducing branch-diversity pressure, revisiting subword
+tokenization, or beginning a learned verifier/repair-policy experiment.
 
 ## Decision
 

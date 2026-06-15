@@ -86,8 +86,10 @@ use those narrower surfaces and the v0.90 rejection diagnostics before
 branch-diversity pressure is added back. v0.90 shows all `200` rejected attempts
 are stabilization-shaped, `heldout` violates every attempt, and the worst floor
 deficit is `0.25` on `learning`. v0.91 covers the full baseline-covered
-profile-target floor surface and still rejects all `200/200` attempts, so the
-next repair should change the floor repair shape itself.
+profile-target floor surface and still rejects all `200/200` attempts, showing
+the repair shape itself needed to change. v0.92 changes the shape to sequential
+source-profile floor repair, rejects all `2000` profile-local attempts, and
+shows the next repair should isolate floor-preserving weight movement.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -220,7 +222,8 @@ loops become fragile.
   repair should use the v0.90 profile-level floor diagnostics to target
   consistently violating profiles before branch-diversity pressure is added
   back; v0.91 shows full profile-target floor coverage alone is still
-  insufficient, so the next repair should change update shape.
+  insufficient; v0.92 shows sequential source-profile floor repair is still
+  insufficient, so the next repair should isolate smaller update surfaces.
 
 ## Defer
 

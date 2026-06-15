@@ -51,6 +51,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_profiled_replay_records,
     baseline_floor_repair_anchor_records,
     baseline_floor_objective_anchor_batch,
+    baseline_floor_anchor_profile_groups,
     baseline_floor_anchor_profile_target_count,
     train_direct_answer_baseline_floor_anchor_batch,
     direct_answer_dominant_branch_prediction,
@@ -4262,6 +4263,15 @@ class TransformerCharModelTest(unittest.TestCase):
             {("qa:place", 4), ("qa:owner", 8), ("qa:owner", 9)},
         )
         self.assertEqual(baseline_floor_anchor_profile_target_count(anchors), 3)
+        self.assertEqual(
+            {
+                profile: len(group)
+                for profile, group in baseline_floor_anchor_profile_groups(
+                    anchors
+                ).items()
+            },
+            {"qa:owner": 3, "qa:place": 2},
+        )
 
     def test_baseline_floor_anchor_batch_update_lowers_anchor_nll(self) -> None:
         text = "where? near.\nwho? owner.\n"
@@ -4608,6 +4618,80 @@ class TransformerCharModelTest(unittest.TestCase):
                 "profile_targeted_stabilization",
                 guard["rejected_update_shape_counts"],
             )
+
+    def test_sequential_stabilization_mode_records_profile_repairs(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-sequential-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-sequential-profile-"
+                        "stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer["direct_answer_baseline_floor_sequential_stabilization_active"]
+        )
+        self.assertTrue(guard["sequential_stabilization_active"])
+        self.assertEqual(
+            guard["stabilization_profile_group_count"],
+            len(guard["stabilization_anchor_profile_counts"]),
+        )
+        self.assertEqual(
+            replay_plan["baseline_floor_stabilization_profile_group_count"],
+            guard["stabilization_profile_group_count"],
+        )
+        self.assertGreaterEqual(
+            guard["sequential_profile_attempts"],
+            guard["stabilization_profile_group_count"],
+        )
+        self.assertEqual(
+            guard["sequential_profile_acceptances"]
+            + guard["sequential_profile_rejections"],
+            guard["sequential_profile_attempts"],
+        )
+        self.assertGreaterEqual(
+            guard["sequential_profile_records"],
+            guard["sequential_profile_attempts"],
+        )
+        self.assertIn("sequential_profile_probe_sample", guard)
+        if guard["sequential_profile_attempts"]:
+            self.assertTrue(guard["sequential_profile_probe_sample"])
 
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
@@ -5575,6 +5659,10 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-context-profile-baseline-floor-stabilization-unlikelihood",
             (
                 "branch-context-profile-baseline-floor-profile-targeted-"
+                "stabilization-unlikelihood"
+            ),
+            (
+                "branch-context-profile-baseline-floor-sequential-profile-"
                 "stabilization-unlikelihood"
             ),
             "branch-rank-margin-unlikelihood",

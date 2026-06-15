@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.91 profile-targeted floor stabilization screen; promoted
+**Active version:** v0.92 sequential profile-floor stabilization screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -439,6 +439,26 @@ violation counts remained `heldout: 200`, `admissions: 150`, `glossary: 150`,
 remained `0.25` on `learning` (`0.25 -> 0.0`). The verifier passed without an
 external model, but promotion remains rejected on `branch_diversity_target`;
 full floor-anchor profile-target coverage alone is not the missing mechanic.
+
+v0.92 adds
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`.
+It changes the repair shape from one full profile-target batch to sequential
+source-profile floor repair with rollback after each unsafe profile group. The
+matching screen at
+`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `227` floor anchors, requested a floor
+batch size of `227`, covered `12` profile-target groups and `10` source-profile
+groups, and ran `2000` sequential profile batches covering `2400` anchor
+records. The guard checked `50/50` steps, attempted `200` sequential
+stabilization updates, accepted `0`, rejected `200`, and recorded `200`
+no-effective-update attempts because every source-profile group was rolled back
+before the outer update could preserve the floor. Each adaptive scale failed
+`50` times, and each source profile was rejected `200` times:
+`bridge:owner`, `bridge:place`, `fact:learning`, `fact:owner`, `fact:place`,
+`qa:glossary`, `qa:learning`, `qa:owner`, `qa:place`, and `qa:self`. The
+verifier passed without an external model, but promotion remains rejected on
+`branch_diversity_target`; sequential source-profile repair is not isolated
+enough to create safe weight movement.
 
 ## Latest Evidence
 

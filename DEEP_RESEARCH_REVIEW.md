@@ -579,13 +579,25 @@ records `227` floor anchors, batch size `227`, `12` profile-target groups,
 rejected attempts. It is still rejected evidence: full baseline-covered
 profile-target floor coverage does not change the v0.90 violation pattern.
 
-### v0.92+
+### v0.92
 
-The next transformer repair should change the floor repair shape itself rather
-than only broadening anchor coverage: likely per-profile sequential repair,
-profile-specific rollback probes, or targeted profile adapters before
-branch-diversity pressure is added back, before tokenizer growth or a learned
-verifier experiment.
+Implemented sequential source-profile baseline-floor stabilization with
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`.
+The full screen in
+`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`
+records `227` floor anchors, `12` profile-target groups, `10` source-profile
+groups, `2000` sequential profile attempts, `2400` anchor records, and
+`200/200` rejected outer attempts. It is still rejected evidence: every
+source-profile group is rolled back, so the guard records `200`
+no-effective-update attempts.
+
+### v0.93+
+
+The next transformer repair should isolate weight movement further rather than
+only changing anchor coverage or profile ordering: likely smaller profile-local
+updates, frozen-floor/adaptive heads, adapter-like floor repair surfaces, or a
+learned repair policy only after deterministic guards can prove each update is
+safe.
 
 ## Decision
 

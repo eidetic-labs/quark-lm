@@ -104,8 +104,10 @@ enough. v0.90 adds rejected-attempt diagnostics showing every rejected attempt
 is stabilization-shaped, `heldout` violates every attempt, and the next
 mechanics change should target violating profiles before branch pressure is
 added back. v0.91 covers the full profile-target floor surface and still rejects
-every attempt, so the next mechanics change should alter the repair shape rather
-than only broaden anchor coverage.
+every attempt. v0.92 changes the repair shape to sequential source-profile
+floor batches and still rejects all `2000` profile-local attempts, so the next
+mechanics change should isolate smaller floor-preserving weight movement rather
+than only broaden anchor coverage or reorder profiles.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

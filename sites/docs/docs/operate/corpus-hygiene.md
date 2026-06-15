@@ -83,4 +83,6 @@ attempts name their update shape, scale, violating profiles, and worst floor
 deficit before future repairs can become trusted model state. v0.91 adds
 profile-targeted floor anchors to the same trail and still rejects every
 attempt, proving broader floor-anchor coverage cannot become trusted model state
-by itself.
+by itself. v0.92 adds sequential source-profile floor repair to the same trail
+and still rejects every profile-local attempt, proving profile ordering cannot
+become trusted model state without more isolated weight movement.

@@ -91,8 +91,11 @@ adds guard diagnostics before branch-diversity pressure is added back. v0.90
 shows all `200` rejected attempts are stabilization-shaped, every adaptive scale
 fails `50` times, `heldout` violates all attempts, and the worst deficit is
 `0.25` on `learning`. v0.91 covers all `227` floor anchors across `12`
-profile-target groups and still rejects all `200/200` attempts, so the next
-repair must change floor repair shape rather than only broaden anchor coverage.
+profile-target groups and still rejects all `200/200` attempts. v0.92 changes
+the repair shape to sequential source-profile floor batches, rejects all
+`2000` profile-local attempts, and records `200` no-effective-update outer
+attempts, so the next repair must isolate floor-preserving weight movement
+rather than only broaden anchor coverage or reorder profiles.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -185,3 +188,12 @@ and screens it at
 The run covers `227` floor anchors across `12` profile-target groups on every
 guarded attempt, but still rejects `200/200` profile-targeted updates with the
 same violation profile counts as v0.90.
+
+v0.92 adds
+`branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
+The run covers `10` source-profile floor groups sequentially on every guarded
+attempt, rejects all `2000` profile-local attempts, and records `200`
+no-effective-update outer attempts. This shifts the next repair from profile
+ordering toward smaller or more isolated floor-preserving weight movement.

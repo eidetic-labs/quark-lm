@@ -92,7 +92,9 @@ the same discipline before another major repair screen.
     rejected.
 20. **v0.90:** baseline-floor rejection diagnostics. Implemented.
 21. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
-22. **v0.92+:** floor repair shape change under the full baseline
+22. **v0.92:** sequential source-profile floor stabilization. Implemented and
+    rejected.
+23. **v0.93+:** isolated floor-preserving weight movement under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -146,3 +148,5 @@ rejections at each adaptive scale, `heldout: 200` profile-floor violations, and
 a worst rejected floor deficit of `0.25` on `learning`. v0.91 covers all `227`
 baseline-covered floor anchors across `12` profile-target groups and still
 rejects `200/200` profile-targeted attempts with the same violation pattern.
+v0.92 tries sequential source-profile floor repair, rejects all `2000`
+profile-local attempts, and records `200` no-effective-update outer attempts.
