@@ -118,7 +118,11 @@ rejects `11` floor-preserving score regressions, and shifts the next mechanics
 change toward full branch-diversity target coverage. v0.96 adds frontier target
 anchors, accepts `9` score-improving source-profile updates, lowers max
 dominant predicted rate to `0.9`, and shifts the next mechanics change toward
-finishing target-token coverage.
+finishing target-token coverage. v0.97 adds coverage-frontier acceptance,
+accepts `1` coverage-gaining source-profile update, rejects `15` coverage ties
+and `2` coverage regressions, and shifts the next mechanics change toward
+isolated missing-target repairs that keep the audit without starving later
+profiles.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

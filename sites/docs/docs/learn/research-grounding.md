@@ -100,7 +100,10 @@ shows the next repair should convert non-regressive movement into full
 branch-diversity target coverage. v0.96 adds frontier target anchors, accepts
 `9` score-improving source-profile updates, lowers max dominant predicted rate
 to `0.9`, and shows the next repair should convert frontier movement into full
-branch-diversity target coverage.
+branch-diversity target coverage. v0.97 adds coverage-frontier acceptance,
+accepts `1` coverage-gaining source-profile update across `68` attempts, and
+shows the next repair should keep the audit while isolating missing-target
+repairs so later profiles are not starved.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

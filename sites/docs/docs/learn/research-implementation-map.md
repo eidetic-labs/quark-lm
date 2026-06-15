@@ -83,8 +83,11 @@ direct-answer objective mode:
    eight accepted guarded source-profile updates; rejected for promotion.
 21. **v0.95:** diversity-aware profile-scale acceptance. Implemented with
    five accepted score-improving source-profile updates; rejected for promotion.
-22. **v0.96+:** frontier-driven branch diversity under the full baseline
-   target-token floor, tokenizer growth, or learned verifier experiments.
+22. **v0.96:** frontier-driven branch diversity under the full baseline
+   target-token floor. Implemented with nine score-improving source-profile
+   updates; rejected for promotion.
+23. **v0.97+:** coverage-frontier audited missing-target repair, tokenizer
+   growth, or learned verifier experiments.
 
 ## Current Gap
 
@@ -146,11 +149,13 @@ QuarkLM already has:
   `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`.
 - v0.96 frontier profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.97 coverage-frontier profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- full branch-diversity target coverage from frontier-driven calibrated movement before
-  branch-diversity pressure is added back.
+- isolated missing-target repair that keeps the v0.97 coverage audit while
+  preventing one monotonic gain from starving later source profiles.
 
 ## Operating Rule
 

@@ -377,6 +377,19 @@ floor-preserving diversity-score regressions. Promotion remains rejected on
 `branch_diversity_target`, but v0.96 lowers max dominant predicted rate to
 `0.9` and raises minimum target-token coverage to `0.1667`.
 
+v0.97 adds
+`branch-context-profile-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.96 frontier anchors and requires each accepted profile-scale
+update to produce a positive target-token coverage gain over that profile's
+pre-update branch snapshot. The matching diagnostic screen ran at
+`runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, kept `52` frontier anchors active, attempted
+`68` profile-scale updates, accepted `1` coverage-gaining source-profile
+update, rejected `50` floor regressions, `15` coverage ties, and `2` coverage
+regressions. Promotion remains rejected on `branch_diversity_target`; the screen
+shows strict monotonic coverage acceptance is auditable but currently too
+conservative to recover all missing target tokens.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1028,6 +1041,11 @@ Current transformer answer-lesson run:
   accepts `9` score-improving source-profile updates, uses `52` missing-target
   frontier anchors, lowers max dominant predicted rate to `0.9`, and still
   rejects promotion on `branch_diversity_target`.
+- v0.97 adds coverage-frontier acceptance. The diagnostic run
+  `runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `1` coverage-gaining source-profile update, rejects `15` coverage
+  ties and `2` coverage regressions after floor checks, and still rejects
+  promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

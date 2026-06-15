@@ -977,6 +977,15 @@ regressions. Promotion still rejects the transformer on
 `branch_diversity_target`, but max dominant predicted rate improves to `0.9`
 and minimum target-token coverage improves to `0.1667`.
 
+v0.97 adds coverage-frontier acceptance to that path. The diagnostic screen in
+`runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer coverage-frontier profile-scale update, `68`
+profile-scale attempts, `1` coverage-gaining accepted source-profile update,
+`50` floor regressions, `15` coverage ties, and `2` coverage regressions.
+Promotion still rejects the transformer on `branch_diversity_target`, but the
+update guard now records accepted coverage deltas and proves the strict
+monotonic screen is currently too conservative for full missing-target repair.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -62,6 +62,7 @@ from closed_world_lm.transformer_char_model import (
     summarize_branch_context_coverage_gate,
     summarize_branch_diversity_target,
     branch_diversity_snapshot_score,
+    branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
     branch_diversity_snapshot_preserves_target_coverage,
     evaluate_direct_answer_records,
@@ -5025,6 +5026,143 @@ class TransformerCharModelTest(unittest.TestCase):
             "profile_scale_frontier_diversity_calibrated_sequential_profile_stabilization",
             shape_counts,
         )
+
+    def test_profile_scale_coverage_frontier_mode_records_coverage_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-profile-scale-coverage-frontier-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "coverage-frontier-profile-scale-calibrated-sequential-"
+                        "profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_coverage_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(guard["profile_scale_coverage_frontier_stabilization_active"])
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_coverage_frontier_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_frontier_attempts"],
+            guard["profile_scale_memory_attempts"],
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_frontier_acceptances"]
+            + guard["profile_scale_coverage_frontier_rejections"],
+            guard["profile_scale_coverage_frontier_attempts"],
+        )
+        self.assertEqual(
+            guard["profile_scale_coverage_frontier_gains"]
+            + guard["profile_scale_coverage_frontier_ties"]
+            + guard["profile_scale_coverage_frontier_regressions"],
+            guard["profile_scale_coverage_frontier_attempts"],
+        )
+        if guard["profile_scale_coverage_frontier_acceptances"]:
+            self.assertTrue(
+                guard[
+                    "profile_scale_coverage_frontier_profile_acceptance_deltas"
+                ]
+            )
+        if guard["profile_scale_coverage_frontier_rejections"]:
+            self.assertTrue(
+                guard["profile_scale_coverage_frontier_rejection_reasons"]
+            )
+        self.assertIn("profile_scale_coverage_frontier_probe_sample", guard)
+        if guard["profile_scale_coverage_frontier_attempts"]:
+            self.assertTrue(guard["profile_scale_coverage_frontier_probe_sample"])
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_coverage_frontier_diversity_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
+    def test_branch_diversity_target_coverage_delta_records_profile_gains(
+        self,
+    ) -> None:
+        baseline = {
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "target_token_coverage": 0.25,
+                    }
+                },
+                "heldout": {
+                    "diversity": {
+                        "target_unique": 3,
+                        "target_token_coverage": 1.0 / 3.0,
+                    }
+                },
+            }
+        }
+        snapshot = {
+            "branch_profiles": {
+                "qa": {
+                    "diversity": {
+                        "target_unique": 4,
+                        "target_token_coverage": 0.5,
+                    }
+                },
+                "heldout": {
+                    "diversity": {
+                        "target_unique": 3,
+                        "target_token_coverage": 1.0 / 3.0,
+                    }
+                },
+            }
+        }
+
+        delta = branch_diversity_snapshot_target_coverage_delta(snapshot, baseline)
+
+        self.assertEqual(delta["improved_profile_count"], 1)
+        self.assertEqual(delta["regressed_profile_count"], 0)
+        self.assertEqual(delta["tied_profile_count"], 1)
+        self.assertAlmostEqual(delta["min_delta"], 1.0 / 12.0)
+        self.assertAlmostEqual(delta["average_delta"], 0.125)
 
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")

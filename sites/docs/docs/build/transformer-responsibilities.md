@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.96 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.97 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -41,6 +41,8 @@ score-improving source-profile updates while rejecting eleven floor-preserving
 score regressions.
 v0.96 adds frontier target anchors and preserves nine score-improving
 source-profile updates while lowering max dominant predicted rate to `0.9`.
+v0.97 adds coverage-frontier acceptance and records accepted coverage deltas,
+but the strict screen accepts only one coverage-gaining source-profile update.
 
 The current surfaces are:
 
@@ -117,6 +119,9 @@ repair work smaller and more auditable:
 - The v0.96 frontier profile-scale guard shows missing-target anchors can move
   the frontier: `9` score-improving source-profile updates survive across `43`
   attempts while max dominant predicted rate drops to `0.9`.
+- The v0.97 coverage-frontier profile-scale guard shows monotonic coverage
+  gains can be audited: `1` coverage-gaining source-profile update survives
+  across `68` attempts while coverage ties and regressions are rejected.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in
