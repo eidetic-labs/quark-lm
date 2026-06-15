@@ -81,7 +81,9 @@ direct-answer objective mode:
    with one accepted guarded update; rejected for promotion.
 20. **v0.94:** profile-scale calibrated floor stabilization. Implemented with
    eight accepted guarded source-profile updates; rejected for promotion.
-21. **v0.95+:** branch-diverse use of safe calibrated movement under the full baseline
+21. **v0.95:** diversity-aware profile-scale acceptance. Implemented with
+   five accepted score-improving source-profile updates; rejected for promotion.
+22. **v0.96+:** frontier-driven branch diversity under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -142,10 +144,12 @@ QuarkLM already has:
   `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.95 diversity-aware profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`.
+- v0.96 frontier profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- full branch-diversity target coverage from non-regressive calibrated movement before
+- full branch-diversity target coverage from frontier-driven calibrated movement before
   branch-diversity pressure is added back.
 
 ## Operating Rule

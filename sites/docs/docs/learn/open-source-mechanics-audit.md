@@ -115,7 +115,10 @@ accepts `8` source-profile updates, and shifts the next mechanics change toward
 branch-diverse use of that safe movement. v0.95 adds diversity-aware
 profile-scale acceptance, accepts `5` score-improving source-profile updates,
 rejects `11` floor-preserving score regressions, and shifts the next mechanics
-change toward full branch-diversity target coverage.
+change toward full branch-diversity target coverage. v0.96 adds frontier target
+anchors, accepts `9` score-improving source-profile updates, lowers max
+dominant predicted rate to `0.9`, and shifts the next mechanics change toward
+finishing target-token coverage.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

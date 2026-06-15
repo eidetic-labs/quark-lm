@@ -967,6 +967,16 @@ Promotion still rejects the transformer on `branch_diversity_target`, but the
 training loop now records which safe movements are non-regressive for branch
 diversity.
 
+v0.96 adds missing-target frontier anchors to that path. The diagnostic screen
+in
+`runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records `52` frontier anchors, one accepted outer frontier profile-scale
+update, `43` profile-scale attempts, `9` score-improving accepted source-profile
+updates, `28` floor regressions, and `6` floor-preserving diversity-score
+regressions. Promotion still rejects the transformer on
+`branch_diversity_target`, but max dominant predicted rate improves to `0.9`
+and minimum target-token coverage improves to `0.1667`.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

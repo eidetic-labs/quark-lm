@@ -364,6 +364,19 @@ were `bridge:owner: 0.0025`, `bridge:place: 0.0005`,
 Promotion remains rejected on `branch_diversity_target`, but v0.95 turns safe
 movement into measured non-regressive diversity improvement.
 
+v0.96 adds
+`branch-context-profile-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.95 non-regression gate and adds one missing-target frontier
+anchor per uncovered target token for each source profile that already has a
+baseline-covered floor target. The matching diagnostic screen ran at
+`runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, found `52` frontier anchors across `10` source
+profiles, attempted `43` profile-scale updates, accepted `9` score-improving
+source-profile updates, rejected `28` floor regressions, and rejected `6`
+floor-preserving diversity-score regressions. Promotion remains rejected on
+`branch_diversity_target`, but v0.96 lowers max dominant predicted rate to
+`0.9` and raises minimum target-token coverage to `0.1667`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1010,6 +1023,11 @@ Current transformer answer-lesson run:
   accepts `5` diversity-score-improving source-profile updates, rejects `11`
   floor-preserving score regressions, and still rejects promotion on
   `branch_diversity_target`.
+- v0.96 adds frontier target anchors. The diagnostic run
+  `runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `9` score-improving source-profile updates, uses `52` missing-target
+  frontier anchors, lowers max dominant predicted rate to `0.9`, and still
+  rejects promotion on `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

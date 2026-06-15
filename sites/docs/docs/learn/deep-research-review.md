@@ -98,7 +98,9 @@ the same discipline before another major repair screen.
     with one accepted guarded update; rejected for promotion.
 24. **v0.94:** profile-scale calibrated floor stabilization. Implemented with
     eight accepted guarded source-profile updates; rejected for promotion.
-25. **v0.95+:** branch-diverse use of safe calibrated movement under the full baseline
+25. **v0.95:** diversity-aware profile-scale acceptance. Implemented with
+    five accepted score-improving source-profile updates; rejected for promotion.
+26. **v0.96+:** frontier-driven branch diversity under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -161,4 +163,7 @@ source-profile updates across `60` profile-scale attempts, and still rejects
 promotion on branch diversity. v0.95 adds diversity-aware profile-scale
 acceptance, accepts `5` score-improving source-profile updates across `58`
 profile-scale attempts, rejects `11` floor-preserving score regressions, and
-still rejects promotion on branch diversity.
+still rejects promotion on branch diversity. v0.96 adds frontier target anchors,
+accepts `9` score-improving source-profile updates across `43` profile-scale
+attempts, lowers max dominant predicted rate to `0.9`, and still rejects
+promotion on branch diversity.

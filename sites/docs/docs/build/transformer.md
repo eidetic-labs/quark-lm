@@ -212,6 +212,14 @@ screen accepts five score-improving source-profile updates and rejects eleven
 floor-preserving score regressions before promotion still blocks on branch
 diversity.
 
+v0.96 adds
+`branch-context-profile-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It adds missing-target frontier anchors to each eligible source profile before
+the same floor and diversity acceptance gates run. The diagnostic screen accepts
+nine score-improving source-profile updates, lowers max dominant predicted rate
+to `0.9`, and raises minimum target-token coverage to `0.1667` before promotion
+still blocks on branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1564,6 +1572,26 @@ Latest diversity-aware profile-scale floor stabilization screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected for model promotion; accepted movement is now explicitly diversity-score non-regressive |
 
+Latest frontier profile-scale floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | frontier target anchors: add missing-target branch contexts to eligible profile-scale batches, then accept only floor-preserving and branch-diversity-score-improving updates |
+| Unit coverage | focused transformer tests pass; the mode records frontier activation, frontier anchor counts, attempts, score outcomes, floor rejections, rejection reasons, and accepted profile outcomes |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001` |
+| Frontier anchors | `52` anchors across `10` source-profile groups and `52` source-profile targets |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0` |
+| Profile-scale attempts | `43` attempted; `9` accepted; `34` rejected; `224` frontier records sampled |
+| Diversity outcomes | `9` score improvements; `0` ties; `6` score regressions; `28` floor regressions |
+| Accepted profile scales | `bridge:owner 0.0025`, `fact:learning 0.0025`, `fact:owner 0.0025`, `fact:place 0.25`, `qa:glossary 0.05`, `qa:learning 0.05`, `qa:owner 0.01`, `qa:place 0.0005`, `qa:self 0.05` |
+| Accepted update shapes | `profile_scale_frontier_diversity_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed; max dominant predicted rate improved to `0.9`; minimum target-token coverage improved to `0.1667` |
+| Promotion status | rejected for model promotion; frontier movement improves diversity but does not yet satisfy full target coverage |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1688,5 +1716,7 @@ rejects every profile-local attempt. v0.93 calibrates that movement below
 profile-scale memory and accepts eight source-profile updates. v0.95 adds
 diversity-aware profile-scale acceptance, preserves five score-improving
 source-profile updates, and rejects eleven floor-preserving score regressions,
-so the next repair should turn non-regressive movement into full branch-diverse
+and v0.96 adds frontier target anchors, preserving nine score-improving
+source-profile updates while lowering max dominant predicted rate to `0.9`.
+The next repair should turn frontier-driven movement into full branch-diverse
 coverage.

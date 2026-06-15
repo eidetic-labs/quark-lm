@@ -103,7 +103,10 @@ accepts `8` source-profile updates across `60` profile-scale attempts, and
 keeps promotion blocked on branch diversity. v0.95 adds diversity-aware
 profile-scale acceptance, accepts `5` score-improving source-profile updates
 across `58` profile-scale attempts, rejects `11` floor-preserving score
-regressions, and keeps promotion blocked on branch diversity.
+regressions, and keeps promotion blocked on branch diversity. v0.96 adds
+frontier target anchors, accepts `9` score-improving source-profile updates
+across `43` profile-scale attempts, lowers max dominant predicted rate to
+`0.9`, and keeps promotion blocked on branch diversity.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -233,3 +236,13 @@ profile-scale attempts, accepts `5` score-improving source-profile updates,
 rejects `42` floor regressions and `11` floor-preserving score regressions, and
 preserves the baseline floor. The next repair should convert non-regressive
 profile movement into full branch-diversity target coverage.
+
+v0.96 adds
+`branch-context-profile-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run adds `52` missing-target frontier anchors to eligible profile-scale
+batches, records `43` profile-scale attempts, accepts `9` score-improving
+source-profile updates, rejects `28` floor regressions and `6` floor-preserving
+score regressions, and preserves the baseline floor. The next repair should
+turn frontier-driven movement into full branch-diversity target coverage.

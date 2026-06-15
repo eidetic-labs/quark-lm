@@ -97,6 +97,9 @@ the next repair should make safe movement branch-diverse. v0.95 adds
 diversity-aware profile-scale acceptance, accepts `5` score-improving
 source-profile updates, rejects `11` floor-preserving score regressions, and
 shows the next repair should convert non-regressive movement into full
+branch-diversity target coverage. v0.96 adds frontier target anchors, accepts
+`9` score-improving source-profile updates, lowers max dominant predicted rate
+to `0.9`, and shows the next repair should convert frontier movement into full
 branch-diversity target coverage.
 See
 [Forward research plan](./forward-research-plan.md) and

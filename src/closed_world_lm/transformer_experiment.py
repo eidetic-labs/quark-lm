@@ -20,6 +20,10 @@ PROFILE_SCALE_DIVERSITY_MODE = (
     "branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-"
     "sequential-profile-stabilization-unlikelihood"
 )
+PROFILE_SCALE_FRONTIER_MODE = (
+    "branch-context-profile-baseline-floor-diversity-frontier-profile-scale-"
+    "calibrated-sequential-profile-stabilization-unlikelihood"
+)
 PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-coverage-preserving-deficit-unlikelihood",
     "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
@@ -36,6 +40,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood",
     PROFILE_SCALE_DIVERSITY_MODE,
+    PROFILE_SCALE_FRONTIER_MODE,
 }
 
 
@@ -240,6 +245,26 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
                         "counts, replay plan, branch-context gate, coverage "
                         "floor, diversity target, recipe, verifier, and "
                         "constraint-first promotion artifacts."
+                    ),
+                    "required": True,
+                }
+            )
+        if getattr(args, "direct_answer_mode", "") == PROFILE_SCALE_FRONTIER_MODE:
+            gates.append(
+                {
+                    "name": (
+                        "baseline_floor_profile_scale_frontier_calibrated_"
+                        "sequential_stabilization_screen"
+                    ),
+                    "rule": (
+                        "Run records frontier target-anchor search activation, "
+                        "outer/search scales, source-profile scale attempts, "
+                        "frontier anchor counts, accepted/rejected diversity "
+                        "outcome counts, score regression rejections, floor "
+                        "regression rejections, accepted profile scales, "
+                        "update-shape counts, replay plan, branch-context gate, "
+                        "coverage floor, diversity target, recipe, verifier, "
+                        "and constraint-first promotion artifacts."
                     ),
                     "required": True,
                 }

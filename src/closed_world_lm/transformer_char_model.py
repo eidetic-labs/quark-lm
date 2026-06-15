@@ -168,6 +168,10 @@ BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE = (
     "branch-context-profile-baseline-floor-diversity-profile-scale-calibrated-"
     "sequential-profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-frontier-profile-scale-"
+    "calibrated-sequential-profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -180,6 +184,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -192,6 +197,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -203,6 +209,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -217,6 +224,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -226,18 +234,25 @@ BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -5227,6 +5242,31 @@ def baseline_floor_repair_anchor_records(
     return anchors
 
 
+def baseline_floor_frontier_anchor_records(
+    floor_anchors: list[BranchReplayRecord],
+    replay_records: list[BranchReplayRecord],
+) -> list[BranchReplayRecord]:
+    represented_targets_by_profile: dict[str, set[int]] = {}
+    for branch in floor_anchors:
+        _context, target, _predicted, profile = branch_replay_parts(branch)
+        represented_targets_by_profile.setdefault(profile, set()).add(target)
+    frontier: list[BranchReplayRecord] = []
+    seen_profile_targets: set[tuple[str, int]] = set()
+    for branch in replay_records:
+        context, target, _predicted, profile = branch_replay_parts(branch)
+        represented_targets = represented_targets_by_profile.get(profile)
+        if not represented_targets:
+            continue
+        if target in represented_targets:
+            continue
+        profile_target = (profile, target)
+        if profile_target in seen_profile_targets:
+            continue
+        seen_profile_targets.add(profile_target)
+        frontier.append((context, target, target, profile))
+    return frontier
+
+
 def baseline_floor_objective_anchor_batch(
     anchors: list[BranchReplayRecord],
     rng: random.Random,
@@ -7577,6 +7617,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -7589,6 +7633,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         )
         direct_replay_records: list[BranchReplayRecord] = []
         direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
+        direct_baseline_floor_frontier_anchors: list[BranchReplayRecord] = []
         if direct_profile_aware_targets:
             replay_records = direct_answer_profiled_replay_records(
                 model,
@@ -7605,6 +7650,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ):
                 direct_baseline_floor_repair_anchors = (
                     baseline_floor_repair_anchor_records(direct_replay_records)
+                )
+            if direct_answer_baseline_floor_profile_scale_frontier_stabilization_active:
+                direct_baseline_floor_frontier_anchors = (
+                    baseline_floor_frontier_anchor_records(
+                        direct_baseline_floor_repair_anchors,
+                        direct_replay_records,
+                    )
                 )
             direct_replay_prediction_overrides = {
                 (tuple(context), target, profile): predicted
@@ -7662,6 +7714,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -7713,6 +7770,24 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = len(
                 baseline_floor_anchor_profile_counts(
                     direct_baseline_floor_repair_anchors
+                )
+            )
+            direct_replay_plan["baseline_floor_frontier_anchor_count"] = len(
+                direct_baseline_floor_frontier_anchors
+            )
+            direct_replay_plan["baseline_floor_frontier_anchor_profile_counts"] = (
+                baseline_floor_anchor_profile_counts(
+                    direct_baseline_floor_frontier_anchors
+                )
+            )
+            direct_replay_plan["baseline_floor_frontier_profile_group_count"] = len(
+                baseline_floor_anchor_profile_counts(
+                    direct_baseline_floor_frontier_anchors
+                )
+            )
+            direct_replay_plan["baseline_floor_frontier_profile_target_count"] = (
+                baseline_floor_anchor_profile_target_count(
+                    direct_baseline_floor_frontier_anchors
                 )
             )
             if direct_answer_baseline_floor_adaptive_updates_active:
@@ -7898,6 +7973,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_diversity_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
             ),
+            "profile_scale_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+            ),
             "learning_rate_scales": list(
                 direct_baseline_floor_learning_rate_scales
             )
@@ -7948,6 +8026,22 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_baseline_floor_repair_anchors
                 )
             ),
+            "frontier_anchor_count": len(direct_baseline_floor_frontier_anchors),
+            "frontier_anchor_profile_counts": (
+                baseline_floor_anchor_profile_counts(
+                    direct_baseline_floor_frontier_anchors
+                )
+            ),
+            "frontier_profile_group_count": len(
+                baseline_floor_anchor_profile_counts(
+                    direct_baseline_floor_frontier_anchors
+                )
+            ),
+            "frontier_profile_target_count": (
+                baseline_floor_anchor_profile_target_count(
+                    direct_baseline_floor_frontier_anchors
+                )
+            ),
             "repair_steps_per_attempt": (
                 BASELINE_FLOOR_REPAIR_STEPS
                 if direct_answer_baseline_floor_repaired_updates_active
@@ -7988,6 +8082,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_diversity_profile_acceptance_outcomes": {},
             "profile_scale_diversity_rejection_reasons": {},
             "profile_scale_diversity_probe_sample": [],
+            "profile_scale_frontier_attempts": 0,
+            "profile_scale_frontier_acceptances": 0,
+            "profile_scale_frontier_rejections": 0,
+            "profile_scale_frontier_records": 0,
+            "profile_scale_frontier_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8195,6 +8294,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "calibrated_sequential_profile_stabilization",
                 "profile_scale_calibrated_sequential_profile_stabilization",
                 "profile_scale_diversity_calibrated_sequential_profile_stabilization",
+                "profile_scale_frontier_diversity_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8217,14 +8317,45 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if (
                 direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
             ):
+                profile_anchor_pool = direct_baseline_floor_repair_anchors
+                if (
+                    direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                ):
+                    profile_anchor_pool = (
+                        direct_baseline_floor_repair_anchors
+                        + direct_baseline_floor_frontier_anchors
+                    )
                 profile_groups = baseline_floor_anchor_profile_groups(
-                    direct_baseline_floor_repair_anchors
+                    profile_anchor_pool
                 )
-                update_shape = (
-                    "profile_scale_diversity_calibrated_sequential_profile_stabilization"
-                    if direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
-                    else "profile_scale_calibrated_sequential_profile_stabilization"
-                )
+                frontier_targets_by_profile: dict[str, set[int]] = {}
+                if (
+                    direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                ):
+                    for branch in direct_baseline_floor_frontier_anchors:
+                        _context, target, _predicted, frontier_profile = (
+                            branch_replay_parts(branch)
+                        )
+                        frontier_targets_by_profile.setdefault(
+                            frontier_profile,
+                            set(),
+                        ).add(target)
+                if (
+                    direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                ):
+                    update_shape = (
+                        "profile_scale_frontier_diversity_calibrated_sequential_profile_stabilization"
+                    )
+                elif (
+                    direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                ):
+                    update_shape = (
+                        "profile_scale_diversity_calibrated_sequential_profile_stabilization"
+                    )
+                else:
+                    update_shape = (
+                        "profile_scale_calibrated_sequential_profile_stabilization"
+                    )
                 total_loss = 0.0
                 loss_count = 0
                 accepted_any = False
@@ -8261,12 +8392,35 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             direct_rng,
                             len(profile_anchors),
                         )
+                        profile_frontier_records = 0
+                        if (
+                            direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                        ):
+                            frontier_targets = frontier_targets_by_profile.get(
+                                profile,
+                                set(),
+                            )
+                            profile_frontier_records = sum(
+                                1
+                                for branch in profile_batch
+                                if branch_replay_parts(branch)[1]
+                                in frontier_targets
+                            )
                         direct_answer_update_guard[
                             "sequential_profile_attempts"
                         ] += 1
                         direct_answer_update_guard[
                             "profile_scale_memory_attempts"
                         ] += 1
+                        if (
+                            direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_frontier_attempts"
+                            ] += 1
+                            direct_answer_update_guard[
+                                "profile_scale_frontier_records"
+                            ] += profile_frontier_records
                         if (
                             direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
                         ):
@@ -8298,10 +8452,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 "baseline_floor_sequential_profile_probe": True,
                                 "baseline_floor_calibrated_sequential_profile_probe": True,
                                 "baseline_floor_profile_scale_memory_probe": True,
+                                "baseline_floor_profile_scale_frontier_probe": (
+                                    direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                                ),
                                 "learning_rate_scale": profile_scale,
                                 "update_shape": update_shape,
                                 "sequential_profile": profile,
                                 "sequential_profile_records": len(profile_batch),
+                                "sequential_profile_frontier_records": (
+                                    profile_frontier_records
+                                ),
                             },
                         )
                         probe_sample = direct_answer_update_guard[
@@ -8312,6 +8472,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         ]
                         diversity_sample = direct_answer_update_guard[
                             "profile_scale_diversity_probe_sample"
+                        ]
+                        frontier_sample = direct_answer_update_guard[
+                            "profile_scale_frontier_probe_sample"
                         ]
                         scale_key = f"{profile_scale:g}"
                         floor_preserved = branch_diversity_snapshot_preserves_target_coverage(
@@ -8364,6 +8527,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     direct_answer_update_guard[
                                         "profile_scale_diversity_score_ties"
                                     ] += 1
+                            if (
+                                direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                            ):
+                                direct_answer_update_guard[
+                                    "profile_scale_frontier_acceptances"
+                                ] += 1
                             accepted_counts = direct_answer_update_guard[
                                 "sequential_profile_acceptance_counts"
                             ]
@@ -8394,6 +8563,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 "profile": profile,
                                 "accepted": True,
                                 "records": len(profile_batch),
+                                "frontier_records": profile_frontier_records,
                                 "learning_rate_scale": profile_scale,
                             }
                             if (
@@ -8419,6 +8589,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(diversity_sample) < 12
                             ):
                                 diversity_sample.append(sample)
+                            if (
+                                isinstance(frontier_sample, list)
+                                and len(frontier_sample) < 12
+                            ):
+                                frontier_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -8453,6 +8628,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     )
                                     + 1
                                 )
+                        if (
+                            direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_frontier_rejections"
+                            ] += 1
                         rejected_counts = direct_answer_update_guard[
                             "sequential_profile_rejection_counts"
                         ]
@@ -8477,6 +8658,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             "profile": profile,
                             "accepted": False,
                             "records": len(profile_batch),
+                            "frontier_records": profile_frontier_records,
                             "learning_rate_scale": profile_scale,
                             "worst_violation": diagnostics["worst_violation"],
                             "violating_profile_count": diagnostics[
@@ -8509,6 +8691,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             and len(diversity_sample) < 12
                         ):
                             diversity_sample.append(sample)
+                        if (
+                            isinstance(frontier_sample, list)
+                            and len(frontier_sample) < 12
+                        ):
+                            frontier_sample.append(sample)
                     if not profile_accepted:
                         restore_direct_update_state(
                             profile_model_payload,
@@ -8692,11 +8879,22 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 if (
                     direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
                 ):
-                    attempt_update_shape = (
-                        "profile_scale_diversity_calibrated_sequential_profile_stabilization"
-                        if direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
-                        else "profile_scale_calibrated_sequential_profile_stabilization"
-                    )
+                    if (
+                        direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
+                    ):
+                        attempt_update_shape = (
+                            "profile_scale_frontier_diversity_calibrated_sequential_profile_stabilization"
+                        )
+                    elif (
+                        direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+                    ):
+                        attempt_update_shape = (
+                            "profile_scale_diversity_calibrated_sequential_profile_stabilization"
+                        )
+                    else:
+                        attempt_update_shape = (
+                            "profile_scale_calibrated_sequential_profile_stabilization"
+                        )
                 elif (
                     direct_answer_baseline_floor_calibrated_sequential_stabilization_active
                 ):
@@ -10564,6 +10762,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_diversity_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_diversity_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_frontier_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

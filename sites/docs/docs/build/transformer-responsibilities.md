@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.95 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.96 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -39,6 +39,8 @@ updates in one guarded outer attempt.
 v0.95 adds diversity-aware profile-scale memory and preserves five
 score-improving source-profile updates while rejecting eleven floor-preserving
 score regressions.
+v0.96 adds frontier target anchors and preserves nine score-improving
+source-profile updates while lowering max dominant predicted rate to `0.9`.
 
 The current surfaces are:
 
@@ -112,6 +114,9 @@ repair work smaller and more auditable:
   filtered by branch-diversity score: `5` score-improving source-profile updates
   survive across `58` profile-scale attempts while `11` floor-preserving score
   regressions are rejected.
+- The v0.96 frontier profile-scale guard shows missing-target anchors can move
+  the frontier: `9` score-improving source-profile updates survive across `43`
+  attempts while max dominant predicted rate drops to `0.9`.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

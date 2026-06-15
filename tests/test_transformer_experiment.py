@@ -417,6 +417,40 @@ class TransformerExperimentTests(unittest.TestCase):
             intent["planned_artifacts"],
         )
 
+    def test_profile_scale_frontier_mode_keeps_profile_replay_surface(
+        self,
+    ) -> None:
+        args = _args()
+        args.direct_answer_mode = (
+            "branch-context-profile-baseline-floor-diversity-frontier-profile-"
+            "scale-calibrated-sequential-profile-stabilization-unlikelihood"
+        )
+
+        intent = transformer_experiment_intent(args)
+
+        self.assertTrue(direct_answer_is_profile_aware(args))
+        self.assertEqual(intent["replay_plan_id"], "direct_answer_replay_plan.json")
+        self.assertEqual(
+            intent["training_recipe_id"],
+            (
+                "transformer-answer:"
+                "branch-context-profile-baseline-floor-diversity-frontier-profile-"
+                "scale-calibrated-sequential-profile-stabilization-unlikelihood:v0.78"
+            ),
+        )
+        gate_names = {gate["name"] for gate in intent["acceptance_gates"]}
+        self.assertIn(
+            (
+                "baseline_floor_profile_scale_frontier_calibrated_"
+                "sequential_stabilization_screen"
+            ),
+            gate_names,
+        )
+        self.assertIn(
+            "runs/profile-screen/direct_answer_replay_plan.json",
+            intent["planned_artifacts"],
+        )
+
     def test_training_recipe_records_external_boundaries(self) -> None:
         args = _args()
         artifacts = TransformerRunArtifacts.from_run(args.run, direct_profile_aware=True)
