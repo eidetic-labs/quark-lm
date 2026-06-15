@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.83 prompt-specific branch ownership screen; promoted
+**Active version:** v0.84 baseline-anchored prompt ownership screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -306,6 +306,24 @@ trained snapshots still collapsed QA and heldout to one `"c"` prediction with
 `0.0` target-token coverage. Best-snapshot scoring restored step `0`, so the
 run is rejected evidence and the next repair needs coverage-preserving
 prompt-specific training.
+
+v0.84 adds
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The objective anchors replay preservation to the baseline profile-aware replay
+predictions captured before direct-answer training starts, so coverage
+preservation no longer follows current prediction drift. Focused tests verify
+baseline prediction overrides in profiled replay batches and prove anchored
+preservation protects a covered target better than the dynamic v0.83 path. The
+matching screen at
+`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`
+wrote the modern artifacts, recorded `562` active baseline prediction anchors,
+passed the verifier, branch-context, and purity gates, and completed `50/50`
+direct steps with `7` JSONL rows. Step `40` improved QA average target rank to
+`8.0` and heldout rank to `8.375`; QA and heldout still collapsed to one
+`"i"` prediction, but target-token coverage held at `0.125` instead of the
+v0.83 `0.0` collapse. Best-snapshot scoring restored step `0` because trained
+snapshots still regressed below the `0.25` coverage floor, so the run is
+rejected evidence.
 
 ## Latest Evidence
 

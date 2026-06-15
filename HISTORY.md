@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.84
+
+- Added baseline replay anchors for prompt-ownership preservation.
+
 ## v0.83
 
 - Added prompt-specific branch ownership pressure and rejected screen evidence.

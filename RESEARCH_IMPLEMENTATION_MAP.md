@@ -215,11 +215,34 @@ Acceptance:
   heldout to one `"c"` token with `0.0` target-token coverage, even though QA
   average target rank improves to `8.625`.
 
-### v0.84+
+### v0.84
+
+Implemented and screened baseline replay anchors:
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The loss keeps prompt ownership, target-share balancing, deficit focus, and
+coverage preservation, but replay preservation uses the baseline replay
+prediction captured before direct-answer training instead of following current
+prediction drift.
+
+Acceptance:
+
+- The new mode remains profile-aware and emits `direct_answer_replay_plan.json`.
+- Focused tests show profiled replay batches can use baseline prediction
+  overrides and that anchored preservation protects a covered target better
+  than dynamic prediction preservation.
+- The full screen writes the modern artifact set in
+  `runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`.
+- Replay-plan evidence records `562` active baseline prediction anchors.
+- Promotion remains rejected because trained snapshots still collapse QA and
+  heldout to one `"i"` token with target-token coverage `0.125`, below the
+  baseline `0.25` floor, even though QA average target rank improves to `8.0`.
+
+### v0.85+
 
 Only after these operating surfaces are explicit should QuarkLM add another
-coverage-preserving branch-diversity repair, revisit subword tokenization, or
-begin a learned verifier/repair-policy experiment.
+branch-diversity repair that preserves the full baseline target-token floor,
+revisit subword tokenization, or begin a learned verifier/repair-policy
+experiment.
 
 ## Decision
 

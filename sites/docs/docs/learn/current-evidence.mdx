@@ -307,6 +307,12 @@ The current promoted run is <code>{state.currentRun}</code>.
     <tr><td>Prompt-ownership gate</td><td><code>{state.transformerPromptOwnershipGate}</code></td></tr>
     <tr><td>Prompt-ownership history</td><td><code>{state.transformerPromptOwnershipHistory}</code></td></tr>
     <tr><td>Prompt-ownership status</td><td><code>{state.transformerPromptOwnershipStatus}</code></td></tr>
+    <tr><td>Latest baseline-anchor run</td><td><code>{state.transformerLatestBaselineAnchorRun}</code></td></tr>
+    <tr><td>Baseline-anchor mode</td><td><code>{state.transformerBaselineAnchorMode}</code></td></tr>
+    <tr><td>Baseline-anchor unit test</td><td><code>{state.transformerBaselineAnchorUnitTest}</code></td></tr>
+    <tr><td>Baseline-anchor gate</td><td><code>{state.transformerBaselineAnchorGate}</code></td></tr>
+    <tr><td>Baseline-anchor history</td><td><code>{state.transformerBaselineAnchorHistory}</code></td></tr>
+    <tr><td>Baseline-anchor status</td><td><code>{state.transformerBaselineAnchorStatus}</code></td></tr>
     <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
     <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
     <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
@@ -829,8 +835,20 @@ writes the modern artifacts and passes the verifier, branch-context, and purity
 gates. It still fails branch diversity: step `50` improves QA average target
 rank to `8.625`, but QA and heldout collapse to one `"c"` prediction with
 `0.0` target-token coverage during training. Best-snapshot scoring restores
-step `0`, so the next repair must make prompt-specific branch diversity
-coverage-preserving.
+step `0`.
+
+v0.84 anchors replay preservation to the baseline profile-aware replay
+predictions captured before direct-answer training. Focused tests show replay
+batches can use those baseline prediction overrides and that anchored
+preservation protects a covered target better than following current prediction
+drift. The full screen in
+`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors, passes the verifier,
+branch-context, and purity gates, and avoids the v0.83 zero-coverage collapse.
+Step `40` improves QA average target rank to `8.0`, but QA and heldout still
+collapse to one `"i"` prediction with target-token coverage `0.125`, below the
+baseline `0.25` floor. Best-snapshot scoring restores step `0`, so the next
+repair must preserve the full baseline target-token floor.
 
 The v0.42 self-improvement run passed:
 

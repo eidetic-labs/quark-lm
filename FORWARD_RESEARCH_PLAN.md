@@ -498,10 +498,23 @@ writes the modern artifact set. It is still rejected evidence: trained
 snapshots improve QA rank to `8.625` only while collapsing QA and heldout to one
 `"c"` branch token with `0.0` target-token coverage.
 
-### v0.84+
+### v0.84
 
-The next transformer repair should make prompt-specific branch diversity
-coverage-preserving before tokenizer growth or a learned verifier experiment.
+Implemented baseline replay anchors with
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The new mode preserves baseline replay predictions instead of following current
+prediction drift during prompt-ownership training. Focused tests pass, and the
+full screen in
+`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`
+records `562` active baseline prediction anchors. It is still rejected
+evidence: trained snapshots improve QA rank to `8.0` and avoid the v0.83
+`0.0` coverage collapse, but QA/heldout coverage only reaches `0.125`, below
+the `0.25` baseline floor.
+
+### v0.85+
+
+The next transformer repair should preserve the full baseline target-token
+floor before tokenizer growth or a learned verifier experiment.
 
 ## Stop Doing For Now
 

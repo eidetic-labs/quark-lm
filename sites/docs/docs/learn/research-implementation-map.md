@@ -66,8 +66,9 @@ direct-answer objective mode:
 8. **v0.82:** profile target-share full-stack screen. Implemented and
    rejected.
 9. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
-10. **v0.84+:** coverage-preserving branch-diversity repair, tokenizer growth, or learned verifier
-   experiments.
+10. **v0.84:** baseline replay anchors. Implemented and rejected.
+11. **v0.85+:** branch-diversity repair that preserves the full baseline
+   target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
 
@@ -91,11 +92,15 @@ QuarkLM already has:
   `branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
 - v0.83 full prompt-ownership screen evidence:
   `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`.
+- v0.84 baseline-anchored prompt-ownership mode:
+  `branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+- v0.84 full baseline-anchor screen evidence:
+  `runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`.
 
 It still needs:
 
-- a coverage-preserving prompt-specific branch-diversity repair that does not trade away
-  target-token coverage.
+- a full-floor coverage-preserving prompt-specific branch-diversity repair that
+  keeps trained snapshots at or above baseline target-token coverage.
 
 ## Operating Rule
 

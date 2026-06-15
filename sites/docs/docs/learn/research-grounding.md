@@ -69,8 +69,10 @@ adds transformer eval/checkpoint-load surfaces; v0.81 adds balanced profile
 target-share pressure inside the preserving-deficit direct-answer objective;
 v0.82 screens that objective and rejects trained snapshots that collapse branch
 diversity. v0.83 adds prompt-specific ownership margins and rejects the screen
-because trained snapshots still lose target-token coverage. Future objective
-repairs should use those narrower surfaces. See
+because trained snapshots still lose target-token coverage. v0.84 adds baseline
+replay anchors and rejects the screen because trained snapshots still preserve
+only half of the baseline QA/heldout coverage floor. Future objective repairs
+should use those narrower surfaces. See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
 
@@ -187,8 +189,10 @@ loops become fragile.
   v0.81 added profile target-share anti-collapse pressure; v0.82 screened it
   and rejected it on branch diversity; v0.83 added prompt-specific ownership
   margins and rejected the screen because target-token coverage still collapses
-  during training. The next objective repair should make prompt-specific branch
-  diversity coverage-preserving.
+  during training; v0.84 added baseline replay anchors and rejected the screen
+  because trained snapshots preserve only `0.125` QA/heldout coverage against
+  the `0.25` floor. The next objective repair should preserve the full baseline
+  target-token floor.
 
 ## Defer
 

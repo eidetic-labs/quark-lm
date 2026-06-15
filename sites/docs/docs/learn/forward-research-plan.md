@@ -74,7 +74,9 @@ model-quality promotion evidence. v0.81 returns to objective-repair work under
 the narrower operating surfaces with profile target-share anti-collapse
 pressure; v0.82 screens that pressure and rejects it on branch diversity.
 v0.83 adds prompt-specific ownership margins and rejects the screen because
-trained snapshots still lose target-token coverage.
+trained snapshots still lose target-token coverage. v0.84 adds baseline replay
+anchors and rejects the screen because trained snapshots preserve only half of
+the baseline QA/heldout coverage floor.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -100,4 +102,10 @@ diversity before rank gains can be trusted. v0.83 adds
 and screens it at
 `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`.
 The focused mechanic works, but the full screen remains rejected because rank
-gains still require target-token coverage collapse.
+gains still require target-token coverage collapse. v0.84 adds
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`.
+The run records `562` active baseline prediction anchors and avoids the v0.83
+`0.0` coverage collapse, but QA/heldout target-token coverage only reaches
+`0.125` against the `0.25` baseline floor.

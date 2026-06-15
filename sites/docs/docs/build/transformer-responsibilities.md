@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.83 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.84 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -14,7 +14,9 @@ objective under the modern artifact stack, rejects it on branch diversity, and
 fixes the transformer purity metrics so `external_embeddings: false` is
 declared for constraint-first checks. v0.83 adds prompt-specific ownership
 margins on top of profile target-share pressure and rejects the screen because
-trained snapshots still lose target-token coverage.
+trained snapshots still lose target-token coverage. v0.84 adds baseline replay
+anchors and rejects the screen because trained snapshots preserve only half of
+the baseline QA/heldout coverage floor.
 
 The current surfaces are:
 
@@ -55,6 +57,8 @@ repair work smaller and more auditable:
   depends on prompt-collapse and lost target-token coverage.
 - The v0.83 prompt-ownership screen shows prompt-specific margins still need a
   coverage-preserving training constraint before rank gains can promote.
+- The v0.84 baseline-anchor screen records active baseline replay prediction
+  anchors and shows the next repair must preserve the full coverage floor.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

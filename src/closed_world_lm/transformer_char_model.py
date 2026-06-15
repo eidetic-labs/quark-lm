@@ -126,6 +126,7 @@ DEFAULT_PROBES = [
     PROJECT_DIR / "evals" / "paraphrases.jsonl",
 ]
 ANSWER_TERMINATOR = "\n"
+ReplayPredictionOverrides = dict[tuple[tuple[int, ...], int, str], int]
 
 
 class ScalarOptimizer:
@@ -4889,6 +4890,7 @@ def direct_answer_profiled_branch_batch(
     batch_size: int,
     terminator: str = ANSWER_TERMINATOR,
     balance_targets: bool = False,
+    prediction_overrides: ReplayPredictionOverrides | None = None,
 ) -> list[BranchReplayRecord]:
     branch = direct_answer_branch_context(
         model,
@@ -4960,8 +4962,16 @@ def direct_answer_profiled_branch_batch(
             seen_targets.add(candidate_target)
     profiled: list[BranchReplayRecord] = []
     for context, target_id, profile in seeds:
-        probs = model.predict(context)
-        predicted_id = max(range(len(probs)), key=lambda index: probs[index])
+        override_key = (tuple(context), target_id, profile)
+        predicted_id = (
+            prediction_overrides[override_key]
+            if prediction_overrides is not None
+            and override_key in prediction_overrides
+            else None
+        )
+        if predicted_id is None:
+            probs = model.predict(context)
+            predicted_id = max(range(len(probs)), key=lambda index: probs[index])
         profiled.append((context, target_id, predicted_id, profile))
     return profiled
 
@@ -5964,6 +5974,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
     profile_aware_targets: bool = False,
     balance_profile_target_shares: bool = False,
     enforce_prompt_target_margins: bool = False,
+    replay_prediction_overrides: ReplayPredictionOverrides | None = None,
 ) -> float:
     if profile_aware_targets:
         branches = direct_answer_profiled_branch_batch(
@@ -6013,6 +6024,7 @@ def train_direct_answer_branch_context_replay_coverage_unlikelihood(
             replay_batch_size,
             terminator,
             balance_targets=True,
+            prediction_overrides=replay_prediction_overrides,
         )
     else:
         replay_branches = direct_answer_target_balanced_branch_diversity_batch(
@@ -7198,6 +7210,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             else None
         )
         direct_replay_plan = None
+        direct_replay_prediction_overrides: ReplayPredictionOverrides | None = None
+        direct_replay_prediction_anchors_active = (
+            args.direct_answer_mode
+            == "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood"
+        )
         if direct_profile_aware_targets:
             replay_records = direct_answer_profiled_replay_records(
                 model,
@@ -7206,6 +7223,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 args.direct_answer_branch_position,
                 direct_answer_terminator,
             )
+            direct_replay_prediction_overrides = {
+                (tuple(context), target, profile): predicted
+                for context, target, predicted, profile in (
+                    branch_replay_parts(record) for record in replay_records
+                )
+            }
             direct_replay_plan = branch_replay_plan(
                 replay_records,
                 replay_records,
@@ -7214,6 +7237,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_replay_plan["mode"] = args.direct_answer_mode
             direct_replay_plan["branch_position"] = args.direct_answer_branch_position
             direct_replay_plan["training_examples"] = len(direct_training_pool)
+            direct_replay_plan["baseline_prediction_anchor_count"] = len(
+                direct_replay_prediction_overrides
+            )
+            direct_replay_plan["baseline_prediction_anchors_active"] = (
+                direct_replay_prediction_anchors_active
+            )
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
                     json.dump(direct_replay_plan, handle, indent=2, sort_keys=True)
@@ -8554,6 +8583,32 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     balance_profile_target_shares=True,
                     enforce_prompt_target_margins=True,
                 )
+            elif args.direct_answer_mode == "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood":
+                running_direct_loss += train_direct_answer_branch_context_replay_coverage_unlikelihood(
+                    model,
+                    tokenizer,
+                    example,
+                    direct_training_pool,
+                    direct_lessons[example],
+                    direct_rng,
+                    args.direct_answer_learning_rate,
+                    args.direct_answer_negative_weight,
+                    args.direct_answer_positive_weight,
+                    args.direct_answer_contrast_weight,
+                    args.direct_answer_branch_position,
+                    args.direct_answer_branch_batch_size,
+                    args.direct_answer_hard_negatives,
+                    direct_answer_terminator,
+                    direct_params,
+                    balance_targets=True,
+                    focus_uncovered_targets=True,
+                    preserve_predicted_target_coverage=True,
+                    balance_deficit_targets=True,
+                    profile_aware_targets=True,
+                    balance_profile_target_shares=True,
+                    enforce_prompt_target_margins=True,
+                    replay_prediction_overrides=direct_replay_prediction_overrides,
+                )
             elif args.direct_answer_mode == "branch-rank-margin-unlikelihood":
                 running_direct_loss += train_direct_answer_branch_rank_margin_unlikelihood(
                     model,
@@ -9018,6 +9073,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 else None
             ),
             "direct_answer_replay_plan_summary": direct_replay_plan,
+            "direct_answer_replay_prediction_anchor_count": (
+                len(direct_replay_prediction_overrides)
+                if direct_replay_prediction_overrides is not None
+                else 0
+            ),
+            "direct_answer_replay_prediction_anchors_active": (
+                direct_replay_prediction_anchors_active
+            ),
             "direct_answer_negative_weight": args.direct_answer_negative_weight,
             "direct_answer_positive_weight": args.direct_answer_positive_weight,
             "direct_answer_contrast_weight": args.direct_answer_contrast_weight,

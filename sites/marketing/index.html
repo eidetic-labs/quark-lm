@@ -218,18 +218,18 @@
       <section class="section" id="evidence" aria-labelledby="evidence-title">
         <header class="section__head">
           <p class="section__num" aria-hidden="true">§03</p>
-          <h2 id="evidence-title">Promoted evidence: v0.42. Latest screen: v0.83.</h2>
+          <h2 id="evidence-title">Promoted evidence: v0.42. Latest screen: v0.84.</h2>
           <p>
             The latest promoted self-improvement run is `runs/self-improve-v0.42/`.
-            The latest transformer screen, v0.83, rejects prompt-specific
-            ownership pressure as insufficient because rank lift still loses
-            target-token coverage.
+            The latest transformer screen, v0.84, rejects baseline-anchored
+            prompt ownership because trained snapshots still miss the full
+            coverage floor.
           </p>
         </header>
         <div class="evidence-grid">
           <div class="evidence"><span>Admission probes</span><strong>48/48 · 84/84</strong><p>Direct and paraphrase probes generated from admitted memory.</p></div>
           <div class="evidence"><span>Glossary probes</span><strong>38/38</strong><p>Definition probes generated from admitted glossary words.</p></div>
-          <div class="evidence"><span>Transformer screen</span><strong>v0.83 rejected</strong><p>Prompt ownership improves rank evidence but still fails branch-diversity promotion.</p></div>
+          <div class="evidence"><span>Transformer screen</span><strong>v0.84 rejected</strong><p>Baseline anchors improve coverage, but not enough for branch-diversity promotion.</p></div>
           <div class="evidence"><span>Self-diagnosis</span><strong>no external model</strong><p>Rule-based report diagnosis found zero blockers on v0.42.</p></div>
           <div class="evidence"><span>No-candidate generator</span><strong>219/219</strong><p>v0.31 auxiliary generator still proves exact answers without a candidate set.</p></div>
           <div class="evidence"><span>Promotion gate</span><strong>passed</strong><p>Exact eval, forgetting, probe, and leakage audits all passed.</p></div>
@@ -254,7 +254,7 @@
           </article>
           <article>
             <h3>Research-led mechanics</h3>
-            <p>Use candidate quarantine, deterministic verifier checks, recipes, constraint-first promotion gates, transformer responsibility surfaces, model/checkpoint metadata, eval surfaces, and the v0.83 rejected prompt-ownership screen to guide coverage-preserving branch-diversity repair.</p>
+            <p>Use candidate quarantine, deterministic verifier checks, recipes, constraint-first promotion gates, transformer responsibility surfaces, model/checkpoint metadata, eval surfaces, and the v0.84 baseline-anchor screen to guide full-floor branch-diversity repair.</p>
           </article>
         </div>
       </section>

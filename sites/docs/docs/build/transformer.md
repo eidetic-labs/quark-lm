@@ -134,6 +134,13 @@ sibling-target margin, so each replay context is trained to rank its own target
 above other targets from the same profile. The focused mechanic passes, but the
 full screen still rejects trained snapshots that lose target-token coverage.
 
+v0.84 adds
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+It keeps prompt ownership but anchors replay preservation to the baseline replay
+predictions recorded before direct-answer training, so preservation no longer
+follows prediction drift. The screen improves trained coverage relative to
+v0.83 but still restores baseline because it misses the full coverage floor.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1216,6 +1223,30 @@ Latest prompt-specific branch ownership full-stack screen:
 | Training heldout note | step `50` improved heldout average target rank to `8.5`, but heldout target-token coverage regressed to `0.0` and predicted diversity collapsed to `1/8` |
 | Promotion status | rejected; prompt ownership needs coverage-preserving training before rank gains can be trusted |
 
+Latest baseline-anchored prompt ownership full-stack screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/` |
+| Mode | `branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood` |
+| Added mechanic | replay preservation uses baseline profile-aware replay predictions instead of current prediction drift |
+| Unit coverage | focused transformer tests pass; baseline prediction overrides are used by profiled replay batches and protect a covered target better than dynamic prediction preservation |
+| Artifact stack | experiment intent, corpus hygiene, training plan, candidate quarantine, deterministic verifier, recipe, replay plan, constraint-first report, metrics, tokenizer, optimizer, lessons, checkpoint |
+| Replay plan size | `9144` branch records and `9144` replay records across `21` profiles |
+| Baseline prediction anchors | `562` recorded and active |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Purity gates | no pretrained weights, no pretrained tokenizer, no external embeddings |
+| Direct steps | `50/50` |
+| Direct-answer JSONL rows | `7` clean rows |
+| Restored best branch snapshot | yes, restored from step `0` |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Final QA target/predicted unique | `8` / `3` after restore |
+| Final QA average target rank | `13.25` after restore |
+| Final QA target-token coverage | `0.25` after restore |
+| Training snapshot note | step `40` improved QA average target rank to `8.0`, but QA target-token coverage regressed to `0.125` and predicted diversity collapsed to `1/8` |
+| Training heldout note | step `40` improved heldout average target rank to `8.375`, but heldout target-token coverage regressed to `0.125` and predicted diversity collapsed to `1/8` |
+| Promotion status | rejected; baseline anchors improve coverage over v0.83 but still miss the full `0.25` coverage floor |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1322,5 +1353,8 @@ v0.81 implements that trainer change as a profile target-share objective
 mechanic. v0.82 screens it and rejects the trained snapshots because rank lift
 still comes from branch collapse. v0.83 adds prompt-specific sibling-target
 ownership margins and proves the focused mechanic, but the screen still
-restores step `0` because trained snapshots lose target-token coverage; the
-next repair should make prompt-specific branch diversity coverage-preserving.
+restores step `0` because trained snapshots lose target-token coverage. v0.84
+anchors replay preservation to baseline predictions and improves trained
+coverage relative to v0.83, but still restores step `0` because snapshots miss
+the full coverage floor; the next repair should preserve the baseline
+target-token floor while maintaining prompt-specific ownership.

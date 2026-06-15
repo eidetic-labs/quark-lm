@@ -86,7 +86,9 @@ inside the profile-aware preserving-deficit direct-answer objective. v0.82
 screens that objective and rejects it on branch diversity under the
 constraint-first gate. v0.83 adds prompt-specific ownership margins, but the
 full screen remains rejected because trained snapshots still collapse
-target-token coverage.
+target-token coverage. v0.84 adds baseline replay anchors, improves trained
+coverage relative to v0.83, and remains rejected because it still misses the
+baseline coverage floor.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

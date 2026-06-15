@@ -83,8 +83,9 @@ the same discipline before another major repair screen.
 12. **v0.82:** profile target-share full-stack screen. Implemented and
     rejected.
 13. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
-14. **v0.84+:** coverage-preserving branch-diversity repair, tokenizer growth, or learned verifier
-    experiments.
+14. **v0.84:** baseline replay anchors. Implemented and rejected.
+15. **v0.85+:** branch-diversity repair that preserves the full baseline
+    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
 
@@ -111,6 +112,8 @@ pressure to the preserving-deficit direct-answer objective. v0.82 screens that
 objective, preserves coverage only by restoring step `0`, and rejects trained
 snapshots that collapse QA and heldout branch diversity. v0.83 adds
 prompt-specific sibling-target ownership margins, but the full screen still
-restores step `0` because trained snapshots lose target-token coverage. Future
-larger transformer screens should use these narrower surfaces rather than broad
-monolith patches.
+restores step `0` because trained snapshots lose target-token coverage. v0.84
+adds baseline replay anchors; trained snapshots avoid the v0.83 zero-coverage
+collapse but still restore step `0` because coverage reaches only `0.125`
+against the `0.25` floor. Future larger transformer screens should use these
+narrower surfaces rather than broad monolith patches.

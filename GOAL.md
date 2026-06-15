@@ -109,9 +109,11 @@ provenance, and the goal framework itself.
     transformer metrics purity field for external embeddings; v0.83 adds and
     screens prompt-specific ownership margins, proving the mechanic in focused
     tests but rejecting the full screen because trained snapshots still lose
-    target-token coverage. The remaining sequence should make prompt-specific
-    branch diversity coverage-preserving before broader tokenizer or verifier
-    changes.
+    target-token coverage; v0.84 adds baseline replay anchors and screens them,
+    improving trained snapshot coverage from `0.0` to `0.125` but still
+    restoring baseline because the full `0.25` coverage floor is not preserved.
+    The remaining sequence should preserve the full baseline target-token floor
+    before broader tokenizer or verifier changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

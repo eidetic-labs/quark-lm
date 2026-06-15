@@ -203,6 +203,24 @@ collapsed QA and heldout to one `"c"` branch token with `0.0` target-token
 coverage. Best-snapshot scoring restored step `0`; promotion remains rejected
 on `branch_diversity_target`.
 
+v0.84 adds
+`branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
+The objective keeps prompt ownership, target-share balancing, deficit focus,
+and preservation, but anchors replay preservation to the baseline replay
+predictions captured before direct-answer training starts. Focused tests verify
+that profiled replay batches can use baseline prediction overrides and that an
+anchored replay target is protected better than following current prediction
+drift. The matching screen ran at
+`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`.
+It wrote the modern artifact set, recorded `562` active baseline prediction
+anchors, passed the branch-context and purity gates, and completed `50/50`
+direct steps with `7` JSONL rows. Step `40` improved QA average rank to `8.0`
+and heldout rank to `8.375`; unlike v0.83, QA/heldout target-token coverage
+held at `0.125` during the best trained snapshot instead of falling to `0.0`.
+That still regressed below the `0.25` baseline coverage floor, so
+best-snapshot scoring restored step `0` and promotion remains rejected on
+`branch_diversity_target`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -772,6 +790,19 @@ Current transformer answer-lesson run:
   restores step `0`, preserving QA/heldout coverage at `0.25` while leaving
   branch diversity failed across all `9` multi-target profiles. This rejects
   prompt ownership as sufficient without a coverage-preserving training term.
+- v0.84 anchors replay preservation to the baseline profile-aware replay
+  predictions instead of following prediction drift during training. Focused
+  tests pass, and the full-stack run
+  `runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`
+  records `562` active baseline prediction anchors in the replay-plan evidence.
+  The verifier, branch-context gate, and purity gates pass; the replay plan
+  still covers `9144` branch/replay records across `21` profiles. Step `40`
+  improves QA average target rank to `8.0` and heldout rank to `8.375`, and
+  the trained snapshot preserves QA/heldout target-token coverage at `0.125`
+  instead of the v0.83 `0.0` collapse. Best-snapshot scoring still restores
+  step `0` because baseline QA/heldout coverage is `0.25` and branch diversity
+  fails across all `9` multi-target profiles. This is partial progress, not
+  promotion.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with

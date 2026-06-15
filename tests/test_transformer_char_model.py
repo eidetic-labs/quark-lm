@@ -47,6 +47,7 @@ from closed_world_lm.transformer_char_model import (
     direct_answer_target_balanced_branch_batch,
     direct_answer_branch_diversity_batch,
     direct_answer_target_balanced_branch_diversity_batch,
+    direct_answer_profiled_branch_batch,
     direct_answer_profiled_replay_records,
     direct_answer_dominant_branch_prediction,
     direct_answer_hard_branch_contrast,
@@ -3956,6 +3957,125 @@ class TransformerCharModelTest(unittest.TestCase):
             ownership_margin(baseline_model, second_context, 2, 1),
         )
 
+    def test_profiled_branch_batch_can_use_baseline_prediction_overrides(
+        self,
+    ) -> None:
+        green = AnswerExample(
+            prompt="q: color?\na:",
+            target=" green.",
+            source="qa:color",
+        )
+        blue = AnswerExample(
+            prompt="q: color?\na:",
+            target=" blue.",
+            source="qa:color",
+        )
+        tokenizer = CharTokenizer.train(
+            green.prompt + green.target + blue.prompt + blue.target + ANSWER_TERMINATOR
+        )
+        model = TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size,
+                context_size=8,
+                embedding_dim=4,
+                feedforward_dim=8,
+                seed=84,
+            )
+        )
+        model.bout[tokenizer.stoi["g"]].data = 4.0
+        branch = direct_answer_branch_context(
+            model,
+            tokenizer,
+            green,
+            branch_position=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+        self.assertIsNotNone(branch)
+        context, target_id, _position = branch  # type: ignore[misc]
+        override_id = tokenizer.stoi["b"]
+        current_prediction = max(
+            range(tokenizer.vocab_size),
+            key=lambda index: model.predict(context)[index],
+        )
+
+        batch = direct_answer_profiled_branch_batch(
+            model,
+            tokenizer,
+            green,
+            [green, blue],
+            random.Random(84),
+            branch_position=1,
+            batch_size=1,
+            terminator=ANSWER_TERMINATOR,
+            prediction_overrides={
+                (tuple(context), target_id, "qa:color"): override_id,
+            },
+        )
+
+        self.assertNotEqual(current_prediction, override_id)
+        self.assertEqual(batch, [(context, target_id, override_id, "qa:color")])
+
+    def test_baseline_prediction_anchor_protects_covered_target_after_drift(
+        self,
+    ) -> None:
+        def initialized_model() -> TinyTransformerLM:
+            initialized = TinyTransformerLM.init_random(
+                TransformerConfig(
+                    vocab_size=4,
+                    context_size=1,
+                    embedding_dim=3,
+                    feedforward_dim=4,
+                    seed=85,
+                )
+            )
+            initialized.bout[1].data = -2.0
+            initialized.bout[2].data = 2.0
+            return initialized
+
+        def covered_probability(scored_model: TinyTransformerLM) -> float:
+            probs = scored_model.predict([0])
+            return probs[1]
+
+        dynamic_model = initialized_model()
+        anchored_model = initialized_model()
+        dynamic_replay = [([0], 2, 2, "qa:mixed"), ([3], 1, 2, "qa:mixed")]
+        anchored_replay = [([0], 2, 1, "qa:mixed"), ([3], 1, 2, "qa:mixed")]
+        before_anchor_probability = covered_probability(anchored_model)
+
+        for _ in range(30):
+            dynamic_model.train_step_with_branch_context_replay_coverage(
+                dynamic_replay,
+                dynamic_replay,
+                learning_rate=0.03,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                replay_weight=1.0,
+                hard_negative_count=0,
+                preserve_predicted_target_coverage=True,
+                profile_aware_targets=True,
+                balance_profile_target_shares=True,
+                enforce_prompt_target_margins=True,
+            )
+            anchored_model.train_step_with_branch_context_replay_coverage(
+                dynamic_replay,
+                anchored_replay,
+                learning_rate=0.03,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                replay_weight=1.0,
+                hard_negative_count=0,
+                preserve_predicted_target_coverage=True,
+                profile_aware_targets=True,
+                balance_profile_target_shares=True,
+                enforce_prompt_target_margins=True,
+            )
+
+        self.assertGreater(covered_probability(anchored_model), before_anchor_probability)
+        self.assertGreater(
+            covered_probability(anchored_model),
+            covered_probability(dynamic_model),
+        )
+
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -4902,6 +5022,7 @@ class TransformerCharModelTest(unittest.TestCase):
             "branch-balanced-context-profile-coverage-preserving-deficit-unlikelihood",
             "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
             "branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood",
+            "branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood",
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",
             "branch-topk-softmax-unlikelihood",
