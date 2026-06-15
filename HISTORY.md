@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.93
+
+- Added calibrated sequential floor stabilization with coverage-only guard probes.
+
 ## v0.92
 
 - Added sequential source-profile baseline-floor stabilization diagnostics.

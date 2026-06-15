@@ -399,11 +399,28 @@ stabilization:
 - Promotion remains rejected because no profile-local update survives the
   baseline floor guard.
 
-### v0.93+
+### v0.93
 
-The next transformer step should isolate floor-preserving weight movement
-before reintroducing branch-diversity pressure, revisiting subword
-tokenization, or beginning a learned verifier/repair-policy experiment.
+Implemented and screened calibrated sequential source-profile baseline-floor
+stabilization:
+`branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood`.
+
+- The diagnostic screen writes the modern artifact set in
+  `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`.
+- Replay-plan evidence records calibrated adaptive scales down to `0.0001`,
+  `227` floor anchors, requested batch size `227`, `12` profile-target groups,
+  and `10` source-profile groups.
+- The guard checks `1/1` direct step, attempts `5` calibrated outer updates,
+  rejects the four larger scales, accepts `1` nonzero update at scale `0.0025`,
+  and records `50` profile-local attempts.
+- Promotion remains rejected because branch diversity still fails, but the
+  baseline floor guard now has its first accepted nonzero source-profile update.
+
+### v0.94+
+
+The next transformer step should expand safe calibrated movement beyond one
+source profile before reintroducing branch-diversity pressure, revisiting
+subword tokenization, or beginning a learned verifier/repair-policy experiment.
 
 ## Decision
 

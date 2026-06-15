@@ -4693,6 +4693,74 @@ class TransformerCharModelTest(unittest.TestCase):
         if guard["sequential_profile_attempts"]:
             self.assertTrue(guard["sequential_profile_probe_sample"])
 
+    def test_calibrated_sequential_stabilization_mode_records_extended_scales(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-calibrated-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-calibrated-"
+                        "sequential-profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_calibrated_sequential_stabilization_active"
+            ]
+        )
+        self.assertTrue(guard["sequential_stabilization_active"])
+        self.assertTrue(guard["calibrated_sequential_stabilization_active"])
+        self.assertIn(0.0001, guard["learning_rate_scales"])
+        self.assertEqual(
+            replay_plan["adaptive_learning_rate_scales"],
+            guard["learning_rate_scales"],
+        )
+        self.assertEqual(guard["calibrated_min_learning_rate_scale"], 0.0001)
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_calibrated_sequential_stabilization_active"
+            ],
+            True,
+        )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn("calibrated_sequential_profile_stabilization", shape_counts)
+
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -5664,6 +5732,10 @@ class TransformerCharModelTest(unittest.TestCase):
             (
                 "branch-context-profile-baseline-floor-sequential-profile-"
                 "stabilization-unlikelihood"
+            ),
+            (
+                "branch-context-profile-baseline-floor-calibrated-sequential-"
+                "profile-stabilization-unlikelihood"
             ),
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",

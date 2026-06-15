@@ -190,6 +190,12 @@ rollback after each unsafe profile group. The screen shows that source-profile
 ordering is still not enough: all profile-local attempts are rejected before any
 effective guarded update survives.
 
+v0.93 adds
+`branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the sequential rollback shape, extends calibrated adaptive scales below
+`0.01`, and uses coverage-only guard probes. The diagnostic screen accepts the
+first nonzero source-profile update that preserves the baseline floor.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1466,7 +1472,7 @@ Profile-targeted baseline-floor stabilization screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected; full profile-target floor coverage alone does not make guarded updates safe |
 
-Latest sequential profile-floor stabilization screen:
+Sequential profile-floor stabilization screen:
 
 | Signal | Value |
 | --- | --- |
@@ -1484,6 +1490,26 @@ Latest sequential profile-floor stabilization screen:
 | Deterministic verifier | passed with no external model |
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected; sequential source-profile repair still cannot produce safe weight movement |
+
+Latest calibrated sequential profile-floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | calibrated adaptive scales below `0.01` plus coverage-only guard probes for floor checks |
+| Unit coverage | focused transformer tests pass; the mode records calibrated activation, extended scale metadata, replay-plan scales, and accepted/rejected update-shape accounting |
+| Calibrated scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001` |
+| Update guard | checked `1/1` step; attempted `5` updates; accepted `1`; rejected `4`; no-effective-update attempts `4` |
+| Accepted update | `bridge:owner` source-profile group at scale `0.0025` |
+| Sequential profile attempts | `50` attempted; `1` accepted; `49` rejected; `60` anchor records |
+| Rejected adaptive scales | `1: 1`, `0.25: 1`, `0.05: 1`, `0.01: 1` |
+| Accepted update shapes | `calibrated_sequential_profile_stabilization: 1` |
+| Rejected update shapes | `calibrated_sequential_profile_stabilization: 4` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected for model promotion; calibrated floor-preserving movement is now proven possible |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
@@ -1604,5 +1630,7 @@ attempt. v0.90 records the rejected profile floors directly, showing `heldout`
 violates every attempt and the worst deficit is `0.25` on `learning`. v0.91
 covers the full profile-target floor surface and still rejects every attempt.
 v0.92 changes the repair shape to sequential source-profile batches and still
-rejects every profile-local attempt, so the next repair should isolate smaller
-floor-preserving weight movement before adding branch-diversity pressure back.
+rejects every profile-local attempt. v0.93 calibrates that movement below
+`0.01` and accepts one source-profile update at scale `0.0025`, so the next
+repair should expand safe calibrated movement before adding branch-diversity
+pressure back.

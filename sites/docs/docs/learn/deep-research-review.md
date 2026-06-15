@@ -94,7 +94,9 @@ the same discipline before another major repair screen.
 21. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
 22. **v0.92:** sequential source-profile floor stabilization. Implemented and
     rejected.
-23. **v0.93+:** isolated floor-preserving weight movement under the full baseline
+23. **v0.93:** calibrated sequential profile-floor stabilization. Implemented
+    with one accepted guarded update; rejected for promotion.
+24. **v0.94+:** expanded calibrated floor-preserving movement under the full baseline
     target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Operating Rule
@@ -150,3 +152,6 @@ baseline-covered floor anchors across `12` profile-target groups and still
 rejects `200/200` profile-targeted attempts with the same violation pattern.
 v0.92 tries sequential source-profile floor repair, rejects all `2000`
 profile-local attempts, and records `200` no-effective-update outer attempts.
+v0.93 adds calibrated sub-`0.01` scales plus coverage-only guard probes, accepts
+one `bridge:owner` source-profile update at scale `0.0025`, and still rejects
+promotion on branch diversity.

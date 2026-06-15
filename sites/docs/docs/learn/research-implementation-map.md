@@ -77,7 +77,9 @@ direct-answer objective mode:
 17. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
 18. **v0.92:** sequential source-profile floor stabilization. Implemented and
    rejected.
-19. **v0.93+:** isolated floor-preserving weight movement under the full baseline
+19. **v0.93:** calibrated sequential profile-floor stabilization. Implemented
+   with one accepted guarded update; rejected for promotion.
+20. **v0.94+:** expanded calibrated floor-preserving movement under the full baseline
    target-token floor, tokenizer growth, or learned verifier experiments.
 
 ## Current Gap
@@ -132,11 +134,13 @@ QuarkLM already has:
   `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`.
 - v0.92 sequential source-profile baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
+- v0.93 calibrated sequential baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- smaller or more isolated floor-preserving weight movement before
-  branch-diversity pressure is added back.
+- expanded calibrated floor-preserving movement before branch-diversity
+  pressure is added back.
 
 ## Operating Rule
 

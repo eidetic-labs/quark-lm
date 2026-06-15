@@ -85,4 +85,7 @@ profile-targeted floor anchors to the same trail and still rejects every
 attempt, proving broader floor-anchor coverage cannot become trusted model state
 by itself. v0.92 adds sequential source-profile floor repair to the same trail
 and still rejects every profile-local attempt, proving profile ordering cannot
-become trusted model state without more isolated weight movement.
+become trusted model state without more isolated weight movement. v0.93 adds
+calibrated sub-`0.01` source-profile movement and accepts one guarded
+`bridge:owner` update, proving a small update can become trusted model state
+only after the floor guard preserves baseline coverage.

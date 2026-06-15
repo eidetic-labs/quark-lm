@@ -89,7 +89,9 @@ deficit is `0.25` on `learning`. v0.91 covers the full baseline-covered
 profile-target floor surface and still rejects all `200/200` attempts, showing
 the repair shape itself needed to change. v0.92 changes the shape to sequential
 source-profile floor repair, rejects all `2000` profile-local attempts, and
-shows the next repair should isolate floor-preserving weight movement.
+shows the next repair should isolate floor-preserving weight movement. v0.93
+adds calibrated scales below `0.01`, accepts one source-profile update at scale
+`0.0025`, and shows the next repair should expand safe calibrated movement.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -223,7 +225,8 @@ loops become fragile.
   consistently violating profiles before branch-diversity pressure is added
   back; v0.91 shows full profile-target floor coverage alone is still
   insufficient; v0.92 shows sequential source-profile floor repair is still
-  insufficient, so the next repair should isolate smaller update surfaces.
+  insufficient; v0.93 shows calibrated smaller update surfaces can survive the
+  floor guard, so the next repair should expand them without breaking diversity.
 
 ## Defer
 

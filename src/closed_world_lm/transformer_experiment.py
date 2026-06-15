@@ -29,6 +29,7 @@ PROFILE_AWARE_DIRECT_ANSWER_MODES = {
     "branch-context-profile-baseline-floor-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood",
+    "branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood",
 }
 
 

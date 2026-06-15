@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.92 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.93 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -32,6 +32,8 @@ v0.91 covers the full baseline-covered profile-target floor surface and still
 rejects all attempts with the same violation pattern. v0.92 tries sequential
 source-profile floor repair with rollback after each profile group, but every
 profile-local attempt is rejected before any effective outer update survives.
+v0.93 adds calibrated sub-`0.01` scales plus coverage-only guard probes and
+accepts the first nonzero source-profile update under the baseline floor guard.
 
 The current surfaces are:
 
@@ -95,10 +97,13 @@ repair work smaller and more auditable:
 - The v0.92 sequential profile-floor guard shows source-profile ordering is not
   enough: all `2000` profile-local attempts are rejected, producing `200`
   no-effective-update outer attempts.
+- The v0.93 calibrated sequential guard shows smaller isolated movement can be
+  safe: one `bridge:owner` profile update at scale `0.0025` survives the floor
+  guard while promotion remains blocked on branch diversity.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in
 `transformer_char_model.py`. Future objective-repair work should use the
 narrower surfaces rather than adding another broad monolith patch, and should
-isolate smaller floor-preserving weight movement before adding branch-diversity
-pressure back.
+expand calibrated floor-preserving weight movement before adding
+branch-diversity pressure back.

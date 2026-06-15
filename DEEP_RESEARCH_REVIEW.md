@@ -591,13 +591,26 @@ groups, `2000` sequential profile attempts, `2400` anchor records, and
 source-profile group is rolled back, so the guard records `200`
 no-effective-update attempts.
 
-### v0.93+
+### v0.93
 
-The next transformer repair should isolate weight movement further rather than
-only changing anchor coverage or profile ordering: likely smaller profile-local
-updates, frozen-floor/adaptive heads, adapter-like floor repair surfaces, or a
-learned repair policy only after deterministic guards can prove each update is
-safe.
+Implemented calibrated sequential source-profile baseline-floor stabilization
+with
+`branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood`.
+The diagnostic screen in
+`runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`
+records calibrated scales down to `0.0001`, coverage-only guard probes, `50`
+source-profile repair attempts, `49` profile-local rejections, and the first
+accepted nonzero guarded update: `bridge:owner` at scale `0.0025`. It is still
+rejected for model promotion because `branch_diversity_target` fails, but it
+proves calibrated sub-`0.01` floor-preserving movement is possible.
+
+### v0.94+
+
+The next transformer repair should expand safe calibrated movement beyond a
+single source profile while preserving the same floor: likely cached/narrowed
+floor probes, accepted-profile accumulation limits, profile-specific scale
+memory, or adapter-like repair surfaces before branch-diversity pressure is
+added back.
 
 ## Decision
 

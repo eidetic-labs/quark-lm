@@ -156,6 +156,10 @@ BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE = (
 BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE = (
     "branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood"
 )
+BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-calibrated-sequential-profile-"
+    "stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -165,6 +169,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -174,6 +179,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -182,6 +188,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -193,14 +200,28 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
+BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
+    1.0,
+    0.25,
+    0.05,
+    0.01,
+    0.0025,
+    0.0005,
+    0.0001,
+)
 BASELINE_FLOOR_REPAIR_STEPS = 1
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE = 32
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT = 10.0
@@ -7517,6 +7538,15 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_calibrated_sequential_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES
+        )
+        direct_baseline_floor_learning_rate_scales = (
+            BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
+            if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+            else BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+        )
         direct_replay_records: list[BranchReplayRecord] = []
         direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
         if direct_profile_aware_targets:
@@ -7577,6 +7607,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             direct_replay_plan[
                 "baseline_floor_sequential_stabilization_active"
             ] = direct_answer_baseline_floor_sequential_stabilization_active
+            direct_replay_plan[
+                "baseline_floor_calibrated_sequential_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -7632,7 +7667,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             )
             if direct_answer_baseline_floor_adaptive_updates_active:
                 direct_replay_plan["adaptive_learning_rate_scales"] = list(
-                    BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+                    direct_baseline_floor_learning_rate_scales
                 )
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
@@ -7651,16 +7686,25 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             extra: dict[str, Any] | None = None,
         ) -> dict[str, Any]:
             direct_answer_evals_skipped = args.direct_answer_snapshot_mode == "branch-only"
-            branch_context_coverage = {
-                name: audit_direct_answer_branch_context_coverage(
-                    model,
-                    tokenizer,
-                    records,
-                    args.direct_answer_branch_position,
-                    direct_answer_terminator,
-                )
-                for name, records in sorted(eval_records.items())
-            }
+            coverage_only_probe = bool(
+                extra
+                and extra.get("baseline_floor_update_guard_probe")
+                and extra.get("baseline_floor_coverage_only_probe", True)
+            )
+            branch_context_coverage = (
+                {}
+                if coverage_only_probe
+                else {
+                    name: audit_direct_answer_branch_context_coverage(
+                        model,
+                        tokenizer,
+                        records,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                    )
+                    for name, records in sorted(eval_records.items())
+                }
+            )
             branch_profiles = {
                 name: direct_answer_branch_profile(
                     model,
@@ -7671,16 +7715,20 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 for name, records in sorted(eval_records.items())
             }
-            branch_representation_profiles = {
-                name: direct_answer_branch_representation_profile(
-                    model,
-                    tokenizer,
-                    records,
-                    args.direct_answer_branch_position,
-                    direct_answer_terminator,
-                )
-                for name, records in sorted(eval_records.items())
-            }
+            branch_representation_profiles = (
+                {}
+                if coverage_only_probe
+                else {
+                    name: direct_answer_branch_representation_profile(
+                        model,
+                        tokenizer,
+                        records,
+                        args.direct_answer_branch_position,
+                        direct_answer_terminator,
+                    )
+                    for name, records in sorted(eval_records.items())
+                }
+            )
             record = {
                 "step": step,
                 "train_loss": train_loss,
@@ -7708,6 +7756,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "branch_context_gate": summarize_branch_context_coverage_gate(
                     branch_context_coverage
                 ),
+                "coverage_only_probe": coverage_only_probe,
             }
             record["branch_target_coverage_by_profile"] = (
                 branch_diversity_snapshot_target_coverage_by_profile(record)
@@ -7787,8 +7836,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "sequential_stabilization_active": (
                 direct_answer_baseline_floor_sequential_stabilization_active
             ),
+            "calibrated_sequential_stabilization_active": (
+                direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+            ),
             "learning_rate_scales": list(
-                BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+                direct_baseline_floor_learning_rate_scales
             )
             if direct_answer_baseline_floor_adaptive_updates_active
             else [1.0],
@@ -7853,6 +7905,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "sequential_profile_rejection_counts": {},
             "sequential_profile_probe_sample": [],
             "rejected_no_effective_update_attempts": 0,
+            "calibrated_min_learning_rate_scale": (
+                min(direct_baseline_floor_learning_rate_scales)
+                if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+                else None
+            ),
             "accepted_steps": 0,
             "accepted_attempts": 0,
             "repaired_steps": 0,
@@ -8052,6 +8109,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "stabilization",
                 "profile_targeted_stabilization",
                 "sequential_profile_stabilization",
+                "calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8074,6 +8132,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if direct_answer_baseline_floor_sequential_stabilization_active:
                 profile_groups = baseline_floor_anchor_profile_groups(
                     direct_baseline_floor_repair_anchors
+                )
+                sequential_update_shape = (
+                    "calibrated_sequential_profile_stabilization"
+                    if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+                    else "sequential_profile_stabilization"
                 )
                 total_loss = 0.0
                 accepted_any = False
@@ -8107,11 +8170,14 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         {
                             "baseline_floor_update_guard_probe": True,
                             "baseline_floor_sequential_profile_probe": True,
+                            "baseline_floor_calibrated_sequential_profile_probe": (
+                                direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+                            ),
                             "learning_rate_scale": (
                                 update_learning_rate
                                 / max(args.direct_answer_learning_rate, 1e-12)
                             ),
-                            "update_shape": "sequential_profile_stabilization",
+                            "update_shape": sequential_update_shape,
                             "sequential_profile": profile,
                             "sequential_profile_records": len(profile_batch),
                         },
@@ -8232,11 +8298,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         ) -> float:
             last_loss = 0.0
             direct_answer_update_guard["checked_steps"] += 1
-            for learning_rate_scale in BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES:
+            for learning_rate_scale in direct_baseline_floor_learning_rate_scales:
                 restore_direct_update_state(base_model_payload, base_optimizer_payload)
                 direct_rng.setstate(base_rng_state)
                 direct_answer_update_guard["attempted_updates"] += 1
-                if direct_answer_baseline_floor_sequential_stabilization_active:
+                if (
+                    direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+                ):
+                    attempt_update_shape = (
+                        "calibrated_sequential_profile_stabilization"
+                    )
+                elif direct_answer_baseline_floor_sequential_stabilization_active:
                     attempt_update_shape = "sequential_profile_stabilization"
                 elif direct_answer_baseline_floor_profile_targeted_stabilization_active:
                     attempt_update_shape = "profile_targeted_stabilization"
@@ -10070,6 +10142,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_sequential_stabilization_active": (
                 direct_answer_baseline_floor_sequential_stabilization_active
+            ),
+            "direct_answer_baseline_floor_calibrated_sequential_stabilization_active": (
+                direct_answer_baseline_floor_calibrated_sequential_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

@@ -107,7 +107,10 @@ added back. v0.91 covers the full profile-target floor surface and still rejects
 every attempt. v0.92 changes the repair shape to sequential source-profile
 floor batches and still rejects all `2000` profile-local attempts, so the next
 mechanics change should isolate smaller floor-preserving weight movement rather
-than only broaden anchor coverage or reorder profiles.
+than only broaden anchor coverage or reorder profiles. v0.93 adds calibrated
+sub-`0.01` scales and coverage-only guard probes, accepts one `bridge:owner`
+source-profile update at scale `0.0025`, and shifts the next mechanics change
+toward expanding safe calibrated movement.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

@@ -941,6 +941,14 @@ Promotion still rejects the transformer, and the next repair must isolate
 floor-preserving weight movement rather than only broaden coverage or reorder
 profiles.
 
+v0.93 calibrates that movement below `0.01`. The diagnostic screen in
+`runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`
+records calibrated scales down to `0.0001`, `50` profile-local repair attempts,
+`49` profile-local rejections, and one accepted nonzero `bridge:owner` update at
+scale `0.0025`. Promotion still rejects the transformer on
+`branch_diversity_target`, but the baseline floor guard has now accepted real
+weight movement.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit
