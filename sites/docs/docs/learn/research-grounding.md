@@ -120,6 +120,10 @@ turn local score gains into target-token coverage for the collapsed profiles.
 v0.102.0 adds collapsed-profile binding, accepts `1` targeted binding update,
 narrows final collapse from `9/9` eval profiles to `3/9`, and shows the next
 repair should focus on `learning`, `owner`, and `paraphrases`.
+v0.103.0 adds remaining-profile binding, records `21` prioritized attempts,
+accepts `6` prioritized updates, improves `learning` coverage from `0.0` to
+`0.25`, and shows the next repair should preserve that gain while targeting
+`owner` and `paraphrases`.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).

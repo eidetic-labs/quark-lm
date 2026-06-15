@@ -270,6 +270,16 @@ branch-diversity refinements, accepts one collapsed-profile binding update,
 narrows final collapse from nine eval profiles to three, and keeps promotion
 blocked on branch diversity.
 
+v0.103.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.102.0 binding guard and prioritizes source-profile groups for
+the remaining collapsed eval profiles: `learning`, `owner`, and paraphrase
+coverage through `color`, `owner`, `place`, and `training_data` source labels.
+The diagnostic screen accepts eleven source-profile updates, records
+twenty-one prioritized attempts, accepts six prioritized updates, improves
+`learning` coverage from `0.0` to `0.25`, preserves target coverage, and keeps
+promotion blocked on branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves

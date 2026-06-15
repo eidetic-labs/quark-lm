@@ -1045,6 +1045,18 @@ proves a targeted binding update can survive while final collapse narrows from
 `9/9` eval profiles at baseline to `3/9` remaining collapsed profiles:
 `learning`, `owner`, and `paraphrases`.
 
+v0.103.0 adds remaining-profile binding after collapsed-profile binding. The
+diagnostic screen in
+`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer remaining-profile binding update, `56`
+profile-scale attempts, `11` accepted source-profile updates, `21`
+prioritized remaining-profile attempts, `6` prioritized acceptances, `15`
+prioritized rejections, `3` branch-diversity refinements, and `2`
+collapsed-profile binding updates. Promotion still rejects the transformer on
+`branch_diversity_target`, but the guard proves the remaining-profile
+curriculum can improve `learning` coverage from `0.0` to `0.25` without target
+coverage regression.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

@@ -64,6 +64,8 @@ from closed_world_lm.transformer_char_model import (
     branch_diversity_snapshot_score,
     branch_diversity_snapshot_collapsed_profile_names,
     branch_diversity_snapshot_profile_diversity_delta,
+    remaining_profile_binding_profile_order,
+    remaining_profile_binding_source_labels,
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
     branch_diversity_snapshot_preserves_target_coverage,
@@ -5702,6 +5704,155 @@ class TransformerCharModelTest(unittest.TestCase):
         shape_counts.update(guard["rejected_update_shape_counts"])
         self.assertIn(
             "profile_scale_collapsed_profile_binding_frontier_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
+    def test_remaining_profile_binding_prioritizes_source_profile_labels(
+        self,
+    ) -> None:
+        source_labels = remaining_profile_binding_source_labels(
+            ["learning", "owner", "paraphrases"]
+        )
+        groups = {
+            "fact:self": [
+                ([0], 1, 0, "fact:self"),
+                ([0], 2, 0, "fact:self"),
+            ],
+            "fact:owner": [
+                ([0], 1, 0, "fact:owner"),
+                ([0], 2, 0, "fact:owner"),
+            ],
+            "qa:learning": [
+                ([0], 3, 0, "qa:learning"),
+                ([0], 4, 0, "qa:learning"),
+            ],
+            "unknown:place": [
+                ([0], 5, 0, "unknown:place"),
+                ([0], 6, 0, "unknown:place"),
+            ],
+        }
+
+        ordered = remaining_profile_binding_profile_order(
+            groups,
+            ["learning", "owner", "paraphrases"],
+        )
+
+        self.assertEqual(
+            source_labels,
+            ["color", "learning", "owner", "place", "training_data"],
+        )
+        self.assertEqual(
+            [profile for profile, _anchors in ordered[:3]],
+            ["qa:learning", "fact:owner", "unknown:place"],
+        )
+        self.assertEqual(ordered[-1][0], "fact:self")
+
+    def test_profile_scale_remaining_profile_binding_frontier_mode_records_priority_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(
+                        Path(temp)
+                        / (
+                            "baseline-floor-profile-scale-remaining-profile-"
+                            "binding-frontier-screen"
+                        )
+                    ),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-diversity-"
+                        "branch-stable-coverage-recovery-branch-diversity-"
+                        "collapsed-profile-binding-remaining-profile-"
+                        "frontier-profile-scale-calibrated-sequential-"
+                        "profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertTrue(
+            guard[
+                "profile_scale_remaining_profile_binding_frontier_stabilization_active"
+            ]
+        )
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_remaining_profile_binding_frontier_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            guard["profile_scale_remaining_profile_binding_target_profiles"],
+            ["learning", "owner", "paraphrases"],
+        )
+        self.assertEqual(
+            guard["profile_scale_remaining_profile_binding_source_labels"],
+            ["color", "learning", "owner", "place", "training_data"],
+        )
+        self.assertTrue(
+            guard["profile_scale_remaining_profile_binding_source_profiles"]
+        )
+        self.assertEqual(
+            guard["profile_scale_remaining_profile_binding_source_profiles"],
+            replay_plan["remaining_profile_binding_source_profiles"],
+        )
+        self.assertEqual(
+            guard[
+                "profile_scale_remaining_profile_binding_prioritized_attempts"
+            ],
+            guard[
+                "profile_scale_remaining_profile_binding_prioritized_acceptances"
+            ]
+            + guard[
+                "profile_scale_remaining_profile_binding_prioritized_rejections"
+            ],
+        )
+        if guard[
+            "profile_scale_remaining_profile_binding_prioritized_acceptances"
+        ]:
+            self.assertTrue(
+                guard["profile_scale_remaining_profile_binding_probe_sample"]
+            )
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_remaining_profile_binding_frontier_calibrated_sequential_profile_stabilization",
             shape_counts,
         )
 

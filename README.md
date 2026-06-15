@@ -467,6 +467,23 @@ regression, and `2` score regressions. Promotion remains blocked on
 at baseline to `3/9` remaining collapsed profiles: `learning`, `owner`, and
 `paraphrases`.
 
+v0.103.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.102.0 collapsed-profile binding guard and changes the
+curriculum order toward admitted source-profile anchors that can train the
+remaining collapsed eval profiles: `learning`, `owner`, and paraphrases via
+`color`, `owner`, `place`, and `training_data` source labels. The matching
+diagnostic screen ran at
+`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `56` profile-scale updates, accepted
+`11` source-profile updates, recorded `21` prioritized remaining-profile
+binding attempts, accepted `6` prioritized updates, accepted `3`
+branch-diversity refinements, accepted `2` collapsed-profile binding updates,
+and preserved the target-coverage floor. Promotion remains blocked on
+`branch_diversity_target`, but `learning` coverage improves from `0.0` to
+`0.25` while the remaining collapsed profiles stay explicit: `learning`,
+`owner`, and `paraphrases`.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1151,6 +1168,14 @@ Current transformer answer-lesson run:
   accepts `11` source-profile updates, accepts `4` branch-diversity recovery
   refinements, accepts `1` collapsed-profile binding update, leaves `3/9`
   eval profiles collapsed, and still rejects promotion on
+  `branch_diversity_target`.
+- v0.103.0 adds remaining-profile binding curriculum ordering after
+  collapsed-profile binding. The diagnostic run
+  `runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `11` source-profile updates, records `21` prioritized attempts for
+  `learning`, `owner`, and paraphrase-adjacent source labels, accepts `6` of
+  those prioritized updates, improves `learning` coverage from `0.0` to
+  `0.25`, preserves target coverage, and still rejects promotion on
   `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at

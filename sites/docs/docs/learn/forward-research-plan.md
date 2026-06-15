@@ -332,3 +332,14 @@ accepted binding update, `10` fallbacks, `27` collapsed-profile ties, `1`
 floor-regression rejection, and `2` score-regression rejections. The next repair
 should target `learning`, `owner`, and `paraphrases`, the `3/9` eval profiles
 that remain collapsed.
+
+v0.103.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run records `56` profile-scale attempts, `11` accepted source-profile
+updates, `21` prioritized remaining-profile attempts, `6` prioritized
+acceptances, `15` prioritized rejections, `3` branch-diversity refinements, and
+`2` collapsed-profile binding updates. The next repair should preserve the new
+`learning` coverage gain while targeting the still-collapsed `owner` and
+`paraphrases` profiles.

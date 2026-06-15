@@ -140,6 +140,10 @@ coverage. v0.102.0 adds collapsed-profile binding, accepts `1` targeted
 binding update after branch-diversity recovery, narrows final collapse from
 `9/9` eval profiles to `3/9`, and shifts the next mechanics change toward the
 remaining `learning`, `owner`, and `paraphrases` collapses.
+v0.103.0 adds remaining-profile binding, accepts `6` prioritized updates,
+improves `learning` coverage from `0.0` to `0.25`, and shifts the next
+mechanics change toward preserving that gain while separating `owner` and
+`paraphrases` from the remaining collapse.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

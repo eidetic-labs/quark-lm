@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.102.0 collapsed-profile binding frontier screen;
+**Active version:** v0.103.0 remaining-profile binding frontier screen;
 promoted responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -521,12 +521,14 @@ failure changed from a repeated `"te"`/`"e"` loop to the short wrong answer
 bottleneck.
 
 The latest unpromoted transformer diagnostic is
-`runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/`.
-Branch profiles now record target rank and top predicted alternatives. In the
-pre-layer-norm prompt-position path, QA and heldout both still collapse to
-`"n"` with average target rank `14.25` and top-3/top-5 coverage `0.125`, so the
-next repair should improve prompt-to-answer output binding rather than only
-balance branch sampling.
+`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The screen keeps the v0.102.0 collapsed-profile binding guard and adds
+remaining-profile curriculum ordering for `learning`, `owner`, and
+paraphrase-adjacent source labels. It records `21` prioritized attempts,
+accepts `6` prioritized updates, improves `learning` coverage from `0.0` to
+`0.25`, preserves target coverage, and still rejects promotion on
+`branch_diversity_target`; `learning`, `owner`, and `paraphrases` remain the
+explicit collapsed eval profiles.
 
 `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
 tests that repair direction with `branch-output-binding-unlikelihood` and

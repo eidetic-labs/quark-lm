@@ -99,8 +99,11 @@ direct-answer objective mode:
 28. **v0.102.0:** collapsed-profile binding. Implemented with one targeted
    binding update and three remaining collapsed eval profiles; rejected for
    promotion.
-29. **v0.103.0+:** remaining-profile binding, tokenizer growth, or
-   learned verifier experiments.
+29. **v0.103.0:** remaining-profile binding. Implemented with six prioritized
+   remaining-profile acceptances and a learning coverage gain; rejected for
+   promotion.
+30. **v0.104.0+:** owner/paraphrase binding, tokenizer growth, or learned
+   verifier experiments.
 
 ## Current Gap
 
@@ -174,12 +177,14 @@ QuarkLM already has:
   `runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.102.0 collapsed-profile binding frontier profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.103.0 remaining-profile binding frontier profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- remaining-profile binding that converts the v0.102.0 accepted binding evidence
-  into target-token coverage and predicted-token diversity for `learning`,
-  `owner`, and `paraphrases`.
+- owner/paraphrase binding that converts v0.103.0 prioritized remaining-profile
+  evidence into target-token coverage and predicted-token diversity for `owner`
+  and `paraphrases`, while preserving the new `learning` coverage gain.
 
 ## Operating Rule
 
