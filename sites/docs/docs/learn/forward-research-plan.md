@@ -98,7 +98,9 @@ attempts, so the next repair must isolate floor-preserving weight movement
 rather than only broaden anchor coverage or reorder profiles. v0.93 adds
 calibrated scales below `0.01` plus coverage-only guard probes and accepts one
 nonzero `bridge:owner` source-profile update at scale `0.0025`, while model
-promotion remains blocked on branch diversity.
+promotion remains blocked on branch diversity. v0.94 adds profile-scale memory,
+accepts `8` source-profile updates across `60` profile-scale attempts, and
+keeps promotion blocked on branch diversity.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -209,3 +211,12 @@ The run records calibrated scales down to `0.0001`, coverage-only guard probes,
 `50` profile-local attempts, `49` profile-local rejections, and one accepted
 nonzero `bridge:owner` update at scale `0.0025`. The next repair should expand
 accepted calibrated movement beyond one source profile.
+
+v0.94 adds
+`branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run searches calibrated scales per source profile, records `60`
+profile-scale attempts, accepts `8` source-profile updates, rejects `52`
+profile-scale attempts, and preserves the baseline floor. The next repair
+should turn this safe movement into branch-diverse behavior.

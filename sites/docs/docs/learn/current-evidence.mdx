@@ -949,6 +949,14 @@ scale `0.0025`. Promotion still rejects the transformer on
 `branch_diversity_target`, but the baseline floor guard has now accepted real
 weight movement.
 
+v0.94 adds profile-scale memory to that calibrated path. The diagnostic screen
+in
+`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer profile-scale update, `60` profile-scale attempts,
+`8` accepted source-profile updates, and `52` rejected profile-scale attempts.
+Promotion still rejects the transformer on `branch_diversity_target`, but safe
+floor-preserving movement now spans multiple source profiles.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

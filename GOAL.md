@@ -130,9 +130,12 @@ provenance, and the goal framework itself.
     records `200` no-effective-update attempts. v0.93 extends that repair with
     calibrated sub-`0.01` scales and coverage-only guard probes, then accepts
     the first nonzero guarded source-profile update at scale `0.0025` while
-    still rejecting model promotion on `branch_diversity_target`. The remaining
-    sequence should expand safe calibrated movement into branch-diverse
-    improvement before broader tokenizer, verifier, or branch-diversity changes.
+    still rejecting model promotion on `branch_diversity_target`. v0.94 adds
+    profile-scale memory, accepts `8` source-profile updates across `60`
+    profile-scale attempts, and still rejects promotion on
+    `branch_diversity_target`. The remaining sequence should translate expanded
+    safe calibrated movement into branch-diverse improvement before broader
+    tokenizer, verifier, or branch-diversity changes.
 20. Treat experiment intent as required run evidence: self-improvement and
     transformer screens should declare hypothesis, allowed data, planned
     artifacts, acceptance gates, failure criteria, and final decision before

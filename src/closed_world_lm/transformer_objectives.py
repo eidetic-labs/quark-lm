@@ -78,6 +78,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "branch-context-profile-baseline-floor-profile-targeted-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-sequential-profile-stabilization-unlikelihood",
     "branch-context-profile-baseline-floor-calibrated-sequential-profile-stabilization-unlikelihood",
+    "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood",
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",

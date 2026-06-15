@@ -92,6 +92,8 @@ source-profile floor repair, rejects all `2000` profile-local attempts, and
 shows the next repair should isolate floor-preserving weight movement. v0.93
 adds calibrated scales below `0.01`, accepts one source-profile update at scale
 `0.0025`, and shows the next repair should expand safe calibrated movement.
+v0.94 adds profile-scale memory, accepts `8` source-profile updates, and shows
+the next repair should make safe movement branch-diverse.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
@@ -226,7 +228,8 @@ loops become fragile.
   back; v0.91 shows full profile-target floor coverage alone is still
   insufficient; v0.92 shows sequential source-profile floor repair is still
   insufficient; v0.93 shows calibrated smaller update surfaces can survive the
-  floor guard, so the next repair should expand them without breaking diversity.
+  floor guard; v0.94 expands those surfaces to eight source profiles, so the
+  next repair should turn them into diversity gains.
 
 ## Defer
 

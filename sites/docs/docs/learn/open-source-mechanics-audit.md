@@ -110,7 +110,9 @@ mechanics change should isolate smaller floor-preserving weight movement rather
 than only broaden anchor coverage or reorder profiles. v0.93 adds calibrated
 sub-`0.01` scales and coverage-only guard probes, accepts one `bridge:owner`
 source-profile update at scale `0.0025`, and shifts the next mechanics change
-toward expanding safe calibrated movement.
+toward expanding safe calibrated movement. v0.94 adds profile-scale memory,
+accepts `8` source-profile updates, and shifts the next mechanics change toward
+branch-diverse use of that safe movement.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

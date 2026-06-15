@@ -4761,6 +4761,85 @@ class TransformerCharModelTest(unittest.TestCase):
         shape_counts.update(guard["rejected_update_shape_counts"])
         self.assertIn("calibrated_sequential_profile_stabilization", shape_counts)
 
+    def test_profile_scale_calibrated_stabilization_mode_records_scale_memory(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            args = parse_args(
+                [
+                    "answer-train",
+                    "--run",
+                    str(Path(temp) / "baseline-floor-profile-scale-screen"),
+                    "--steps",
+                    "0",
+                    "--eval-every",
+                    "0",
+                    "--candidate-scope",
+                    "eval",
+                    "--direct-answer-steps",
+                    "1",
+                    "--direct-answer-eval-every",
+                    "1",
+                    "--direct-answer-mode",
+                    (
+                        "branch-context-profile-baseline-floor-profile-scale-"
+                        "calibrated-sequential-profile-stabilization-unlikelihood"
+                    ),
+                    "--direct-answer-snapshot-mode",
+                    "branch-only",
+                    "--direct-answer-branch-batch-size",
+                    "2",
+                    "--direct-answer-hard-negatives",
+                    "1",
+                    "--skip-post-direct-snapshot",
+                    "--embedding-dim",
+                    "2",
+                    "--feedforward-dim",
+                    "4",
+                    "--context-size",
+                    "80",
+                ]
+            )
+
+            metrics = train_transformer_answers(args)
+
+        direct_answer = metrics["direct_answer"]
+        guard = direct_answer["direct_answer_update_guard"]
+        replay_plan = direct_answer["direct_answer_replay_plan_summary"]
+        self.assertTrue(
+            direct_answer[
+                "direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active"
+            ]
+        )
+        self.assertTrue(guard["profile_scale_calibrated_stabilization_active"])
+        self.assertEqual(guard["outer_learning_rate_scales"], [1.0])
+        self.assertEqual(replay_plan["outer_learning_rate_scales"], [1.0])
+        self.assertIn(0.0001, guard["learning_rate_scales"])
+        self.assertEqual(
+            replay_plan[
+                "baseline_floor_profile_scale_calibrated_stabilization_active"
+            ],
+            True,
+        )
+        self.assertEqual(
+            guard["profile_scale_memory_attempts"],
+            guard["sequential_profile_attempts"],
+        )
+        self.assertEqual(
+            guard["profile_scale_memory_acceptances"]
+            + guard["profile_scale_memory_rejections"],
+            guard["profile_scale_memory_attempts"],
+        )
+        self.assertIn("profile_scale_probe_sample", guard)
+        if guard["profile_scale_memory_attempts"]:
+            self.assertTrue(guard["profile_scale_probe_sample"])
+        shape_counts = dict(guard["accepted_update_shape_counts"])
+        shape_counts.update(guard["rejected_update_shape_counts"])
+        self.assertIn(
+            "profile_scale_calibrated_sequential_profile_stabilization",
+            shape_counts,
+        )
+
     def test_branch_topk_softmax_lifts_target_within_hard_candidate_set(self) -> None:
         near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
         green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
@@ -5736,6 +5815,10 @@ class TransformerCharModelTest(unittest.TestCase):
             (
                 "branch-context-profile-baseline-floor-calibrated-sequential-"
                 "profile-stabilization-unlikelihood"
+            ),
+            (
+                "branch-context-profile-baseline-floor-profile-scale-calibrated-"
+                "sequential-profile-stabilization-unlikelihood"
             ),
             "branch-rank-margin-unlikelihood",
             "branch-balanced-rank-margin-unlikelihood",

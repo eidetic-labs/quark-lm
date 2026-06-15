@@ -196,6 +196,13 @@ It keeps the sequential rollback shape, extends calibrated adaptive scales below
 `0.01`, and uses coverage-only guard probes. The diagnostic screen accepts the
 first nonzero source-profile update that preserves the baseline floor.
 
+v0.94 adds
+`branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It searches calibrated scales separately for each source profile, keeps the
+first safe update for that profile, and rolls back only unsafe profile-scale
+attempts. The diagnostic screen accepts eight source-profile updates while the
+baseline floor remains preserved.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1491,7 +1498,7 @@ Sequential profile-floor stabilization screen:
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected; sequential source-profile repair still cannot produce safe weight movement |
 
-Latest calibrated sequential profile-floor stabilization screen:
+Calibrated sequential profile-floor stabilization screen:
 
 | Signal | Value |
 | --- | --- |
@@ -1510,6 +1517,24 @@ Latest calibrated sequential profile-floor stabilization screen:
 | Deterministic verifier | passed with no external model |
 | Diversity target | failed, `0/9` multi-target profiles passed |
 | Promotion status | rejected for model promotion; calibrated floor-preserving movement is now proven possible |
+
+Latest profile-scale calibrated floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | profile-scale memory: search calibrated scales per source profile, preserve the first safe profile update, and roll back unsafe profile-scale attempts |
+| Unit coverage | focused transformer tests pass; the mode records profile-scale activation, search/outer scales, profile-scale attempts, acceptance/rejection scale counts, and accepted profile scales |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001` |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0`; no-effective-update attempts `0` |
+| Profile-scale attempts | `60` attempted; `8` accepted; `52` rejected; `72` anchor records |
+| Accepted profile scales | `bridge:owner 0.0025`, `bridge:place 0.0005`, `fact:learning 0.0005`, `fact:owner 0.0001`, `fact:place 0.0001`, `qa:glossary 0.0001`, `qa:place 0.0001`, `qa:self 1` |
+| Accepted update shapes | `profile_scale_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed |
+| Promotion status | rejected for model promotion; safe calibrated movement now spans eight source profiles |
 
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
@@ -1631,6 +1656,6 @@ violates every attempt and the worst deficit is `0.25` on `learning`. v0.91
 covers the full profile-target floor surface and still rejects every attempt.
 v0.92 changes the repair shape to sequential source-profile batches and still
 rejects every profile-local attempt. v0.93 calibrates that movement below
-`0.01` and accepts one source-profile update at scale `0.0025`, so the next
-repair should expand safe calibrated movement before adding branch-diversity
-pressure back.
+`0.01` and accepts one source-profile update at scale `0.0025`. v0.94 adds
+profile-scale memory and accepts eight source-profile updates, so the next
+repair should turn safe calibrated movement into branch-diverse behavior.

@@ -618,13 +618,26 @@ accepted nonzero guarded update: `bridge:owner` at scale `0.0025`. It is still
 rejected for model promotion because `branch_diversity_target` fails, but it
 proves calibrated sub-`0.01` floor-preserving movement is possible.
 
-### v0.94+
+### v0.94
 
-The next transformer repair should expand safe calibrated movement beyond a
-single source profile while preserving the same floor: likely cached/narrowed
-floor probes, accepted-profile accumulation limits, profile-specific scale
-memory, or adapter-like repair surfaces before branch-diversity pressure is
-added back.
+Implemented profile-scale memory for calibrated sequential source-profile
+baseline-floor stabilization with
+`branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+The diagnostic screen in
+`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer profile-scale update, `60` profile-scale attempts,
+`8` accepted source-profile updates, `52` rejected profile-scale attempts, and
+accepted profile scales spanning `1`, `0.0025`, `0.0005`, and `0.0001`.
+Promotion remains rejected because `branch_diversity_target` still fails, but
+safe calibrated movement now extends beyond one profile.
+
+### v0.95+
+
+The next transformer repair should translate expanded safe profile-scale
+movement into branch-diverse improvement while preserving the same floor:
+likely accepted-profile scoring, profile-specific scale memory across steps,
+target-diversity-aware acceptance, or adapter-like repair surfaces before broad
+branch-diversity pressure is added back.
 
 ## Stop Doing For Now
 

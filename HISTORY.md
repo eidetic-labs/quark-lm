@@ -1,5 +1,9 @@
 # QuarkLM History
 
+## v0.94
+
+- Added profile-scale memory for calibrated floor stabilization.
+
 ## v0.93
 
 - Added calibrated sequential floor stabilization with coverage-only guard probes.

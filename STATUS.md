@@ -1,7 +1,7 @@
 # QuarkLM - Status
 
 **Status:** Experimental research scaffold
-**Active version:** v0.93 calibrated sequential profile-floor stabilization screen; promoted
+**Active version:** v0.94 profile-scale calibrated floor stabilization screen; promoted
 responder evidence remains v0.42
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
@@ -477,6 +477,23 @@ no-effective-update attempts, and accepted update-shape counts
 an external model, but promotion remains rejected on `branch_diversity_target`;
 v0.93 proves calibrated sub-`0.01` movement can survive the baseline floor
 guard, not that the transformer is ready for model-quality promotion.
+
+v0.94 adds
+`branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It extends v0.93 by searching the calibrated scale ladder separately for each
+source-profile group, preserving the first safe profile-local update and
+rolling back only unsafe profile-scale attempts. The matching diagnostic screen
+at
+`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+wrote the modern artifacts, checked `1/1` direct step, attempted `1` outer
+profile-scale update, accepted it, and recorded `60` profile-scale attempts:
+`8` accepted source-profile updates, `52` rejected profile-scale attempts, and
+`72` anchor records. Accepted profile scales were `bridge:owner: 0.0025`,
+`bridge:place: 0.0005`, `fact:learning: 0.0005`, `fact:owner: 0.0001`,
+`fact:place: 0.0001`, `qa:glossary: 0.0001`, `qa:place: 0.0001`, and
+`qa:self: 1`. The verifier passed without an external model, but promotion
+remains rejected on `branch_diversity_target`; v0.94 proves profile-scale
+memory expands safe floor-preserving movement beyond one source profile.
 
 ## Latest Evidence
 

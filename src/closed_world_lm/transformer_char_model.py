@@ -160,6 +160,10 @@ BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE = (
     "branch-context-profile-baseline-floor-calibrated-sequential-profile-"
     "stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-"
+    "profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -170,6 +174,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -180,6 +185,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -189,6 +195,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -201,6 +208,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -208,9 +216,14 @@ BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
 BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_MODE,
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -7542,10 +7555,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
             else BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES
+        )
+        direct_baseline_floor_outer_learning_rate_scales = (
+            (1.0,)
+            if direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            else direct_baseline_floor_learning_rate_scales
         )
         direct_replay_records: list[BranchReplayRecord] = []
         direct_baseline_floor_repair_anchors: list[BranchReplayRecord] = []
@@ -7612,6 +7634,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ] = (
                 direct_answer_baseline_floor_calibrated_sequential_stabilization_active
             )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_calibrated_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
             )
@@ -7668,6 +7695,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             if direct_answer_baseline_floor_adaptive_updates_active:
                 direct_replay_plan["adaptive_learning_rate_scales"] = list(
                     direct_baseline_floor_learning_rate_scales
+                )
+                direct_replay_plan["outer_learning_rate_scales"] = list(
+                    direct_baseline_floor_outer_learning_rate_scales
                 )
             if direct_replay_plan_path is not None:
                 with direct_replay_plan_path.open("w", encoding="utf-8") as handle:
@@ -7839,8 +7869,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "calibrated_sequential_stabilization_active": (
                 direct_answer_baseline_floor_calibrated_sequential_stabilization_active
             ),
+            "profile_scale_calibrated_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            ),
             "learning_rate_scales": list(
                 direct_baseline_floor_learning_rate_scales
+            )
+            if direct_answer_baseline_floor_adaptive_updates_active
+            else [1.0],
+            "outer_learning_rate_scales": list(
+                direct_baseline_floor_outer_learning_rate_scales
             )
             if direct_answer_baseline_floor_adaptive_updates_active
             else [1.0],
@@ -7905,6 +7943,13 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "sequential_profile_rejection_counts": {},
             "sequential_profile_probe_sample": [],
             "rejected_no_effective_update_attempts": 0,
+            "profile_scale_memory_attempts": 0,
+            "profile_scale_memory_acceptances": 0,
+            "profile_scale_memory_rejections": 0,
+            "profile_scale_acceptance_scale_counts": {},
+            "profile_scale_rejection_scale_counts": {},
+            "profile_scale_profile_acceptance_scales": {},
+            "profile_scale_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8110,6 +8155,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_targeted_stabilization",
                 "sequential_profile_stabilization",
                 "calibrated_sequential_profile_stabilization",
+                "profile_scale_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8129,6 +8175,179 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         ) -> tuple[float, bool]:
             if not direct_baseline_floor_repair_anchors:
                 return 0.0, False
+            if (
+                direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+            ):
+                profile_groups = baseline_floor_anchor_profile_groups(
+                    direct_baseline_floor_repair_anchors
+                )
+                update_shape = (
+                    "profile_scale_calibrated_sequential_profile_stabilization"
+                )
+                total_loss = 0.0
+                loss_count = 0
+                accepted_any = False
+                for profile, profile_anchors in profile_groups.items():
+                    profile_model_payload = model.to_dict(tokenizer)
+                    profile_optimizer_payload = optimizer.to_dict()
+                    profile_rng_state = direct_rng.getstate()
+                    profile_accepted = False
+                    for profile_scale in direct_baseline_floor_learning_rate_scales:
+                        restore_direct_update_state(
+                            profile_model_payload,
+                            profile_optimizer_payload,
+                        )
+                        direct_rng.setstate(profile_rng_state)
+                        profile_batch = baseline_floor_objective_anchor_batch(
+                            profile_anchors,
+                            direct_rng,
+                            len(profile_anchors),
+                        )
+                        direct_answer_update_guard[
+                            "sequential_profile_attempts"
+                        ] += 1
+                        direct_answer_update_guard[
+                            "profile_scale_memory_attempts"
+                        ] += 1
+                        direct_answer_update_guard[
+                            "sequential_profile_records"
+                        ] += len(profile_batch)
+                        direct_answer_update_guard[
+                            "stabilization_anchor_batches"
+                        ] += 1
+                        direct_answer_update_guard[
+                            "stabilization_anchor_records"
+                        ] += len(profile_batch)
+                        profile_loss = train_direct_answer_baseline_floor_anchor_batch(
+                            model,
+                            profile_batch,
+                            args.direct_answer_learning_rate * profile_scale,
+                            params=direct_params,
+                        )
+                        total_loss += profile_loss
+                        loss_count += 1
+                        profile_probe_snapshot = direct_snapshot_record(
+                            direct_step,
+                            None,
+                            {
+                                "baseline_floor_update_guard_probe": True,
+                                "baseline_floor_sequential_profile_probe": True,
+                                "baseline_floor_calibrated_sequential_profile_probe": True,
+                                "baseline_floor_profile_scale_memory_probe": True,
+                                "learning_rate_scale": profile_scale,
+                                "update_shape": update_shape,
+                                "sequential_profile": profile,
+                                "sequential_profile_records": len(profile_batch),
+                            },
+                        )
+                        probe_sample = direct_answer_update_guard[
+                            "sequential_profile_probe_sample"
+                        ]
+                        profile_scale_sample = direct_answer_update_guard[
+                            "profile_scale_probe_sample"
+                        ]
+                        scale_key = f"{profile_scale:g}"
+                        if branch_diversity_snapshot_preserves_target_coverage(
+                            profile_probe_snapshot,
+                            direct_baseline,
+                        ):
+                            direct_answer_update_guard[
+                                "sequential_profile_acceptances"
+                            ] += 1
+                            direct_answer_update_guard[
+                                "profile_scale_memory_acceptances"
+                            ] += 1
+                            accepted_counts = direct_answer_update_guard[
+                                "sequential_profile_acceptance_counts"
+                            ]
+                            if isinstance(accepted_counts, dict):
+                                accepted_counts[profile] = (
+                                    int(accepted_counts.get(profile, 0)) + 1
+                                )
+                            scale_counts = direct_answer_update_guard[
+                                "profile_scale_acceptance_scale_counts"
+                            ]
+                            if isinstance(scale_counts, dict):
+                                scale_counts[scale_key] = (
+                                    int(scale_counts.get(scale_key, 0)) + 1
+                                )
+                            profile_scales = direct_answer_update_guard[
+                                "profile_scale_profile_acceptance_scales"
+                            ]
+                            if isinstance(profile_scales, dict):
+                                profile_scales[profile] = scale_key
+                            accepted_any = True
+                            profile_accepted = True
+                            sample = {
+                                "profile": profile,
+                                "accepted": True,
+                                "records": len(profile_batch),
+                                "learning_rate_scale": profile_scale,
+                            }
+                            if (
+                                isinstance(probe_sample, list)
+                                and len(probe_sample) < 12
+                            ):
+                                probe_sample.append(sample)
+                            if (
+                                isinstance(profile_scale_sample, list)
+                                and len(profile_scale_sample) < 12
+                            ):
+                                profile_scale_sample.append(sample)
+                            break
+                        direct_answer_update_guard[
+                            "sequential_profile_rejections"
+                        ] += 1
+                        direct_answer_update_guard[
+                            "profile_scale_memory_rejections"
+                        ] += 1
+                        rejected_counts = direct_answer_update_guard[
+                            "sequential_profile_rejection_counts"
+                        ]
+                        if isinstance(rejected_counts, dict):
+                            rejected_counts[profile] = (
+                                int(rejected_counts.get(profile, 0)) + 1
+                            )
+                        scale_counts = direct_answer_update_guard[
+                            "profile_scale_rejection_scale_counts"
+                        ]
+                        if isinstance(scale_counts, dict):
+                            scale_counts[scale_key] = (
+                                int(scale_counts.get(scale_key, 0)) + 1
+                            )
+                        diagnostics = (
+                            branch_diversity_snapshot_target_coverage_diagnostics(
+                                profile_probe_snapshot,
+                                direct_baseline,
+                            )
+                        )
+                        sample = {
+                            "profile": profile,
+                            "accepted": False,
+                            "records": len(profile_batch),
+                            "learning_rate_scale": profile_scale,
+                            "worst_violation": diagnostics["worst_violation"],
+                            "violating_profile_count": diagnostics[
+                                "violating_profile_count"
+                            ],
+                        }
+                        if (
+                            isinstance(probe_sample, list)
+                            and len(probe_sample) < 12
+                        ):
+                            probe_sample.append(sample)
+                        if (
+                            isinstance(profile_scale_sample, list)
+                            and len(profile_scale_sample) < 12
+                        ):
+                            profile_scale_sample.append(sample)
+                    if not profile_accepted:
+                        restore_direct_update_state(
+                            profile_model_payload,
+                            profile_optimizer_payload,
+                        )
+                        direct_rng.setstate(profile_rng_state)
+                return total_loss / max(loss_count, 1), accepted_any
             if direct_answer_baseline_floor_sequential_stabilization_active:
                 profile_groups = baseline_floor_anchor_profile_groups(
                     direct_baseline_floor_repair_anchors
@@ -8298,11 +8517,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
         ) -> float:
             last_loss = 0.0
             direct_answer_update_guard["checked_steps"] += 1
-            for learning_rate_scale in direct_baseline_floor_learning_rate_scales:
+            for learning_rate_scale in direct_baseline_floor_outer_learning_rate_scales:
                 restore_direct_update_state(base_model_payload, base_optimizer_payload)
                 direct_rng.setstate(base_rng_state)
                 direct_answer_update_guard["attempted_updates"] += 1
                 if (
+                    direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
+                ):
+                    attempt_update_shape = (
+                        "profile_scale_calibrated_sequential_profile_stabilization"
+                    )
+                elif (
                     direct_answer_baseline_floor_calibrated_sequential_stabilization_active
                 ):
                     attempt_update_shape = (
@@ -10145,6 +10370,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_calibrated_sequential_stabilization_active": (
                 direct_answer_baseline_floor_calibrated_sequential_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

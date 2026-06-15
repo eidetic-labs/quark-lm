@@ -88,4 +88,7 @@ and still rejects every profile-local attempt, proving profile ordering cannot
 become trusted model state without more isolated weight movement. v0.93 adds
 calibrated sub-`0.01` source-profile movement and accepts one guarded
 `bridge:owner` update, proving a small update can become trusted model state
-only after the floor guard preserves baseline coverage.
+only after the floor guard preserves baseline coverage. v0.94 adds
+profile-scale memory and accepts `8` guarded source-profile updates, proving
+multiple small updates can become trusted model state when each profile-scale
+attempt preserves the baseline floor.

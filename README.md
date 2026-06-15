@@ -334,6 +334,20 @@ update at scale `0.0025`. The guard recorded `50` sequential profile attempts,
 `branch_diversity_target`, but v0.93 proves calibrated sub-`0.01` movement can
 survive the baseline floor guard.
 
+v0.94 adds
+`branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It searches the calibrated scale ladder separately for each source-profile
+group instead of stopping after the first globally accepted scale. The matching
+diagnostic screen ran at
+`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted one outer profile-scale update, accepted
+it, and preserved `8` source-profile updates across `60` profile-scale attempts.
+Accepted profile scales were `bridge:owner: 0.0025`, `bridge:place: 0.0005`,
+`fact:learning: 0.0005`, `fact:owner: 0.0001`, `fact:place: 0.0001`,
+`qa:glossary: 0.0001`, `qa:place: 0.0001`, and `qa:self: 1`. Promotion remains
+rejected on `branch_diversity_target`, but v0.94 expands safe floor-preserving
+movement beyond one source profile.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -971,6 +985,10 @@ Current transformer answer-lesson run:
   `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`
   accepts `1` nonzero guarded update at scale `0.0025` after rejecting the four
   larger scales.
+- v0.94 adds profile-scale memory for calibrated floor stabilization. The
+  diagnostic run
+  `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `8` source-profile updates while preserving the baseline floor.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at
   learning rate `0.035` and moved exact generation from `0/219 -> 219/219` with
