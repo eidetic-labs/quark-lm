@@ -1,6 +1,6 @@
 ---
 title: Transformer Responsibilities
-description: The v0.78-v0.100.0 transformer responsibility, objective, and screen surfaces.
+description: The v0.78-v0.101.0 transformer responsibility, objective, and screen surfaces.
 ---
 
 # Transformer Responsibilities
@@ -52,6 +52,9 @@ preparation fallbacks while branch diversity still blocks promotion.
 v0.100.0 adds branch-stable coverage-recovery acceptance, keeps the two
 recovery conversions, records fifteen branch-stability checks, and rejects one
 retry for branch-score regression while branch diversity still blocks promotion.
+v0.101.0 adds branch-diversity recovery after already-safe profile updates,
+accepts five local branch-score refinements, falls back once, and still blocks
+promotion on global branch diversity.
 
 The current surfaces are:
 
@@ -140,6 +143,9 @@ repair work smaller and more auditable:
 - The v0.100.0 branch-stable coverage-recovery guard shows recovery can be
   checked against the prepared branch-diversity score: `2` recovery conversions
   survive and `1` retry is rejected for branch-score regression.
+- The v0.101.0 branch-diversity recovery guard shows local score repair can be
+  bounded by the same floor and coverage gates: `5` branch-score refinements
+  survive and `1` accepted candidate falls back.
 - Training cursors and history writing have focused tests outside the model.
 
 The model class and direct-answer eval helpers still live in

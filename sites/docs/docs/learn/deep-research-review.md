@@ -109,8 +109,12 @@ the same discipline before another major repair screen.
     preparation moves; rejected for promotion.
 29. **v0.99:** coverage-recovery frontier retry. Implemented with two recovery
     conversions; rejected for promotion.
-30. **v0.100.0+:** branch-stable recovery, tokenizer growth, or learned verifier
-    experiments.
+30. **v0.100.0:** branch-stable coverage recovery. Implemented with two
+    branch-stable recovery conversions; rejected for promotion.
+31. **v0.101.0:** branch-diversity recovery. Implemented with five local
+    branch-score refinements; rejected for promotion.
+32. **v0.102.0+:** collapsed-profile branch binding, tokenizer growth, or
+    learned verifier experiments.
 
 ## Operating Rule
 
@@ -187,4 +191,6 @@ into direct coverage recoveries, keeps `4` preparation fallbacks, and still
 rejects promotion on branch diversity. v0.100.0 adds branch-stable
 coverage-recovery acceptance, keeps the `2` recovery conversions, records `15`
 branch-stability checks, rejects `1` retry for branch-score regression, and
-still rejects promotion on branch diversity.
+still rejects promotion on branch diversity. v0.101.0 adds branch-diversity
+recovery after safe profile updates, accepts `5` local branch-score
+refinements, falls back once, and still rejects promotion on branch diversity.

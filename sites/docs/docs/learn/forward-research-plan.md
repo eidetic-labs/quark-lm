@@ -121,7 +121,10 @@ stabilize branch diversity after recovery. v0.100.0 adds branch-stable
 coverage-recovery acceptance, keeps the `2` recovery conversions, records `15`
 branch-stability checks, rejects `1` retry for branch-score regression, and
 shows the next repair should increase branch diversity without weakening the
-recovery floor.
+recovery floor. v0.101.0 adds branch-diversity recovery after safe profile
+updates, accepts `5` local branch-score refinements, falls back once, and shows
+the next repair should turn local score gains into target-token coverage for
+the collapsed profiles.
 
 v0.71 implements experiment registry and run-intent schemas. v0.72 extracts
 replay planning into `src/closed_world_lm/replay_plan.py` while preserving the
@@ -307,3 +310,14 @@ branch-stable coverage recoveries, `4` preparation fallbacks, `7` floor
 regressions, `5` coverage ties, and `1` branch-score regression inside the
 recovery retry. The next repair should improve branch-diversity coverage while
 preserving this stricter recovery acceptance surface.
+
+v0.101.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`
+and screens it at
+`runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+The run records `52` profile-scale attempts, `6` accepted source-profile
+updates, `6` branch-diversity recovery candidates, `9` branch-diversity
+recovery attempts, `5` branch-score-improving refinements, `1` fallback, `1`
+floor-regression rejection, `1` score-regression rejection, and `2` score-tie
+rejections. The next repair should convert those local branch-score gains into
+target-token coverage for the profiles that still collapse.

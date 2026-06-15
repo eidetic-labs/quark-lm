@@ -189,6 +189,11 @@ BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED
     "recovery-frontier-profile-scale-calibrated-sequential-profile-"
     "stabilization-unlikelihood"
 )
+BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE = (
+    "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-"
+    "recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-"
+    "profile-stabilization-unlikelihood"
+)
 BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_ANCHORED_PROMPT_MODE,
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -206,6 +211,7 @@ BASELINE_ANCHORED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_GATED_PROMPT_MODE,
@@ -223,6 +229,7 @@ BASELINE_FLOOR_GATED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_ADAPTIVE_PROMPT_MODE,
@@ -239,6 +246,7 @@ BASELINE_FLOOR_ADAPTIVE_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_REPAIRED_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_REPAIRED_PROMPT_MODE,
@@ -258,6 +266,7 @@ BASELINE_FLOOR_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_TARGETED_STABILIZATION_MODE,
@@ -272,6 +281,7 @@ BASELINE_FLOOR_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_MODE,
@@ -282,6 +292,7 @@ BASELINE_FLOOR_CALIBRATED_SEQUENTIAL_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_MODE,
@@ -291,6 +302,7 @@ BASELINE_FLOOR_PROFILE_SCALE_CALIBRATED_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_CALIBRATED_STABILIZATION_MODE,
@@ -299,6 +311,7 @@ BASELINE_FLOOR_PROFILE_SCALE_DIVERSITY_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
@@ -306,24 +319,32 @@ BASELINE_FLOOR_PROFILE_SCALE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_PREP_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
     BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
+}
+BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES = {
+    BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_CALIBRATED_STABILIZATION_MODE,
 }
 BASELINE_FLOOR_ADAPTIVE_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05, 0.01)
 BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
@@ -336,6 +357,7 @@ BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES = (
     0.0001,
 )
 BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES = (1.0, 0.25, 0.05)
+BASELINE_FLOOR_BRANCH_DIVERSITY_RECOVERY_LEARNING_RATE_SCALES = (0.25, 0.05, 0.01)
 BASELINE_FLOOR_REPAIR_STEPS = 1
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_BATCH_SIZE = 32
 BASELINE_FLOOR_OBJECTIVE_ANCHOR_WEIGHT = 10.0
@@ -5477,6 +5499,33 @@ def train_direct_answer_baseline_floor_anchor_batch(
     return loss.data
 
 
+def train_direct_answer_baseline_floor_anchor_branch_diversity(
+    model: TinyTransformerLM,
+    anchors: list[BranchReplayRecord],
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    contrast_weight: float,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches: list[tuple[list[int], int, int]] = []
+    for branch in anchors:
+        context, target, _predicted, _profile = branch_replay_parts(branch)
+        probs = model.predict(context)
+        predicted = max(range(len(probs)), key=lambda index: probs[index])
+        branches.append((context, target, predicted))
+    if not branches:
+        return 0.0
+    return model.train_step_with_branch_diversity(
+        branches,
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        contrast_weight,
+        params=params,
+    )
+
+
 def train_direct_answer_baseline_floor_anchor_repair(
     model: TinyTransformerLM,
     anchors: list[BranchReplayRecord],
@@ -7778,6 +7827,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             args.direct_answer_mode
             in BASELINE_FLOOR_PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
         )
+        direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active = (
+            args.direct_answer_mode
+            in BASELINE_FLOOR_PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_STABILIZATION_DIRECT_ANSWER_MODES
+        )
         direct_baseline_floor_learning_rate_scales = (
             BASELINE_FLOOR_CALIBRATED_ADAPTIVE_LEARNING_RATE_SCALES
             if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -7895,6 +7948,11 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active"
             ] = (
                 direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+            )
+            direct_replay_plan[
+                "baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active"
+            ] = (
+                direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
             )
             direct_replay_plan["baseline_floor_repair_anchor_count"] = len(
                 direct_baseline_floor_repair_anchors
@@ -8165,9 +8223,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
             ),
+            "profile_scale_branch_diversity_recovery_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+            ),
             "profile_scale_coverage_recovery_learning_rate_scales": (
                 list(BASELINE_FLOOR_COVERAGE_RECOVERY_LEARNING_RATE_SCALES)
                 if direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
+                else []
+            ),
+            "profile_scale_branch_diversity_recovery_learning_rate_scales": (
+                list(BASELINE_FLOOR_BRANCH_DIVERSITY_RECOVERY_LEARNING_RATE_SCALES)
+                if direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
                 else []
             ),
             "learning_rate_scales": list(
@@ -8314,6 +8380,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             "profile_scale_branch_stable_coverage_recovery_frontier_rejection_reasons": {},
             "profile_scale_branch_stable_coverage_recovery_frontier_profile_acceptance_outcomes": {},
             "profile_scale_branch_stable_coverage_recovery_frontier_probe_sample": [],
+            "profile_scale_branch_diversity_recovery_frontier_candidates": 0,
+            "profile_scale_branch_diversity_recovery_frontier_attempts": 0,
+            "profile_scale_branch_diversity_recovery_frontier_acceptances": 0,
+            "profile_scale_branch_diversity_recovery_frontier_fallback_acceptances": 0,
+            "profile_scale_branch_diversity_recovery_frontier_rejections": 0,
+            "profile_scale_branch_diversity_recovery_frontier_records": 0,
+            "profile_scale_branch_diversity_recovery_frontier_rejection_reasons": {},
+            "profile_scale_branch_diversity_recovery_frontier_profile_acceptance_outcomes": {},
+            "profile_scale_branch_diversity_recovery_frontier_profile_score_deltas": {},
+            "profile_scale_branch_diversity_recovery_frontier_probe_sample": [],
             "calibrated_min_learning_rate_scale": (
                 min(direct_baseline_floor_learning_rate_scales)
                 if direct_answer_baseline_floor_calibrated_sequential_stabilization_active
@@ -8526,6 +8602,7 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                 "profile_scale_coverage_prep_frontier_diversity_calibrated_sequential_profile_stabilization",
                 "profile_scale_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization",
                 "profile_scale_branch_stable_coverage_recovery_frontier_diversity_calibrated_sequential_profile_stabilization",
+                "profile_scale_branch_diversity_recovery_frontier_calibrated_sequential_profile_stabilization",
             }:
                 direct_answer_update_guard["stabilized_steps"] += 1
                 direct_answer_update_guard["stabilized_attempts"] += 1
@@ -8572,6 +8649,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             set(),
                         ).add(target)
                 if (
+                    direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                ):
+                    update_shape = (
+                        "profile_scale_branch_diversity_recovery_frontier_calibrated_sequential_profile_stabilization"
+                    )
+                elif (
                     direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
                 ):
                     update_shape = (
@@ -8828,6 +8911,19 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                         coverage_recovery_branch_stable_checked = False
                         coverage_recovery_branch_stable_accepted = False
                         coverage_recovery_branch_stability_preserved: bool | None = None
+                        branch_diversity_recovery_attempted = False
+                        branch_diversity_recovery_accepted = False
+                        branch_diversity_recovery_outcome = "not_attempted"
+                        branch_diversity_recovery_rejection_reason = ""
+                        branch_diversity_recovery_learning_rate_scale: float | None = (
+                            None
+                        )
+                        branch_diversity_recovery_records = 0
+                        branch_diversity_recovery_base_score: tuple[float, ...] | None = (
+                            None
+                        )
+                        branch_diversity_recovery_score: tuple[float, ...] | None = None
+                        branch_diversity_recovery_delta: dict[str, Any] | None = None
                         if (
                             direct_answer_baseline_floor_profile_scale_coverage_recovery_frontier_stabilization_active
                             and coverage_prep_accepted
@@ -9071,6 +9167,188 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                             or coverage_outcome == "gained"
                             or coverage_prep_accepted
                         )
+                        if (
+                            direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                            and floor_preserved
+                            and diversity_accepted
+                            and coverage_accepted
+                            and profile_score is not None
+                        ):
+                            direct_answer_update_guard[
+                                "profile_scale_branch_diversity_recovery_frontier_candidates"
+                            ] += 1
+                            branch_diversity_recovery_base_score = profile_score
+                            branch_diversity_candidate_model_payload = model.to_dict(
+                                tokenizer
+                            )
+                            branch_diversity_candidate_optimizer_payload = (
+                                optimizer.to_dict()
+                            )
+                            branch_diversity_recovery_records = len(profile_batch)
+                            for (
+                                branch_diversity_learning_rate_scale
+                            ) in BASELINE_FLOOR_BRANCH_DIVERSITY_RECOVERY_LEARNING_RATE_SCALES:
+                                restore_direct_update_state(
+                                    branch_diversity_candidate_model_payload,
+                                    branch_diversity_candidate_optimizer_payload,
+                                )
+                                branch_diversity_recovery_attempted = True
+                                direct_answer_update_guard[
+                                    "profile_scale_branch_diversity_recovery_frontier_attempts"
+                                ] += 1
+                                direct_answer_update_guard[
+                                    "profile_scale_branch_diversity_recovery_frontier_records"
+                                ] += branch_diversity_recovery_records
+                                branch_diversity_loss = train_direct_answer_baseline_floor_anchor_branch_diversity(
+                                    model,
+                                    profile_batch,
+                                    (
+                                        args.direct_answer_learning_rate
+                                        * profile_scale
+                                        * branch_diversity_learning_rate_scale
+                                    ),
+                                    args.direct_answer_negative_weight,
+                                    args.direct_answer_positive_weight,
+                                    args.direct_answer_contrast_weight,
+                                    params=direct_params,
+                                )
+                                total_loss += branch_diversity_loss
+                                loss_count += 1
+                                branch_diversity_probe_snapshot = direct_snapshot_record(
+                                    direct_step,
+                                    None,
+                                    {
+                                        "baseline_floor_update_guard_probe": True,
+                                        "baseline_floor_sequential_profile_probe": True,
+                                        "baseline_floor_calibrated_sequential_profile_probe": True,
+                                        "baseline_floor_profile_scale_memory_probe": True,
+                                        "baseline_floor_profile_scale_frontier_probe": True,
+                                        "baseline_floor_profile_scale_branch_diversity_recovery_probe": True,
+                                        "learning_rate_scale": profile_scale,
+                                        "branch_diversity_recovery_learning_rate_scale": (
+                                            branch_diversity_learning_rate_scale
+                                        ),
+                                        "update_shape": update_shape,
+                                        "sequential_profile": profile,
+                                        "sequential_profile_records": len(
+                                            profile_batch
+                                        ),
+                                        "sequential_profile_frontier_records": (
+                                            profile_frontier_records
+                                        ),
+                                        "branch_diversity_recovery_records": (
+                                            branch_diversity_recovery_records
+                                        ),
+                                    },
+                                )
+                                branch_diversity_floor_preserved = branch_diversity_snapshot_preserves_target_coverage(
+                                    branch_diversity_probe_snapshot,
+                                    direct_baseline,
+                                )
+                                branch_diversity_score = (
+                                    branch_diversity_snapshot_score(
+                                        branch_diversity_probe_snapshot
+                                    )
+                                )
+                                branch_diversity_recovery_score = (
+                                    branch_diversity_score
+                                )
+                                branch_diversity_delta = branch_diversity_snapshot_target_coverage_delta(
+                                    branch_diversity_probe_snapshot,
+                                    profile_probe_snapshot,
+                                )
+                                branch_diversity_recovery_delta = (
+                                    branch_diversity_delta
+                                )
+                                if not branch_diversity_floor_preserved:
+                                    branch_diversity_recovery_outcome = (
+                                        "floor_regressed"
+                                    )
+                                    branch_diversity_recovery_rejection_reason = (
+                                        "floor_regression"
+                                    )
+                                elif (
+                                    int(
+                                        branch_diversity_delta[
+                                            "regressed_profile_count"
+                                        ]
+                                    )
+                                    > 0
+                                ):
+                                    branch_diversity_recovery_outcome = (
+                                        "coverage_regressed"
+                                    )
+                                    branch_diversity_recovery_rejection_reason = (
+                                        "coverage_regression"
+                                    )
+                                elif (
+                                    branch_diversity_score
+                                    > branch_diversity_recovery_base_score
+                                ):
+                                    branch_diversity_recovery_outcome = (
+                                        "branch_diversity_improved"
+                                    )
+                                    branch_diversity_recovery_rejection_reason = ""
+                                    branch_diversity_recovery_accepted = True
+                                    branch_diversity_recovery_learning_rate_scale = (
+                                        branch_diversity_learning_rate_scale
+                                    )
+                                    floor_preserved = (
+                                        branch_diversity_floor_preserved
+                                    )
+                                    profile_probe_snapshot = (
+                                        branch_diversity_probe_snapshot
+                                    )
+                                    profile_score = branch_diversity_score
+                                    diversity_outcome = "improved"
+                                    diversity_rejection_reason = ""
+                                    direct_answer_update_guard[
+                                        "profile_scale_branch_diversity_recovery_frontier_acceptances"
+                                    ] += 1
+                                    break
+                                elif (
+                                    branch_diversity_score
+                                    == branch_diversity_recovery_base_score
+                                ):
+                                    branch_diversity_recovery_outcome = (
+                                        "score_tied"
+                                    )
+                                    branch_diversity_recovery_rejection_reason = (
+                                        "score_tie"
+                                    )
+                                else:
+                                    branch_diversity_recovery_outcome = (
+                                        "score_regressed"
+                                    )
+                                    branch_diversity_recovery_rejection_reason = (
+                                        "score_regression"
+                                    )
+                                direct_answer_update_guard[
+                                    "profile_scale_branch_diversity_recovery_frontier_rejections"
+                                ] += 1
+                                branch_diversity_reasons = direct_answer_update_guard[
+                                    "profile_scale_branch_diversity_recovery_frontier_rejection_reasons"
+                                ]
+                                if isinstance(branch_diversity_reasons, dict):
+                                    branch_diversity_reasons[
+                                        branch_diversity_recovery_rejection_reason
+                                    ] = (
+                                        int(
+                                            branch_diversity_reasons.get(
+                                                branch_diversity_recovery_rejection_reason,
+                                                0,
+                                            )
+                                        )
+                                        + 1
+                                    )
+                            if not branch_diversity_recovery_accepted:
+                                restore_direct_update_state(
+                                    branch_diversity_candidate_model_payload,
+                                    branch_diversity_candidate_optimizer_payload,
+                                )
+                                direct_answer_update_guard[
+                                    "profile_scale_branch_diversity_recovery_frontier_fallback_acceptances"
+                                ] += 1
                         if floor_preserved and diversity_accepted and coverage_accepted:
                             direct_answer_update_guard[
                                 "sequential_profile_acceptances"
@@ -9217,6 +9495,39 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                     and coverage_outcome == "gained"
                                 ):
                                     branch_stable_outcomes[profile] = "coverage_gain"
+                            branch_diversity_outcomes = direct_answer_update_guard[
+                                "profile_scale_branch_diversity_recovery_frontier_profile_acceptance_outcomes"
+                            ]
+                            if isinstance(branch_diversity_outcomes, dict):
+                                if branch_diversity_recovery_accepted:
+                                    branch_diversity_outcomes[profile] = (
+                                        "branch_diversity_recovery"
+                                    )
+                                elif (
+                                    direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                                    and branch_diversity_recovery_attempted
+                                ):
+                                    branch_diversity_outcomes[profile] = (
+                                        "branch_diversity_fallback"
+                                    )
+                            branch_diversity_score_deltas = direct_answer_update_guard[
+                                "profile_scale_branch_diversity_recovery_frontier_profile_score_deltas"
+                            ]
+                            if (
+                                isinstance(branch_diversity_score_deltas, dict)
+                                and branch_diversity_recovery_base_score is not None
+                                and branch_diversity_recovery_score is not None
+                            ):
+                                branch_diversity_score_deltas[profile] = {
+                                    "base_score": list(
+                                        branch_diversity_recovery_base_score
+                                    ),
+                                    "final_score": list(
+                                        branch_diversity_recovery_score
+                                    ),
+                                    "improved": branch_diversity_recovery_accepted,
+                                    "outcome": branch_diversity_recovery_outcome,
+                                }
                             accepted_any = True
                             profile_accepted = True
                             sample = {
@@ -9296,6 +9607,53 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                         sample["coverage_recovery_score"] = list(
                                             coverage_recovery_score
                                         )
+                                if (
+                                    direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                                ):
+                                    sample[
+                                        "branch_diversity_recovery_attempted"
+                                    ] = branch_diversity_recovery_attempted
+                                    sample[
+                                        "branch_diversity_recovery_accepted"
+                                    ] = branch_diversity_recovery_accepted
+                                    sample[
+                                        "branch_diversity_recovery_outcome"
+                                    ] = branch_diversity_recovery_outcome
+                                    if branch_diversity_recovery_rejection_reason:
+                                        sample[
+                                            "branch_diversity_recovery_rejection_reason"
+                                        ] = (
+                                            branch_diversity_recovery_rejection_reason
+                                        )
+                                    if (
+                                        branch_diversity_recovery_learning_rate_scale
+                                        is not None
+                                    ):
+                                        sample[
+                                            "branch_diversity_recovery_learning_rate_scale"
+                                        ] = (
+                                            branch_diversity_recovery_learning_rate_scale
+                                        )
+                                    sample[
+                                        "branch_diversity_recovery_records"
+                                    ] = branch_diversity_recovery_records
+                                    if (
+                                        branch_diversity_recovery_base_score
+                                        is not None
+                                    ):
+                                        sample[
+                                            "branch_diversity_recovery_base_score"
+                                        ] = list(
+                                            branch_diversity_recovery_base_score
+                                        )
+                                    if branch_diversity_recovery_score is not None:
+                                        sample[
+                                            "branch_diversity_recovery_score"
+                                        ] = list(branch_diversity_recovery_score)
+                                    if branch_diversity_recovery_delta is not None:
+                                        sample[
+                                            "branch_diversity_recovery_delta"
+                                        ] = branch_diversity_recovery_delta
                             if (
                                 isinstance(probe_sample, list)
                                 and len(probe_sample) < 12
@@ -9350,6 +9708,16 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                                 and len(branch_stable_sample) < 12
                             ):
                                 branch_stable_sample.append(sample)
+                            branch_diversity_sample = direct_answer_update_guard[
+                                "profile_scale_branch_diversity_recovery_frontier_probe_sample"
+                            ]
+                            if (
+                                direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                                and
+                                isinstance(branch_diversity_sample, list)
+                                and len(branch_diversity_sample) < 12
+                            ):
+                                branch_diversity_sample.append(sample)
                             break
                         direct_answer_update_guard[
                             "sequential_profile_rejections"
@@ -9714,6 +10082,12 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
                     direct_answer_baseline_floor_profile_scale_calibrated_stabilization_active
                 ):
                     if (
+                        direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
+                    ):
+                        attempt_update_shape = (
+                            "profile_scale_branch_diversity_recovery_frontier_calibrated_sequential_profile_stabilization"
+                        )
+                    elif (
                         direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
                     ):
                         attempt_update_shape = (
@@ -11635,6 +12009,9 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active": (
                 direct_answer_baseline_floor_profile_scale_branch_stable_coverage_recovery_frontier_stabilization_active
+            ),
+            "direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active": (
+                direct_answer_baseline_floor_profile_scale_branch_diversity_recovery_frontier_stabilization_active
             ),
             "direct_answer_update_guard": direct_answer_update_guard,
             "direct_answer_negative_weight": args.direct_answer_negative_weight,

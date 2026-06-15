@@ -92,8 +92,12 @@ direct-answer objective mode:
    preparation moves; rejected for promotion.
 25. **v0.99:** coverage-recovery frontier retry. Implemented with two recovery
    conversions; rejected for promotion.
-26. **v0.100.0+:** branch-stable recovery, tokenizer growth, or learned verifier
-   experiments.
+26. **v0.100.0:** branch-stable coverage recovery. Implemented with two
+   branch-stable recovery conversions; rejected for promotion.
+27. **v0.101.0:** branch-diversity recovery. Implemented with five local
+   branch-score refinements; rejected for promotion.
+28. **v0.102.0+:** collapsed-profile branch binding, tokenizer growth, or
+   learned verifier experiments.
 
 ## Current Gap
 
@@ -163,11 +167,13 @@ QuarkLM already has:
   `runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 - v0.100.0 branch-stable coverage-recovery frontier profile-scale baseline-floor stabilization evidence:
   `runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+- v0.101.0 branch-diversity recovery frontier profile-scale baseline-floor stabilization evidence:
+  `runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
 
 It still needs:
 
-- branch-diversity improvement that preserves v0.100.0 branch-stable recovery
-  evidence.
+- collapsed-profile branch binding that converts v0.101.0 local branch-score
+  gains into target-token coverage and predicted-token diversity.
 
 ## Operating Rule
 

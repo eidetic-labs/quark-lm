@@ -253,6 +253,14 @@ the recovered weights are accepted. The diagnostic screen keeps the two
 coverage recoveries, records fifteen branch-stability checks, rejects one retry
 for branch-score regression, and keeps promotion blocked on branch diversity.
 
+v0.101.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.100.0 branch-stable recovery guard and adds a bounded
+branch-diversity recovery step after already-safe profile updates. The
+diagnostic screen accepts six source-profile updates, runs branch-diversity
+recovery on all six, keeps five branch-score-improving refinements, falls back
+once, and keeps promotion blocked on branch diversity.
+
 Add `--use-context-mean` to either `train` or `answer-train` to test the
 experimental mean-pooled context residual in the final transformer
 representation. It is diagnostic architecture evidence only until it improves
@@ -1718,6 +1726,31 @@ Latest branch-stable coverage-recovery frontier profile-scale floor stabilizatio
 | Diversity target | failed, `0/9` multi-target profiles passed; coverage preservation passed, but max dominant predicted rate remains `1.0` and minimum target-token coverage remains `0.0` |
 | Promotion status | rejected for model promotion; v0.100.0 proves recovery conversion can be checked against branch stability, but branch-diverse behavior is still not stable enough to promote |
 
+Latest branch-diversity recovery frontier profile-scale floor stabilization screen:
+
+| Signal | Value |
+| --- | --- |
+| Run | `runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/` |
+| Mode | `branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood` |
+| Added mechanic | branch-diversity recovery: after a profile update is already safe under the floor, coverage, and branch-stability gates, try a small profile-local branch-diversity update and keep it only if branch score improves without coverage regression |
+| Unit coverage | focused transformer tests pass; the mode records branch-diversity recovery activation, candidates, attempts, acceptances, fallback acceptances, rejection reasons, accepted outcomes, score deltas, replay-plan activation, and the branch-diversity recovery update shape |
+| Search scales | `1`, `0.25`, `0.05`, `0.01`, `0.0025`, `0.0005`, `0.0001`; recovery retry scales `1`, `0.25`, `0.05`; branch-diversity recovery scales `0.25`, `0.05`, `0.01` |
+| Frontier anchors | `52` anchors across `10` source-profile groups and `52` source-profile targets |
+| Outer guard | checked `1/1` step; attempted `1` update; accepted `1`; rejected `0` |
+| Profile-scale attempts | `52` attempted; `6` accepted; `46` rejected |
+| Coverage outcomes | `2` coverage gains; `16` coverage ties; `34` coverage regressions |
+| Coverage-prep outcomes | `2` gain acceptances; `4` preparation acceptances; `46` rejections |
+| Branch-stable recovery outcomes | `4` prepared candidates; `12` branch-stability checks; `0` branch-stable recoveries; `4` preparation fallbacks; `12` retry rejections |
+| Branch-diversity recovery outcomes | `6` candidates; `9` attempts; `5` branch-score-improving refinements; `1` fallback; `4` rejected attempts |
+| Branch-diversity rejection reasons | `1` floor regression; `1` score regression; `2` score ties |
+| Accepted profile scales | `bridge:owner 1`, `bridge:place 1`, `fact:glossary 0.05`, `fact:owner 0.01`, `fact:place 0.05`, `fact:self 0.0025` |
+| Accepted branch-diversity outcomes | `bridge:owner`, `bridge:place`, `fact:glossary`, `fact:owner`, and `fact:place` improved branch score; `fact:self` fell back |
+| Accepted update shapes | `profile_scale_branch_diversity_recovery_frontier_calibrated_sequential_profile_stabilization: 1` |
+| Branch-context gate | passed across `219/219` semantic records with no ambiguous, colliding, or skipped records |
+| Deterministic verifier | passed with no external model |
+| Diversity target | failed, `0/9` multi-target profiles passed; coverage preservation passed, but max dominant predicted rate remains `1.0` and minimum target-token coverage remains `0.0` |
+| Promotion status | rejected for model promotion; v0.101.0 proves local branch-diversity recovery can improve guarded profile states, but global branch-diverse behavior is still not stable enough to promote |
+
 The transformer is not yet promoted as a reliable responder. It is architecture
 evidence: a from-scratch attention model can update weights on the admitted
 corpus and leave a checkpoint plus metrics. v0.42 preserves the `37/219`
@@ -1851,5 +1884,8 @@ source-profile updates, and separates three coverage gains from six safe setup
 moves. v0.99 adds coverage-recovery retry, converts two prepared candidates
 into direct coverage recoveries, and preserves four preparation fallbacks.
 v0.100.0 adds branch-stable recovery acceptance, keeps those two recoveries,
-and records one branch-score regression rejection. The next repair should
-increase branch diversity without weakening the recovery and coverage floors.
+and records one branch-score regression rejection. v0.101.0 adds
+branch-diversity recovery, accepts five local branch-score refinements, and
+falls back once. The next repair should convert those local score gains into
+target-token coverage and predicted-token diversity for the profiles that
+remain collapsed.

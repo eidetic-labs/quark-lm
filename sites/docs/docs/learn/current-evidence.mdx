@@ -1020,6 +1020,17 @@ still rejects the transformer on `branch_diversity_target`, but the guard now
 proves recovery can be checked against the prepared branch-diversity score
 instead of coverage alone.
 
+v0.101.0 adds branch-diversity recovery after already-safe profile updates. The
+diagnostic screen in
+`runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+records one accepted outer branch-diversity recovery update, `52` profile-scale
+attempts, `6` accepted source-profile updates, `6` branch-diversity recovery
+candidates, `9` branch-diversity recovery attempts, `5` branch-score-improving
+refinements, `1` fallback, `1` floor-regression rejection, `1`
+score-regression rejection, and `2` score-tie rejections. Promotion still
+rejects the transformer on `branch_diversity_target`, but the guard now proves
+local branch-diversity score can improve without weakening the coverage floor.
+
 The v0.42 self-improvement run passed:
 
 - direct admission-probe audit

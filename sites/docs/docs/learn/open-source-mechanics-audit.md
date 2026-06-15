@@ -133,6 +133,10 @@ diversity after recovery. v0.100.0 adds branch-stable coverage-recovery
 acceptance, keeps the `2` recovery conversions, records `15` branch-stability
 checks, rejects `1` retry for branch-score regression, and shifts the next
 mechanics change toward branch diversity that preserves recovery evidence.
+v0.101.0 adds branch-diversity recovery after safe profile updates, accepts `5`
+local branch-score refinements, falls back once, and shifts the next mechanics
+change toward converting local branch-score gains into global target-token
+coverage.
 
 This keeps self-improvement aligned with the closed-world claim: new behavior
 must be trained from admitted data, measured by profile, and rejected when it

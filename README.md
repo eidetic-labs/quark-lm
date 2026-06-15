@@ -435,6 +435,21 @@ branch-score regression. Promotion remains rejected on
 `branch_diversity_target`, but v0.100.0 proves recovery conversion can be
 audited against branch-stability rather than coverage alone.
 
+v0.101.0 adds
+`branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood`.
+It keeps the v0.100.0 branch-stable recovery guard and adds a bounded
+branch-diversity recovery micro-step after already-acceptable profile updates.
+The matching diagnostic screen ran at
+`runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
+It checked `1/1` direct step, attempted `52` profile-scale updates, accepted
+`6` source-profile updates, ran branch-diversity recovery on all `6`
+accepted candidates, accepted `5` branch-score-improving refinements, and
+fell back once. The branch-diversity recovery step rejected `1` floor
+regression, `1` score regression, and `2` score ties while keeping promotion
+blocked on `branch_diversity_target`. v0.101.0 proves local branch diversity can
+be improved under the same floor and coverage gates, but it is still not a
+promoted responder.
+
 ## Latest Evidence
 
 Current promoted run: `runs/self-improve-v0.42/`.
@@ -1106,6 +1121,12 @@ Current transformer answer-lesson run:
   `runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
   keeps the `2` recovery conversions, records `15` branch-stability checks,
   rejects `1` retry for branch-score regression, and still rejects promotion on
+  `branch_diversity_target`.
+- v0.101.0 adds branch-diversity recovery after safe profile updates. The
+  diagnostic run
+  `runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
+  accepts `6` source-profile updates, accepts `5` branch-diversity recovery
+  refinements, falls back once, and still rejects promotion on
   `branch_diversity_target`.
 - The v0.31 no-candidate auxiliary generator remains the best exact
   no-candidate answer evidence: it trained for `80000` weighted steps at

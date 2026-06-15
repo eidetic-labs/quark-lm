@@ -113,7 +113,10 @@ fallbacks, and shows the next repair should stabilize branch diversity after
 coverage recovery. v0.100.0 adds branch-stable coverage-recovery acceptance,
 keeps the `2` recovery conversions, records `15` branch-stability checks,
 rejects `1` retry for branch-score regression, and shows the next repair should
-increase branch diversity without weakening the recovery floor.
+increase branch diversity without weakening the recovery floor. v0.101.0 adds
+branch-diversity recovery after safe profile updates, accepts `5` local
+branch-score refinements, falls back once, and shows the next repair should
+turn local score gains into target-token coverage for the collapsed profiles.
 See
 [Forward research plan](./forward-research-plan.md) and
 [Deep research review](./deep-research-review.md).
