@@ -69,6 +69,7 @@ the update improves behavior without breaking older evidence.
 | [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.115.0 routing-repair handoff. |
 | [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.115.0 hidden-projection candidate evidence. |
 | [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
+| [Historical evidence archive](./historical-evidence.md) | You want older evidence that was moved out of `GOAL.md`. |
 
 ## Core Idea
 

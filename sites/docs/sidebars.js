@@ -16,6 +16,7 @@ const sidebars = {
         'learn/deep-research-review',
         'learn/research-implementation-map',
         'learn/current-evidence',
+        'learn/historical-evidence',
       ],
     },
   ],
