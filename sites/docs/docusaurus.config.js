@@ -1,12 +1,26 @@
 const path = require('path');
 
+const readTheDocsBaseUrl = () => {
+  if (process.env.DOCUSAURUS_BASE_URL) {
+    return process.env.DOCUSAURUS_BASE_URL;
+  }
+
+  if (process.env.READTHEDOCS === 'True') {
+    const language = process.env.READTHEDOCS_LANGUAGE || 'en';
+    const version = process.env.READTHEDOCS_VERSION || 'latest';
+    return `/${language}/${version}/`;
+  }
+
+  return '/';
+};
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'QuarkLM',
   tagline: 'Big idea. Tiny package.',
   favicon: 'img/brand/favicon.svg',
   url: 'https://docs.quark-lm.eidetic-labs.com',
-  baseUrl: '/',
+  baseUrl: readTheDocsBaseUrl(),
   organizationName: 'eidetic-labs',
   projectName: 'quark-lm',
   trailingSlash: true,

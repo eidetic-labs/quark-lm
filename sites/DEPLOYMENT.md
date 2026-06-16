@@ -10,6 +10,8 @@ QuarkLM has two public web surfaces with separate hosting responsibilities:
 The docs site is Docusaurus and follows the Learn, Build, Operate, Secure
 structure used by Craik docs. Read the Docs builds it from `.readthedocs.yaml`
 and publishes the generated Docusaurus HTML from `sites/docs/build`.
+Docusaurus uses `/` for local builds and derives the hosted base URL from Read
+the Docs environment variables, such as `/en/latest/`, during RTD builds.
 
 The marketing site must not be Docusaurus. It is a standalone static product
 page in the Craik/Stigmem style, built from plain HTML, CSS, and JavaScript by
@@ -30,6 +32,12 @@ Pages for the marketing surface. The docs surface is hosted by Read the Docs so
 
 The GitHub Actions `Check QuarkLM Docs` workflow only validates the Docusaurus
 build. It does not deploy docs.
+
+To reproduce the hosted docs path locally:
+
+```bash
+READTHEDOCS=True READTHEDOCS_LANGUAGE=en READTHEDOCS_VERSION=latest npm run docs:build
+```
 
 ## GitHub Pages
 
