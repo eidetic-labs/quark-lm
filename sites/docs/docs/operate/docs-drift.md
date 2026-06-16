@@ -9,6 +9,10 @@ QuarkLM treats docs as part of the model-improvement system.
 
 The current rule:
 
+- README is a concise repository front door. Durable model philosophy, release
+  posture, evidence history, deployment details, and long-form explanations
+  belong in Docusaurus and should be linked from README rather than copied
+  there.
 - README, STATUS, GOAL, and QUALITY are reviewed every promoted version.
 - Docusaurus docs are reviewed every promoted version.
 - The marketing page is reviewed every promoted version when it references

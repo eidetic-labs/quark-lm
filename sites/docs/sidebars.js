@@ -6,6 +6,7 @@ const sidebars = {
       label: 'Learn',
       link: { type: 'doc', id: 'learn/index' },
       items: [
+        'learn/project-overview',
         'learn/language-model',
         'learn/self-improvement-loop',
         'learn/research-grounding',

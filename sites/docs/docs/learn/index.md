@@ -59,6 +59,7 @@ the update improves behavior without breaking older evidence.
 
 | Page | Use it when |
 | --- | --- |
+| [Project overview](./project-overview.md) | You want the repository front door, release posture, public surfaces, and where the long evidence trail lives. |
 | [Language model](./language-model.md) | You want the memory-native model philosophy and closed-world boundaries. |
 | [Self-improvement loop](./self-improvement-loop.md) | You want the corpus-to-memory-to-weight-update lifecycle. |
 | [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
