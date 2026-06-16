@@ -25,9 +25,9 @@ const sections = [
     number: '03',
     label: 'Operate',
     title: 'Promote releases with evidence',
-    body: 'Use self-improvement reports, self-diagnosis, forgetting audits, provenance snapshots, and docs freshness gates.',
+    body: 'Use RC readiness, self-improvement reports, forgetting audits, provenance snapshots, and docs freshness gates.',
     to: '/docs/operate/',
-    chips: ['release gates', 'reports', 'provenance', 'docs drift'],
+    chips: ['RC readiness', 'release gates', 'provenance', 'docs drift'],
   },
   {
     number: '04',
@@ -55,7 +55,7 @@ const paths = [
     steps: [
       ['Admission workflow', '/docs/build/admission-workflow/'],
       ['Generated probes', '/docs/build/generated-probes/'],
-      ['Release discipline', '/docs/operate/release-discipline/'],
+      ['RC readiness', '/docs/operate/release-candidate/'],
     ],
   },
   {
@@ -81,6 +81,7 @@ const primitives = [
   ['transformer.surface', 'Transformer surfaces', 'Experiment, artifact, trainer, and objective catalog boundaries for answer-training screens.'],
   ['checkpoint.meta', 'Checkpoint metadata', 'Centralized transformer config, checkpoint identity, dataset metadata, and run metadata.'],
   ['eval.report', 'Eval report', 'Checkpoint loading, probe scoring, sample JSONL, and eval JSON assembled through narrow surfaces.'],
+  ['rc.boundary', 'RC boundary', 'Research Prototype RC and Language Model RC stay separate until transformer promotion gates pass.'],
   ['docs.release', 'Docs gate', 'README, docs, and marketing content updated with each release when they reference current state.'],
 ];
 

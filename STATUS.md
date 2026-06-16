@@ -3,6 +3,8 @@
 **Status:** Experimental research scaffold
 **Active version:** v0.115.0 hidden-projection margin candidate;
 promoted responder evidence remains v0.42
+**RC posture:** Research Prototype RC is near; Language Model RC is blocked by
+transformer branch routing.
 **Last updated:** 2026-06-15
 **Buildable:** yes, with Python standard library only
 
@@ -86,9 +88,13 @@ Working tagline: Big idea. Tiny package.
 - Self-improvement attempts are archived under `attempts/attempt-###/` before
   the top-level latest report is updated.
 - Package metadata now uses `quark-lm`, with `quark-lm-*` script aliases.
-- Public surfaces: Docusaurus docs at `docs.quark-lm.eidetic-labs.com` and a
-  standalone static marketing page at `quark-lm.eidetic-labs.com`, with
-  GitHub Actions deployment scaffolds. The marketing site is not Docusaurus.
+- Public surfaces: Docusaurus docs at `docs.quark-lm.eidetic-labs.com` hosted
+  by Read the Docs, and a standalone static marketing page at
+  `quark-lm.eidetic-labs.com` hosted by GitHub Pages. The marketing site is not
+  Docusaurus.
+- Release-candidate planning in `RC_SPEC.md`, `RC_GAP_AUDIT.md`, and
+  `RC_CHECKLIST.md`, separating Research Prototype RC readiness from Language
+  Model RC readiness.
 - SOLID-aligned quality guidance in `QUALITY.md`.
 - Paper-grounded research guidance for continual learning, replay,
   self-generated candidate lessons, retrieval rails, model editing boundaries,

@@ -38,6 +38,7 @@ const sidebars = {
       label: 'Operate',
       link: { type: 'doc', id: 'operate/index' },
       items: [
+        'operate/release-candidate',
         'operate/release-discipline',
         'operate/experiment-registry',
         'operate/corpus-hygiene',

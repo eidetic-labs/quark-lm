@@ -1,0 +1,36 @@
+name: Check QuarkLM Docs
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'sites/docs/**'
+      - 'sites/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.readthedocs.yaml'
+      - '.github/workflows/check-docs.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sites/docs/**'
+      - 'sites/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.readthedocs.yaml'
+      - '.github/workflows/check-docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:build

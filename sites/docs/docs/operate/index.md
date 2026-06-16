@@ -23,9 +23,12 @@ public surfaces synchronized.
 | `constraint_first_promotion.json` | Promotion gate that blocks quality metrics until closed-world constraints pass. |
 | `corpus_snapshot.json` | Current ledger source hashes and record counts. |
 | `corpus_diff.json` | Comparison to the previous promoted run. |
+| `RC_SPEC.md` / `RC_GAP_AUDIT.md` / `RC_CHECKLIST.md` | Release-candidate track, gap, checklist, and forbidden-claim controls. |
+| `.readthedocs.yaml` / `sites/DEPLOYMENT.md` | Docs-on-Read-the-Docs and marketing-on-GitHub-Pages hosting controls. |
 | README / Docusaurus / marketing | Public state that must not drift. |
 
-Start with [release discipline](./release-discipline.md), then read
+Start with [release candidate readiness](./release-candidate.md), then read
+[release discipline](./release-discipline.md),
 [experiment registry](./experiment-registry.md), [corpus hygiene](./corpus-hygiene.md),
 [candidate quarantine](./candidate-quarantine.md),
 [closed-world verifier](./closed-world-verifier.md),

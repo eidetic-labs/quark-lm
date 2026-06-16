@@ -1,0 +1,12 @@
+# Read the Docs configuration for QuarkLM's Docusaurus docs.
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    nodejs: "22"
+  commands:
+    - npm ci
+    - npm run docs:build
+    - mkdir -p "$READTHEDOCS_OUTPUT/html"
+    - cp -R sites/docs/build/. "$READTHEDOCS_OUTPUT/html/"

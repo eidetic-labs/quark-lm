@@ -2,6 +2,14 @@
 runs/
 *.pyc
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.venv/
+.env
 node_modules/
 /.docusaurus/
 sites/docs/.docusaurus/
@@ -9,4 +17,5 @@ sites/docs/build/
 sites/marketing/build/
 /site-build/
 npm-debug.log*
+*.log
 .DS_Store

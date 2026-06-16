@@ -7,6 +7,7 @@ description: Promotion gates for QuarkLM releases.
 
 A promoted QuarkLM run must have:
 
+- a named RC track when tagging or announcing a release candidate
 - a versioned run directory
 - baseline and final metrics
 - responder, answer-model, and decoder evals
@@ -35,6 +36,7 @@ A promoted QuarkLM run must have:
 - archived attempts under `attempts/attempt-###/`
 - corpus snapshot and diff
 - docs updated for the current state
+- RC spec, gap audit, and checklist reviewed for forbidden claims
 
 New release identifiers use SemVer (Semantic Versioning) with
 `vMAJOR.MINOR.PATCH` tags and matching run paths. The next release after

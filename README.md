@@ -22,6 +22,32 @@ This is not yet a useful assistant. It is a first closed-world language model lo
 glossary, simple grammar, tiny stories, question-answer lessons, training, and
 closed-world probes.
 
+## Release Candidate Posture
+
+QuarkLM now separates release-candidate readiness into two tracks:
+
+- **Research Prototype RC:** the admitted-corpus learning loop is reproducible,
+  auditable, documented, and honest about what is not yet promoted.
+- **Language Model RC:** the from-scratch transformer itself passes neural
+  promotion gates and answers admitted evals without hidden candidate
+  selection.
+
+Current posture: Research Prototype RC is near; Language Model RC is not ready.
+The current transformer still fails `branch_diversity_target` in v0.115. See
+`RC_SPEC.md`, `RC_GAP_AUDIT.md`, and `RC_CHECKLIST.md` before resuming the
+versioned model loop.
+
+## Public Sites
+
+QuarkLM has two public surfaces with separate hosts:
+
+- Docusaurus docs at `docs.quark-lm.eidetic-labs.com`, published by Read the
+  Docs from `.readthedocs.yaml`.
+- The standalone marketing page at `quark-lm.eidetic-labs.com`, published by
+  GitHub Pages from `sites/marketing/build`.
+
+See `sites/DEPLOYMENT.md` before changing site deployment.
+
 ## Model Philosophy
 
 QuarkLM is memory-native before it is weight-native. The core learning loop is:
