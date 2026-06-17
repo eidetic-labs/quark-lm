@@ -5,7 +5,7 @@ description: The research-backed implementation sequence for QuarkLM's next self
 
 # Forward Research Plan
 
-<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Last reviewed 2026-06-14</span></p>
 
 <div className="qlm-lead">
 
@@ -17,8 +17,6 @@ description: The research-backed implementation sequence for QuarkLM's next self
 - The current decision and what the next repair must clear.
 
 </div>
-
-Last reviewed: 2026-06-14.
 
 The full plan lives in the repository root at `FORWARD_RESEARCH_PLAN.md`.
 

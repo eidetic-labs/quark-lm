@@ -84,16 +84,12 @@ first admitted into a tiny owned world, served by exact retrieval when possible,
 and only later considered for weight consolidation if the guarded trainer proves
 the update improves behavior without breaking older evidence.
 
-<div className="qlm-grid">
-<div><h4>Conventional large-model path</h4><p>Broad pretraining creates a fluent base before a user ever adds data.</p></div>
-<div><h4>QuarkLM path</h4><p>Random weights start with no world knowledge; admitted data creates the world.</p></div>
-<div><h4>Conventional large-model path</h4><p>Retrieval often augments an already capable model at inference time.</p></div>
-<div><h4>QuarkLM path</h4><p>Retrieval memory is the first auditable expression of admitted knowledge.</p></div>
-<div><h4>Conventional large-model path</h4><p>Fine-tuning or adapters may update behavior after the base already knows many things.</p></div>
-<div><h4>QuarkLM path</h4><p>Guarded updates are the only route from admitted corpus evidence into weights.</p></div>
-<div><h4>Conventional large-model path</h4><p>Success is often measured through aggregate benchmark movement.</p></div>
-<div><h4>QuarkLM path</h4><p>Promotion requires closed-world constraints, retention, target coverage, and current evidence.</p></div>
-</div>
+| Conventional large model | QuarkLM |
+| --- | --- |
+| Broad pretraining creates a fluent base before a user ever adds data. | Random weights start with no world knowledge; admitted data creates the world. |
+| Retrieval often augments an already capable model at inference time. | Retrieval memory is the first auditable expression of admitted knowledge. |
+| Fine-tuning or adapters may update behavior after the base already knows many things. | Guarded updates are the only route from admitted corpus evidence into weights. |
+| Success is often measured through aggregate benchmark movement. | Promotion requires closed-world constraints, retention, target coverage, and current evidence. |
 
 ## Read First
 

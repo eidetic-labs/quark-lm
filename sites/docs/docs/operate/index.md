@@ -49,24 +49,9 @@ are checked first; quality is allowed to count only after they pass.
 
 Two distinctions are enforced across every page here.
 
-<div className="qlm-keypoint">
-
-**A candidate is not training data**
-
-A generated lesson, probe, repair, or memory proposal is not training data until
-it is admitted to `corpus/ledger.json`. Candidate records carry history; the
-candidate store is not a training source.
-
-</div>
-
-<div className="qlm-keypoint">
-
-**Memory-served is not weight-consolidated**
-
-Retrieval answering a probe is `memory-served`, not `weight-consolidated`. Exact
-retrieval evidence proves the corpus *contains* the answer; it does not prove
-the transformer *learned* it. See [Build](../build/index.md).
-
+<div className="qlm-grid">
+<div><h4>A candidate is not training data</h4><p>A generated lesson, probe, repair, or memory proposal is not training data until it is admitted to <code>corpus/ledger.json</code>. Candidate records carry history; the candidate store is not a training source.</p></div>
+<div><h4>Memory-served is not weight-consolidated</h4><p>Retrieval answering a probe is <code>memory-served</code>, not <code>weight-consolidated</code>. Exact retrieval proves the corpus <em>contains</em> the answer; it does not prove the transformer <em>learned</em> it. See <a href="../build/index.md">Build</a>.</p></div>
 </div>
 
 ## Operating surfaces
