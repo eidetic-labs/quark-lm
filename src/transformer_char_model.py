@@ -14,17 +14,17 @@ from typing import Any
 from tokenizer import CharTokenizer
 from transformer_answer_training import train_transformer_answers_command
 from transformer_cli import run_transformer_cli
-from transformer_model import (
-    GenerationConfig,
-    OptimizationConfig,
-    TransformerConfig,
-)
+import transformer_model as transformer_model_types
 from transformer_text_commands import (
     eval_transformer_command,
     initialize_transformer_for_training_command,
     train_transformer_command,
 )
 from transformer_tiny_lm import TinyTransformerLM
+
+GenerationConfig = transformer_model_types.GenerationConfig
+OptimizationConfig = transformer_model_types.OptimizationConfig
+TransformerConfig = transformer_model_types.TransformerConfig
 
 __all__ = [
     "GenerationConfig",
