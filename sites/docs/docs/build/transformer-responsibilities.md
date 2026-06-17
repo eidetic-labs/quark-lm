@@ -5,151 +5,112 @@ description: The v0.78-v0.101.0 transformer responsibility, objective, and scree
 
 # Transformer Responsibilities
 
-v0.78 starts splitting transformer answer-training behind the recipe and
-verifier surfaces without changing the public CLI. v0.79 adds the
-model/config/checkpoint metadata surface. v0.80 adds checkpoint-load and eval
-report surfaces. v0.81 uses those surfaces to add profile target-share
-anti-collapse pressure to the direct-answer objective path. v0.82 screens that
-objective under the modern artifact stack, rejects it on branch diversity, and
-fixes the transformer purity metrics so `external_embeddings: false` is
-declared for constraint-first checks. v0.83 adds prompt-specific ownership
-margins on top of profile target-share pressure and rejects the screen because
-trained snapshots still lose target-token coverage. v0.84 adds baseline replay
-anchors and rejects the screen because trained snapshots preserve only half of
-the baseline QA/heldout coverage floor. v0.85 adds baseline-floor update gating
-and rejects the screen because all attempted updates fall below the floor. v0.86
-adds adaptive baseline-floor retries across smaller learning-rate scales and
-rejects the screen because all `200/200` attempted retry updates still fall
-below the floor. v0.87 adds one bounded baseline-covered repair after each
-failed retry and rejects the screen because all `200/200` repaired attempts
-still fall below the floor. v0.88 adds objective-side baseline-floor anchors
-and rejects the screen because all `200/200` objective-shaped attempts still
-fall below the floor. v0.89 removes branch-diversity pressure and trains only
-baseline-covered floor anchors, but still rejects all `200/200`
-stabilization-only attempts. v0.90 adds rejected-attempt diagnostics so the
-guard reports update shape, scale, violating profiles, and worst floor deficit.
-v0.91 covers the full baseline-covered profile-target floor surface and still
-rejects all attempts with the same violation pattern. v0.92 tries sequential
-source-profile floor repair with rollback after each profile group, but every
-profile-local attempt is rejected before any effective outer update survives.
-v0.93 adds calibrated sub-`0.01` scales plus coverage-only guard probes and
-accepts the first nonzero source-profile update under the baseline floor guard.
-v0.94 adds profile-scale memory and preserves eight calibrated source-profile
-updates in one guarded outer attempt.
-v0.95 adds diversity-aware profile-scale memory and preserves five
-score-improving source-profile updates while rejecting eleven floor-preserving
-score regressions.
-v0.96 adds frontier target anchors and preserves nine score-improving
-source-profile updates while lowering max dominant predicted rate to `0.9`.
-v0.97 adds coverage-frontier acceptance and records accepted coverage deltas,
-but the strict screen accepts only one coverage-gaining source-profile update.
-v0.98 adds coverage-prep frontier acceptance, restoring nine accepted
-source-profile updates while separating three coverage gains from six
-coverage-preparation moves.
-v0.99 adds coverage-recovery frontier retry, accepts six source-profile updates,
-converts two prepared candidates into direct coverage recoveries, and keeps four
-preparation fallbacks while branch diversity still blocks promotion.
-v0.100.0 adds branch-stable coverage-recovery acceptance, keeps the two
-recovery conversions, records fifteen branch-stability checks, and rejects one
-retry for branch-score regression while branch diversity still blocks promotion.
-v0.101.0 adds branch-diversity recovery after already-safe profile updates,
-accepts five local branch-score refinements, falls back once, and still blocks
-promotion on global branch diversity.
+The from-scratch transformer (`transformer_char_model`, see
+[Transformer](./transformer.md)) began as a single broad module. Starting at
+v0.78, the answer-training stack moved its work into a set of narrow, separately
+tested surfaces. This page is the durable map of those surfaces: what each one
+owns, why the split exists, and the contract the split preserves.
 
-The current surfaces are:
+:::note
+This page explains the surface layout. The version-by-version screen log that
+created and exercised these surfaces (v0.78 onward, and every evidence table)
+lives in [Transformer screen history](./transformer-screen-history.md).
+:::
+
+## Why the monolith was split
+
+Before v0.78, model and optimizer config validation, checkpoint loading,
+eval-report assembly, the direct-answer objective catalog, and trainer
+utilities all lived inside the model class and the CLI command body. That made
+each transformer repair a broad patch over a large surface, and made it hard to
+test one concern without exercising all of them.
+
+The split has one purpose: make later repair work smaller and more auditable. It
+does **not** claim better answer quality, and it does not change the public CLI
+or the artifacts a run writes. The transformer remains unpromoted, blocked on
+`branch_diversity_target`; the split is about how that work is organized, not
+about clearing the gate.
+
+## The surfaces
+
+Each surface owns one concern and is tested on its own:
 
 | Surface | File | Responsibility |
 | --- | --- | --- |
-| Model and checkpoint metadata | `src/closed_world_lm/transformer_model.py` | Model, optimizer, and generation configs; validation; checkpoint identity; closed-world dataset metadata; run metadata. |
-| Checkpoint loading | `src/closed_world_lm/transformer_checkpoint.py` | Checkpoint payload loading, identity validation, and checkpoint summaries. |
-| Eval reports | `src/closed_world_lm/transformer_eval.py` | Probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing. |
-| Experiment and artifacts | `src/closed_world_lm/transformer_experiment.py` | Run artifact paths, intent gates, recipe construction, and promotion decisions. |
-| Trainer utilities | `src/closed_world_lm/transformer_training.py` | JSONL snapshot writing, shuffled training cursors, and loss averaging. |
-| Objective catalog | `src/closed_world_lm/transformer_objectives.py` | Direct-answer objective names, including the v0.81 profile target-share mode, and small objective-selection primitives. |
-| Replay planning | `src/closed_world_lm/replay_plan.py` | Branch replay records, profile grouping, replay summaries, and coverage floors. |
-| Verifier | `src/closed_world_lm/closed_world_verifier.py` | Deterministic closed-world data-boundary checks before evidence is trusted. |
-| Recipes and gates | `src/closed_world_lm/training_recipe.py` | Reproducible recipe artifacts and constraint-first promotion reports. |
+| Model and checkpoint metadata | `src/transformer_model.py` | Model, optimizer, and generation configs; validation; checkpoint identity; closed-world dataset metadata; run metadata. |
+| Checkpoint loading | `src/transformer_checkpoint.py` | Checkpoint payload loading, identity validation, and checkpoint summaries. |
+| Eval reports | `src/transformer_eval.py` | Probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing. |
+| Experiment and artifacts | `src/transformer_experiment.py` | Run artifact paths, intent gates, recipe construction, and promotion decisions. |
+| Trainer utilities | `src/transformer_training.py` | JSONL snapshot writing, shuffled training cursors, and loss averaging. |
+| Objective catalog | `src/transformer_objectives.py` | Direct-answer objective names and small objective-selection primitives. |
+| Replay planning | `src/replay_plan.py` | Branch replay records, profile grouping, replay summaries, and coverage floors. |
+| Verifier | `src/closed_world_verifier.py` | Deterministic closed-world data-boundary checks before evidence is trusted. |
+| Recipes and gates | `src/training_recipe.py` | Reproducible recipe artifacts and constraint-first promotion reports. |
 
-This version does not claim better answer quality. It makes later transformer
-repair work smaller and more auditable:
+The model class and the direct-answer eval helpers still live in
+`transformer_char_model.py`, which continues to export the older names for
+compatibility. The narrow surfaces own the logic; the old module remains the
+stable public entry point.
+
+## The contract the split preserves
+
+Moving code into these surfaces did not change what an `answer-train` run looks
+like from the outside:
 
 - `answer-train` keeps writing the same public artifacts.
 - `training_recipe.json` still binds model, tokenizer, data, objective,
   optimizer, replay, artifacts, gates, and rerun details.
-- `constraint_first_promotion.json` still blocks quality metrics until
-  closed-world constraints pass.
-- Model, optimizer, and generation config validation is no longer owned by the
-  transformer monolith.
-- Checkpoint architecture, format, tokenizer identity, and run metadata are
-  centralized in a tested surface.
-- Checkpoint payload loading and identity checks are no longer hidden inside
-  the model class.
-- Generic eval report assembly and file writing are no longer owned by the CLI
-  command body.
-- Direct-answer objective names are no longer owned by the CLI parser.
-- Profile-aware preserving-deficit replay can add balanced target-share
-  pressure across each profile's replay targets.
-- Transformer answer metrics explicitly declare the closed-world embedding
-  boundary before constraint-first promotion reads them.
-- The v0.82 profile target-share screen shows rank lift is not enough when it
-  depends on prompt-collapse and lost target-token coverage.
-- The v0.83 prompt-ownership screen shows prompt-specific margins still need a
-  coverage-preserving training constraint before rank gains can promote.
-- The v0.84 baseline-anchor screen records active baseline replay prediction
-  anchors and shows the next repair must preserve the full coverage floor.
-- The v0.85 baseline-floor update guard preserves that floor by rejecting every
-  unsafe attempted update, showing the next repair must produce accepted safe
-  updates.
-- The v0.86 adaptive baseline-floor retry guard shows smaller direct-answer
-  learning-rate scales are not enough; the next repair must change update shape
-  while staying under the full baseline coverage floor.
-- The v0.87 baseline-floor repair guard shows post-update anchor repair is not
-  enough, setting up the v0.88 objective-side floor-anchor screen.
-- The v0.88 objective-side floor-anchor guard shows coupling floor anchors with
-  branch pressure in one step is not enough.
-- The v0.89 floor-stabilization guard shows floor-only anchor updates are still
-  not enough under the current guard.
-- The v0.90 floor-diagnostic guard shows all `200` rejected attempts are
-  stabilization-shaped, each adaptive scale fails `50` times, `heldout`
-  violates every attempt, and the worst floor deficit is `0.25` on `learning`.
-- The v0.91 profile-targeted guard shows broader floor-anchor coverage is not
-  enough: all `200` profile-targeted attempts are rejected with the same
-  violation profile counts.
-- The v0.92 sequential profile-floor guard shows source-profile ordering is not
-  enough: all `2000` profile-local attempts are rejected, producing `200`
-  no-effective-update outer attempts.
-- The v0.93 calibrated sequential guard shows smaller isolated movement can be
-  safe: one `bridge:owner` profile update at scale `0.0025` survives the floor
-  guard while promotion remains blocked on branch diversity.
-- The v0.94 profile-scale guard shows accepted movement can be expanded:
-  `8` source-profile updates survive across `60` profile-scale attempts while
-  branch diversity still blocks promotion.
-- The v0.95 diversity-aware profile-scale guard shows accepted movement can be
-  filtered by branch-diversity score: `5` score-improving source-profile updates
-  survive across `58` profile-scale attempts while `11` floor-preserving score
-  regressions are rejected.
-- The v0.96 frontier profile-scale guard shows missing-target anchors can move
-  the frontier: `9` score-improving source-profile updates survive across `43`
-  attempts while max dominant predicted rate drops to `0.9`.
-- The v0.97 coverage-frontier profile-scale guard shows monotonic coverage
-  gains can be audited: `1` coverage-gaining source-profile update survives
-  across `68` attempts while coverage ties and regressions are rejected.
-- The v0.98 coverage-prep frontier guard shows safe setup moves can be
-  separated from coverage gains: `9` source-profile updates survive, with `3`
-  coverage gains and `6` coverage-preparation moves.
-- The v0.99 coverage-recovery frontier guard shows prepared movement can be
-  tested as direct missing-target recovery: `6` source-profile updates survive,
-  with `2` recovery conversions and `4` preparation fallbacks.
-- The v0.100.0 branch-stable coverage-recovery guard shows recovery can be
-  checked against the prepared branch-diversity score: `2` recovery conversions
-  survive and `1` retry is rejected for branch-score regression.
-- The v0.101.0 branch-diversity recovery guard shows local score repair can be
-  bounded by the same floor and coverage gates: `5` branch-score refinements
-  survive and `1` accepted candidate falls back.
-- Training cursors and history writing have focused tests outside the model.
+- `constraint_first_promotion.json` still blocks any quality metric until the
+  closed-world constraints pass first.
+- The public `eval` CLI and artifact shapes are unchanged.
 
-The model class and direct-answer eval helpers still live in
-`transformer_char_model.py`. Future objective-repair work should use the
-narrower surfaces rather than adding another broad monolith patch, and should
-turn expanded calibrated floor-preserving movement into branch-diverse behavior
-before adding branch-diversity pressure back.
+What changed is ownership. Config validation is no longer owned by the
+transformer monolith; checkpoint payload loading and identity checks are no
+longer hidden inside the model class; eval report assembly and file writing are
+no longer owned by the CLI command body; direct-answer objective names are no
+longer owned by the CLI parser. Each of those concerns now sits in a surface
+with its own focused tests.
+
+## How the surfaces serve the boundary
+
+The split keeps the evidence rails QuarkLM depends on cleanly separated:
+
+- Replay planning (`replay_plan.py`) supplies profile grouping and coverage
+  floors, so a repair objective can apply balanced target-share pressure across
+  a profile's replay targets without one represented target dominating a
+  multi-target profile.
+- Transformer answer metrics explicitly declare the closed-world embedding
+  boundary (`external_embeddings: false`) before constraint-first promotion
+  reads them.
+- The deterministic [closed-world verifier](../operate/closed-world-verifier.md)
+  must pass before a screen's evidence is trusted.
+
+This matters because the catalog of direct-answer objectives is exactly where a
+repair could quietly cross a line. Generated candidates are not training data
+until verified against admitted sources and admitted to the ledger; the surfaces
+keep that discipline in the recipe and verifier artifacts rather than in the
+objective code that proposes the pressure. None of these surfaces import
+external weights, tokenizers, embeddings, datasets, or training text — see
+[Purity boundary](../secure/purity-boundary.md).
+
+## The screen record
+
+From v0.78 onward, every direct-answer repair objective and the screen that
+tested it was recorded against these surfaces. The objectives moved coverage and
+diagnostics forward — through profile target-share pressure, prompt-ownership
+margins, baseline-floor anchors and retries, calibrated sub-`0.01` source-profile
+updates, and coverage-recovery frontiers — but promotion stayed blocked on
+branch diversity throughout. Each objective name, the screen that exercised it,
+and its evidence table are catalogued in
+[Transformer screen history](./transformer-screen-history.md). That page is the
+authoritative log; this page is the durable map.
+
+## Forward rule
+
+Future objective-repair work should use these narrow surfaces rather than adding
+another broad patch to the monolith. The open repair direction is to turn the
+expanded, calibrated, floor-preserving source-profile movement these surfaces
+now allow into genuinely branch-diverse behavior, before adding branch-diversity
+pressure back. Until a run preserves the boundary, passes the gates, and updates
+the docs that describe current state, the transformer stays unpromoted and these
+surfaces hold versioned diagnostic evidence rather than a promotion claim.

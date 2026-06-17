@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
 @font-face {
   font-family: 'Poppins';
   src: url('/fonts/Poppins-Regular.ttf') format('truetype');
@@ -25,13 +27,14 @@
 :root {
   --ifm-font-family-base: Poppins, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
   --ifm-heading-font-family: Poppins, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-  --ifm-color-primary: #7c72c7;
-  --ifm-color-primary-dark: #665bbd;
-  --ifm-color-primary-darker: #5d52b7;
-  --ifm-color-primary-darkest: #4f46a0;
-  --ifm-color-primary-light: #9188d1;
-  --ifm-color-primary-lighter: #a39bd9;
-  --ifm-color-primary-lightest: #eae6f8;
+  --ifm-font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ifm-color-primary: #0891b2;
+  --ifm-color-primary-dark: #0e7490;
+  --ifm-color-primary-darker: #155e75;
+  --ifm-color-primary-darkest: #164e63;
+  --ifm-color-primary-light: #06b6d4;
+  --ifm-color-primary-lighter: #22d3ee;
+  --ifm-color-primary-lightest: #cffafe;
   --ifm-navbar-height: 68px;
   --ifm-global-radius: 6px;
   --ifm-code-font-size: 92%;
@@ -42,13 +45,19 @@
 }
 
 [data-theme='dark'] {
-  --ifm-background-color: #070912;
-  --ifm-background-surface-color: #0c1020;
-  --ifm-navbar-background-color: rgba(7, 9, 18, 0.88);
-  --ifm-footer-background-color: #070912;
-  --ifm-footer-color: #c8c8d0;
+  --ifm-background-color: #07090f;
+  --ifm-background-surface-color: #0c111b;
+  --ifm-navbar-background-color: rgba(7, 9, 15, 0.88);
+  --ifm-footer-background-color: #07090f;
+  --ifm-footer-color: #aab2c0;
   --ifm-footer-link-color: #ffffff;
-  --ifm-color-primary: #a78bfa;
+  --ifm-color-primary: #22d3ee;
+  --ifm-color-primary-dark: #0891b2;
+  --ifm-color-primary-darker: #0e7490;
+  --ifm-color-primary-darkest: #155e75;
+  --ifm-color-primary-light: #67e8f9;
+  --ifm-color-primary-lighter: #a5f3fc;
+  --ifm-color-primary-lightest: #cffafe;
 }
 
 html {
@@ -61,7 +70,7 @@ html {
 }
 
 .navbar__title {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .navbar__item,
@@ -82,11 +91,11 @@ html {
 
 .theme-doc-markdown h1 {
   font-size: clamp(2.4rem, 5vw, 4.4rem);
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
 }
 
 .theme-doc-markdown h2 {
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 .theme-doc-markdown table {

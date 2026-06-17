@@ -7,15 +7,22 @@ description: What QuarkLM learns from open-source LLM and continual-learning mec
 
 Last reviewed: 2026-06-14.
 
-QuarkLM uses open-source projects and papers as design references, not as
-sources of model weights, tokenizers, data, embeddings, or copied
-implementations. The full audit lives in the repository root at
-`MECHANICS_AUDIT.md`.
+QuarkLM reads open-source projects and papers as design references for how a
+training and continual-learning system should be *shaped*. It does not take
+model weights, tokenizers, data, embeddings, or copied implementations from any
+of them. The full audit lives in the repository root at `MECHANICS_AUDIT.md`;
+this page is the durable summary.
 
-## What Changed
+The distinction is the same one drawn in [Purity boundary](../secure/purity-boundary.md):
+studying the structure of an open model is allowed, importing anything it
+learned is not. A reference can suggest where a trainer boundary should sit. It
+cannot become a vocabulary, a checkpoint, or a line of training text.
 
-The earlier `STRUCTURE_AUDIT.md` looked at transformer shape. This mechanics
-audit looks at the surrounding system:
+## Why this audit exists
+
+An earlier `STRUCTURE_AUDIT.md` looked at the transformer itself — its shape,
+attention block, and head. This mechanics audit looks at the system *around* the
+model, where the next useful work was found to be:
 
 - trainer boundaries;
 - replay plans;
@@ -23,17 +30,19 @@ audit looks at the surrounding system:
 - checkpoint selection;
 - tokenizer-growth artifacts;
 - self-generated candidate filtering;
-- transparency and evidence release discipline.
+- transparency and evidence-release discipline.
 
-## Main Finding
+The main finding is that QuarkLM's next bottleneck is not another global
+branch-loss term. The next useful change is trainer mechanics: explicit
+profile-aware replay plans, profile-local coverage deficits, profile-local
+preservation, and checkpoint selection that treats coverage, unknown-policy,
+leakage, and retention as constraints *before* ranking snapshots by loss or
+target rank.
 
-QuarkLM's next bottleneck is not another global branch-loss term. The next
-useful change is trainer mechanics: explicit profile-aware replay plans,
-profile-local coverage deficits, profile-local preservation, and checkpoint
-selection that treats coverage, unknown-policy, leakage, and retention as
-constraints before ranking snapshots by loss or target rank.
+## Reference map
 
-## Reference Map
+Each row records what QuarkLM studies and, just as importantly, what it refuses
+to take across the boundary.
 
 | Source | What QuarkLM studies | What QuarkLM does not take |
 | --- | --- | --- |
@@ -44,9 +53,14 @@ constraints before ranking snapshots by loss or target rank.
 | Self-Instruct, STaR, Reflexion | candidate generation, filtering, and memory-before-weight-update separation | external-model generated training material |
 | LLM360, OLMo, OLMo 2 | transparent code/data/checkpoint/log/recipe practice and data-mixture reporting | open training corpora, weights, or external checkpoints |
 
-## Required Direction
+The bottom-right column is the load-bearing one. Self-generated material in
+particular is not training data until it is verified against admitted sources
+and admitted to the ledger; see [Candidate quarantine](../operate/candidate-quarantine.md).
 
-v0.67 implements the first direct-answer replay path with these mechanics:
+## What the audit asked for
+
+The audit named a concrete trainer change: replay planning had to become
+profile-aware. The mechanics it required were:
 
 1. Profile keys are carried through branch records.
 2. Missing targets are computed per profile instead of globally.
@@ -56,171 +70,60 @@ v0.67 implements the first direct-answer replay path with these mechanics:
 5. Focused tests verify that one profile's improvement cannot mask another
    profile's deficit.
 
-The bounded smoke run
-`runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
-wrote `direct_answer_replay_plan.json` for `9144` branch records across `21`
-profiles and passed the branch-context gate. It is mechanics-readiness evidence
-only: it made the next full-stack repair run measurable against profile-aware
+The first implementation wrote `direct_answer_replay_plan.json` over `9144`
+branch records across `21` profiles and passed the branch-context gate. It moved
+no weights and promoted no snapshot. It was mechanics-readiness evidence only:
+it made the next full-stack repair run measurable against profile-aware
 constraints instead of another global replay target set.
 
-v0.68 runs that full-stack screen. It improves QA and heldout target rank during
-training, but the gains come with target-token coverage and predicted diversity
-regressions, so best-snapshot scoring restores step `0`. The next mechanics
-move is anti-collapse preservation inside profile-local replay constraints.
+## What followed, in phases
 
-v0.70 adds the [Deep research review](./deep-research-review.md), which expands
-this audit into a fuller literature, implementation, and QuarkLM-codebase gap
-review. It keeps the same engineering direction and moves the implementation
-sequence to experiment registry first. v0.71 implements that registry and
-v0.72 extracts replay planning into a standalone module. Corpus hygiene is the
-next mechanics step. v0.73 implements corpus hygiene and training-plan
-artifacts. v0.74 adds the research implementation map, v0.75 implements
-candidate quarantine artifacts with source-backed acceptance criteria, and
-v0.76 implements deterministic closed-world verifier checks. v0.77 implements
-recipe artifacts and constraint-first promotion reports. v0.78 implements the
-first transformer responsibility split for experiment/artifact surfaces,
-trainer utilities, and the direct-answer objective catalog. v0.79 implements
-model/config and checkpoint metadata surfaces. v0.80 implements
-eval/checkpoint-load surfaces. v0.81 implements profile target-share pressure
-inside the profile-aware preserving-deficit direct-answer objective. v0.82
-screens that objective and rejects it on branch diversity under the
-constraint-first gate. v0.83 adds prompt-specific ownership margins, but the
-full screen remains rejected because trained snapshots still collapse
-target-token coverage. v0.84 adds baseline replay anchors, improves trained
-coverage relative to v0.83, and remains rejected because it still misses the
-baseline coverage floor. v0.85 adds baseline-floor update gating, preserves the
-floor by rejecting all attempted unsafe updates, and remains rejected because no
-update is accepted. v0.86 adds adaptive baseline-floor retries, rejects
-`200/200` retry attempts across smaller learning-rate scales, and shows the next
-mechanics change must alter update shape while preserving the same floor. v0.87
-adds baseline-covered repair retries, rejects `200/200` repaired attempts, and
-shows the next mechanics change must put the floor-preserving constraint inside
-the objective before optimizer application. v0.88 does that with objective-side
-floor anchors, rejects `200/200` objective-shaped attempts, and shows coupling
-floor anchors with branch pressure is not enough. v0.89 removes branch pressure
-and trains only baseline-covered floor anchors, rejects `200/200`
-stabilization-shaped attempts, and shows floor-only anchors are still not
-enough. v0.90 adds rejected-attempt diagnostics showing every rejected attempt
-is stabilization-shaped, `heldout` violates every attempt, and the next
-mechanics change should target violating profiles before branch pressure is
-added back. v0.91 covers the full profile-target floor surface and still rejects
-every attempt. v0.92 changes the repair shape to sequential source-profile
-floor batches and still rejects all `2000` profile-local attempts, so the next
-mechanics change should isolate smaller floor-preserving weight movement rather
-than only broaden anchor coverage or reorder profiles. v0.93 adds calibrated
-sub-`0.01` scales and coverage-only guard probes, accepts one `bridge:owner`
-source-profile update at scale `0.0025`, and shifts the next mechanics change
-toward expanding safe calibrated movement. v0.94 adds profile-scale memory,
-accepts `8` source-profile updates, and shifts the next mechanics change toward
-branch-diverse use of that safe movement. v0.95 adds diversity-aware
-profile-scale acceptance, accepts `5` score-improving source-profile updates,
-rejects `11` floor-preserving score regressions, and shifts the next mechanics
-change toward full branch-diversity target coverage. v0.96 adds frontier target
-anchors, accepts `9` score-improving source-profile updates, lowers max
-dominant predicted rate to `0.9`, and shifts the next mechanics change toward
-finishing target-token coverage. v0.97 adds coverage-frontier acceptance,
-accepts `1` coverage-gaining source-profile update, rejects `15` coverage ties
-and `2` coverage regressions, and shifts the next mechanics change toward
-isolated missing-target repairs that keep the audit without starving later
-profiles. v0.98 adds coverage-prep frontier acceptance, accepts `9`
-source-profile updates, separates `3` coverage gains from `6`
-coverage-preparation moves, and shifts the next mechanics change toward turning
-safe setup movement into direct target-token coverage. v0.99 adds
-coverage-recovery frontier retry, accepts `6` source-profile updates, converts
-`2` prepared candidates into direct coverage recoveries, keeps `4` preparation
-fallbacks, and shifts the next mechanics change toward stabilizing branch
-diversity after recovery. v0.100.0 adds branch-stable coverage-recovery
-acceptance, keeps the `2` recovery conversions, records `15` branch-stability
-checks, rejects `1` retry for branch-score regression, and shifts the next
-mechanics change toward branch diversity that preserves recovery evidence.
-v0.101.0 adds branch-diversity recovery after safe profile updates, accepts `5`
-local branch-score refinements, falls back once, and shifts the next mechanics
-change toward converting local branch-score gains into global target-token
-coverage. v0.102.0 adds collapsed-profile binding, accepts `1` targeted
-binding update after branch-diversity recovery, narrows final collapse from
-`9/9` eval profiles to `3/9`, and shifts the next mechanics change toward the
-remaining `learning`, `owner`, and `paraphrases` collapses.
-v0.103.0 adds remaining-profile binding, accepts `6` prioritized updates,
-improves `learning` coverage from `0.0` to `0.25`, and shifts the next
-mechanics change toward preserving that gain while separating `owner` and
-`paraphrases` from the remaining collapse.
-v0.104.0 adds owner/paraphrase residual binding, rejects `24` protected
-learning regressions, keeps `learning` non-collapsed, and shifts the next
-mechanics change toward owner/paraphrase target-token diversification.
-v0.105.0 adds a separate closed-world retrieval-memory rail, writes
-`retrieval_memory_report.json`, and proves `219/219` exact corpus-memory evals
-without external embeddings or weight updates. The next mechanics change
-should consolidate from that memory rail into neural behavior only when
-branch-diversity and target-token gates pass.
-v0.106.0 adds `memory_consolidation_plan.json`, ranks `9` memory-backed neural
-failed profiles, and names the collapsed memory-backed profiles before any
-training objective consumes them. The next mechanics change should train from
-that plan under the same constraint-first promotion rules.
-v0.107.0 adds that source-plan-consuming training mode, targets `owner`,
-`paraphrases`, and `glossary`, records `26` prioritized attempts with `8`
-acceptances and `18` rejections, and still rejects promotion on
-`branch_diversity_target`. The next mechanics change should improve target-token
-diversity inside those memory-backed failures without relaxing the promotion
-gate.
-v0.108.0 expands the source-plan target window to `owner`, `paraphrases`,
-`heldout`, `qa`, and `glossary` and maps target-only profile names back to
-admitted source labels. The screen keeps retrieval exact and still rejects on
-`branch_diversity_target`, so the next mechanics change should apply direct
-missing first-token diversity pressure.
-v0.109.0 applies that pressure by extracting missing first-token maps from the
-source plan and testing guarded missing-token updates after the existing
-consolidation phases. It records `8` candidates, `22` attempts, `1` accepted
-coverage-gain update, `21` rejections, and `7` fallback acceptances while
-keeping retrieval exact and promotion blocked. The next mechanics change should
-focus on the remaining collapsed `owner`, `paraphrases`, and `learning`
-profiles.
-v0.110.0 makes that focus explicit by requiring the source plan's
-`collapsed_memory_backed_profiles` and consuming only `owner`, `paraphrases`,
-and `learning`. It records `6` candidates, `16` attempts, `1` accepted
-coverage-gain update, `15` rejections, and `5` fallback acceptances while
-keeping retrieval exact and promotion blocked. The next mechanics change should
-attach missing-token pressure and acceptance deltas to each remaining target
-profile, not only to the shared collapsed set.
-v0.111.0 attaches that pressure to profile-specific source-label maps. It maps
-`learning -> learning`, `owner -> owner/paraphrases`, and
-`color/place/training_data -> paraphrases`, records `18` guarded missing-token
-attempts, `6` fallbacks, and `1` accepted profile-specific update shape while
-keeping retrieval exact and promotion blocked. The next mechanics change should
-use those per-profile deltas to repair `paraphrases`, `owner`, and re-emergent
-`glossary` collapse without relaxing branch-diversity gates.
-v0.112.0 adds the missing diagnostic layer before that repair. It cross-checks
-external work on degeneration, unlikelihood, diverse decoding, class-balanced
-losses, contrastive learning, and transparent open-model practice, then records
-`branch_diversity_target.root_cause` in the run artifact. The current failure
-is a critical `target_routing_gap`, not merely a diversity-knob miss, so the
-next mechanics change should audit routing and representation before adding
-another objective.
+After replay planning was made profile-aware, the work split into clear phases.
+The version-by-version detail — every objective name, attempt count, and
+acceptance tally — lives in the [Deep research review](./deep-research-review.md)
+and the [Research implementation map](./research-implementation-map.md). This
+page records the shape of the arc.
 
-v0.113.0 adds that audit as `branch_routing_audit`. It follows the external
-implementation pattern of inspecting logits, generation scores, and hidden
-states instead of using decoding diversity as promotion evidence. The run keeps
-retrieval exact at `219/219`, records high output-bias escape risk, low
-representation separation across `9/9` multi-target profiles, and a `glossary`
-target-imbalance hotspot, while still rejecting promotion on
-`branch_diversity_target`. The next mechanics change should use those measured
-surfaces before selecting another guarded repair candidate.
+| Phase | Mechanics added | Outcome |
+| --- | --- | --- |
+| Operating system | experiment registry, training recipes, corpus hygiene, candidate quarantine, closed-world verifier, extracted replay planner, constraint-first promotion, transformer module boundaries | built the discipline that lets a screen be audited rather than trusted |
+| Anti-collapse objectives | profile target-share pressure, prompt-specific ownership, baseline replay anchors and floor gating, objective-side floor anchors | each screen rejected under the constraint-first gate; coverage and diagnostics advanced, promotion did not |
+| Calibrated safe movement | sub-floor learning-rate scales, profile-scale memory, diversity-aware and coverage-frontier acceptance | small numbers of guarded source-profile updates accepted; promotion still blocked |
+| Collapsed-profile binding | targeted binding for `learning`, `owner`, and `paraphrases`; protected-learning rejection evidence | narrowed final collapse but did not clear the gate |
+| Memory rail and consolidation | corpus-only retrieval memory, memory-consolidation plan, gated source-plan training, profile-specific missing-token pressure | retrieval exact; promotion still blocked |
+| Routing diagnostics | root-cause taxonomy, branch routing audit, logit-prior and centroid-separation instrumentation, hidden-projection margin candidate | identified a critical `target_routing_gap` driven by hidden projection; promotion still blocked |
 
-v0.114.0 adds the measured surface that v0.113 called for:
-`branch_logit_prior_profiles` decompose each dominant-token win into output
-bias, hidden projection, or mixed pressure, and representation profiles now
-record centroid distances and margins. The diagnostic screen keeps retrieval
-exact and still rejects promotion, but it shows the dominant-token wins are
-hidden-projection driven across `9/9` multi-target profiles. The next mechanics
-change should be a guarded hidden-projection or representation-separation
-repair candidate.
+The consistent result across every objective phase is that the transformer
+remains rejected for promotion on `branch_diversity_target`. The model collapses
+multi-target evaluation profiles to too few predicted branch tokens — it learns
+one dominant token instead of routing each prompt to its own answer. The cause
+is now measured rather than guessed: representation separation across the `9/9`
+multi-target profiles is low, and the dominant-token wins are hidden-projection
+driven. See [Branch diversity research](./branch-diversity-research.md) for the
+current evidence and the next candidate.
 
-v0.115.0 adds that guarded hidden-projection candidate as
-`branch-hidden-projection-margin-unlikelihood`. The one-step output-bias-frozen
-screen lowers average collapsed-token hidden advantage from about `0.0842` to
-`0.0736`, but still rejects promotion on `branch_diversity_target`. The next
-mechanics change should broaden routing repair only if it preserves coverage
-and improves target-token diversity.
+## Two evidence rails, kept apart
 
-This keeps self-improvement aligned with the closed-world claim: new behavior
-must be trained from admitted data, measured by profile, and rejected when it
-improves one metric by erasing another.
+The memory rail is the most important thing the consolidation phase produced,
+and the easiest to misread. A corpus-only retrieval rail builds memory cards
+from the closed corpus and answers `219/219` evaluation probes exactly, with
+provenance and no external embeddings, retriever, or weight updates.
+
+That is success for the memory-first rail. It is not neural promotion. The
+retrieval rail proves the corpus *contains* every answer; it does not prove the
+from-scratch transformer *learned* to produce them. The `memory-served` result
+is held separate from the `weight-consolidated` claim, and consolidation from
+the memory rail into neural behavior is allowed only when the branch-diversity
+and target-token gates pass. They have not. See
+[Transformer](../build/transformer.md) for how the two rails sit in the wider
+model.
+
+## What this keeps honest
+
+The arc above is mostly a record of rejected screens, and that is the point.
+New behavior must be trained from admitted data, measured per profile, and
+rejected when it improves one metric by erasing another. A run is kept as
+versioned diagnostic evidence whether it is promoted or not, so the audit can
+read the failures as readily as the wins. QuarkLM only claims it learned
+something new after that admission-and-evidence chain is visible — not because a
+run completed, and not because retrieval can already serve the answer.

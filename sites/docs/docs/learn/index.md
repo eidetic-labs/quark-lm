@@ -9,12 +9,16 @@ slug: /learn/
 QuarkLM is a closed-world language model experiment. It starts without
 pretrained weights, without a pretrained tokenizer, and without external
 embeddings. Knowledge enters only through the admitted corpus and the
-corpus-derived lessons generated from it.
+corpus-derived lessons generated from it. The neural weights learn only from
+the admitted, ledgered corpus named in `corpus/ledger.json`.
 
 The current prototype is intentionally small. Its value is not scale. Its value
 is discipline: every claim about learning has a corpus source, a retrieval
 record when memory can serve it, a training candidate when weights should learn
 from it, a guarded update, an evaluation artifact, and a docs update.
+
+This section carries the why. For the mechanical orientation — modules, data
+flow, and which path actually changes weights — see [Build](../build/index.md).
 
 ## Core Learning Loop
 
@@ -22,12 +26,13 @@ from it, a guarded update, an evaluation artifact, and a docs update.
 new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
 ```
 
-This is the central Learn concept. A new lesson is not considered learned just
-because a model or tool generated it. It must enter the ledgered corpus, become
-available to retrieval memory, produce source-backed training candidates, move
-weights only through a guarded update, and then survive evaluation. The final
-state is explicit: accepted into the current model evidence or rejected as
-diagnostic evidence for the next repair.
+This is the central Learn concept. A new lesson is not learned just because a
+model or tool generated it. Generated material is a candidate, not training
+data, until it is verified against admitted sources and admitted to the ledger.
+Only then can it enter retrieval memory, produce source-backed training
+candidates, move weights through a guarded update, and survive evaluation. The
+final state is explicit: accepted into the current model evidence, or rejected
+as diagnostic evidence for the next repair.
 
 | Stage | What must be true |
 | --- | --- |
@@ -38,6 +43,14 @@ diagnostic evidence for the next repair.
 | Guarded weight update | The update is bounded, auditable, and allowed to fail without promoting. |
 | Evaluation | Closed-world, retention, branch-diversity, target-coverage, leakage, and quality checks run. |
 | Accepted or rejected | Passing evidence can promote; failing evidence remains useful but unpromoted. |
+
+The loop produces three distinct evidence states, and QuarkLM keeps them
+separate on purpose: `corpus-known` (the lesson is admitted), `memory-served`
+(retrieval can answer it from the admitted corpus, with provenance), and
+`weight-consolidated` (the transformer learned the behavior and passed the
+promotion gates). A correct retrieved answer proves the corpus contains the
+answer; it does not prove the weights learned it. The states are defined in
+[Language model](./language-model.md).
 
 ## Large Models vs QuarkLM
 
@@ -57,28 +70,39 @@ the update improves behavior without breaking older evidence.
 
 ## Read First
 
-| Page | Use it when |
+| Page | Covers |
 | --- | --- |
-| [Project overview](./project-overview.md) | You want the repository front door, release posture, public surfaces, and where the long evidence trail lives. |
-| [Language model](./language-model.md) | You want the memory-native model philosophy and closed-world boundaries. |
-| [Self-improvement loop](./self-improvement-loop.md) | You want the corpus-to-memory-to-weight-update lifecycle. |
-| [Research grounding](./research-grounding.md) | You want the paper-backed design rules for closed-world self-improvement. |
-| [Open-source mechanics audit](./open-source-mechanics-audit.md) | You want the gap matrix from studying comparable open-source mechanics without copying code or data. |
-| [Branch diversity research](./branch-diversity-research.md) | You want the v0.115 hidden-projection candidate evidence and external research on branch collapse. |
-| [Forward research plan](./forward-research-plan.md) | You want the v0.69 strategy sequence through the v0.115.0 hidden-projection candidate screen. |
-| [Deep research review](./deep-research-review.md) | You want the v0.70 cross-referenced literature, open-source mechanics, QuarkLM gap review, and v0.115.0 routing-repair handoff. |
-| [Research implementation map](./research-implementation-map.md) | You want the v0.74 source-to-gap-to-version map and the v0.115.0 hidden-projection candidate evidence. |
-| [Current evidence](./current-evidence.mdx) | You want the latest promoted metrics and audits. |
-| [Historical evidence archive](./historical-evidence.md) | You want older evidence that was moved out of `GOAL.md`. |
+| [Project overview](./project-overview.md) | The repository front door: release posture, public surfaces, and where the long evidence trail lives. |
+| [Language model](./language-model.md) | The memory-native model philosophy, closed-world boundaries, and the three evidence states. |
+| [Self-improvement loop](./self-improvement-loop.md) | The corpus-to-memory-to-weight-update lifecycle and its promotion rule. |
+| [Research grounding](./research-grounding.md) | The paper-backed design rules for closed-world self-improvement. |
+| [Open-source mechanics audit](./open-source-mechanics-audit.md) | The gap matrix from studying comparable open-source mechanics without copying code or data. |
+| [Branch diversity research](./branch-diversity-research.md) | The v0.115 hidden-projection candidate evidence and external research on branch collapse. |
+| [Forward research plan](./forward-research-plan.md) | The v0.69 strategy sequence through the v0.115.0 hidden-projection candidate screen. |
+| [Deep research review](./deep-research-review.md) | The v0.70 cross-referenced literature, open-source mechanics, gap review, and v0.115.0 routing-repair handoff. |
+| [Research implementation map](./research-implementation-map.md) | The v0.74 source-to-gap-to-version map and the v0.115.0 hidden-projection candidate evidence. |
+| [Current evidence](./current-evidence.mdx) | The latest promoted metrics and audits. |
+| [Historical evidence archive](./historical-evidence.md) | Older evidence that was moved out of `GOAL.md`. |
 
-## Core Idea
+## What "docs" mean here
 
-Most language models learn broadly first and specialize later. QuarkLM explores
-the opposite direction: learn from a tiny admitted world, preserve the boundary,
-answer from memory when the world already contains the knowledge, and gradually
-consolidate only the updates that survive evaluation.
+In QuarkLM, docs are not training input. They are a promotion gate and an
+anti-drift discipline: a run is promoted only if it updates the docs that
+describe current state, so the docs and the released evidence move together. The
+neural weights never read these pages; they learn only from the admitted corpus.
+
+## Where the project stands
+
+The honest current status follows the same evidence discipline these pages
+describe. Retrieval memory answers admitted probes exactly, with provenance and
+no weight updates — that is `memory-served` evidence for the memory-first rail,
+not a claim about learned weights. The from-scratch transformer is the
+`weight-consolidation` path, and it is not promoted: its screens are rejected on
+`branch_diversity_target`. See [Transformer](../build/transformer.md) for the
+current evidence and [Current evidence](./current-evidence.mdx) for promoted
+metrics.
 
 That makes the project more like a lab organism than a product assistant. The
-important question is not "what can it answer?" yet. The important question is:
-can a model grow only from its own admitted dataset while leaving trustworthy
-evidence of each step?
+important question is not yet "what can it answer?" The important question is
+whether a model can grow only from its own admitted dataset while leaving
+trustworthy evidence of each step.

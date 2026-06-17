@@ -7,1212 +7,139 @@ import state from '../../../shared/current-state.json';
 
 # Current Evidence
 
-The current promoted run is <code>{state.currentRun}</code>.
+This page records the current promoted run and the evidence that justifies it.
+Every value in the snapshot table is read from <code>sites/shared/current-state.json</code>,
+so the page cannot drift from the machine-tracked state. The current promoted run
+is <code>{state.currentRun}</code>.
+
+Two things stay strictly separate here, as everywhere in QuarkLM: what retrieval
+memory can *serve* from the admitted corpus, and what the transformer has
+*learned* into its weights. Retrieval answering a probe is `memory-served`
+evidence; it is not `weight-consolidated` evidence. See
+[Language model](./language-model.md) for the three evidence states and
+[Build](../build/index.md) for the two paths that produce them.
 
 Older milestone evidence that is no longer part of the current-state table is
-preserved in [Historical evidence archive](./historical-evidence.md).
+preserved in the [Historical evidence archive](./historical-evidence.md). The
+complete version-by-version transformer screen log lives in
+[Transformer screen history](../build/transformer-screen-history.md).
 
-<table>
-  <thead>
-    <tr>
-      <th>Signal</th>
-      <th>Current value</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td>Product name</td><td><code>{state.productName}</code></td></tr>
-    <tr><td>Package / repository slug</td><td><code>{state.repositorySlug}</code></td></tr>
-    <tr><td>Docs host</td><td><code>{state.docsHosting}</code></td></tr>
-    <tr><td>Marketing host</td><td><code>{state.marketingHosting}</code></td></tr>
-    <tr><td>RC spec</td><td><code>{state.rcSpec}</code></td></tr>
-    <tr><td>RC gap audit</td><td><code>{state.rcGapAudit}</code></td></tr>
-    <tr><td>RC checklist</td><td><code>{state.rcChecklist}</code></td></tr>
-    <tr><td>Recommended RC track</td><td><code>{state.rcRecommendedTrack}</code></td></tr>
-    <tr><td>Research Prototype RC status</td><td><code>{state.rcResearchPrototypeStatus}</code></td></tr>
-    <tr><td>Language Model RC status</td><td><code>{state.rcLanguageModelStatus}</code></td></tr>
-    <tr><td>Next model bundle</td><td><code>{state.rcNextModelBundle}</code></td></tr>
-    <tr><td>Research grounding</td><td><code>{state.researchGrounding}</code></td></tr>
-    <tr><td>Research reviewed</td><td><code>{state.researchGroundingReviewed}</code></td></tr>
-    <tr><td>Research pass</td><td><code>{state.researchGroundingLatestPass}</code></td></tr>
-    <tr><td>Research decision</td><td><code>{state.researchGroundingDecision}</code></td></tr>
-    <tr><td>Research next step</td><td><code>{state.researchGroundingNext}</code></td></tr>
-    <tr><td>Open-source mechanics audit</td><td><code>{state.openSourceMechanicsAudit}</code></td></tr>
-    <tr><td>Mechanics audit decision</td><td><code>{state.openSourceMechanicsAuditDecision}</code></td></tr>
-    <tr><td>Mechanics audit next step</td><td><code>{state.openSourceMechanicsAuditNext}</code></td></tr>
-    <tr><td>Forward research plan</td><td><code>{state.forwardResearchPlan}</code></td></tr>
-    <tr><td>Forward plan decision</td><td><code>{state.forwardResearchPlanDecision}</code></td></tr>
-    <tr><td>Forward plan next step</td><td><code>{state.forwardResearchPlanNext}</code></td></tr>
-    <tr><td>Deep research review</td><td><code>{state.deepResearchReview}</code></td></tr>
-    <tr><td>Deep review decision</td><td><code>{state.deepResearchReviewDecision}</code></td></tr>
-    <tr><td>Deep review next step</td><td><code>{state.deepResearchReviewNext}</code></td></tr>
-    <tr><td>Research implementation map</td><td><code>{state.researchImplementationMap}</code></td></tr>
-    <tr><td>Implementation map decision</td><td><code>{state.researchImplementationMapDecision}</code></td></tr>
-    <tr><td>Implementation map next step</td><td><code>{state.researchImplementationMapNext}</code></td></tr>
-    <tr><td>Experiment registry</td><td><code>{state.experimentRegistry}</code></td></tr>
-    <tr><td>Experiment registry decision</td><td><code>{state.experimentRegistryDecision}</code></td></tr>
-    <tr><td>Experiment registry next step</td><td><code>{state.experimentRegistryNext}</code></td></tr>
-    <tr><td>Replay planning</td><td><code>{state.replayPlanning}</code></td></tr>
-    <tr><td>Replay planning decision</td><td><code>{state.replayPlanningDecision}</code></td></tr>
-    <tr><td>Replay planning next step</td><td><code>{state.replayPlanningNext}</code></td></tr>
-    <tr><td>Corpus hygiene</td><td><code>{state.corpusHygiene}</code></td></tr>
-    <tr><td>Corpus hygiene decision</td><td><code>{state.corpusHygieneDecision}</code></td></tr>
-    <tr><td>Corpus hygiene next step</td><td><code>{state.corpusHygieneNext}</code></td></tr>
-    <tr><td>Candidate quarantine</td><td><code>{state.candidateQuarantine}</code></td></tr>
-    <tr><td>Candidate quarantine decision</td><td><code>{state.candidateQuarantineDecision}</code></td></tr>
-    <tr><td>Candidate quarantine next step</td><td><code>{state.candidateQuarantineNext}</code></td></tr>
-    <tr><td>Closed-world verifier</td><td><code>{state.closedWorldVerifier}</code></td></tr>
-    <tr><td>Verifier decision</td><td><code>{state.closedWorldVerifierDecision}</code></td></tr>
-    <tr><td>Verifier next step</td><td><code>{state.closedWorldVerifierNext}</code></td></tr>
-    <tr><td>Training recipe</td><td><code>{state.trainingRecipe}</code></td></tr>
-    <tr><td>Training recipe decision</td><td><code>{state.trainingRecipeDecision}</code></td></tr>
-    <tr><td>Training recipe next step</td><td><code>{state.trainingRecipeNext}</code></td></tr>
-    <tr><td>Transformer responsibility</td><td><code>{state.transformerResponsibility}</code></td></tr>
-    <tr><td>Transformer responsibility decision</td><td><code>{state.transformerResponsibilityDecision}</code></td></tr>
-    <tr><td>Transformer responsibility next step</td><td><code>{state.transformerResponsibilityNext}</code></td></tr>
-    <tr><td>Transformer model surface</td><td><code>{state.transformerModel}</code></td></tr>
-    <tr><td>Transformer model decision</td><td><code>{state.transformerModelDecision}</code></td></tr>
-    <tr><td>Transformer model next step</td><td><code>{state.transformerModelNext}</code></td></tr>
-    <tr><td>Transformer eval surface</td><td><code>{state.transformerEval}</code></td></tr>
-    <tr><td>Transformer eval decision</td><td><code>{state.transformerEvalDecision}</code></td></tr>
-    <tr><td>Transformer eval next step</td><td><code>{state.transformerEvalNext}</code></td></tr>
-    <tr><td>Latest repository version</td><td><code>{state.latestVersion}</code></td></tr>
-    <tr><td>Latest version summary</td><td><code>{state.latestVersionSummary}</code></td></tr>
-    <tr><td>Current version</td><td><code>{state.currentVersion}</code></td></tr>
-    <tr><td>Admitted facts</td><td><code>{state.admittedFacts}</code></td></tr>
-    <tr><td>Direct admission probes</td><td><code>{state.directAdmissionProbes}</code></td></tr>
-    <tr><td>Admission paraphrase probes</td><td><code>{state.admissionParaphraseProbes}</code></td></tr>
-    <tr><td>Glossary probes</td><td><code>{state.glossaryProbes}</code></td></tr>
-    <tr><td>QA exact</td><td><code>{state.qaExact}</code></td></tr>
-    <tr><td>Admissions exact</td><td><code>{state.admissionsExact}</code></td></tr>
-    <tr><td>Admission paraphrases exact</td><td><code>{state.admissionParaphrasesExact}</code></td></tr>
-    <tr><td>Glossary exact</td><td><code>{state.glossaryExact}</code></td></tr>
-    <tr><td>Self exact</td><td><code>{state.selfExact}</code></td></tr>
-    <tr><td>Learning exact</td><td><code>{state.learningExact}</code></td></tr>
-    <tr><td>Forgetting audit</td><td><code>{state.forgettingAudit}</code></td></tr>
-    <tr><td>Prompt leakage audit</td><td><code>{state.promptLeakageAudit}</code></td></tr>
-    <tr><td>Exact eval audit</td><td><code>{state.exactEvalAudit}</code></td></tr>
-    <tr><td>Promotion gate</td><td><code>{state.promotionGate}</code></td></tr>
-    <tr><td>Self-diagnosis</td><td><code>{state.selfDiagnosis}</code></td></tr>
-    <tr><td>Self-diagnosis external model</td><td><code>{String(state.selfDiagnosisExternalModel)}</code></td></tr>
-    <tr><td>Self-diagnosis recommendation</td><td><code>{state.selfDiagnosisRecommendation}</code></td></tr>
-    <tr><td>Attempt archive</td><td><code>{state.attemptArchive}</code></td></tr>
-    <tr><td>Transformer run</td><td><code>{state.transformerRun}</code></td></tr>
-    <tr><td>Transformer validation NLL</td><td><code>{state.transformerValidNll}</code></td></tr>
-    <tr><td>Transformer exact</td><td><code>{state.transformerExact}</code></td></tr>
-    <tr><td>Transformer candidate accuracy</td><td><code>{state.transformerCandidate}</code></td></tr>
-    <tr><td>Direct transformer exact</td><td><code>{state.transformerDirectExact}</code></td></tr>
-    <tr><td>Direct transformer loss</td><td><code>{state.transformerDirectLoss}</code></td></tr>
-    <tr><td>Direct transformer mode</td><td><code>{state.transformerDirectMode}</code></td></tr>
-    <tr><td>Direct transformer failure pattern</td><td><code>{state.transformerDirectFailurePattern}</code></td></tr>
-    <tr><td>Latest transformer screen</td><td><code>{state.transformerLatestScreenRun}</code></td></tr>
-    <tr><td>Latest screen direct loss</td><td><code>{state.transformerLatestScreenDirectLoss}</code></td></tr>
-    <tr><td>Latest screen direct exact</td><td><code>{state.transformerLatestScreenDirectExact}</code></td></tr>
-    <tr><td>Latest screen post-direct candidate snapshot skipped</td><td><code>{String(state.transformerLatestScreenCandidateSnapshotSkipped)}</code></td></tr>
-    <tr><td>Latest retrieval memory report</td><td><code>{state.transformerLatestRetrievalMemoryRun}</code></td></tr>
-    <tr><td>Retrieval memory artifact</td><td><code>{state.transformerRetrievalMemoryArtifact}</code></td></tr>
-    <tr><td>Retrieval memory summary</td><td><code>{state.transformerRetrievalMemorySummary}</code></td></tr>
-    <tr><td>Retrieval memory status</td><td><code>{state.transformerRetrievalMemoryStatus}</code></td></tr>
-    <tr><td>Latest memory consolidation plan</td><td><code>{state.transformerLatestMemoryConsolidationPlan}</code></td></tr>
-    <tr><td>Memory consolidation summary</td><td><code>{state.transformerMemoryConsolidationSummary}</code></td></tr>
-    <tr><td>Memory consolidation status</td><td><code>{state.transformerMemoryConsolidationStatus}</code></td></tr>
-    <tr><td>Latest transformer diagnostic run</td><td><code>{state.transformerLatestDiagnosticRun}</code></td></tr>
-    <tr><td>Latest transformer diagnostic</td><td><code>{state.transformerLatestDiagnostic}</code></td></tr>
-    <tr><td>Latest diagnostic QA branch accuracy</td><td><code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code></td></tr>
-    <tr><td>Latest diagnostic dominant prediction</td><td><code>{state.transformerLatestDiagnosticQaDominantPrediction}</code></td></tr>
-    <tr><td>Latest transformer repair run</td><td><code>{state.transformerLatestRepairRun}</code></td></tr>
-    <tr><td>Latest transformer repair mode</td><td><code>{state.transformerLatestRepairMode}</code></td></tr>
-    <tr><td>Latest transformer repair status</td><td><code>{state.transformerLatestRepairStatus}</code></td></tr>
-    <tr><td>Latest representation screen</td><td><code>{state.transformerLatestRepresentationRun}</code></td></tr>
-    <tr><td>Latest representation option</td><td><code>{state.transformerLatestRepresentationOption}</code></td></tr>
-    <tr><td>Latest representation status</td><td><code>{state.transformerLatestRepresentationStatus}</code></td></tr>
-    <tr><td>Latest branch-context diagnostic</td><td><code>{state.transformerLatestBranchContextRun}</code></td></tr>
-    <tr><td>Branch context 16 QA</td><td><code>{state.transformerBranchContext16Qa}</code></td></tr>
-    <tr><td>Branch context 32 QA</td><td><code>{state.transformerBranchContext32Qa}</code></td></tr>
-    <tr><td>Branch context 80 all evals</td><td><code>{state.transformerBranchContext80AllEvals}</code></td></tr>
-    <tr><td>Latest branch-context gate run</td><td><code>{state.transformerLatestBranchContextGateRun}</code></td></tr>
-    <tr><td>Branch context gate at 16</td><td><code>{state.transformerBranchContextGateContext16}</code></td></tr>
-    <tr><td>Branch context gate at 80</td><td><code>{state.transformerBranchContextGateContext80}</code></td></tr>
-    <tr><td>Latest branch-only screen</td><td><code>{state.transformerLatestBranchOnlyRun}</code></td></tr>
-    <tr><td>Branch-only gate</td><td><code>{state.transformerBranchOnlyGate}</code></td></tr>
-    <tr><td>Branch-only eval skipping</td><td><code>{state.transformerBranchOnlyEvalSkipping}</code></td></tr>
-    <tr><td>Latest branch-only repair screen</td><td><code>{state.transformerLatestBranchOnlyRepairRun}</code></td></tr>
-    <tr><td>Branch-only repair status</td><td><code>{state.transformerBranchOnlyRepairStatus}</code></td></tr>
-    <tr><td>Latest branch-only batch screen</td><td><code>{state.transformerLatestBranchOnlyBatchRun}</code></td></tr>
-    <tr><td>Branch-only batch status</td><td><code>{state.transformerBranchOnlyBatchStatus}</code></td></tr>
-    <tr><td>Latest branch-diversity target run</td><td><code>{state.transformerLatestBranchDiversityRun}</code></td></tr>
-    <tr><td>Branch-diversity target</td><td><code>{state.transformerBranchDiversityTarget}</code></td></tr>
-    <tr><td>Branch-diversity smoke</td><td><code>{state.transformerBranchDiversitySmoke}</code></td></tr>
-    <tr><td>Latest branch-diversity training run</td><td><code>{state.transformerLatestBranchDiversityTrainRun}</code></td></tr>
-    <tr><td>Branch-diversity training mode</td><td><code>{state.transformerBranchDiversityTrainMode}</code></td></tr>
-    <tr><td>Branch-diversity training status</td><td><code>{state.transformerBranchDiversityTrainStatus}</code></td></tr>
-    <tr><td>Latest branch-diversity freeze-bias run</td><td><code>{state.transformerLatestBranchDiversityFreezeRun}</code></td></tr>
-    <tr><td>Branch-diversity freeze-bias mode</td><td><code>{state.transformerBranchDiversityFreezeMode}</code></td></tr>
-    <tr><td>Branch-diversity freeze-bias status</td><td><code>{state.transformerBranchDiversityFreezeStatus}</code></td></tr>
-    <tr><td>Latest branch-target softmax run</td><td><code>{state.transformerLatestBranchTargetSoftmaxRun}</code></td></tr>
-    <tr><td>Branch-target softmax mode</td><td><code>{state.transformerBranchTargetSoftmaxMode}</code></td></tr>
-    <tr><td>Branch-target softmax status</td><td><code>{state.transformerBranchTargetSoftmaxStatus}</code></td></tr>
-    <tr><td>Latest branch restore run</td><td><code>{state.transformerLatestBranchRestoreRun}</code></td></tr>
-    <tr><td>Branch restore mode</td><td><code>{state.transformerBranchRestoreMode}</code></td></tr>
-    <tr><td>Branch restore status</td><td><code>{state.transformerBranchRestoreStatus}</code></td></tr>
-    <tr><td>Latest prompt-prefix projection run</td><td><code>{state.transformerLatestPromptPrefixRun}</code></td></tr>
-    <tr><td>Prompt-prefix projection option</td><td><code>{state.transformerPromptPrefixOption}</code></td></tr>
-    <tr><td>Prompt-prefix projection status</td><td><code>{state.transformerPromptPrefixStatus}</code></td></tr>
-    <tr><td>Latest prompt-position projection run</td><td><code>{state.transformerLatestPromptPositionRun}</code></td></tr>
-    <tr><td>Prompt-position projection option</td><td><code>{state.transformerPromptPositionOption}</code></td></tr>
-    <tr><td>Prompt-position projection status</td><td><code>{state.transformerPromptPositionStatus}</code></td></tr>
-    <tr><td>Latest branch-target margin run</td><td><code>{state.transformerLatestBranchTargetMarginRun}</code></td></tr>
-    <tr><td>Branch-target margin mode</td><td><code>{state.transformerBranchTargetMarginMode}</code></td></tr>
-    <tr><td>Branch-target margin status</td><td><code>{state.transformerBranchTargetMarginStatus}</code></td></tr>
-    <tr><td>Latest branch-representation contrast run</td><td><code>{state.transformerLatestBranchRepresentationRun}</code></td></tr>
-    <tr><td>Branch-representation contrast mode</td><td><code>{state.transformerBranchRepresentationMode}</code></td></tr>
-    <tr><td>Branch-representation contrast status</td><td><code>{state.transformerBranchRepresentationStatus}</code></td></tr>
-    <tr><td>Latest branch-representation capacity run</td><td><code>{state.transformerLatestBranchRepresentationCapacityRun}</code></td></tr>
-    <tr><td>Branch-representation capacity mode</td><td><code>{state.transformerBranchRepresentationCapacityMode}</code></td></tr>
-    <tr><td>Branch-representation capacity status</td><td><code>{state.transformerBranchRepresentationCapacityStatus}</code></td></tr>
-    <tr><td>Latest prompt-position scale run</td><td><code>{state.transformerLatestPromptPositionScaleRun}</code></td></tr>
-    <tr><td>Prompt-position scale mode</td><td><code>{state.transformerPromptPositionScaleMode}</code></td></tr>
-    <tr><td>Prompt-position scale status</td><td><code>{state.transformerPromptPositionScaleStatus}</code></td></tr>
-    <tr><td>Transformer structure audit</td><td><code>{state.transformerStructureAudit}</code></td></tr>
-    <tr><td>Transformer structure decision</td><td><code>{state.transformerStructureAuditDecision}</code></td></tr>
-    <tr><td>Latest pre-layer-norm run</td><td><code>{state.transformerLatestPreLayerNormRun}</code></td></tr>
-    <tr><td>Pre-layer-norm mode</td><td><code>{state.transformerPreLayerNormMode}</code></td></tr>
-    <tr><td>Pre-layer-norm status</td><td><code>{state.transformerPreLayerNormStatus}</code></td></tr>
-    <tr><td>Latest target-balanced run</td><td><code>{state.transformerLatestTargetBalancedRun}</code></td></tr>
-    <tr><td>Target-balanced mode</td><td><code>{state.transformerTargetBalancedMode}</code></td></tr>
-    <tr><td>Target-balanced status</td><td><code>{state.transformerTargetBalancedStatus}</code></td></tr>
-    <tr><td>Latest branch-rank diagnostic run</td><td><code>{state.transformerLatestBranchRankRun}</code></td></tr>
-    <tr><td>Branch-rank diagnostic</td><td><code>{state.transformerBranchRankDiagnostic}</code></td></tr>
-    <tr><td>Branch-rank QA</td><td><code>{state.transformerBranchRankQa}</code></td></tr>
-    <tr><td>Branch-rank heldout</td><td><code>{state.transformerBranchRankHeldout}</code></td></tr>
-    <tr><td>Branch-rank status</td><td><code>{state.transformerBranchRankStatus}</code></td></tr>
-    <tr><td>Latest output-binding run</td><td><code>{state.transformerLatestOutputBindingRun}</code></td></tr>
-    <tr><td>Output-binding mode</td><td><code>{state.transformerOutputBindingMode}</code></td></tr>
-    <tr><td>Output-binding QA</td><td><code>{state.transformerOutputBindingQa}</code></td></tr>
-    <tr><td>Output-binding heldout</td><td><code>{state.transformerOutputBindingHeldout}</code></td></tr>
-    <tr><td>Output-binding status</td><td><code>{state.transformerOutputBindingStatus}</code></td></tr>
-    <tr><td>Latest rank-margin run</td><td><code>{state.transformerLatestRankMarginRun}</code></td></tr>
-    <tr><td>Rank-margin mode</td><td><code>{state.transformerRankMarginMode}</code></td></tr>
-    <tr><td>Rank-margin QA</td><td><code>{state.transformerRankMarginQa}</code></td></tr>
-    <tr><td>Rank-margin heldout</td><td><code>{state.transformerRankMarginHeldout}</code></td></tr>
-    <tr><td>Rank-margin status</td><td><code>{state.transformerRankMarginStatus}</code></td></tr>
-    <tr><td>Latest balanced rank-margin run</td><td><code>{state.transformerLatestBalancedRankMarginRun}</code></td></tr>
-    <tr><td>Balanced rank-margin mode</td><td><code>{state.transformerBalancedRankMarginMode}</code></td></tr>
-    <tr><td>Balanced rank-margin QA</td><td><code>{state.transformerBalancedRankMarginQa}</code></td></tr>
-    <tr><td>Balanced rank-margin heldout</td><td><code>{state.transformerBalancedRankMarginHeldout}</code></td></tr>
-    <tr><td>Balanced rank-margin status</td><td><code>{state.transformerBalancedRankMarginStatus}</code></td></tr>
-    <tr><td>Latest top-one rank-margin run</td><td><code>{state.transformerLatestTopOneRankMarginRun}</code></td></tr>
-    <tr><td>Top-one rank-margin mode</td><td><code>{state.transformerTopOneRankMarginMode}</code></td></tr>
-    <tr><td>Top-one rank-margin QA</td><td><code>{state.transformerTopOneRankMarginQa}</code></td></tr>
-    <tr><td>Top-one rank-margin heldout</td><td><code>{state.transformerTopOneRankMarginHeldout}</code></td></tr>
-    <tr><td>Top-one rank-margin status</td><td><code>{state.transformerTopOneRankMarginStatus}</code></td></tr>
-    <tr><td>Latest top-k softmax run</td><td><code>{state.transformerLatestTopKSoftmaxRun}</code></td></tr>
-    <tr><td>Top-k softmax mode</td><td><code>{state.transformerTopKSoftmaxMode}</code></td></tr>
-    <tr><td>Top-k softmax QA</td><td><code>{state.transformerTopKSoftmaxQa}</code></td></tr>
-    <tr><td>Top-k softmax heldout</td><td><code>{state.transformerTopKSoftmaxHeldout}</code></td></tr>
-    <tr><td>Top-k softmax status</td><td><code>{state.transformerTopKSoftmaxStatus}</code></td></tr>
-    <tr><td>Latest foundation-stack run</td><td><code>{state.transformerLatestFoundationStackRun}</code></td></tr>
-    <tr><td>Foundation-stack mode</td><td><code>{state.transformerFoundationStackMode}</code></td></tr>
-    <tr><td>Foundation-stack smoke</td><td><code>{state.transformerFoundationStackSmoke}</code></td></tr>
-    <tr><td>Foundation-stack artifacts</td><td><code>{state.transformerFoundationStackArtifacts}</code></td></tr>
-    <tr><td>Foundation-stack status</td><td><code>{state.transformerFoundationStackStatus}</code></td></tr>
-    <tr><td>Latest full-stack top-k run</td><td><code>{state.transformerLatestFullStackTopKRun}</code></td></tr>
-    <tr><td>Full-stack top-k mode</td><td><code>{state.transformerFullStackTopKMode}</code></td></tr>
-    <tr><td>Full-stack top-k QA</td><td><code>{state.transformerFullStackTopKQa}</code></td></tr>
-    <tr><td>Full-stack top-k heldout</td><td><code>{state.transformerFullStackTopKHeldout}</code></td></tr>
-    <tr><td>Full-stack top-k status</td><td><code>{state.transformerFullStackTopKStatus}</code></td></tr>
-    <tr><td>Latest bidirectional binding run</td><td><code>{state.transformerLatestBidirectionalBindingRun}</code></td></tr>
-    <tr><td>Bidirectional binding mode</td><td><code>{state.transformerBidirectionalBindingMode}</code></td></tr>
-    <tr><td>Bidirectional binding unit test</td><td><code>{state.transformerBidirectionalBindingUnitTest}</code></td></tr>
-    <tr><td>Bidirectional binding QA</td><td><code>{state.transformerBidirectionalBindingQa}</code></td></tr>
-    <tr><td>Bidirectional binding heldout</td><td><code>{state.transformerBidirectionalBindingHeldout}</code></td></tr>
-    <tr><td>Bidirectional binding history</td><td><code>{state.transformerBidirectionalBindingHistory}</code></td></tr>
-    <tr><td>Bidirectional binding status</td><td><code>{state.transformerBidirectionalBindingStatus}</code></td></tr>
-    <tr><td>Latest coverage binding run</td><td><code>{state.transformerLatestCoverageBindingRun}</code></td></tr>
-    <tr><td>Coverage binding mode</td><td><code>{state.transformerCoverageBindingMode}</code></td></tr>
-    <tr><td>Coverage binding unit test</td><td><code>{state.transformerCoverageBindingUnitTest}</code></td></tr>
-    <tr><td>Coverage binding QA</td><td><code>{state.transformerCoverageBindingQa}</code></td></tr>
-    <tr><td>Coverage binding heldout</td><td><code>{state.transformerCoverageBindingHeldout}</code></td></tr>
-    <tr><td>Coverage binding history</td><td><code>{state.transformerCoverageBindingHistory}</code></td></tr>
-    <tr><td>Coverage binding status</td><td><code>{state.transformerCoverageBindingStatus}</code></td></tr>
-    <tr><td>Latest target-set coverage run</td><td><code>{state.transformerLatestTargetSetCoverageRun}</code></td></tr>
-    <tr><td>Target-set coverage mode</td><td><code>{state.transformerTargetSetCoverageMode}</code></td></tr>
-    <tr><td>Target-set coverage unit test</td><td><code>{state.transformerTargetSetCoverageUnitTest}</code></td></tr>
-    <tr><td>Target-set coverage QA</td><td><code>{state.transformerTargetSetCoverageQa}</code></td></tr>
-    <tr><td>Target-set coverage heldout</td><td><code>{state.transformerTargetSetCoverageHeldout}</code></td></tr>
-    <tr><td>Target-set coverage history</td><td><code>{state.transformerTargetSetCoverageHistory}</code></td></tr>
-    <tr><td>Target-set coverage status</td><td><code>{state.transformerTargetSetCoverageStatus}</code></td></tr>
-    <tr><td>Latest target-diversity run</td><td><code>{state.transformerLatestTargetDiversityRun}</code></td></tr>
-    <tr><td>Target-diversity mode</td><td><code>{state.transformerTargetDiversityMode}</code></td></tr>
-    <tr><td>Target-diversity unit test</td><td><code>{state.transformerTargetDiversityUnitTest}</code></td></tr>
-    <tr><td>Target-diversity QA</td><td><code>{state.transformerTargetDiversityQa}</code></td></tr>
-    <tr><td>Target-diversity heldout</td><td><code>{state.transformerTargetDiversityHeldout}</code></td></tr>
-    <tr><td>Target-diversity history</td><td><code>{state.transformerTargetDiversityHistory}</code></td></tr>
-    <tr><td>Target-diversity status</td><td><code>{state.transformerTargetDiversityStatus}</code></td></tr>
-    <tr><td>Latest target-replay coverage run</td><td><code>{state.transformerLatestTargetReplayCoverageRun}</code></td></tr>
-    <tr><td>Target-replay coverage mode</td><td><code>{state.transformerTargetReplayCoverageMode}</code></td></tr>
-    <tr><td>Target-replay coverage unit test</td><td><code>{state.transformerTargetReplayCoverageUnitTest}</code></td></tr>
-    <tr><td>Target-replay coverage QA</td><td><code>{state.transformerTargetReplayCoverageQa}</code></td></tr>
-    <tr><td>Target-replay coverage heldout</td><td><code>{state.transformerTargetReplayCoverageHeldout}</code></td></tr>
-    <tr><td>Target-replay coverage history</td><td><code>{state.transformerTargetReplayCoverageHistory}</code></td></tr>
-    <tr><td>Target-replay coverage status</td><td><code>{state.transformerTargetReplayCoverageStatus}</code></td></tr>
-    <tr><td>Latest context-replay coverage run</td><td><code>{state.transformerLatestContextReplayCoverageRun}</code></td></tr>
-    <tr><td>Context-replay coverage mode</td><td><code>{state.transformerContextReplayCoverageMode}</code></td></tr>
-    <tr><td>Context-replay coverage unit test</td><td><code>{state.transformerContextReplayCoverageUnitTest}</code></td></tr>
-    <tr><td>Context-replay coverage QA</td><td><code>{state.transformerContextReplayCoverageQa}</code></td></tr>
-    <tr><td>Context-replay coverage heldout</td><td><code>{state.transformerContextReplayCoverageHeldout}</code></td></tr>
-    <tr><td>Context-replay coverage history</td><td><code>{state.transformerContextReplayCoverageHistory}</code></td></tr>
-    <tr><td>Context-replay coverage status</td><td><code>{state.transformerContextReplayCoverageStatus}</code></td></tr>
-    <tr><td>Latest coverage-floor run</td><td><code>{state.transformerLatestCoverageFloorRun}</code></td></tr>
-    <tr><td>Coverage-floor mode</td><td><code>{state.transformerCoverageFloorMode}</code></td></tr>
-    <tr><td>Coverage-floor unit test</td><td><code>{state.transformerCoverageFloorUnitTest}</code></td></tr>
-    <tr><td>Coverage-floor QA</td><td><code>{state.transformerCoverageFloorQa}</code></td></tr>
-    <tr><td>Coverage-floor heldout</td><td><code>{state.transformerCoverageFloorHeldout}</code></td></tr>
-    <tr><td>Coverage-floor history</td><td><code>{state.transformerCoverageFloorHistory}</code></td></tr>
-    <tr><td>Coverage-floor status</td><td><code>{state.transformerCoverageFloorStatus}</code></td></tr>
-    <tr><td>Latest coverage-anchor run</td><td><code>{state.transformerLatestCoverageAnchorRun}</code></td></tr>
-    <tr><td>Coverage-anchor mode</td><td><code>{state.transformerCoverageAnchorMode}</code></td></tr>
-    <tr><td>Coverage-anchor unit test</td><td><code>{state.transformerCoverageAnchorUnitTest}</code></td></tr>
-    <tr><td>Coverage-anchor QA</td><td><code>{state.transformerCoverageAnchorQa}</code></td></tr>
-    <tr><td>Coverage-anchor heldout</td><td><code>{state.transformerCoverageAnchorHeldout}</code></td></tr>
-    <tr><td>Coverage-anchor history</td><td><code>{state.transformerCoverageAnchorHistory}</code></td></tr>
-    <tr><td>Coverage-anchor status</td><td><code>{state.transformerCoverageAnchorStatus}</code></td></tr>
-    <tr><td>Latest target-balanced anchor run</td><td><code>{state.transformerLatestTargetBalancedAnchorRun}</code></td></tr>
-    <tr><td>Target-balanced anchor mode</td><td><code>{state.transformerTargetBalancedAnchorMode}</code></td></tr>
-    <tr><td>Target-balanced anchor unit test</td><td><code>{state.transformerTargetBalancedAnchorUnitTest}</code></td></tr>
-    <tr><td>Target-balanced anchor QA</td><td><code>{state.transformerTargetBalancedAnchorQa}</code></td></tr>
-    <tr><td>Target-balanced anchor heldout</td><td><code>{state.transformerTargetBalancedAnchorHeldout}</code></td></tr>
-    <tr><td>Target-balanced anchor history</td><td><code>{state.transformerTargetBalancedAnchorHistory}</code></td></tr>
-    <tr><td>Target-balanced anchor status</td><td><code>{state.transformerTargetBalancedAnchorStatus}</code></td></tr>
-    <tr><td>Latest coverage-deficit run</td><td><code>{state.transformerLatestCoverageDeficitRun}</code></td></tr>
-    <tr><td>Coverage-deficit mode</td><td><code>{state.transformerCoverageDeficitMode}</code></td></tr>
-    <tr><td>Coverage-deficit unit test</td><td><code>{state.transformerCoverageDeficitUnitTest}</code></td></tr>
-    <tr><td>Coverage-deficit QA</td><td><code>{state.transformerCoverageDeficitQa}</code></td></tr>
-    <tr><td>Coverage-deficit heldout</td><td><code>{state.transformerCoverageDeficitHeldout}</code></td></tr>
-    <tr><td>Coverage-deficit history</td><td><code>{state.transformerCoverageDeficitHistory}</code></td></tr>
-    <tr><td>Coverage-deficit status</td><td><code>{state.transformerCoverageDeficitStatus}</code></td></tr>
-    <tr><td>Latest coverage-preserving deficit run</td><td><code>{state.transformerLatestCoveragePreservingDeficitRun}</code></td></tr>
-    <tr><td>Coverage-preserving deficit mode</td><td><code>{state.transformerCoveragePreservingDeficitMode}</code></td></tr>
-    <tr><td>Coverage-preserving deficit unit test</td><td><code>{state.transformerCoveragePreservingDeficitUnitTest}</code></td></tr>
-    <tr><td>Coverage-preserving deficit QA</td><td><code>{state.transformerCoveragePreservingDeficitQa}</code></td></tr>
-    <tr><td>Coverage-preserving deficit heldout</td><td><code>{state.transformerCoveragePreservingDeficitHeldout}</code></td></tr>
-    <tr><td>Coverage-preserving deficit history</td><td><code>{state.transformerCoveragePreservingDeficitHistory}</code></td></tr>
-    <tr><td>Coverage-preserving deficit status</td><td><code>{state.transformerCoveragePreservingDeficitStatus}</code></td></tr>
-    <tr><td>Latest profile-aware replay run</td><td><code>{state.transformerLatestProfileAwareReplayRun}</code></td></tr>
-    <tr><td>Profile-aware replay mode</td><td><code>{state.transformerProfileAwareReplayMode}</code></td></tr>
-    <tr><td>Profile-aware replay unit test</td><td><code>{state.transformerProfileAwareReplayUnitTest}</code></td></tr>
-    <tr><td>Profile-aware replay plan</td><td><code>{state.transformerProfileAwareReplayPlan}</code></td></tr>
-    <tr><td>Profile-aware replay gate</td><td><code>{state.transformerProfileAwareReplayGate}</code></td></tr>
-    <tr><td>Profile-aware replay smoke</td><td><code>{state.transformerProfileAwareReplaySmoke}</code></td></tr>
-    <tr><td>Profile-aware replay status</td><td><code>{state.transformerProfileAwareReplayStatus}</code></td></tr>
-    <tr><td>Latest profile-aware full-stack run</td><td><code>{state.transformerLatestProfileAwareFullStackRun}</code></td></tr>
-    <tr><td>Profile-aware full-stack mode</td><td><code>{state.transformerProfileAwareFullStackMode}</code></td></tr>
-    <tr><td>Profile-aware full-stack plan</td><td><code>{state.transformerProfileAwareFullStackPlan}</code></td></tr>
-    <tr><td>Profile-aware full-stack QA</td><td><code>{state.transformerProfileAwareFullStackQa}</code></td></tr>
-    <tr><td>Profile-aware full-stack heldout</td><td><code>{state.transformerProfileAwareFullStackHeldout}</code></td></tr>
-    <tr><td>Profile-aware full-stack history</td><td><code>{state.transformerProfileAwareFullStackHistory}</code></td></tr>
-    <tr><td>Profile-aware full-stack status</td><td><code>{state.transformerProfileAwareFullStackStatus}</code></td></tr>
-    <tr><td>Profile target-share objective</td><td><code>{state.transformerProfileTargetShare}</code></td></tr>
-    <tr><td>Profile target-share decision</td><td><code>{state.transformerProfileTargetShareDecision}</code></td></tr>
-    <tr><td>Profile target-share unit test</td><td><code>{state.transformerProfileTargetShareUnitTest}</code></td></tr>
-    <tr><td>Latest profile target-share run</td><td><code>{state.transformerLatestProfileTargetShareRun}</code></td></tr>
-    <tr><td>Profile target-share mode</td><td><code>{state.transformerProfileTargetShareMode}</code></td></tr>
-    <tr><td>Profile target-share artifacts</td><td><code>{state.transformerProfileTargetShareArtifacts}</code></td></tr>
-    <tr><td>Profile target-share gate</td><td><code>{state.transformerProfileTargetShareGate}</code></td></tr>
-    <tr><td>Profile target-share history</td><td><code>{state.transformerProfileTargetShareHistory}</code></td></tr>
-    <tr><td>Profile target-share status</td><td><code>{state.transformerProfileTargetShareStatus}</code></td></tr>
-    <tr><td>Latest prompt-ownership run</td><td><code>{state.transformerLatestPromptOwnershipRun}</code></td></tr>
-    <tr><td>Prompt-ownership mode</td><td><code>{state.transformerPromptOwnershipMode}</code></td></tr>
-    <tr><td>Prompt-ownership unit test</td><td><code>{state.transformerPromptOwnershipUnitTest}</code></td></tr>
-    <tr><td>Prompt-ownership gate</td><td><code>{state.transformerPromptOwnershipGate}</code></td></tr>
-    <tr><td>Prompt-ownership history</td><td><code>{state.transformerPromptOwnershipHistory}</code></td></tr>
-    <tr><td>Prompt-ownership status</td><td><code>{state.transformerPromptOwnershipStatus}</code></td></tr>
-    <tr><td>Latest baseline-anchor run</td><td><code>{state.transformerLatestBaselineAnchorRun}</code></td></tr>
-    <tr><td>Baseline-anchor mode</td><td><code>{state.transformerBaselineAnchorMode}</code></td></tr>
-    <tr><td>Baseline-anchor unit test</td><td><code>{state.transformerBaselineAnchorUnitTest}</code></td></tr>
-    <tr><td>Baseline-anchor gate</td><td><code>{state.transformerBaselineAnchorGate}</code></td></tr>
-    <tr><td>Baseline-anchor history</td><td><code>{state.transformerBaselineAnchorHistory}</code></td></tr>
-    <tr><td>Baseline-anchor status</td><td><code>{state.transformerBaselineAnchorStatus}</code></td></tr>
-    <tr><td>Latest baseline-floor gate run</td><td><code>{state.transformerLatestBaselineFloorGateRun}</code></td></tr>
-    <tr><td>Baseline-floor gate mode</td><td><code>{state.transformerBaselineFloorGateMode}</code></td></tr>
-    <tr><td>Baseline-floor gate unit test</td><td><code>{state.transformerBaselineFloorGateUnitTest}</code></td></tr>
-    <tr><td>Baseline-floor gate</td><td><code>{state.transformerBaselineFloorGateGate}</code></td></tr>
-    <tr><td>Baseline-floor gate history</td><td><code>{state.transformerBaselineFloorGateHistory}</code></td></tr>
-    <tr><td>Baseline-floor gate status</td><td><code>{state.transformerBaselineFloorGateStatus}</code></td></tr>
-    <tr><td>Latest baseline-floor adaptive run</td><td><code>{state.transformerLatestBaselineFloorAdaptiveRun}</code></td></tr>
-    <tr><td>Baseline-floor adaptive mode</td><td><code>{state.transformerBaselineFloorAdaptiveMode}</code></td></tr>
-    <tr><td>Baseline-floor adaptive unit test</td><td><code>{state.transformerBaselineFloorAdaptiveUnitTest}</code></td></tr>
-    <tr><td>Baseline-floor adaptive gate</td><td><code>{state.transformerBaselineFloorAdaptiveGate}</code></td></tr>
-    <tr><td>Baseline-floor adaptive history</td><td><code>{state.transformerBaselineFloorAdaptiveHistory}</code></td></tr>
-    <tr><td>Baseline-floor adaptive status</td><td><code>{state.transformerBaselineFloorAdaptiveStatus}</code></td></tr>
-    <tr><td>Latest baseline-floor repaired run</td><td><code>{state.transformerLatestBaselineFloorRepairedRun}</code></td></tr>
-    <tr><td>Baseline-floor repaired mode</td><td><code>{state.transformerBaselineFloorRepairedMode}</code></td></tr>
-    <tr><td>Baseline-floor repaired unit test</td><td><code>{state.transformerBaselineFloorRepairedUnitTest}</code></td></tr>
-    <tr><td>Baseline-floor repaired gate</td><td><code>{state.transformerBaselineFloorRepairedGate}</code></td></tr>
-    <tr><td>Baseline-floor repaired history</td><td><code>{state.transformerBaselineFloorRepairedHistory}</code></td></tr>
-    <tr><td>Baseline-floor repaired status</td><td><code>{state.transformerBaselineFloorRepairedStatus}</code></td></tr>
-    <tr><td>Latest baseline-floor objective run</td><td><code>{state.transformerLatestBaselineFloorObjectiveRun}</code></td></tr>
-    <tr><td>Baseline-floor objective mode</td><td><code>{state.transformerBaselineFloorObjectiveMode}</code></td></tr>
-    <tr><td>Baseline-floor objective unit test</td><td><code>{state.transformerBaselineFloorObjectiveUnitTest}</code></td></tr>
-    <tr><td>Baseline-floor objective gate</td><td><code>{state.transformerBaselineFloorObjectiveGate}</code></td></tr>
-    <tr><td>Baseline-floor objective history</td><td><code>{state.transformerBaselineFloorObjectiveHistory}</code></td></tr>
-    <tr><td>Baseline-floor objective status</td><td><code>{state.transformerBaselineFloorObjectiveStatus}</code></td></tr>
-    <tr><td>Profile target-share next</td><td><code>{state.transformerProfileTargetShareNext}</code></td></tr>
-    <tr><td>Transformer selector exact</td><td><code>{state.transformerSelectorExact}</code></td></tr>
-    <tr><td>Transformer selector candidate accuracy</td><td><code>{state.transformerSelectorCandidate}</code></td></tr>
-    <tr><td>Transformer-guided generator exact</td><td><code>{state.transformerGeneratorExact}</code></td></tr>
-    <tr><td>Tokenizer</td><td><code>{state.tokenizer}</code></td></tr>
-  </tbody>
-</table>
+## What is promoted
 
-## v0.42 Summary
+The promoted run is the responder track: the deterministic responder, retrieval
+memory, the learned answer classifier, and the generative answer decoder. The
+from-scratch transformer is **not** promoted. It remains diagnostic evidence,
+blocked on `branch_diversity_target` (see [Transformer status](#transformer-status)
+below).
 
-QuarkLM v0.42 keeps the admitted corpus unchanged from v0.41 and widens the
-from-scratch transformer used by the sparse prompt-contrast branch repair path.
-The stable self-improvement run is `runs/self-improve-v0.42/`; the current
-transformer answer-lesson run is
-`runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/`.
+| Signal | Current value |
+| --- | --- |
+| Product name | <code>{state.productName}</code> |
+| Current promoted version | <code>{state.currentVersion}</code> |
+| Latest repository version | <code>{state.latestVersion}</code> |
+| Latest version summary | <code>{state.latestVersionSummary}</code> |
+| Admitted facts in corpus | <code>{state.admittedFacts}</code> |
+| Promotion gate | <code>{state.promotionGate}</code> |
+| Self-diagnosis | <code>{state.selfDiagnosis}</code> |
+| Self-diagnosis uses external model | <code>{String(state.selfDiagnosisExternalModel)}</code> |
+| Attempt archive | <code>{state.attemptArchive}</code> |
+| Tokenizer | <code>{state.tokenizer}</code> |
 
-The current corpus remains at `12` admitted facts. Direct admission probes pass
-`48/48`, admission paraphrase probes pass `84/84`, and glossary probes pass
-`38/38`.
+The corpus, the curriculum derived from it, and the probes generated from it are
+the only inputs that train weights. Documentation is a promotion gate, not a
+training input: a run is promoted only after it updates the docs that describe
+current state. Nothing on the responder track imports external weights,
+tokenizers, embeddings, or training text — see
+[Purity boundary](../secure/purity-boundary.md).
 
-The transformer is a tiny decoder-only language model built in the Python
-standard library. It uses learned token and position embeddings, one causal
-self-attention block, a feed-forward block, and QuarkLM's corpus-trained
-character tokenizer. It starts from random weights and imports no pretrained
-model, vocabulary, or embeddings.
+## Corpus and probe coverage
 
-Transformer direct-answer evidence:
+The admitted corpus is small and fully ledgered. Probes are generated from
+admitted source files, so passing a probe is evidence that the corpus can answer
+it, not evidence that a fact was hand-written into a test.
 
-- transformer checkpoint: `runs/transformer-answer-v0.42-branch-repair-contrast50-dim8-context32/transformer_answer.json`
-- v0.31 generator checkpoint retained for comparison: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_generator.json`
-- selector checkpoint: `runs/transformer-answer-v0.31-generator-weighted-lr035-80k/answer_selector.json`
-- training steps: `80`
-- context size: `32`
-- embedding dimension: `8`
-- feed-forward dimension: `16`
-- direct answer steps: `1000`
-- direct answer mode: `periodic-branch-repair-contrast-unlikelihood`
-- direct answer negative weight: `1.0`
-- direct answer positive weight: `1.0`
-- direct answer contrast weight: `1.0`
-- branch position: `1`
-- contrast interval: `50`
-- direct answer training examples: `9144`
-- answer target NLL: `3.5850 -> 2.4129`
-- direct answer target loss: `3.4278 -> 2.2708`
-- raw direct greedy exact answers: `0/219 -> 0/219`
-- transformer-only eval-scoped candidate accuracy: `15/219 -> 37/219`
-- selector-emitted exact answers: `18/219 -> 219/219`
-- selector eval-scoped candidate accuracy: `18/219 -> 219/219`
-- v0.31 generator exact answers without candidates: `0/219 -> 219/219`
-- pretrained weights: `false`
-- pretrained tokenizer: `false`
-- external embeddings: `false`
-- direct path uses answer candidates: `false`
-- direct path uses auxiliary weights: `false`
-- generator uses answer candidates: `false`
+| Probe set | Result |
+| --- | --- |
+| Direct admission probes | <code>{state.directAdmissionProbes}</code> |
+| Admission paraphrase probes | <code>{state.admissionParaphraseProbes}</code> |
+| Glossary probes | <code>{state.glossaryProbes}</code> |
+| QA exact | <code>{state.qaExact}</code> |
+| Admissions exact | <code>{state.admissionsExact}</code> |
+| Admission paraphrases exact | <code>{state.admissionParaphrasesExact}</code> |
+| Glossary exact | <code>{state.glossaryExact}</code> |
+| Self exact | <code>{state.selfExact}</code> |
+| Learning exact | <code>{state.learningExact}</code> |
 
-That is a real movement toward raw transformer answering with a clear boundary.
-v0.42 preserves v0.33's transformer-only candidate discrimination while testing
-whether a wider random transformer gives sparse branch contrast more room to
-represent prompt differences. The direct path improves answer-target NLL versus
-v0.41 and reduces runaway greedy looping, but raw greedy completions still fail
-exact answer generation: the dominant failure is now the short wrong completion
-`" te."`. The next structured repair should make the prompt representation more
-target-specific without losing these scored gains.
-v0.31's auxiliary no-candidate generator remains the best exact no-candidate
-answer evidence. The current reliable response gate still belongs to the
-responder, learned answer classifier, and generative answer decoder.
+The promoted run also passed the forgetting audit, the protected prompt-leakage
+audit, the exact-eval audit, and the promotion gate. Rule-based self-diagnosis
+ran with no external model. The passing attempt is archived under the run's
+`attempts/` directory before the latest report is updated, so a failed gate is
+never overwritten by a later repair.
 
-## Unpromoted v0.43 Findings
+## Transformer status
 
-v0.43 development added transformer-loop improvements, but did not replace the
-v0.42 promoted checkpoint.
+The transformer is the weight-consolidation path, and it has not cleared its
+gate. The blocker is named and unchanged: direct-answer snapshots emit
+`branch_diversity_target`, which fails when multi-target eval profiles collapse
+to too few predicted branch tokens. The model learns to predict one dominant
+first token instead of routing each prompt to its own answer.
 
-- The transformer forward pass now computes only the final position consumed by
-  the language-model head, preserving the next-character objective while making
-  longer-context experiments practical.
-- Transformer answer artifacts now include prompt context-coverage metrics. A
-  context size of `80` covers all current semantic eval templates (`219/219`),
-  while context size `32` drops complete template coverage for many prompts.
-- `runs/transformer-answer-v0.43-hard-branch-contrast4-dim8-context32/`
-  preserved candidate accuracy at `37/219`, but regressed direct loss to
-  `2.4225`, answer NLL to `2.5402`, and collapsed greedy output to a repeated
-  `" a"` loop.
-- `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80/`
-  achieved full context coverage and the shorter failure `" t."`, but still
-  trailed v0.42 with direct loss `2.3122` and answer NLL `2.4546`.
-- `runs/transformer-answer-v0.43-branch-repair-contrast50-dim8-context80-1500/`
-  reached `38/219` candidates, but regressed direct loss, answer NLL, and greedy
-  output. It remains archived evidence rather than a promoted release.
-- `runs/transformer-answer-v0.43-layernorm-screen-dim8-context80/` tested
-  optional layer normalization with full context coverage. It preserved
-  `37/219` candidates, but answer NLL regressed to `2.5881` and greedy output
-  collapsed into repeated `" y"`/`"e"` loops, so it was not promoted.
-- `runs/transformer-answer-v0.43-branch-span3-screen-dim8-context32/` tested
-  branch repair over answer positions `1..3`. It preserved `37/219` candidates,
-  but answer NLL regressed to `2.7426` and greedy output became a long
-  `"neeee"` loop, so it was not promoted.
-- `runs/transformer-answer-v0.43-two-layer-screen-dim8-context32/` tested the
-  new multi-layer transformer path. It was interrupted before final
-  direct-answer metrics because two-layer full-block scalar autograd was too
-  slow for the regular loop. The partial JSONL history is runtime evidence, not
-  promotion evidence.
-- `runs/transformer-answer-v0.43-two-layer-finalopt-screen-dim8-context32/`
-  tested the optimized stacked path where the final layer computes only the
-  last state. The optimization is covered by logit-equivalence tests, but the
-  run was still interrupted before final metrics because the intermediate
-  full-state layer remains too expensive for direct-answer repair updates.
-- `runs/transformer-answer-v0.43-two-layer-toponly-skip-screen-dim8-context32/`
-  tested top-layer-only direct-answer updates for a two-layer transformer and
-  the explicit post-direct snapshot skip used for bounded screens. It completed
-  and saved a checkpoint after `40` target-loss steps and `80` direct-answer
-  steps, recorded the skipped post-direct candidate snapshot, improved
-  direct-answer target loss `3.5186 -> 3.2436`, but kept direct greedy exact at
-  `0/219 -> 0/219` with repeated `"a"` output. It is training-loop completion
-  evidence, not promotion evidence.
-- `runs/transformer-answer-v0.43-branch-profile-smoke-dim4-context16/` verified
-  direct-answer branch-profile metrics. The QA branch-position-1 profile stayed
-  at `1/8` accuracy, moved from all `"o"` predictions to all `"y"` predictions
-  after five tiny direct updates, and kept a negative average target margin.
-  This is model-native self-diagnosis evidence for prompt-independent branch
-  collapse, not promotion evidence.
-- `runs/transformer-answer-v0.43-branch-collapse-smoke-dim4-context16/` tested
-  full-dose dominant-branch-token suppression. It regressed direct loss and
-  moved QA branch collapse from all `"o"` predictions to all `"a"` predictions.
-- `runs/transformer-answer-v0.43-periodic-branch-collapse-smoke-dim4-context16/`
-  tested sparse dominant-token suppression every five direct steps. It improved
-  direct loss `3.5800 -> 3.5157`, but QA branch accuracy stayed `1/8 -> 1/8`
-  and the dominant prediction moved from all `"o"` to all `"n"`. It remains
-  rejected repair evidence because the branch stayed prompt-independent.
-- `runs/transformer-answer-v0.43-branch-batch-smoke-dim4-context16/` tested
-  full-dose distinct-target branch batching. It improved direct loss only
-  slightly and moved QA branch collapse from all `"o"` predictions to all `"y"`
-  predictions.
-- `runs/transformer-answer-v0.43-periodic-branch-batch-smoke-dim4-context16/`
-  tested sparse branch-batch contrast every five direct steps. It improved
-  direct loss `3.5800 -> 3.5248`, but QA branch accuracy regressed
-  `1/8 -> 0/8` and the dominant prediction moved from all `"o"` to all `"a"`.
-  It is rejected evidence that distinct-target batching still does not force
-  prompt-conditioned branch separation in the current representation.
-- `runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/`
-  added `--use-context-mean`, a representation-side option that adds the
-  mean-pooled prompt context to the final transformer hidden state. With sparse
-  branch-batch contrast it improved direct loss `3.5805 -> 3.5252`, but QA
-  branch accuracy regressed `1/8 -> 0/8` and the dominant prediction moved from
-  all `"o"` to all `"a"`.
-- `runs/transformer-answer-v0.43-context-mean-branch-repair-smoke-dim4-context16/`
-  tested the same context-mean representation with sparse branch repair. It
-  improved direct loss `3.5805 -> 3.5310`, but again regressed QA branch
-  accuracy `1/8 -> 0/8` and collapsed to all `"a"` predictions. This is
-  rejected representation evidence: prompt averaging alone is not enough to
-  produce prompt-specific branch choices.
-- `runs/transformer-answer-v0.43-context-projection-branch-repair-smoke-dim4-context16/`
-  added `--use-context-projection`, a zero-initialized trainable projection of
-  the mean-pooled context. It starts baseline-equivalent, moved all `20`
-  projection parameters during training, and improved direct loss
-  `3.5802 -> 3.5217`, but QA branch accuracy regressed `1/8 -> 0/8` and the
-  dominant prediction moved from all `"o"` to all `"a"`.
-- `runs/transformer-answer-v0.43-context-projection-branch-batch-smoke-dim4-context16/`
-  tested the same learned projection with sparse branch-batch contrast. It
-  moved all `20` projection parameters and improved direct loss
-  `3.5802 -> 3.5252`, but also regressed QA branch accuracy `1/8 -> 0/8` and
-  collapsed to all `"a"` predictions. This keeps learned context projection in
-  rejected representation evidence.
-- `runs/transformer-answer-v0.43-prompt-attention-branch-repair-smoke-dim4-context16/`
-  added `--use-prompt-attention-summary`, a trainable attention-pooled context
-  summary with a zero-initialized output projection. It moved all `20` output
-  projection parameters and improved direct loss `3.5802 -> 3.5217`, but QA
-  branch accuracy regressed `1/8 -> 0/8` and the dominant prediction moved from
-  all `"o"` to all `"a"`.
-- `runs/transformer-answer-v0.43-prompt-attention-branch-batch-smoke-dim4-context16/`
-  tested the same prompt-attention summary with sparse branch-batch contrast.
-  It moved all `20` output projection parameters and improved direct loss
-  `3.5802 -> 3.5252`, but again regressed QA branch accuracy `1/8 -> 0/8` and
-  collapsed to all `"a"` predictions. This keeps trainable prompt attention in
-  rejected representation evidence.
-- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context16/`
-  added `branch_context_coverage` diagnostics to direct-answer snapshots. At
-  context size `16`, QA had `0/8` semantic coverage and `4` ambiguous branch
-  contexts; for example `"s ball?\nanswer: "` mapped both place and color first
-  target tokens.
-- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context32/`
-  removed QA branch ambiguity (`0` ambiguous contexts), but still had `0/8`
-  semantic coverage at the branch point because the prompt prefix was
-  truncated.
-- `runs/transformer-answer-v0.43-branch-context-coverage-smoke-dim4-context80/`
-  reached complete branch-context coverage across all eval sets (`219/219`)
-  with zero ambiguous branch contexts. This is diagnostic evidence for
-  efficient longer-context branch repair.
-- `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context16/`
-  made that diagnostic actionable with `--direct-answer-require-branch-context-gate`.
-  The required gate failed at context size `16`, so the run recorded
-  `actual_steps: 0` for `5` requested direct-answer steps.
-- `runs/transformer-answer-v0.43-branch-context-gate-smoke-dim4-context80/`
-  passed the same required gate at context size `80` and recorded
-  `actual_steps: 1` for `1` requested direct-answer step.
-- `runs/transformer-answer-v0.43-branch-context-gated-branchonly-smoke-dim4-context80/`
-  added `--direct-answer-snapshot-mode branch-only` to keep longer-context
-  branch screens bounded. The required context-80 gate passed across all
-  `219/219` semantic records, all `5` requested direct-answer steps ran, and
-  JSONL snapshots recorded `evals_skipped: true` while retaining branch profiles
-  and branch-context gate evidence.
-- `runs/transformer-answer-v0.43-branchonly-periodic-repair-contrast50-dim8-context80/`
-  used branch-only snapshots for a dim8 context-80 version of the best prior
-  sparse repair/contrast policy. The required gate passed and all `100` direct
-  steps ran, but QA branch prediction collapsed to all `"a"` with final QA
-  branch accuracy `0/8`.
-- `runs/transformer-answer-v0.43-branchonly-branch-batch-dim8-context80/`
-  tested branch-batch contrast under the same complete context. It lowered
-  interval train loss `3.4614 -> 3.1976`, but final QA branch prediction still
-  collapsed to all `"a"` with final QA branch accuracy `0/8`.
-- `runs/transformer-answer-v0.43-branch-diversity-target-smoke-dim4-context80/`
-  added a first-class `branch_diversity_target` to direct-answer snapshots. The
-  required branch-context gate passed and all `5` direct steps ran, but the
-  diversity target failed across all `9` multi-target eval profiles. Final QA
-  had `target_unique: 8`, `predicted_unique: 1`, dominant predicted token `"r"`
-  at rate `1.0`, and target-token coverage `0.125`.
-- `runs/transformer-answer-v0.43-branch-diversity-train-smoke-dim4-context80/`
-  added `branch-diversity-unlikelihood`, which trains distinct branch targets
-  while penalizing each branch context's current wrong prediction. The required
-  branch-context gate passed and `10/10` direct steps ran, but the diversity
-  target still failed across all `9` multi-target profiles. QA moved from all
-  `"x"` to all `"b"` predictions, with target-token coverage `0.0 -> 0.125`
-  and `predicted_unique` still `1/8`.
-- `runs/transformer-answer-v0.43-branch-diversity-freezebias-smoke-dim4-context80/`
-  added `--direct-answer-freeze-output-bias`, which excludes the transformer
-  output bias from direct-answer updates. The required branch-context gate
-  passed and `50/50` direct steps ran with the output bias frozen. Loss moved
-  `3.6149 -> 3.5016`, but the diversity target still failed across all `9`
-  multi-target profiles. QA moved from all `"x"` to all `"w"` predictions,
-  final target-token coverage was `0.0`, and `predicted_unique` stayed `1/8`.
-- `runs/transformer-answer-v0.43-branch-target-softmax-freezebias-smoke-dim4-context80/`
-  added `branch-target-softmax-unlikelihood`, which applies a restricted
-  softmax over the distinct branch targets in each batch. The required
-  branch-context gate passed, output bias was frozen, and `50/50` direct steps
-  ran. Composite train loss moved `5.6671 -> 5.5820`, but the diversity target
-  still failed across all `9` multi-target profiles. QA briefly reached
-  `predicted_unique: 2` at step `20`, then collapsed back to all `"w"` by
-  step `50`.
-- `runs/transformer-answer-v0.43-branch-target-softmax-restorebest-smoke-dim4-context80/`
-  added `--direct-answer-restore-best-branch-snapshot`. The required
-  branch-context gate passed, output bias was frozen, and `50/50` direct steps
-  ran. The run restored the final checkpoint from step `40`; final QA moved
-  from the prior all-`"w"` endpoint to all `"u"` with target-token coverage
-  `0.125`, but `predicted_unique` stayed `1/8` and all `9` multi-target
-  profiles still failed the diversity target.
-- `runs/transformer-answer-v0.43-prompt-prefix-target-softmax-restorebest-smoke-dim4-context80/`
-  added `--use-prompt-prefix-projection`, a zero-initialized trainable
-  projection over non-padding prompt-prefix positions before the final answer
-  token. All `20` projection parameters moved and composite train loss improved
-  `5.6649 -> 5.5679`, but the final checkpoint restored from step `40` to the
-  same all-`"u"` QA collapse with target-token coverage `0.125`.
-- `runs/transformer-answer-v0.43-prompt-position-target-softmax-restorebest-smoke-dim4-context80/`
-  added `--use-prompt-position-projection`, a position-specific trainable
-  projection over non-padding prompt-prefix positions before the final answer
-  token. `1108/1284` projection parameters moved and composite train loss
-  improved `5.6649 -> 5.5679`, but the final checkpoint restored from step
-  `40` to the same all-`"u"` QA collapse with target-token coverage `0.125`.
-- `runs/transformer-answer-v0.43-branch-target-margin-prompt-position-smoke-dim4-context80/`
-  added `branch-target-margin-unlikelihood`, a smooth pairwise target-margin
-  loss over each batch's distinct branch targets. The prompt-position
-  context-80 screen moved train loss `4.8973 -> 4.7784` and moved `1108/1284`
-  prompt-position projection parameters, but the final checkpoint restored
-  from step `40` to the same all-`"u"` QA collapse with target-token coverage
-  `0.125`.
-- `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim4-context80/`
-  added `branch_representation_profiles` and
-  `branch-representation-contrast-unlikelihood`. The high-weight
-  prompt-position context-80 screen used `--direct-answer-contrast-weight 50.0`
-  and moved QA different-target hidden distance only about
-  `0.00097 -> 0.00107` at the restored checkpoint; the final branch profile
-  still restored to the same all-`"u"` QA collapse.
-- `runs/transformer-answer-v0.43-branch-representation-contrast50-prompt-position-smoke-dim8-context80-steps40/`
-  tested the same high-weight representation-contrast path at embedding/feed-
-  forward dimensions `8/16`. The completed `40/40` step screen restored from
-  step `10`, moved QA different-target hidden distance to about `0.00209`, and
-  still restored to the same all-`"u"` QA collapse with target-token coverage
-  `0.125`.
-- `runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/`
-  added `--prompt-position-projection-scale 32.0` to test whether the prompt-
-  position residual was simply too quiet. The completed `50/50` step screen
-  moved `1108/1284` prompt-position projection parameters and restored from
-  step `40`; restored QA different-target hidden distance rose to about
-  `0.01235`, but QA still collapsed to all `"u"` with target-token coverage
-  `0.125`.
-- `STRUCTURE_AUDIT.md` now records the next transformer checkpoint: study
-  open-source model, trainer, tokenizer, checkpoint, and transparency patterns
-  before adding another repair objective, while keeping all external weights,
-  tokenizers, embeddings, datasets, and training text outside QuarkLM's
-  closed-world boundary. The completed comparison table chooses an opt-in
-  pre-layer-norm transformer block path with final normalization as the next
-  structural implementation target.
-- `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
-  implemented that path with `--use-pre-layer-norm`. The bounded context-80
-  screen ran `50/50` direct steps, moved `1108/1284` prompt-position
-  parameters and all `8` final-norm parameters, and cracked full collapse in
-  `7/9` multi-target profiles. The formal diversity target still failed
-  `0/9`, and QA stayed collapsed to all `"y"` with target-token coverage
-  `0.125`.
-- `runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`
-  added target-bucket branch batch sampling through
-  `branch-balanced-representation-contrast-unlikelihood`. The screen ran
-  `50/50` direct steps, but best-snapshot restoration returned to step `0`
-  because every trained snapshot scored worse than baseline. All `9/9`
-  multi-target profiles collapsed to `"n"`, so target balancing is rejected as
-  a standalone repair.
-- `runs/transformer-answer-v0.45-branch-rank-diagnostic-smoke-dim4-context80/`
-  adds target-rank diagnostics to branch profiles. The smoke used the
-  pre-layer-norm prompt-position path and recorded QA and heldout both
-  collapsed to `"n"` with average target rank `14.25` and top-3/top-5 target
-  coverage `0.125`. The correct branch target is usually buried behind several
-  global alternatives, so this is output-binding evidence rather than a near-
-  miss rank problem.
-- `runs/transformer-answer-v0.46-output-binding-rankscore-smoke-dim4-context80/`
-  adds `branch-output-binding-unlikelihood`, combining branch target softmax
-  with representation contrast, and makes best-snapshot scoring rank-aware. It
-  ran `20/20` direct steps with output bias frozen. QA average target rank
-  improved `17.375 -> 14.125`, and QA/heldout top-5 coverage reached `0.25`.
-  Target-token coverage stayed `0.0`, top-3 coverage ended `0.0`, and the
-  branch prediction still collapsed to wrong tokens, so the repair is rejected
-  for promotion.
-- `runs/transformer-answer-v0.47-rank-margin-steps50-smoke-dim4-context80/`
-  adds `branch-rank-margin-unlikelihood`, which pushes each branch target above
-  the model's own top wrong tokens. The screen ran `50/50` direct steps,
-  restored the rank-aware best snapshot from step `40`, and improved QA average
-  target rank `17.375 -> 9.0`. QA target-token coverage rose to `0.125`, top-3
-  coverage rose to `0.25`, and top-5 coverage rose to `0.5`. It is still
-  rejected because predicted diversity stayed `1/8` and QA/heldout remained
-  collapsed to wrong `"n"`.
-- `runs/transformer-answer-v0.48-balanced-rank-margin-smoke-dim4-context80/`
-  combines target-balanced branch batches with the same rank-margin repair. It
-  ran `50/50` direct steps and reached QA predicted diversity `2/8`, target-
-  token coverage `0.125`, average target rank `9.375`, top-3 coverage `0.375`,
-  and top-5 coverage `0.5`. It is still rejected because QA and heldout remain
-  wrong top-1 branch choices.
-- `runs/transformer-answer-v0.49-balanced-rank-margin-top1-smoke-dim4-context80/`
-  tests the same balanced rank-margin path with `--direct-answer-hard-negatives
-  1`, concentrating margin pressure on only the current top wrong token. It
-  restored from step `10`; QA target-token coverage stayed `0.125`, but average
-  target rank regressed to `12.5`, top-3 coverage fell to `0.125`, and top-5
-  coverage fell to `0.25`. This is rejected evidence.
-- `runs/transformer-answer-v0.50-balanced-topk-softmax-w5-smoke-dim4-context80/`
-  adds `branch-balanced-topk-softmax-unlikelihood`, where each correct branch
-  target competes in a restricted softmax against the model's current top wrong
-  tokens. It restored from step `40`; QA target-token coverage stayed `0.125`,
-  average target rank improved to `8.75`, top-3 coverage reached `0.375`, and
-  top-5 coverage reached `0.5`. This recovers rank/top-k evidence after v0.49,
-  but prediction diversity stayed `1/8` and top-1 branch choices remained
-  wrong, so it is rejected repair evidence.
-- `runs/transformer-v0.51-foundation-stack-smoke/` verifies the full
-  transformer foundation stack before the next direct-answer repair run. It ran
-  `2/2` language-model steps with AdamW, gradient accumulation, two attention
-  heads, RMSNorm, gated MLPs, tied output embeddings, rotary positions, and
-  cache-aware generation metadata. The run wrote a
-  `quarklm-transformer-v2` checkpoint, `optimizer_state.json`, `eval.json`, and
-  replayable `eval_samples.jsonl` traces. This is mechanics-readiness evidence,
-  not model-quality promotion evidence.
-- `runs/transformer-answer-v0.52-fullstack-topk-softmax-smoke-dim4-context80/`
-  reruns the v0.50 top-k branch objective under the full v0.51 stack. It
-  completed `50/50` direct steps and restored to step `0`: the full-stack
-  baseline had QA and heldout predicted diversity `3/8` and target-token
-  coverage `0.25`, but training collapsed to one wrong token at later
-  snapshots. This rejects unchanged top-k pressure under the full stack and
-  points the next repair toward prompt-context-to-target-token binding.
-- `runs/transformer-answer-v0.53-fullstack-bidir-binding-smoke-dim4-context80/`
-  adds `branch-balanced-bidirectional-binding-unlikelihood`. The objective
-  trains each prompt context to choose its own branch target and each target
-  token to assign cross-context probability mass back to its own prompt
-  contexts. The focused transformer unit test verifies that context-ownership
-  signal on a small branch batch. The full-stack screen completed `50/50`
-  direct steps and restored from step `40`: QA average target rank improved to
-  `7.875` with top-5 coverage `0.5`, but target-token coverage ended at
-  `0.125` and the diversity target still failed `0/9` multi-target profiles.
-  This is partial rank-pressure evidence, not promotion evidence.
-- `runs/transformer-answer-v0.54-fullstack-coverage-binding-smoke-dim4-context80/`
-  adds `branch-balanced-coverage-binding-unlikelihood`, which makes every
-  branch target compete against sibling branch targets and hard wrong tokens
-  while adding a target-set mass coverage guard. The focused transformer test
-  verifies that this pressure lifts target-set mass against hard wrong tokens.
-  The full-stack screen completed `50/50` direct steps but restored from step
-  `0`: training snapshots improved QA average target rank to `8.125`, but
-  target-token coverage collapsed to `0.0` and top-1 predictions collapsed to
-  wrong `"a"`. This rejects the bundled coverage-binding loss under the full
-  stack.
-- `runs/transformer-answer-v0.55-fullstack-target-set-coverage-smoke-dim4-context80/`
-  isolates target-set coverage with
-  `branch-balanced-target-set-coverage-unlikelihood`, positive target CE
-  disabled, and no exact-target row or cross-context ownership losses. The
-  focused transformer test verifies that target-set mass can increase against
-  hard wrong tokens without asserting exact-target sharpening. The full-stack
-  screen completed `50/50` direct steps and restored from step `0`: training
-  snapshots improved QA average target rank to `10.0`, but target-token
-  coverage still collapsed to `0.0` with wrong `"a"` top-1 predictions. This
-  rejects batch-local target-set mass as a sufficient coverage repair.
-- `runs/transformer-answer-v0.57-fullstack-target-diversity-smoke-dim4-context80/`
-  adds target-share anti-collapse pressure with
-  `branch-balanced-target-diversity-unlikelihood`, positive target CE disabled,
-  and hard wrong-token competition. The focused transformer test verifies that
-  restricted target-set mass and weakest target-share balance can both improve
-  in a small branch batch. The full-stack screen completed `50/50` direct steps
-  and restored from step `0`: training snapshots improved QA average target
-  rank to `10.0`, but target-token coverage again collapsed to `0.0` with
-  wrong `"a"` top-1 predictions. This rejects batch-local target sharing as a
-  sufficient eval-wide anti-collapse repair.
-- `runs/transformer-answer-v0.58-fullstack-target-replay-coverage-smoke-dim4-context80/`
-  extends the repair from batch-local target sharing to closed-world replay
-  targets with `branch-balanced-target-replay-coverage-unlikelihood`, positive
-  target CE disabled, and hard wrong-token competition. The focused transformer
-  test verifies that replay target-set mass and weakest missing-target share can
-  both improve when the sampled branch batch omits some admitted pool targets.
-  The full-stack screen completed `50/50` direct steps and restored from step
-  `0`: training snapshots improved QA average target rank as far as `6.875`
-  and top-5 coverage to `0.5`, but target-token coverage still hit `0.0`
-  during training and QA/heldout top-1 predictions collapsed to wrong `"n"` by
-  step `50`. This rejects pool-owned replay coverage as a sufficient
-  context-specific target-ownership repair.
-- `runs/transformer-answer-v0.59-fullstack-context-replay-coverage-smoke-dim4-context80/`
-  makes replay context-owned with
-  `branch-balanced-context-replay-coverage-unlikelihood`, positive target CE
-  disabled, and hard wrong-token competition. The focused transformer test
-  verifies that replay target-set mass and weakest owned-target share can both
-  improve on fixed replay contexts. The full-stack screen completed `50/50`
-  direct steps and restored from step `0`: training snapshots improved QA
-  average target rank as far as `7.375`, QA top-3 to `0.375`, QA top-5 to
-  `0.5`, and admissions top-5 to `0.5208` by step `50`, but target-token
-  coverage still hit `0.0` during training and the diversity target failed
-  `0/9`. This rejects context-owned replay coverage as implemented.
-- `runs/transformer-answer-v0.60-fullstack-context-replay-coverage-floor-metadata-smoke-dim4-context80/`
-  adds a profile-wise target-token coverage floor to branch snapshot selection:
-  rank/top-k gains are eligible only when every multi-target profile preserves
-  its baseline coverage. Direct-answer JSONL snapshots now write
-  `branch_target_coverage_by_profile`, and the focused transformer test rejects
-  a rank-lifted candidate that regresses QA coverage. The clean full-stack
-  screen completed `50/50` direct steps, wrote `7` JSONL rows, and restored from
-  step `0`: the baseline coverage floor remained visible in the final row
-  (`qa` `0.25`, `heldout` `0.25`, `admissions` `0.1429`, minimum profile
-  `0.0714`). This accepts the self-improvement gate repair while still
-  rejecting the trained model behavior.
-- `runs/transformer-answer-v0.61-fullstack-context-coverage-anchor-smoke-dim4-context80/`
-  adds a covered-target anchor to context replay: replay branches whose own
-  target is already top-1 receive extra target-vs-replay-target/hard-wrong
-  pressure. The focused transformer test verifies that the anchor protects a
-  covered branch better than identical replay training without the anchor. The
-  full-stack screen completed `50/50` direct steps and restored from step `0`
-  under the v0.60 coverage floor, but trained snapshots over-anchored the
-  already-covered wrong `"i"` token: QA/heldout predicted diversity fell to
-  `1/8`, target-token coverage to `0.125`, and average target rank above `21`.
-  This rejects global covered-target anchoring as implemented.
-- `runs/transformer-answer-v0.62-fullstack-target-balanced-anchor-smoke-dim4-context80/`
-  makes covered-target anchoring target-balanced: anchor losses are averaged by
-  covered target and skipped when only one covered target is present. The
-  focused transformer test verifies that this singleton guard skips the v0.61
-  one-token over-anchor while the old global anchor still raises that token.
-  The full-stack screen completed `50/50` direct steps and restored from step
-  `0` under the v0.60 coverage floor. It avoided the hard `"i"` attractor, but
-  QA/heldout target-token coverage still collapsed to `0.0` during training.
-  This rejects target-balanced anchoring as sufficient.
-- `runs/transformer-answer-v0.64-fullstack-coverage-deficit-smoke-dim4-context80/`
-  adds `branch-balanced-context-coverage-deficit-unlikelihood`, which computes
-  replay target tokens that are absent from the current replay predictions and
-  adds target pressure only for those missing targets. The focused transformer
-  test verifies that the deficit term lifts a missing replay target above the
-  old context replay objective. The full-stack screen completed `50/50` direct
-  steps and restored from step `0` under the v0.60 coverage floor. Step `50`
-  cracked QA top-1 behavior enough to reach `1/8` branch accuracy and
-  predicted diversity `4/8`, but QA/heldout target-token coverage regressed to
-  `0.125`, so the trained snapshots remained ineligible. This rejects deficit
-  pressure by itself.
-- `runs/transformer-answer-v0.65-fullstack-coverage-preserving-deficit-smoke-dim4-context80/`
-  adds `branch-balanced-context-coverage-preserving-deficit-unlikelihood`,
-  which balances missing-target deficit pressure with preservation anchors for
-  target tokens currently represented in replay predictions. Focused tests
-  pass and verify both effects in isolation. The full-stack screen completed
-  `50/50` direct steps and restored from step `0`. Step `50` improved QA
-  average target rank to `7.75`, heldout average target rank to `7.125`, and
-  top-5 coverage to `0.5`, but both profiles collapsed to one predicted target
-  token with target-token coverage `0.125`. This rejects current-prediction
-  preservation as implemented.
-- `runs/transformer-answer-v0.67-profile-aware-replay-plan-smoke-dim4-context80/`
-  adds profile-aware replay records and `direct_answer_replay_plan.json` for
-  the preserving-deficit path. Focused tests verify that global target coverage
-  cannot hide a profile-local missing target and that profiled replay records
-  keep their admitted source keys even when branch target tokens are shared.
-  The bounded smoke wrote a plan for `9144` branch/replay records across `21`
-  profiles, passed the branch-context gate across `219/219` semantic records,
-  and showed profile-specific coverage floors such as `qa:place` at `0.5` and
-  `qa:color` at `0.0`. It ran one branch-only direct step and restored from
-  step `0`; branch diversity still failed `0/9` multi-target profiles. This is
-  mechanics-readiness evidence, not model-quality promotion evidence.
-- `runs/transformer-answer-v0.68-fullstack-profile-aware-preserving-deficit-smoke-dim4-context80/`
-  spends that replay plan on the comparable full-stack repair screen. The run
-  completed `50/50` direct steps, wrote `7` direct-answer JSONL rows, passed
-  the branch-context gate, and used a replay plan for `9144` branch records
-  across `21` profiles. Training step `40` improved QA average target rank to
-  `6.5` and top-5 coverage to `0.625`; heldout average rank improved to
-  `6.875` with top-5 coverage `0.5`. Those rank gains came with QA/heldout
-  target-token coverage regressing to `0.125` and predicted diversity
-  collapsing to `1/8`, so best-snapshot scoring restored step `0`. This is
-  rejected evidence.
+| Signal | Current value |
+| --- | --- |
+| Promoted transformer run | <code>{state.transformerRun}</code> |
+| Direct greedy exact answers | <code>{state.transformerExact}</code> |
+| Answer-target NLL | <code>{state.transformerValidNll}</code> |
+| Transformer-only candidate accuracy | <code>{state.transformerCandidate}</code> |
+| Selector-emitted exact answers | <code>{state.transformerSelectorExact}</code> |
+| No-candidate generator exact answers | <code>{state.transformerGeneratorExact}</code> |
+| Latest branch-diagnostic QA accuracy | <code>{state.transformerLatestDiagnosticQaBranchAccuracy}</code> |
 
-v0.81 keeps the context-coverage audit, profile-wise coverage floor, and
-replay-plan artifact, then adds balanced profile target-share pressure inside
-the profile-local direct-answer objective. Focused tests verify the minority
-replay target gains more share than under the previous profile-aware replay
-loss. v0.82 then screens that objective in
-`runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
-The run records the modern artifact stack and passes the verifier,
-branch-context, purity, and coverage-preservation gates, but it still fails
-branch diversity. Step `40` improves QA average target rank to `9.125`, yet
-does so by collapsing QA and heldout to one `"c"` prediction with `0.0`
-target-token coverage. Best-snapshot scoring restores step `0`, so this is
-rejected evidence.
+Reading these together is the point. The selector and the no-candidate generator
+reach exact answers across the eval set while the raw greedy transformer stays at
+`0/219`. The system can already *serve* every answer through the responder track
+while the neural weights have not yet *learned* to route them. That gap is the
+reason the evidence states are kept apart.
 
-v0.83 adds prompt-specific sibling-target ownership margins on top of that
-profile target-share objective. Focused tests show the new term lifts a
-context-specific target more than v0.82 target-share pressure. The full screen
-in
-`runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`
-writes the modern artifacts and passes the verifier, branch-context, and purity
-gates. It still fails branch diversity: step `50` improves QA average target
-rank to `8.625`, but QA and heldout collapse to one `"c"` prediction with
-`0.0` target-token coverage during training. Best-snapshot scoring restores
-step `0`.
+```text
+serve:  question -> retrieval / responder / selector / generator -> exact answer
+learn:  question -> raw greedy transformer ----------------------> not yet routed
+```
 
-v0.84 anchors replay preservation to the baseline profile-aware replay
-predictions captured before direct-answer training. Focused tests show replay
-batches can use those baseline prediction overrides and that anchored
-preservation protects a covered target better than following current prediction
-drift. The full screen in
-`runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`
-records `562` active baseline prediction anchors, passes the verifier,
-branch-context, and purity gates, and avoids the v0.83 zero-coverage collapse.
-Step `40` improves QA average target rank to `8.0`, but QA and heldout still
-collapse to one `"i"` prediction with target-token coverage `0.125`, below the
-baseline `0.25` floor. Best-snapshot scoring restores step `0`, so the next
-repair must preserve the full baseline target-token floor.
+The full version-by-version screen log (v0.43 onward) — every direct-answer
+objective tried against branch diversity, and why each was rejected for
+promotion — is recorded in
+[Transformer screen history](../build/transformer-screen-history.md). The durable
+explanation of how the transformer works is in
+[Transformer](../build/transformer.md).
 
-v0.85 adds a baseline-floor update guard around the baseline-anchored
-prompt-ownership mode. The full screen in
-`runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`
-records `562` active baseline prediction anchors and checks `50/50` attempted
-direct-answer updates. The guard rejects all `50` unsafe updates, preserving QA
-and heldout target-token coverage at the baseline `0.25` floor in every recorded
-snapshot. It is still rejected evidence: no weight update is accepted and branch
-diversity still fails across all `9` multi-target profiles.
+## Retrieval memory is memory, not learning
 
-v0.86 adds adaptive retries around that update guard. The full screen in
-`runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`
-records `562` active baseline prediction anchors and attempts `200` scaled
-updates across `50` checked direct-answer steps. Scales `1.0`, `0.25`, `0.05`,
-and `0.01` all still violate at least one profile-wise baseline coverage floor,
-so the guard rejects `200/200` attempts. It is still rejected evidence:
-step-size retry alone does not produce accepted safe updates.
+Retrieval memory builds cards from the closed-world corpus and answers eval
+probes exactly, with provenance and without moving any weights. It is reported as
+a transformer answer-training *artifact* so it can be audited, but it never
+counts as neural promotion.
 
-v0.87 adds one bounded baseline-covered anchor repair after each unsafe adaptive
-retry. The clean full screen in
-`runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`
-records `562` active baseline prediction anchors, `227` repair anchors, `200`
-repair attempts, and `200/200` rejected update attempts. QA and heldout coverage
-remain at `0.25`, but no repaired update is accepted, so post-update repair is
-also rejected as the missing mechanic.
+| Signal | Current value |
+| --- | --- |
+| Retrieval memory summary | <code>{state.transformerRetrievalMemorySummary}</code> |
+| Retrieval memory status | <code>{state.transformerRetrievalMemoryStatus}</code> |
+| Latest retrieval memory report | <code>{state.transformerLatestRetrievalMemoryRun}</code> |
 
-v0.88 moves balanced baseline-floor anchors into the direct-answer objective
-itself. The full screen in
-`runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`
-records `562` active baseline prediction anchors, `227` objective-side floor
-anchors, `200` objective anchor batches, `2400` anchor records, and `200/200`
-rejected update attempts. QA and heldout coverage remain at `0.25`, but no
-objective-shaped update is accepted, so branch-pressure coupling is rejected as
-the missing mechanic.
+Exact retrieval is `memory-served`. It proves the corpus contains the answer. It
+does not prove the transformer learned it.
 
-v0.89 isolates baseline-floor stabilization updates. The full screen in
-`runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`
-records `562` active baseline prediction anchors, `227` stabilization anchors,
-`200` stabilization anchor batches, `2400` anchor records, and `200/200`
-rejected update attempts. QA and heldout coverage remain at `0.25`, but no
-stabilization-only update is accepted, so the next repair should diagnose why
-floor-only updates still violate the baseline floor.
+## Release posture
 
-v0.90 adds the missing rejection diagnosis. The full screen in
-`runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`
-records `stabilization: 200` rejected update-shape counts, `50` rejected
-attempts at each adaptive scale, `heldout: 200` violation counts, and a worst
-floor deficit of `0.25` on `learning`. Promotion still rejects the transformer,
-but the next repair now has measured profile-level floor evidence.
+| Signal | Current value |
+| --- | --- |
+| RC decision | <code>{state.rcDecision}</code> |
+| Recommended track | <code>{state.rcRecommendedTrack}</code> |
+| Research Prototype RC status | <code>{state.rcResearchPrototypeStatus}</code> |
+| Language Model RC status | <code>{state.rcLanguageModelStatus}</code> |
+| Next model bundle | <code>{state.rcNextModelBundle}</code> |
 
-v0.91 applies that evidence by covering the full baseline-covered profile-target
-floor surface. The full screen in
-`runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`
-records `227` floor anchors, `12` profile-target groups,
-`profile_targeted_stabilization: 200` rejected attempts, and the same violation
-profile counts as v0.90. Promotion still rejects the transformer, and the next
-repair must change the floor repair shape rather than only broaden anchor
-coverage.
-
-v0.92 changes that shape to sequential source-profile floor repair. The full
-screen in
-`runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`
-records `10` source-profile groups, `2000` profile-local repair attempts,
-`2000` profile-local rejections, and `200` no-effective-update outer attempts.
-Promotion still rejects the transformer, and the next repair must isolate
-floor-preserving weight movement rather than only broaden coverage or reorder
-profiles.
-
-v0.93 calibrates that movement below `0.01`. The diagnostic screen in
-`runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`
-records calibrated scales down to `0.0001`, `50` profile-local repair attempts,
-`49` profile-local rejections, and one accepted nonzero `bridge:owner` update at
-scale `0.0025`. Promotion still rejects the transformer on
-`branch_diversity_target`, but the baseline floor guard has now accepted real
-weight movement.
-
-v0.94 adds profile-scale memory to that calibrated path. The diagnostic screen
-in
-`runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer profile-scale update, `60` profile-scale attempts,
-`8` accepted source-profile updates, and `52` rejected profile-scale attempts.
-Promotion still rejects the transformer on `branch_diversity_target`, but safe
-floor-preserving movement now spans multiple source profiles.
-
-v0.95 adds diversity-aware profile-scale memory to that path. The diagnostic
-screen in
-`runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`
-records one accepted outer diversity-aware profile-scale update, `58`
-profile-scale attempts, `5` score-improving accepted source-profile updates,
-`42` floor regressions, and `11` floor-preserving diversity-score regressions.
-Promotion still rejects the transformer on `branch_diversity_target`, but the
-training loop now records which safe movements are non-regressive for branch
-diversity.
-
-v0.96 adds missing-target frontier anchors to that path. The diagnostic screen
-in
-`runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records `52` frontier anchors, one accepted outer frontier profile-scale
-update, `43` profile-scale attempts, `9` score-improving accepted source-profile
-updates, `28` floor regressions, and `6` floor-preserving diversity-score
-regressions. Promotion still rejects the transformer on
-`branch_diversity_target`, but max dominant predicted rate improves to `0.9`
-and minimum target-token coverage improves to `0.1667`.
-
-v0.97 adds coverage-frontier acceptance to that path. The diagnostic screen in
-`runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer coverage-frontier profile-scale update, `68`
-profile-scale attempts, `1` coverage-gaining accepted source-profile update,
-`50` floor regressions, `15` coverage ties, and `2` coverage regressions.
-Promotion still rejects the transformer on `branch_diversity_target`, but the
-update guard now records accepted coverage deltas and proves the strict
-monotonic screen is currently too conservative for full missing-target repair.
-
-v0.98 adds coverage-prep frontier acceptance to that path. The diagnostic
-screen in
-`runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer coverage-prep profile-scale update, `43`
-profile-scale attempts, `9` accepted source-profile updates, `3` coverage
-gains, `6` coverage-preparation moves, `28` floor regressions, `4` coverage
-ties without score gain, and `2` coverage regressions. Promotion still rejects
-the transformer on `branch_diversity_target`, but the update guard now
-separates direct coverage gains from safe preparation moves.
-
-v0.99 adds coverage-recovery frontier retry to that path. The diagnostic screen
-in
-`runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer coverage-recovery profile-scale update, `54`
-profile-scale attempts, `6` accepted source-profile updates, `6` prepared
-recovery candidates, `15` recovery retries, `2` direct coverage recoveries,
-`4` preparation fallbacks, `38` floor regressions, `7` coverage ties without
-score gain, and `3` coverage regressions. Promotion still rejects the
-transformer on `branch_diversity_target`, but the guard now proves preparation
-can be tested as direct missing-target recovery before it is admitted as
-self-improvement evidence.
-
-v0.100.0 adds branch-stable coverage-recovery acceptance to that path. The
-diagnostic screen in
-`runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer branch-stable recovery update, `54` profile-scale
-attempts, `6` accepted source-profile updates, `6` prepared recovery
-candidates, `15` branch-stability checks, `2` branch-stable coverage
-recoveries, `4` preparation fallbacks, `7` floor-regressed recovery retries,
-`5` coverage-tied retries, and `1` branch-score regression rejection. Promotion
-still rejects the transformer on `branch_diversity_target`, but the guard now
-proves recovery can be checked against the prepared branch-diversity score
-instead of coverage alone.
-
-v0.101.0 adds branch-diversity recovery after already-safe profile updates. The
-diagnostic screen in
-`runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer branch-diversity recovery update, `52` profile-scale
-attempts, `6` accepted source-profile updates, `6` branch-diversity recovery
-candidates, `9` branch-diversity recovery attempts, `5` branch-score-improving
-refinements, `1` fallback, `1` floor-regression rejection, `1`
-score-regression rejection, and `2` score-tie rejections. Promotion still
-rejects the transformer on `branch_diversity_target`, but the guard now proves
-local branch-diversity score can improve without weakening the coverage floor.
-
-v0.102.0 adds collapsed-profile binding after branch-diversity recovery. The
-diagnostic screen in
-`runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer collapsed-profile binding update, `54`
-profile-scale attempts, `11` accepted source-profile updates, `11`
-branch-diversity recovery candidates, `26` branch-diversity recovery attempts,
-`4` branch-score refinements, `31` collapsed-profile binding attempts, `1`
-accepted binding update, `10` binding fallbacks, `27` collapsed-profile ties,
-`1` floor-regression rejection, and `2` score-regression rejections. Promotion
-still rejects the transformer on `branch_diversity_target`, but the guard now
-proves a targeted binding update can survive while final collapse narrows from
-`9/9` eval profiles at baseline to `3/9` remaining collapsed profiles:
-`learning`, `owner`, and `paraphrases`.
-
-v0.103.0 adds remaining-profile binding after collapsed-profile binding. The
-diagnostic screen in
-`runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer remaining-profile binding update, `56`
-profile-scale attempts, `11` accepted source-profile updates, `21`
-prioritized remaining-profile attempts, `6` prioritized acceptances, `15`
-prioritized rejections, `3` branch-diversity refinements, and `2`
-collapsed-profile binding updates. Promotion still rejects the transformer on
-`branch_diversity_target`, but the guard proves the remaining-profile
-curriculum can improve `learning` coverage from `0.0` to `0.25` without target
-coverage regression.
-
-v0.104.0 adds owner/paraphrase residual binding after remaining-profile
-binding. The diagnostic screen in
-`runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`
-records one accepted outer owner/paraphrase binding update, `16`
-owner/paraphrase-prioritized attempts, `6` prioritized acceptances, `10`
-prioritized rejections, `75` learning-preservation checks, `24` preservation
-failures, and `33` narrowed collapsed-profile binding rejections. Promotion
-still rejects the transformer on `branch_diversity_target`, but `learning`
-finishes non-collapsed with coverage `0.25` and predicted diversity `2`.
-
-v0.105.0 adds corpus-only retrieval memory as a separate evidence rail before
-weight consolidation. The diagnostic screen in
-`runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
-writes `retrieval_memory_report.json`, builds `497` memory cards from the
-closed-world corpus, answers `219/219` eval probes exactly, and records
-`uses_external_model: false`, `external_embeddings: false`,
-`pretrained_retriever: false`, and `updates_weights: false`. The neural
-transformer still rejects promotion on `branch_diversity_target`; v0.105.0
-therefore proves immediate memory serving, not completed weight learning.
-
-v0.106.0 adds memory-guided consolidation planning. The diagnostic screen in
-`runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`
-writes `memory_consolidation_plan.json`, keeps retrieval at `219/219`, records
-`9` memory-backed neural failed profiles, and ranks `owner`, `paraphrases`,
-`glossary`, `admission_paraphrases`, and `admissions` as the top consolidation
-priorities. The collapsed memory-backed profiles are `owner`, `paraphrases`,
-and `glossary`; neural promotion still rejects on `branch_diversity_target`.
-
-v0.107.0 adds gated memory-consolidation training. The diagnostic screen in
-`runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`
-consumes the v0.106.0 plan, targets `owner`, `paraphrases`, and `glossary`,
-records `26` memory-consolidation prioritized attempts with `8` acceptances and
-`18` rejections, and keeps retrieval at `219/219`. The transformer still
-rejects neural promotion on `branch_diversity_target`, so this is plan-guided
-weight-consolidation evidence rather than promoted model evidence.
-
-v0.108.0 expands that consolidation window. The diagnostic screen in
-`runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
-consumes the v0.107.0 plan, targets `owner`, `paraphrases`, `heldout`, `qa`,
-and `glossary`, maps target-only profiles back to admitted source labels, and
-keeps retrieval at `219/219`. Branch-diversity still blocks promotion, which
-means the next repair needs direct missing first-token diversity pressure.
-
-v0.109.0 adds that direct missing first-token pressure. The diagnostic screen in
-`runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`
-consumes the v0.108.0 plan, extracts missing first-token target maps for
-`owner`, `paraphrases`, `heldout`, `qa`, and `glossary`, and records `8`
-missing-token candidates, `22` attempts, `1` accepted guarded coverage-gain
-update, `21` rejections, and `7` fallback acceptances. Retrieval remains exact
-at `219/219`; branch-diversity still blocks promotion, and the next plan
-narrows the collapsed memory-backed profiles to `owner`, `paraphrases`, and
-`learning`.
-
-v0.110.0 makes that narrowed plan the explicit training contract. The diagnostic
-screen in
-`runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
-consumes the v0.109.0 plan, requires source-plan
-`collapsed_memory_backed_profiles`, targets only `owner`, `paraphrases`, and
-`learning`, and records no unconsumed collapsed targets. Retrieval remains exact
-at `219/219`; the missing-token phase records `6` candidates, `16` attempts,
-`1` accepted guarded coverage-gain update, `15` rejections, and `5` fallback
-acceptances. Branch-diversity still blocks promotion.
-
-v0.111.0 makes that pressure profile-specific. The diagnostic screen in
-`runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`
-consumes the v0.110.0 plan, keeps targets `owner`, `paraphrases`, and
-`learning`, and records the target map `learning -> learning`,
-`owner -> owner/paraphrases`, and `color/place/training_data -> paraphrases`.
-Retrieval remains exact at `219/219`; memory-prioritized consolidation records
-`16` attempts with `6` acceptances and `10` rejections, and the missing-token
-phase records `6` candidates, `18` attempts, `0` direct missing-token
-acceptances, `18` rejections, and `6` fallbacks. The guard records `1`
-accepted profile-specific update shape, but branch-diversity still blocks
-promotion.
-
-v0.112.0 adds branch-diversity root-cause diagnostics before another repair
-objective. The diagnostic screen in
-`runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`
-consumes the v0.111.0 plan, targets `owner`, `paraphrases`, and `glossary`,
-keeps retrieval exact at `219/219`, records `24` profile-specific
-missing-token attempts with `0` direct acceptances and `8` fallbacks, and
-classifies the final branch-diversity failure as a critical
-`target_routing_gap`. The root-cause report records `9/9` failed profiles,
-`3` collapsed profiles, `1` zero-coverage profile, `6` buried-target profiles,
-and reused dominant tokens `"n"` and `"a"`. Branch-diversity still blocks
-promotion.
-
-v0.113.0 adds branch routing audit diagnostics to the same branch-only screen
-surface. The diagnostic screen in
-`runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`
-consumes the v0.112.0 plan, targets `owner`, `paraphrases`, and `learning`,
-keeps retrieval exact at `219/219`, records `18` profile-specific
-missing-token attempts with `0` direct acceptances and `6` fallbacks, and
-keeps branch-diversity as the blocker. The routing audit reports high
-output-bias escape risk (`"n"` bias rank `2`), low representation separation
-across `9/9` multi-target profiles, and a glossary target-imbalance hotspot.
-
-v0.114.0 adds logit-prior and centroid-separation instrumentation to the same
-screen surface. The diagnostic screen in
-`runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`
-consumes the v0.113.0 plan, targets `owner`, `paraphrases`, and `glossary`,
-keeps retrieval exact at `219/219`, records `24` profile-specific
-missing-token attempts with `0` direct acceptances and `8` fallbacks, and keeps
-branch-diversity as the blocker. The new logit-prior profiles report
-hidden-projection pressure across `9/9` multi-target profiles, while centroid
-separation remains poor.
-
-v0.115.0 adds a bias-frozen hidden-projection margin candidate. The candidate
-screen in
-`runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`
-introduces `branch-hidden-projection-margin-unlikelihood` and tests one
-direct-answer step that compares target-token `hidden * output_weight`
-contributions directly. It lowers average collapsed-token hidden advantage from
-about `0.0842` to `0.0736`, but promotion remains blocked before quality
-metrics: `10/11` constraints pass, `branch_diversity_target` fails, all `9/9`
-multi-target profiles still collapse to `"n"`, and `2` profiles still have
-zero target-token coverage.
-
-The v0.42 self-improvement run passed:
-
-- direct admission-probe audit
-- admission-paraphrase audit
-- glossary-probe audit
-- exact eval audit
-- promotion gate
-- forgetting audit against v0.41
-- protected prompt leakage audit
-- responder exact evals
-- learned answer classifier exact evals
-- generative answer decoder exact evals
-- rule-based self-diagnosis with no external model
-
-Admission probes now pass `48/48` direct records and `84/84` paraphrase records.
-Glossary probes now pass `38/38` records. The passing attempt is archived at
-`runs/self-improve-v0.42/attempts/attempt-001/` before the top-level latest
-report is updated.
-
-v0.23 added attempt archives. A deliberately undertrained attempt failed at
-`runs/self-improve-v0.23/attempts/attempt-001/`, and the repaired passing
-attempt remains at `runs/self-improve-v0.23/attempts/attempt-002/`.
+The responder track is reliable and the corpus is fully covered, but a release
+that names a language model cannot be cut while the from-scratch transformer
+fails `branch_diversity_target`. The honest claim is the narrow one: the corpus
+is admitted and served exactly; the neural weights have not yet learned to route
+prompts to distinct answers.
