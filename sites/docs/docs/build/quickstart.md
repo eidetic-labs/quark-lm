@@ -5,10 +5,22 @@ description: Run the current QuarkLM prototype, and read what each command produ
 
 # Quickstart
 
+<p className="qlm-meta"><span>10 min read</span><span>For first-time operators</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will do**
+
+Build the curriculum, check the deterministic responder, train the learned
+components from random weights, run an answer-training screen, and run a full
+audited cycle. Nothing here downloads weights or data — each step reads only
+the admitted corpus and writes evidence under `runs/`, so you can inspect it
+after the run.
+
+</div>
+
 Every command runs from the project root with `PYTHONPATH=src` set, because the
-Python modules live directly under `src/` and run as top-level modules. Nothing
-here downloads weights or data — each step reads only the admitted corpus and
-writes evidence under `runs/`.
+Python modules live directly under `src/` and run as top-level modules.
 
 ## The mental model
 
@@ -17,14 +29,31 @@ compiled into curriculum text, the deterministic rails answer from it, the
 learned components train from random weights, and an audited cycle decides
 whether anything is promoted.
 
-```text
+```text title="The run, left to right"
 curriculum  ->  respond / retrieval  ->  answer_model / decoder / transformer  ->  self_improve
  (build text)    (no weight movement)         (gated weight updates)              (promote or reject)
 ```
 
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
+The deterministic rails answer *from* the corpus; the learned components answer
+*after* training on it. A green result on the rails proves the corpus can serve
+an answer — it does not prove any model learned it.
+
+</div>
+
+## Before you start
+
+- You are at the project root, where `corpus/ledger.json` lives.
+- `PYTHONPATH=src` is set, so the modules under `src/` resolve as top-level
+  modules.
+- You can write under `runs/` — every step records its evidence there.
+
 ## 1. Build the curriculum
 
-```bash
+```bash title="Compile the corpus into curriculum text"
 PYTHONPATH=src python3 -m curriculum --output build
 ```
 
@@ -34,7 +63,7 @@ downstream reads these generated files, not the raw corpus.
 
 ## 2. Check the deterministic responder
 
-```bash
+```bash title="Run the grounded rail and write its result"
 PYTHONPATH=src python3 -m respond --eval --json runs/smoke/respond.json
 ```
 
@@ -44,7 +73,7 @@ serve an answer — not that the transformer learned it.
 
 ## 3. Train the learned components (from random weights)
 
-```bash
+```bash title="Short smoke runs for each learned component"
 PYTHONPATH=src python3 -m answer_model train --run runs/answer-smoke
 PYTHONPATH=src python3 -m answer_decoder train --run runs/decoder-smoke
 PYTHONPATH=src python3 -m transformer_char_model train \
@@ -61,7 +90,7 @@ training loop works, not to promote anything.
 answers. It carries a large catalog of direct-answer objectives (see
 [Transformer](./transformer.md)); a representative invocation:
 
-```bash
+```bash title="A representative answer-training screen"
 PYTHONPATH=src python3 -m transformer_char_model answer-train \
   --run runs/transformer-answer-smoke \
   --steps 100 --eval-every 0 \
@@ -79,9 +108,19 @@ This writes the full evidence stack — `training_plan.json`,
 (see [Transformer](./transformer.md)). The objective flags are catalogued in
 [Transformer screen history](./transformer-screen-history.md).
 
+<div className="qlm-keypoint">
+
+**The transformer is not promoted**
+
+The answer-training screen exercises the learned path, but a passing screen does
+not promote the transformer. It stays blocked on `branch_diversity_target`
+regardless of how the smoke run completes.
+
+</div>
+
 ## 5. Run a full audited cycle
 
-```bash
+```bash title="Run a full cycle and compare against the last promoted report"
 PYTHONPATH=src python3 -m self_improve answer-cycle \
   --run runs/self-improve-next \
   --compare-report runs/self-improve-v0.42/self_improvement_report.json
@@ -91,6 +130,35 @@ PYTHONPATH=src python3 -m self_improve answer-cycle \
 comparing against the last promoted report so forgetting and coverage are
 checked, not assumed.
 
+## What you produced
+
+If you walked the full path above, `runs/` now holds the evidence for each
+stage:
+
+<div className="qlm-grid">
+
+<div>
+<h4><code>runs/smoke/respond.json</code></h4>
+<p>The deterministic responder's evaluation result — the grounded rail answering from the corpus or returning <code>unknown</code>.</p>
+</div>
+
+<div>
+<h4><code>runs/*-smoke/</code></h4>
+<p>Versioned checkpoints for <code>answer_model</code>, <code>answer_decoder</code>, and the transformer, each started from random weights.</p>
+</div>
+
+<div>
+<h4><code>runs/transformer-answer-smoke/</code></h4>
+<p>The full evidence stack — <code>training_plan.json</code>, <code>closed_world_verifier.json</code>, <code>constraint_first_promotion.json</code>, and the rest.</p>
+</div>
+
+<div>
+<h4><code>runs/self-improve-next/</code></h4>
+<p>The audited-cycle run report, compared against the last promoted report so forgetting and coverage are checked.</p>
+</div>
+
+</div>
+
 ## What "passing" means
 
 The runs above are **smoke checks**: they prove the machinery runs. A run is only
@@ -98,3 +166,33 @@ The runs above are **smoke checks**: they prove the machinery runs. A run is onl
 passes the recorded promotion gate, and updates the docs that describe current
 state — see [Release discipline](../operate/release-discipline.md). A run is not
 promoted because it completed.
+
+:::note
+Docs are a promotion gate, not training input. Updating the page that describes
+current state is part of what makes a run promotable — it is never folded back
+into the corpus.
+:::
+
+## What is next
+
+<div className="qlm-next">
+
+<a href="./transformer.md">
+<strong>Read next</strong>
+<span>The transformer</span>
+<small>How the from-scratch model works and why it stays blocked on branch_diversity_target.</small>
+</a>
+
+<a href="../secure/purity-boundary.md">
+<strong>Read next</strong>
+<span>The purity boundary</span>
+<small>The separation a run must preserve before anything is promoted.</small>
+</a>
+
+<a href="../operate/release-discipline.md">
+<strong>Step up</strong>
+<span>Release discipline</span>
+<small>What turns a smoke check into a promoted run.</small>
+</a>
+
+</div>

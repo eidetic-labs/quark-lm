@@ -5,6 +5,19 @@ description: The v0.78-v0.101.0 transformer responsibility, objective, and scree
 
 # Transformer Responsibilities
 
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- What each narrow transformer surface owns, and the file it lives in.
+- Why the v0.78 monolith split exists — smaller, more auditable repairs, not better answer quality.
+- The contract the split preserves: the public CLI and `answer-train` artifacts are unchanged.
+- How the surfaces keep the closed-world evidence boundary cleanly separated.
+
+</div>
+
 The from-scratch transformer (`transformer_char_model`, see
 [Transformer](./transformer.md)) began as a single broad module. Starting at
 v0.78, the answer-training stack moved its work into a set of narrow, separately
@@ -25,27 +38,33 @@ utilities all lived inside the model class and the CLI command body. That made
 each transformer repair a broad patch over a large surface, and made it hard to
 test one concern without exercising all of them.
 
+<div className="qlm-keypoint">
+
+**The split is about organization, not promotion**
+
 The split has one purpose: make later repair work smaller and more auditable. It
 does **not** claim better answer quality, and it does not change the public CLI
 or the artifacts a run writes. The transformer remains unpromoted, blocked on
 `branch_diversity_target`; the split is about how that work is organized, not
 about clearing the gate.
 
+</div>
+
 ## The surfaces
 
 Each surface owns one concern and is tested on its own:
 
-| Surface | File | Responsibility |
-| --- | --- | --- |
-| Model and checkpoint metadata | `src/transformer_model.py` | Model, optimizer, and generation configs; validation; checkpoint identity; closed-world dataset metadata; run metadata. |
-| Checkpoint loading | `src/transformer_checkpoint.py` | Checkpoint payload loading, identity validation, and checkpoint summaries. |
-| Eval reports | `src/transformer_eval.py` | Probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing. |
-| Experiment and artifacts | `src/transformer_experiment.py` | Run artifact paths, intent gates, recipe construction, and promotion decisions. |
-| Trainer utilities | `src/transformer_training.py` | JSONL snapshot writing, shuffled training cursors, and loss averaging. |
-| Objective catalog | `src/transformer_objectives.py` | Direct-answer objective names and small objective-selection primitives. |
-| Replay planning | `src/replay_plan.py` | Branch replay records, profile grouping, replay summaries, and coverage floors. |
-| Verifier | `src/closed_world_verifier.py` | Deterministic closed-world data-boundary checks before evidence is trusted. |
-| Recipes and gates | `src/training_recipe.py` | Reproducible recipe artifacts and constraint-first promotion reports. |
+<div className="qlm-grid">
+<div><h4>Model and checkpoint metadata</h4><p><code>src/transformer_model.py</code> — model, optimizer, and generation configs; validation; checkpoint identity; closed-world dataset metadata; run metadata.</p></div>
+<div><h4>Checkpoint loading</h4><p><code>src/transformer_checkpoint.py</code> — checkpoint payload loading, identity validation, and checkpoint summaries.</p></div>
+<div><h4>Eval reports</h4><p><code>src/transformer_eval.py</code> — probe loading, candidate collection, generic transformer scoring, report assembly, samples JSONL writing, and eval JSON writing.</p></div>
+<div><h4>Experiment and artifacts</h4><p><code>src/transformer_experiment.py</code> — run artifact paths, intent gates, recipe construction, and promotion decisions.</p></div>
+<div><h4>Trainer utilities</h4><p><code>src/transformer_training.py</code> — JSONL snapshot writing, shuffled training cursors, and loss averaging.</p></div>
+<div><h4>Objective catalog</h4><p><code>src/transformer_objectives.py</code> — direct-answer objective names and small objective-selection primitives.</p></div>
+<div><h4>Replay planning</h4><p><code>src/replay_plan.py</code> — branch replay records, profile grouping, replay summaries, and coverage floors.</p></div>
+<div><h4>Verifier</h4><p><code>src/closed_world_verifier.py</code> — deterministic closed-world data-boundary checks before evidence is trusted.</p></div>
+<div><h4>Recipes and gates</h4><p><code>src/training_recipe.py</code> — reproducible recipe artifacts and constraint-first promotion reports.</p></div>
+</div>
 
 The model class and the direct-answer eval helpers still live in
 `transformer_char_model.py`, which continues to export the older names for
@@ -114,3 +133,15 @@ now allow into genuinely branch-diverse behavior, before adding branch-diversity
 pressure back. Until a run preserves the boundary, passes the gates, and updates
 the docs that describe current state, the transformer stays unpromoted and these
 surfaces hold versioned diagnostic evidence rather than a promotion claim.
+
+## What is next
+
+<div className="qlm-next">
+
+<a href="./transformer.md"><strong>Read next</strong><span>Transformer</span><small>How the from-scratch model works and why it stays unpromoted.</small></a>
+
+<a href="./transformer-screen-history.md"><strong>Read</strong><span>Transformer screen history</span><small>The authoritative version-by-version screen log and every evidence table.</small></a>
+
+<a href="../operate/closed-world-verifier.md"><strong>Concept</strong><span>Closed-world verifier</span><small>The deterministic boundary check that must pass before evidence is trusted.</small></a>
+
+</div>

@@ -5,6 +5,19 @@ description: How the from-scratch QuarkLM transformer works, and its current sta
 
 # Transformer
 
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- What `transformer_char_model` is, and what it is built without.
+- Why it is the weight-consolidation path, not the reliable answering path.
+- The single gate that keeps it unpromoted: `branch_diversity_target`.
+- How to read the evidence — why `memory-served` and `weight-consolidated` are kept apart.
+
+</div>
+
 `transformer_char_model` is QuarkLM's from-scratch neural model: a tiny
 decoder-only transformer introduced in v0.24, built without PyTorch, JAX, Hugging
 Face, pretrained checkpoints, or pretrained tokenizers. It starts from random
@@ -24,31 +37,34 @@ This page is the durable explanation.
 
 ## Architecture
 
-The model is intentionally small, so cause and effect stay inspectable:
+The model is intentionally small, so cause and effect stay inspectable. Every
+part is corpus-derived or randomly initialized.
 
-- a corpus-trained character tokenizer (`tokenizer.CharTokenizer`) that learns
-  its vocabulary from admitted text and rejects out-of-vocabulary characters;
-- learned token and position embeddings;
-- one causal self-attention block;
-- one feed-forward block;
-- a next-character language-model head;
-- dependency-free scalar autodiff;
-- random initialization only.
+<div className="qlm-grid">
+<div><h4>Character tokenizer</h4><p><code>tokenizer.CharTokenizer</code> learns its vocabulary from admitted text and rejects out-of-vocabulary characters.</p></div>
+<div><h4>Embeddings</h4><p>Learned token and position embeddings.</p></div>
+<div><h4>Self-attention</h4><p>One causal self-attention block.</p></div>
+<div><h4>Feed-forward</h4><p>One feed-forward block.</p></div>
+<div><h4>LM head</h4><p>A next-character language-model head.</p></div>
+<div><h4>Autodiff</h4><p>Dependency-free scalar autodiff.</p></div>
+<div><h4>Initialization</h4><p>Random initialization only.</p></div>
+</div>
 
-Every part is corpus-derived or randomly initialized. A pretrained vocabulary
-would cross the same boundary as pretrained weights — see
-[Purity boundary](../secure/purity-boundary.md).
+A pretrained vocabulary would cross the same boundary as pretrained weights —
+see [Purity boundary](../secure/purity-boundary.md).
 
 ## Train a checkpoint
 
-Run from the project root with `PYTHONPATH=src` set:
+Run from the project root with `PYTHONPATH=src` set.
 
-```bash
+```bash title="Pretrain on the corpus"
 # next-character language-model pretraining on the corpus
 PYTHONPATH=src python3 -m transformer_char_model train \
   --run runs/transformer-smoke \
   --steps 40 --context-size 8 --embedding-dim 6 --feedforward-dim 12
+```
 
+```bash title="Evaluate a checkpoint"
 # evaluate answer probes against a checkpoint
 PYTHONPATH=src python3 -m transformer_char_model eval \
   --checkpoint runs/transformer-smoke/transformer.json \
@@ -91,9 +107,15 @@ low, and dominant-token wins are hidden-projection driven. Dozens of
 direct-answer objectives (catalogued in the screen history) have moved coverage
 and diagnostics forward without clearing the gate.
 
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
 Retrieval memory answers `219/219` eval probes exactly, with provenance and **no
 weight updates**. That is evidence for the memory-first rail, not neural
 promotion: `memory-served` is not `weight-consolidated`.
+
+</div>
 
 ## Foundation-stack options
 
@@ -122,3 +144,15 @@ at `0/219` is exactly why evidence states are kept separate: the system can
 *serve* every answer while the neural weights have not yet *learned* to route
 them. Full run-by-run detail is in
 [Transformer screen history](./transformer-screen-history.md).
+
+## What is next
+
+<div className="qlm-next">
+
+<a href="./transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>The version-by-version screen log and every evidence table.</small></a>
+
+<a href="./transformer-responsibilities.md"><strong>Read</strong><span>Transformer responsibilities</span><small>How the answer-training surfaces are divided across modules.</small></a>
+
+<a href="../secure/purity-boundary.md"><strong>Concept</strong><span>Purity boundary</span><small>Why pretrained weights, tokenizers, and embeddings are out of bounds.</small></a>
+
+</div>
