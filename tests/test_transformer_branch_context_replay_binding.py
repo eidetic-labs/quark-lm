@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-import random
 import unittest
 
-from support.core import (
-    ANSWER_TERMINATOR,
-    AnswerExample,
-    CharTokenizer,
-    TinyTransformerLM,
-    TransformerConfig,
-)
-from support.direct_answer import (
-    direct_answer_branch_diversity_batch,
-    direct_answer_lesson,
-    direct_answer_target_balanced_branch_diversity_batch,
-    train_direct_answer_branch_context_replay_coverage_unlikelihood,
+from support.branch_context_replay_binding import (
+    branch_binding_fixture,
+    branch_diversity_batch,
+    covered_replay_targets,
+    initialized_replay_model,
+    replay_context_metrics,
+    replay_target_ids,
+    target_balanced_branch_batch,
+    target_normalized_probability,
+    train_anchor_comparison_steps,
+    train_replay_coverage_steps,
 )
 
 
@@ -22,376 +20,223 @@ class TransformerBranchContextReplayBindingTest(unittest.TestCase):
     def test_branch_context_replay_coverage_lifts_owned_replay_targets(
         self,
     ) -> None:
-        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
-        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
-        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
-        blue = AnswerExample(prompt="q: thing?\na:", target=" blue.", source="qa:thing")
-        examples = [near, green, tree, blue]
-        tokenizer = CharTokenizer.train(
-            near.prompt
-            + near.target
-            + green.prompt
-            + green.target
-            + tree.prompt
-            + tree.target
-            + blue.prompt
-            + blue.target
-            + ANSWER_TERMINATOR
+        near, examples, tokenizer = branch_binding_fixture(include_blue=True)
+        model = initialized_replay_model(
+            tokenizer,
+            seed=58,
+            token_biases={".": 5.0, "n": 4.0},
         )
-        model = TinyTransformerLM.init_random(
-            TransformerConfig(
-                vocab_size=tokenizer.vocab_size,
-                context_size=8,
-                embedding_dim=4,
-                feedforward_dim=8,
-                seed=58,
-            )
-        )
-        model.bout[tokenizer.stoi["."]].data = 5.0
-        model.bout[tokenizer.stoi["n"]].data = 4.0
-        batch = direct_answer_target_balanced_branch_diversity_batch(
+        batch = target_balanced_branch_batch(
             model,
             tokenizer,
             near,
             examples,
-            random.Random(15),
-            branch_position=1,
+            rng_seed=15,
             batch_size=2,
-            terminator=ANSWER_TERMINATOR,
         )
-        replay_branches = direct_answer_target_balanced_branch_diversity_batch(
+        replay_branches = target_balanced_branch_batch(
             model,
             tokenizer,
             near,
             examples,
-            random.Random(16),
-            branch_position=1,
+            rng_seed=16,
             batch_size=4,
-            terminator=ANSWER_TERMINATOR,
         )
         batch_targets = {target for _context, target, _predicted in batch}
-        replay_targets = sorted(
-            {target for _context, target, _predicted in replay_branches}
-        )
-        replay_target_set = set(replay_targets)
+        replay_targets = replay_target_ids(replay_branches)
         self.assertEqual(len(batch_targets), 2)
         self.assertGreater(len(replay_targets), len(batch_targets))
 
-        def replay_context_metrics() -> tuple[float, float]:
-            target_set_total = 0.0
-            owned_shares = []
-            for context, target, _predicted in replay_branches:
-                probs = model.predict(context)
-                hard_candidates = [
-                    index
-                    for index in sorted(
-                        range(len(probs)),
-                        key=lambda item: probs[item],
-                        reverse=True,
-                    )
-                    if index not in replay_target_set
-                ][:5]
-                candidate_ids = [*replay_targets, *hard_candidates]
-                denominator = sum(probs[candidate_id] for candidate_id in candidate_ids)
-                target_values = [
-                    probs[replay_target] / denominator
-                    for replay_target in replay_targets
-                ]
-                target_set_mass = sum(target_values)
-                target_set_total += target_set_mass
-                target_offset = replay_targets.index(target)
-                owned_shares.append(target_values[target_offset] / target_set_mass)
-            return target_set_total / len(replay_branches), min(owned_shares)
-
-        before_mass, before_owned_share = replay_context_metrics()
-        lesson = direct_answer_lesson(
-            tokenizer,
-            model.config.context_size,
-            near,
-            ANSWER_TERMINATOR,
+        before_mass, before_owned_share = replay_context_metrics(
+            model,
+            replay_branches,
+            replay_targets,
         )
-        rng = random.Random(17)
 
-        for _ in range(80):
-            train_direct_answer_branch_context_replay_coverage_unlikelihood(
-                model,
-                tokenizer,
-                near,
-                examples,
-                lesson,
-                rng,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                branch_position=1,
-                batch_size=2,
-                hard_negative_count=5,
-                terminator=ANSWER_TERMINATOR,
-                balance_targets=True,
-            )
+        train_replay_coverage_steps(
+            model,
+            tokenizer,
+            near,
+            examples,
+            repeat=80,
+            rng_seed=17,
+        )
 
-        after_mass, after_owned_share = replay_context_metrics()
+        after_mass, after_owned_share = replay_context_metrics(
+            model,
+            replay_branches,
+            replay_targets,
+        )
         self.assertGreater(after_mass, before_mass)
         self.assertGreater(after_owned_share, before_owned_share)
 
     def test_branch_context_coverage_anchor_lifts_covered_target_probability(
         self,
     ) -> None:
-        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
-        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
-        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
-        examples = [near, green, tree]
-        tokenizer = CharTokenizer.train(
-            near.prompt
-            + near.target
-            + green.prompt
-            + green.target
-            + tree.prompt
-            + tree.target
-            + ANSWER_TERMINATOR
+        near, examples, tokenizer = branch_binding_fixture()
+        model = initialized_replay_model(
+            tokenizer,
+            seed=59,
+            token_biases={"n": 5.0, ".": 4.0},
         )
-
-        def initialized_model() -> TinyTransformerLM:
-            initialized = TinyTransformerLM.init_random(
-                TransformerConfig(
-                    vocab_size=tokenizer.vocab_size,
-                    context_size=8,
-                    embedding_dim=4,
-                    feedforward_dim=8,
-                    seed=59,
-                )
-            )
-            initialized.bout[tokenizer.stoi["n"]].data = 5.0
-            initialized.bout[tokenizer.stoi["."]].data = 4.0
-            return initialized
-
-        model = initialized_model()
-        anchored_model = initialized_model()
-        covered_branch = direct_answer_branch_diversity_batch(
+        anchored_model = initialized_replay_model(
+            tokenizer,
+            seed=59,
+            token_biases={"n": 5.0, ".": 4.0},
+        )
+        covered_branch = branch_diversity_batch(
             model,
             tokenizer,
             near,
             examples,
-            random.Random(15),
-            branch_position=1,
+            rng_seed=15,
             batch_size=1,
-            terminator=ANSWER_TERMINATOR,
         )[0]
         context, target, predicted = covered_branch
         self.assertEqual(target, predicted)
-        replay_branches = direct_answer_target_balanced_branch_diversity_batch(
+        replay_branches = target_balanced_branch_batch(
             model,
             tokenizer,
             near,
             examples,
-            random.Random(16),
-            branch_position=1,
+            rng_seed=16,
             batch_size=3,
-            terminator=ANSWER_TERMINATOR,
         )
-        replay_targets = sorted(
-            {target for _context, target, _predicted in replay_branches}
+        replay_targets = replay_target_ids(replay_branches)
+
+        before_probability = target_normalized_probability(
+            model,
+            context,
+            target,
+            replay_targets,
         )
-        replay_target_set = set(replay_targets)
 
-        def covered_anchor_probability(scored_model: TinyTransformerLM) -> float:
-            probs = scored_model.predict(context)
-            hard_candidates = [
-                index
-                for index in sorted(
-                    range(len(probs)),
-                    key=lambda item: probs[item],
-                    reverse=True,
-                )
-                if index not in replay_target_set
-            ][:5]
-            candidate_ids = [*replay_targets, *hard_candidates]
-            denominator = sum(probs[candidate_id] for candidate_id in candidate_ids)
-            return probs[target] / denominator
-
-        before_probability = covered_anchor_probability(model)
-        lesson = direct_answer_lesson(
+        train_replay_coverage_steps(
+            model,
             tokenizer,
-            model.config.context_size,
             near,
-            ANSWER_TERMINATOR,
+            examples,
+            repeat=48,
+            rng_seed=17,
         )
-        unanchored_rng = random.Random(17)
-        anchored_rng = random.Random(17)
+        train_replay_coverage_steps(
+            anchored_model,
+            tokenizer,
+            near,
+            examples,
+            repeat=48,
+            rng_seed=17,
+            preserve_covered_targets=True,
+        )
 
-        for _ in range(48):
-            train_direct_answer_branch_context_replay_coverage_unlikelihood(
-                model,
-                tokenizer,
-                near,
-                examples,
-                lesson,
-                unanchored_rng,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                branch_position=1,
-                batch_size=2,
-                hard_negative_count=5,
-                terminator=ANSWER_TERMINATOR,
-                balance_targets=True,
-            )
-        for _ in range(48):
-            train_direct_answer_branch_context_replay_coverage_unlikelihood(
-                anchored_model,
-                tokenizer,
-                near,
-                examples,
-                lesson,
-                anchored_rng,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                branch_position=1,
-                batch_size=2,
-                hard_negative_count=5,
-                terminator=ANSWER_TERMINATOR,
-                balance_targets=True,
-                preserve_covered_targets=True,
-            )
-
-        self.assertLess(covered_anchor_probability(model), before_probability)
+        self.assertLess(
+            target_normalized_probability(model, context, target, replay_targets),
+            before_probability,
+        )
         self.assertGreater(
-            covered_anchor_probability(anchored_model),
-            covered_anchor_probability(model),
+            target_normalized_probability(
+                anchored_model,
+                context,
+                target,
+                replay_targets,
+            ),
+            target_normalized_probability(model, context, target, replay_targets),
         )
 
     def test_branch_context_target_balanced_anchor_skips_single_covered_target(
         self,
     ) -> None:
-        near = AnswerExample(prompt="q: where?\na:", target=" near.", source="qa:place")
-        green = AnswerExample(prompt="q: color?\na:", target=" green.", source="qa:color")
-        tree = AnswerExample(prompt="q: owner?\na:", target=" tree.", source="qa:owner")
-        examples = [near, green, tree]
-        tokenizer = CharTokenizer.train(
-            near.prompt
-            + near.target
-            + green.prompt
-            + green.target
-            + tree.prompt
-            + tree.target
-            + ANSWER_TERMINATOR
+        near, examples, tokenizer = branch_binding_fixture()
+        unanchored_model = initialized_replay_model(
+            tokenizer,
+            seed=60,
+            token_biases={"n": 5.0, ".": 4.0},
         )
-
-        def initialized_model() -> TinyTransformerLM:
-            initialized = TinyTransformerLM.init_random(
-                TransformerConfig(
-                    vocab_size=tokenizer.vocab_size,
-                    context_size=8,
-                    embedding_dim=4,
-                    feedforward_dim=8,
-                    seed=60,
-                )
-            )
-            initialized.bout[tokenizer.stoi["n"]].data = 5.0
-            initialized.bout[tokenizer.stoi["."]].data = 4.0
-            return initialized
-
-        unanchored_model = initialized_model()
-        global_anchor_model = initialized_model()
-        balanced_anchor_model = initialized_model()
-        replay_branches = direct_answer_target_balanced_branch_diversity_batch(
+        global_anchor_model = initialized_replay_model(
+            tokenizer,
+            seed=60,
+            token_biases={"n": 5.0, ".": 4.0},
+        )
+        balanced_anchor_model = initialized_replay_model(
+            tokenizer,
+            seed=60,
+            token_biases={"n": 5.0, ".": 4.0},
+        )
+        replay_branches = target_balanced_branch_batch(
             unanchored_model,
             tokenizer,
             near,
             examples,
-            random.Random(16),
-            branch_position=1,
+            rng_seed=16,
             batch_size=3,
-            terminator=ANSWER_TERMINATOR,
         )
-        covered_targets = {
-            target
-            for _context, target, predicted in replay_branches
-            if target == predicted
-        }
-        self.assertEqual(covered_targets, {tokenizer.stoi["n"]})
-        branch_batch = direct_answer_target_balanced_branch_diversity_batch(
+        self.assertEqual(covered_replay_targets(replay_branches), {tokenizer.stoi["n"]})
+        branch_batch = target_balanced_branch_batch(
             unanchored_model,
             tokenizer,
             near,
             examples,
-            random.Random(15),
-            branch_position=1,
+            rng_seed=15,
             batch_size=2,
-            terminator=ANSWER_TERMINATOR,
         )
-        replay_targets = sorted(
-            {target for _context, target, _predicted in replay_branches}
-        )
-        replay_target_set = set(replay_targets)
+        replay_targets = replay_target_ids(replay_branches)
         context, target, _predicted = replay_branches[0]
 
-        def covered_anchor_probability(scored_model: TinyTransformerLM) -> float:
-            probs = scored_model.predict(context)
-            hard_candidates = [
-                index
-                for index in sorted(
-                    range(len(probs)),
-                    key=lambda item: probs[item],
-                    reverse=True,
-                )
-                if index not in replay_target_set
-            ][:5]
-            candidate_ids = [*replay_targets, *hard_candidates]
-            denominator = sum(probs[candidate_id] for candidate_id in candidate_ids)
-            return probs[target] / denominator
+        before_probability = target_normalized_probability(
+            unanchored_model,
+            context,
+            target,
+            replay_targets,
+        )
 
-        before_probability = covered_anchor_probability(unanchored_model)
-
-        for _ in range(48):
-            unanchored_model.train_step_with_branch_context_replay_coverage(
-                branch_batch,
-                replay_branches,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                hard_negative_count=5,
-            )
-            global_anchor_model.train_step_with_branch_context_replay_coverage(
-                branch_batch,
-                replay_branches,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                hard_negative_count=5,
-                preserve_covered_targets=True,
-            )
-            balanced_anchor_model.train_step_with_branch_context_replay_coverage(
-                branch_batch,
-                replay_branches,
-                learning_rate=0.03,
-                negative_weight=1.0,
-                positive_weight=0.0,
-                replay_weight=2.0,
-                hard_negative_count=5,
-                preserve_covered_targets=True,
-                balance_covered_target_anchors=True,
-            )
+        train_anchor_comparison_steps(
+            unanchored_model,
+            global_anchor_model,
+            balanced_anchor_model,
+            branch_batch,
+            replay_branches,
+            repeat=48,
+        )
 
         self.assertLess(
-            covered_anchor_probability(unanchored_model),
+            target_normalized_probability(
+                unanchored_model,
+                context,
+                target,
+                replay_targets,
+            ),
             before_probability,
         )
         self.assertGreater(
-            covered_anchor_probability(global_anchor_model),
-            covered_anchor_probability(unanchored_model),
+            target_normalized_probability(
+                global_anchor_model,
+                context,
+                target,
+                replay_targets,
+            ),
+            target_normalized_probability(
+                unanchored_model,
+                context,
+                target,
+                replay_targets,
+            ),
         )
         self.assertAlmostEqual(
-            covered_anchor_probability(balanced_anchor_model),
-            covered_anchor_probability(unanchored_model),
+            target_normalized_probability(
+                balanced_anchor_model,
+                context,
+                target,
+                replay_targets,
+            ),
+            target_normalized_probability(
+                unanchored_model,
+                context,
+                target,
+                replay_targets,
+            ),
             places=12,
         )
+
 
 if __name__ == "__main__":
     unittest.main()
