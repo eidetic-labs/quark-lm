@@ -3,16 +3,18 @@ from __future__ import annotations
 import random
 import unittest
 
-from transformer_char_model_test_support import (
+from support.core import (
     ANSWER_TERMINATOR,
-    AnswerCandidateSelector,
     AnswerExample,
     CharTokenizer,
     TinyTransformerLM,
     TransformerConfig,
+    continuation_nll,
+)
+from support.direct_answer import (
+    AnswerCandidateSelector,
     answer_sequence_nll,
     build_answer_selector,
-    continuation_nll,
     direct_answer_lesson,
     direct_answer_sequence_nll,
     evaluate_answer_records,

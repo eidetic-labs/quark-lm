@@ -5,10 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from transformer_char_model_test_support import (
+from support.branch_diversity import (
     branch_diversity_snapshot_collapsed_profile_names,
     branch_diversity_snapshot_profile_diversity_delta,
     branch_diversity_snapshot_target_coverage_delta,
+)
+from support.commands import (
     parse_args,
     train_transformer_answers,
 )

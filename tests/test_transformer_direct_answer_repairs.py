@@ -3,12 +3,14 @@ from __future__ import annotations
 import random
 import unittest
 
-from transformer_char_model_test_support import (
+from support.core import (
     ANSWER_TERMINATOR,
     AnswerExample,
     CharTokenizer,
     TinyTransformerLM,
     TransformerConfig,
+)
+from support.direct_answer import (
     audit_prompt_context_coverage,
     direct_answer_branch_context,
     direct_answer_branch_repair_error,
