@@ -10,14 +10,48 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.memory_retrieval import (
+from memory_cards import build_memory_cards
+from memory_index import ClosedWorldMemoryIndex as MemoryIndexImplementation
+from memory_retrieval import (
     ClosedWorldMemoryIndex,
     build_retrieval_memory_report,
     write_retrieval_memory_report,
 )
+from memory_retrieval_signatures import prompt_signature, signatures_match, tokenize
 
 
 class MemoryRetrievalTest(unittest.TestCase):
+    def test_memory_retrieval_facade_exports_index_implementation(self) -> None:
+        self.assertIs(ClosedWorldMemoryIndex, MemoryIndexImplementation)
+
+    def test_prompt_signatures_cover_retrieval_prompt_families(self) -> None:
+        place = prompt_signature("tell me the place of ivy map\nanswer:")
+        owner = prompt_signature("question: who has the map?\nanswer:")
+        glossary = prompt_signature("define corpus\nanswer:")
+
+        self.assertEqual(
+            place,
+            {"intent": "place", "person": "ivy", "object": "map"},
+        )
+        self.assertEqual(owner, {"intent": "owner", "object": "map"})
+        self.assertEqual(glossary, {"intent": "glossary", "word": "corpus"})
+        self.assertTrue(
+            signatures_match(
+                {"intent": "place", "person": "ivy"},
+                {"intent": "place", "person": "ivy", "object": "map"},
+            )
+        )
+        self.assertEqual(tokenize("Ivy's map, v2!"), ["ivy", "s", "map", "v2"])
+
+    def test_memory_cards_are_built_from_corpus_profiles(self) -> None:
+        cards = build_memory_cards(ROOT / "corpus")
+        profiles = {card.profile for card in cards}
+
+        self.assertIn("owner", profiles)
+        self.assertIn("self", profiles)
+        self.assertIn("learning", profiles)
+        self.assertIn("glossary", profiles)
+
     def test_closed_world_memory_answers_owner_and_paraphrase_without_weights(self) -> None:
         index = ClosedWorldMemoryIndex.from_corpus(ROOT / "corpus")
 

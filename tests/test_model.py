@@ -9,8 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.neural_char_model import CharMLP, ModelConfig, context_before
-from closed_world_lm.tokenizer import CharTokenizer
+from neural_char_model import CharMLP, ModelConfig
+from neural_char_ops import context_before
+from tokenizer import CharTokenizer
 
 
 class ModelTest(unittest.TestCase):

@@ -11,11 +11,11 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.curriculum import build_curriculum, read_jsonl
-from closed_world_lm.candidate_quarantine import build_candidate_quarantine_manifest
-from closed_world_lm.closed_world_verifier import verifier_check, verifier_report
-from closed_world_lm.glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
-from closed_world_lm.self_improve import (
+from curriculum import build_curriculum, read_jsonl
+from candidate_quarantine import build_candidate_quarantine_manifest
+from closed_world_verifier_reports import verifier_check, verifier_report
+from glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
+from self_improve import (
     audit_exact_promotion,
     audit_forgetting,
     evaluate_responder,
@@ -24,11 +24,11 @@ from closed_world_lm.self_improve import (
     self_improvement_experiment_intent,
     write_report_artifacts,
 )
-from closed_world_lm.training_recipe import (
+from constraint_first_report import (
     build_constraint_first_promotion_report,
-    build_training_recipe,
     promotion_check,
 )
+from training_recipe_core import build_training_recipe
 
 
 def current_admission_count() -> int:

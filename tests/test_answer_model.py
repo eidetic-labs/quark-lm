@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.answer_model import (
+from answer_model import (
     AnswerExample,
     answer_training_pool,
     build_model,
@@ -17,7 +17,7 @@ from closed_world_lm.answer_model import (
     glossary_prompt_templates,
     prompt_templates,
 )
-from closed_world_lm.curriculum import build_curriculum, read_json
+from curriculum import build_curriculum, read_json
 
 
 class AnswerModelTest(unittest.TestCase):
@@ -212,7 +212,7 @@ class AnswerModelTest(unittest.TestCase):
         for _ in range(80):
             model.train_step(examples[0], learning_rate=0.1)
 
-        from closed_world_lm.answer_model import summarize_eval
+        from answer_model import summarize_eval
 
         summary = summarize_eval(
             model,

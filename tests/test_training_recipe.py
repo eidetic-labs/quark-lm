@@ -10,17 +10,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.training_recipe import (
-    attach_recipe_summary,
+from constraint_first_report import (
     build_constraint_first_promotion_report,
-    build_training_recipe,
     constraint_first_summary,
     promotion_check,
-    self_improvement_constraint_report,
-    transformer_constraint_report,
     write_constraint_first_report,
+)
+from self_improvement_constraints import self_improvement_constraint_report
+from training_recipe_core import (
+    attach_recipe_summary,
+    build_training_recipe,
     write_training_recipe,
 )
+from transformer_constraints import transformer_constraint_report
 
 
 def minimal_recipe() -> dict:
@@ -116,7 +118,7 @@ class TrainingRecipeTest(unittest.TestCase):
             "run_id": "run-001",
             "baseline": {"step": 0},
             "final": {"step": 1},
-            "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+            "training_data": "answer_model corpus-derived AnswerExample lessons",
             "closed_world_verifier": {"passed": True},
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
@@ -143,7 +145,7 @@ class TrainingRecipeTest(unittest.TestCase):
             "run_id": "run-001",
             "baseline": {"step": 0},
             "final": {"step": 1},
-            "training_data": "closed_world_lm.answer_model corpus-derived AnswerExample lessons",
+            "training_data": "answer_model corpus-derived AnswerExample lessons",
             "closed_world_verifier": {"passed": True},
             "pretrained_weights": False,
             "pretrained_tokenizer": False,

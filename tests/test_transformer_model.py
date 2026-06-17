@@ -10,8 +10,9 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm import transformer_char_model
-from closed_world_lm.transformer_model import (
+import transformer_char_model
+from transformer_tiny_lm import TinyTransformerLM
+from transformer_model import (
     TRANSFORMER_ARCHITECTURE,
     TRANSFORMER_CHECKPOINT_FORMAT,
     TRANSFORMER_TOKENIZER,
@@ -85,6 +86,7 @@ class TransformerModelSurfaceTests(unittest.TestCase):
         self.assertIs(transformer_char_model.TransformerConfig, TransformerConfig)
         self.assertIs(transformer_char_model.OptimizationConfig, OptimizationConfig)
         self.assertIs(transformer_char_model.GenerationConfig, GenerationConfig)
+        self.assertIs(transformer_char_model.TinyTransformerLM, TinyTransformerLM)
 
     def test_transformer_config_from_args_and_validation(self) -> None:
         config = transformer_config_from_args(_args(), vocab_size=31)

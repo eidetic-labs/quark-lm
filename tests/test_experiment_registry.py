@@ -11,7 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.experiment_registry import (
+from experiment_registry import (
     ExperimentIntent,
     read_experiment_intent,
     record_experiment_decision,

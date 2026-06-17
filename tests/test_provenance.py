@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.curriculum import read_json, read_jsonl
-from closed_world_lm.provenance import corpus_snapshot, diff_corpus_snapshots
+from curriculum import read_json, read_jsonl
+from provenance import corpus_snapshot, diff_corpus_snapshots
 
 
 def admission_ids() -> list[str]:

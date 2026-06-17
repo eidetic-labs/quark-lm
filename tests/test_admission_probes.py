@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.admission_probes import (
+from admission_probes import (
     admission_paraphrase_probe_records,
     admission_probe_records,
     audit_admission_paraphrase_probes,
@@ -19,7 +19,7 @@ from closed_world_lm.admission_probes import (
     sync_admission_paraphrase_probes,
     sync_admission_probes,
 )
-from closed_world_lm.curriculum import read_jsonl
+from curriculum import read_jsonl
 
 
 def current_admission_count() -> int:

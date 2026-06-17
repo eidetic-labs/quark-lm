@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.curriculum import read_json, read_jsonl
-from closed_world_lm.glossary_probes import (
+from curriculum import read_json, read_jsonl
+from glossary_probes import (
     audit_glossary_probes,
     glossary_probe_records,
     sync_glossary_probes,
