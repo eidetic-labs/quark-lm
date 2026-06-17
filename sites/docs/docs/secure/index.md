@@ -108,7 +108,7 @@ boundary checks is necessary, not sufficient.
 ## What is next
 
 <div className="qlm-next">
-<a href="./purity-boundary.md"><strong>Read next</strong><span>Purity boundary</span><small>What QuarkLM may and may not train on, and why the ledger is the gate.</small></a>
-<a href="./prompt-leakage.md"><strong>Read next</strong><span>Prompt leakage</span><small>How held-out evaluation prompts are kept out of training lessons.</small></a>
-<a href="./unknown-policy.md"><strong>Read next</strong><span>Unknown policy</span><small>How QuarkLM answers — and declines to answer — outside the corpus.</small></a>
+<a href="./purity-boundary/"><strong>Read next</strong><span>Purity boundary</span><small>What QuarkLM may and may not train on, and why the ledger is the gate.</small></a>
+<a href="./prompt-leakage/"><strong>Read next</strong><span>Prompt leakage</span><small>How held-out evaluation prompts are kept out of training lessons.</small></a>
+<a href="./unknown-policy/"><strong>Read next</strong><span>Unknown policy</span><small>How QuarkLM answers — and declines to answer — outside the corpus.</small></a>
 </div>

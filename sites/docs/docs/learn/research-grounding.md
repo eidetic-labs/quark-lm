@@ -288,7 +288,7 @@ model output.
 ## What is next
 
 <div className="qlm-next">
-<a href="./language-model.md"><strong>Read next</strong><span>The language model</span><small>The three evidence states behind the memory-served versus weight-consolidated distinction.</small></a>
-<a href="./open-source-mechanics-audit.md"><strong>Read</strong><span>Open-source mechanics audit</span><small>The code-and-systems comparison layer and the full gap matrix.</small></a>
-<a href="../secure/purity-boundary.md"><strong>Secure</strong><span>Purity boundary</span><small>Where the closed-world boundary is enforced in code.</small></a>
+<a href="../language-model/"><strong>Read next</strong><span>The language model</span><small>The three evidence states behind the memory-served versus weight-consolidated distinction.</small></a>
+<a href="../open-source-mechanics-audit/"><strong>Read</strong><span>Open-source mechanics audit</span><small>The code-and-systems comparison layer and the full gap matrix.</small></a>
+<a href="../../secure/purity-boundary/"><strong>Secure</strong><span>Purity boundary</span><small>Where the closed-world boundary is enforced in code.</small></a>
 </div>

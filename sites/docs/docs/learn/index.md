@@ -94,17 +94,17 @@ the update improves behavior without breaking older evidence.
 ## Read First
 
 <div className="qlm-grid">
-<div><h4><a href="./project-overview.md">Project overview</a></h4><p>The repository front door: release posture, public surfaces, and where the long evidence trail lives.</p></div>
-<div><h4><a href="./language-model.md">Language model</a></h4><p>The memory-native model philosophy, closed-world boundaries, and the three evidence states.</p></div>
-<div><h4><a href="./self-improvement-loop.md">Self-improvement loop</a></h4><p>The corpus-to-memory-to-weight-update lifecycle and its promotion rule.</p></div>
-<div><h4><a href="./research-grounding.md">Research grounding</a></h4><p>The paper-backed design rules for closed-world self-improvement.</p></div>
-<div><h4><a href="./open-source-mechanics-audit.md">Open-source mechanics audit</a></h4><p>The gap matrix from studying comparable open-source mechanics without copying code or data.</p></div>
-<div><h4><a href="./branch-diversity-research.md">Branch diversity research</a></h4><p>The v0.115 hidden-projection candidate evidence and external research on branch collapse.</p></div>
-<div><h4><a href="./forward-research-plan.md">Forward research plan</a></h4><p>The v0.69 strategy sequence through the v0.115.0 hidden-projection candidate screen.</p></div>
-<div><h4><a href="./deep-research-review.md">Deep research review</a></h4><p>The v0.70 cross-referenced literature, open-source mechanics, gap review, and v0.115.0 routing-repair handoff.</p></div>
-<div><h4><a href="./research-implementation-map.md">Research implementation map</a></h4><p>The v0.74 source-to-gap-to-version map and the v0.115.0 hidden-projection candidate evidence.</p></div>
-<div><h4><a href="./current-evidence.mdx">Current evidence</a></h4><p>The latest promoted metrics and audits.</p></div>
-<div><h4><a href="./historical-evidence.md">Historical evidence archive</a></h4><p>Older evidence that was moved out of <code>GOAL.md</code>.</p></div>
+<div><h4><a href="./project-overview/">Project overview</a></h4><p>The repository front door: release posture, public surfaces, and where the long evidence trail lives.</p></div>
+<div><h4><a href="./language-model/">Language model</a></h4><p>The memory-native model philosophy, closed-world boundaries, and the three evidence states.</p></div>
+<div><h4><a href="./self-improvement-loop/">Self-improvement loop</a></h4><p>The corpus-to-memory-to-weight-update lifecycle and its promotion rule.</p></div>
+<div><h4><a href="./research-grounding/">Research grounding</a></h4><p>The paper-backed design rules for closed-world self-improvement.</p></div>
+<div><h4><a href="./open-source-mechanics-audit/">Open-source mechanics audit</a></h4><p>The gap matrix from studying comparable open-source mechanics without copying code or data.</p></div>
+<div><h4><a href="./branch-diversity-research/">Branch diversity research</a></h4><p>The v0.115 hidden-projection candidate evidence and external research on branch collapse.</p></div>
+<div><h4><a href="./forward-research-plan/">Forward research plan</a></h4><p>The v0.69 strategy sequence through the v0.115.0 hidden-projection candidate screen.</p></div>
+<div><h4><a href="./deep-research-review/">Deep research review</a></h4><p>The v0.70 cross-referenced literature, open-source mechanics, gap review, and v0.115.0 routing-repair handoff.</p></div>
+<div><h4><a href="./research-implementation-map/">Research implementation map</a></h4><p>The v0.74 source-to-gap-to-version map and the v0.115.0 hidden-projection candidate evidence.</p></div>
+<div><h4><a href="./current-evidence/">Current evidence</a></h4><p>The latest promoted metrics and audits.</p></div>
+<div><h4><a href="./historical-evidence/">Historical evidence archive</a></h4><p>Older evidence that was moved out of <code>GOAL.md</code>.</p></div>
 </div>
 
 ## What "docs" mean here
@@ -141,7 +141,7 @@ trustworthy evidence of each step.
 :::
 
 <div className="qlm-next">
-<a href="./language-model.md"><strong>Read next</strong><span>Language model</span><small>The memory-native philosophy and the three evidence states.</small></a>
-<a href="./self-improvement-loop.md"><strong>Go deeper</strong><span>Self-improvement loop</span><small>The corpus-to-memory-to-weight-update lifecycle and its promotion rule.</small></a>
-<a href="../build/index.md"><strong>Switch to mechanics</strong><span>Build</span><small>Modules, data flow, and which path actually changes weights.</small></a>
+<a href="./language-model/"><strong>Read next</strong><span>Language model</span><small>The memory-native philosophy and the three evidence states.</small></a>
+<a href="./self-improvement-loop/"><strong>Go deeper</strong><span>Self-improvement loop</span><small>The corpus-to-memory-to-weight-update lifecycle and its promotion rule.</small></a>
+<a href="../build/"><strong>Switch to mechanics</strong><span>Build</span><small>Modules, data flow, and which path actually changes weights.</small></a>
 </div>

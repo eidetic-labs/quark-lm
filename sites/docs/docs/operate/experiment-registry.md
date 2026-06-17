@@ -48,7 +48,7 @@ than producing untrustworthy evidence.
 <div><h4><code>hypothesis</code></h4><p>The claim the run is meant to test.</p></div>
 <div><h4><code>allowed_data_sources</code></h4><p>The data the run is permitted to draw from, stated up front.</p></div>
 <div><h4><code>planned_artifacts</code></h4><p>The evidence files the run commits to emitting.</p></div>
-<div><h4><code>training_recipe_id</code></h4><p>The reproducible recipe the run follows; see <a href="./training-recipes.md">training recipes</a>.</p></div>
+<div><h4><code>training_recipe_id</code></h4><p>The reproducible recipe the run follows; see <a href="../training-recipes/">training recipes</a>.</p></div>
 <div><h4><code>acceptance_gates</code></h4><p>Named gates, each with a rule and a <code>required</code> flag, that the run must clear to promote.</p></div>
 <div><h4><code>failure_criteria</code></h4><p>The conditions that mark the run a failure.</p></div>
 <div><h4><code>replay_plan_id</code></h4><p>An optional replay-plan reference, or null.</p></div>
@@ -133,7 +133,7 @@ The intent is the run's stated plan and its honest record of how that plan turne
 out.
 
 <div className="qlm-next">
-<a href="./closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that enforces the data boundary the intent declares.</small></a>
-<a href="./training-recipes.md"><strong>Go deeper</strong><span>Training recipes</span><small>The constraint-first promotion report that closes a transformer intent.</small></a>
-<a href="./candidate-quarantine.md"><strong>Reference</strong><span>Candidate quarantine</span><small>Why generated candidates are not training data until admitted.</small></a>
+<a href="../closed-world-verifier/"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that enforces the data boundary the intent declares.</small></a>
+<a href="../training-recipes/"><strong>Go deeper</strong><span>Training recipes</span><small>The constraint-first promotion report that closes a transformer intent.</small></a>
+<a href="../candidate-quarantine/"><strong>Reference</strong><span>Candidate quarantine</span><small>Why generated candidates are not training data until admitted.</small></a>
 </div>

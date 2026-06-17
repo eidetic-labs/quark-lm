@@ -138,10 +138,10 @@ surfaces hold versioned diagnostic evidence rather than a promotion claim.
 
 <div className="qlm-next">
 
-<a href="./transformer.md"><strong>Read next</strong><span>Transformer</span><small>How the from-scratch model works and why it stays unpromoted.</small></a>
+<a href="../transformer/"><strong>Read next</strong><span>Transformer</span><small>How the from-scratch model works and why it stays unpromoted.</small></a>
 
-<a href="./transformer-screen-history.md"><strong>Read</strong><span>Transformer screen history</span><small>The authoritative version-by-version screen log and every evidence table.</small></a>
+<a href="../transformer-screen-history/"><strong>Read</strong><span>Transformer screen history</span><small>The authoritative version-by-version screen log and every evidence table.</small></a>
 
-<a href="../operate/closed-world-verifier.md"><strong>Concept</strong><span>Closed-world verifier</span><small>The deterministic boundary check that must pass before evidence is trusted.</small></a>
+<a href="../../operate/closed-world-verifier/"><strong>Concept</strong><span>Closed-world verifier</span><small>The deterministic boundary check that must pass before evidence is trusted.</small></a>
 
 </div>

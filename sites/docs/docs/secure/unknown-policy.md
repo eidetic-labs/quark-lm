@@ -129,10 +129,10 @@ the responder. Read them together to see the full boundary.
 
 <div className="qlm-next">
 
-<a href="./purity-boundary.md"><strong>Read next</strong><span>Purity boundary</span><small>What may enter the weights, and why the ledger is the admission gate.</small></a>
+<a href="../purity-boundary/"><strong>Read next</strong><span>Purity boundary</span><small>What may enter the weights, and why the ledger is the admission gate.</small></a>
 
-<a href="./index.md"><strong>Step back</strong><span>Secure</span><small>The epistemic boundary and the three claims the secure pages hold in place.</small></a>
+<a href="../"><strong>Step back</strong><span>Secure</span><small>The epistemic boundary and the three claims the secure pages hold in place.</small></a>
 
-<a href="../learn/language-model.md"><strong>Go deeper</strong><span>Language model</span><small>The three evidence states behind memory-served versus weight-consolidated.</small></a>
+<a href="../../learn/language-model/"><strong>Go deeper</strong><span>Language model</span><small>The three evidence states behind memory-served versus weight-consolidated.</small></a>
 
 </div>

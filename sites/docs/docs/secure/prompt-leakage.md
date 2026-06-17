@@ -120,7 +120,7 @@ material, and the test set is not it.
 ## What's next
 
 <div className="qlm-next">
-<a href="../learn/self-improvement-loop.md"><strong>Read next</strong><span>Self-improvement loop</span><small>The promotion gate this audit feeds, and the other required audits beside it.</small></a>
-<a href="./purity-boundary.md"><strong>Related</strong><span>Purity boundary</span><small>Why training may only consume admitted material — and why probes are not it.</small></a>
-<a href="../learn/language-model.md"><strong>Concept</strong><span>The language model</span><small>The memory-served versus weight-consolidated distinction this audit protects.</small></a>
+<a href="../../learn/self-improvement-loop/"><strong>Read next</strong><span>Self-improvement loop</span><small>The promotion gate this audit feeds, and the other required audits beside it.</small></a>
+<a href="../purity-boundary/"><strong>Related</strong><span>Purity boundary</span><small>Why training may only consume admitted material — and why probes are not it.</small></a>
+<a href="../../learn/language-model/"><strong>Concept</strong><span>The language model</span><small>The memory-served versus weight-consolidated distinction this audit protects.</small></a>
 </div>

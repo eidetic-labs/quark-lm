@@ -153,7 +153,7 @@ Current release evidence belongs in [Current evidence](./current-evidence.mdx),
 the shared current state, and the relevant Build or Operate docs.
 
 <div className="qlm-next">
-<a href="./current-evidence.mdx"><strong>Read next</strong><span>Current evidence</span><small>The live release posture and latest transformer screens.</small></a>
-<a href="../build/transformer-screen-history.md"><strong>Go deeper</strong><span>Transformer screen history</span><small>The complete version-by-version transformer log.</small></a>
-<a href="./language-model.md"><strong>Reference</strong><span>Language model</span><small>The three evidence states and the two paths that produce them.</small></a>
+<a href="../current-evidence/"><strong>Read next</strong><span>Current evidence</span><small>The live release posture and latest transformer screens.</small></a>
+<a href="../../build/transformer-screen-history/"><strong>Go deeper</strong><span>Transformer screen history</span><small>The complete version-by-version transformer log.</small></a>
+<a href="../language-model/"><strong>Reference</strong><span>Language model</span><small>The three evidence states and the two paths that produce them.</small></a>
 </div>

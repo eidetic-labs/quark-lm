@@ -96,7 +96,7 @@ For a transformer answer-training run the constraints are:
 <div className="qlm-grid">
 <div><h4>baseline_snapshot_recorded / final_snapshot_recorded</h4><p>The run captured comparable before/after evidence.</p></div>
 <div><h4>closed_world_training_data</h4><p>Training drew only from admitted sources.</p></div>
-<div><h4>closed_world_verifier</h4><p>The deterministic <a href="./closed-world-verifier.md">verifier</a> approved the plan.</p></div>
+<div><h4>closed_world_verifier</h4><p>The deterministic <a href="../closed-world-verifier/">verifier</a> approved the plan.</p></div>
 <div><h4>no_pretrained_weights</h4><p>No imported weights.</p></div>
 <div><h4>no_pretrained_tokenizer</h4><p>No imported tokenizer.</p></div>
 <div><h4>no_external_embeddings</h4><p>No imported embeddings.</p></div>
@@ -147,7 +147,7 @@ the corpus contains the answer; it does not prove the weights learned it.
 </div>
 
 <div className="qlm-next">
-<a href="./closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that approves the training plan upstream of this report.</small></a>
-<a href="../build/transformer.md"><strong>Read next</strong><span>The transformer</span><small>Why branch diversity is the blocker, and why it differs from memory-served retrieval.</small></a>
-<a href="./experiment-registry.md"><strong>Reference</strong><span>Experiment registry</span><small>Where a run's intent is opened, upstream of the recipe.</small></a>
+<a href="../closed-world-verifier/"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that approves the training plan upstream of this report.</small></a>
+<a href="../../build/transformer/"><strong>Read next</strong><span>The transformer</span><small>Why branch diversity is the blocker, and why it differs from memory-served retrieval.</small></a>
+<a href="../experiment-registry/"><strong>Reference</strong><span>Experiment registry</span><small>Where a run's intent is opened, upstream of the recipe.</small></a>
 </div>

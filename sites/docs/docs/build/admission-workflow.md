@@ -167,7 +167,7 @@ until the [closed-world verifier](../operate/closed-world-verifier.md) clears
 them, and any guarded update is kept only if the recorded promotion gate passes.
 
 <div className="qlm-next">
-<a href="./quickstart.md"><strong>Read next</strong><span>Quickstart</span><small>The full run sequence end to end.</small></a>
-<a href="../learn/self-improvement-loop.md"><strong>Read next</strong><span>Self-improvement loop</span><small>The lifecycle contract this admission feeds.</small></a>
-<a href="./generated-probes.md"><strong>Reference</strong><span>Generated probes</span><small>How admission probes are generated and checked.</small></a>
+<a href="../quickstart/"><strong>Read next</strong><span>Quickstart</span><small>The full run sequence end to end.</small></a>
+<a href="../../learn/self-improvement-loop/"><strong>Read next</strong><span>Self-improvement loop</span><small>The lifecycle contract this admission feeds.</small></a>
+<a href="../generated-probes/"><strong>Reference</strong><span>Generated probes</span><small>How admission probes are generated and checked.</small></a>
 </div>

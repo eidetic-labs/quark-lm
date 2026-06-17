@@ -121,7 +121,7 @@ where its evidence belongs rather than restated here:
 <li><strong>v0.71 — Experiment registry</strong><p>Experiment registry and run-intent schemas.</p></li>
 <li><strong>v0.72 — Standalone replay planner</strong><p>Replay planning extracted into `src/replay_plan.py`.</p></li>
 <li><strong>v0.73 — Corpus hygiene and training plan</strong><p>Hygiene and training-plan artifacts (`corpus_hygiene.json`, `training_plan.json`).</p></li>
-<li><strong>v0.74 — Research implementation map</strong><p>The <a href="./research-implementation-map.md">Research implementation map</a>, tying mechanics to sources, gaps, and acceptance evidence.</p></li>
+<li><strong>v0.74 — Research implementation map</strong><p>The <a href="../research-implementation-map/">Research implementation map</a>, tying mechanics to sources, gaps, and acceptance evidence.</p></li>
 <li><strong>v0.75 — Candidate quarantine</strong><p>Candidate quarantine artifacts and lifecycle state.</p></li>
 <li><strong>v0.76 — Closed-world verifier</strong><p>Deterministic closed-world verifier checks.</p></li>
 <li><strong>v0.77 — Recipes and promotion gates</strong><p>Recipes and constraint-first promotion gates.</p></li>
@@ -185,7 +185,7 @@ transformer.
 </div>
 
 <div className="qlm-next">
-<a href="./branch-diversity-research.md"><strong>Read next</strong><span>Branch diversity research</span><small>The open `branch_diversity_target` blocker and the candidate repair.</small></a>
-<a href="./forward-research-plan.md"><strong>Read next</strong><span>Forward research plan</span><small>The forward strategy through the current screen.</small></a>
-<a href="./research-implementation-map.md"><strong>Read next</strong><span>Research implementation map</span><small>Each source cluster tied to the mechanic it motivated.</small></a>
+<a href="../branch-diversity-research/"><strong>Read next</strong><span>Branch diversity research</span><small>The open `branch_diversity_target` blocker and the candidate repair.</small></a>
+<a href="../forward-research-plan/"><strong>Read next</strong><span>Forward research plan</span><small>The forward strategy through the current screen.</small></a>
+<a href="../research-implementation-map/"><strong>Read next</strong><span>Research implementation map</span><small>Each source cluster tied to the mechanic it motivated.</small></a>
 </div>

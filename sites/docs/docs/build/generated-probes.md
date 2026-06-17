@@ -141,7 +141,7 @@ admitted to the ledger.
 ## What's next
 
 <div className="qlm-next">
-<a href="./admission-workflow.md"><strong>Read next</strong><span>The admission workflow</span><small>How admitting a fact changes what is learnable.</small></a>
-<a href="../operate/closed-world-verifier.md"><strong>Reference</strong><span>The closed-world verifier</span><small>The other constraint-first promotion check.</small></a>
-<a href="../learn/self-improvement-loop.md"><strong>Read</strong><span>The self-improvement loop</span><small>Where the probe audits gate a run's promotion.</small></a>
+<a href="../admission-workflow/"><strong>Read next</strong><span>The admission workflow</span><small>How admitting a fact changes what is learnable.</small></a>
+<a href="../../operate/closed-world-verifier/"><strong>Reference</strong><span>The closed-world verifier</span><small>The other constraint-first promotion check.</small></a>
+<a href="../../learn/self-improvement-loop/"><strong>Read</strong><span>The self-improvement loop</span><small>Where the probe audits gate a run's promotion.</small></a>
 </div>

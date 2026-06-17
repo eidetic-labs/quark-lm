@@ -153,7 +153,7 @@ to affect promotion. The verifier is the first constraint in that order.
 :::
 
 <div className="qlm-next">
-<a href="./candidate-quarantine.md"><strong>Read next</strong><span>Candidate quarantine</span><small>The candidate lifecycle the verifier inspects, and the admission rule it enforces.</small></a>
-<a href="./training-recipes.md"><strong>Read next</strong><span>Training recipes</span><small>Constraint-first promotion, the quality gate downstream of the verifier.</small></a>
-<a href="../secure/purity-boundary.md"><strong>Reference</strong><span>Purity boundary</span><small>The same closed-world line the boundary check draws.</small></a>
+<a href="../candidate-quarantine/"><strong>Read next</strong><span>Candidate quarantine</span><small>The candidate lifecycle the verifier inspects, and the admission rule it enforces.</small></a>
+<a href="../training-recipes/"><strong>Read next</strong><span>Training recipes</span><small>Constraint-first promotion, the quality gate downstream of the verifier.</small></a>
+<a href="../../secure/purity-boundary/"><strong>Reference</strong><span>Purity boundary</span><small>The same closed-world line the boundary check draws.</small></a>
 </div>
