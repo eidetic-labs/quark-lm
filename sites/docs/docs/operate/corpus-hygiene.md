@@ -93,9 +93,9 @@ inside the closed-world boundary.
 <div><h4>Eval-set counts</h4><p>The size of each eval set the run will be scored on.</p></div>
 <div><h4>Base and scheduled example mixture</h4><p>The intended source mixture, before and after scheduling.</p></div>
 <div><h4>Candidate policy status</h4><p>Whether generated candidates are excluded from training.</p></div>
-<div><h4>Training recipe path and summary</h4><p>The reproducible <a href="./training-recipes.md">recipe</a>, when written.</p></div>
+<div><h4>Training recipe path and summary</h4><p>The reproducible <a href="../training-recipes/">recipe</a>, when written.</p></div>
 <div><h4>Replay-plan path and summary</h4><p>The profile-aware replay plan, when one is written.</p></div>
-<div><h4>Closed-world verifier path and summary</h4><p>The <a href="./closed-world-verifier.md">verifier</a> approval, when written.</p></div>
+<div><h4>Closed-world verifier path and summary</h4><p>The <a href="../closed-world-verifier/">verifier</a> approval, when written.</p></div>
 <div><h4>Planned artifacts</h4><p>The evidence files the run commits to emitting.</p></div>
 </div>
 
@@ -161,10 +161,10 @@ distinction these artifacts protect.
 
 <div className="qlm-next">
 
-<a href="./closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that decides whether a plan may influence the next step.</small></a>
+<a href="../closed-world-verifier/"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that decides whether a plan may influence the next step.</small></a>
 
-<a href="./candidate-quarantine.md"><strong>Read</strong><span>Candidate quarantine</span><small>How generated candidates are kept out of training until admitted.</small></a>
+<a href="../candidate-quarantine/"><strong>Read</strong><span>Candidate quarantine</span><small>How generated candidates are kept out of training until admitted.</small></a>
 
-<a href="../build/transformer.md"><strong>Concept</strong><span>Transformer</span><small>The target-routing problem the hygiene trail keeps unpromoted.</small></a>
+<a href="../../build/transformer/"><strong>Concept</strong><span>Transformer</span><small>The target-routing problem the hygiene trail keeps unpromoted.</small></a>
 
 </div>

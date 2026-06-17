@@ -151,10 +151,10 @@ directly, or generated from admitted corpus files and then admitted in turn.
 
 <div className="qlm-next">
 
-<a href="../operate/closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic check for the four boundary flags before a training plan is trusted.</small></a>
+<a href="../../operate/closed-world-verifier/"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic check for the four boundary flags before a training plan is trusted.</small></a>
 
-<a href="./prompt-leakage.md"><strong>Read next</strong><span>Prompt leakage</span><small>How held-out evaluation prompts are kept out of training lessons.</small></a>
+<a href="../prompt-leakage/"><strong>Read next</strong><span>Prompt leakage</span><small>How held-out evaluation prompts are kept out of training lessons.</small></a>
 
-<a href="../operate/candidate-quarantine.md"><strong>Read next</strong><span>Candidate quarantine</span><small>Where generated material waits for a ledger admission link before it becomes trainable.</small></a>
+<a href="../../operate/candidate-quarantine/"><strong>Read next</strong><span>Candidate quarantine</span><small>Where generated material waits for a ledger admission link before it becomes trainable.</small></a>
 
 </div>

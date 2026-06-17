@@ -131,7 +131,7 @@ surface that references those facts has moved with it, reading from
 :::
 
 <div className="qlm-next">
-<a href="./release-discipline.md"><strong>Read next</strong><span>Release discipline</span><small>The promotion gates a run clears, and the version-naming rules docs follow.</small></a>
-<a href="../build/index.md"><strong>Reference</strong><span>Build</span><small>The only path that changes weights: admission and the gates, where docs are not training input.</small></a>
-<a href="./index.md"><strong>Back to</strong><span>Operating surfaces</span><small>The full set of run artifacts and disciplines that gate a promotion.</small></a>
+<a href="../release-discipline/"><strong>Read next</strong><span>Release discipline</span><small>The promotion gates a run clears, and the version-naming rules docs follow.</small></a>
+<a href="../../build/"><strong>Reference</strong><span>Build</span><small>The only path that changes weights: admission and the gates, where docs are not training input.</small></a>
+<a href="../"><strong>Back to</strong><span>Operating surfaces</span><small>The full set of run artifacts and disciplines that gate a promotion.</small></a>
 </div>

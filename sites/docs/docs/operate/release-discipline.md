@@ -40,7 +40,7 @@ the artifacts that record the decision. All three must be present.
 ### Run and evals
 
 <div className="qlm-grid">
-<div><h4>Named RC track</h4><p>A named release-candidate track when tagging or announcing a candidate, keeping alpha and RC tracks separate. See <a href="./release-candidate.md">release candidate readiness</a>.</p></div>
+<div><h4>Named RC track</h4><p>A named release-candidate track when tagging or announcing a candidate, keeping alpha and RC tracks separate. See <a href="../release-candidate/">release candidate readiness</a>.</p></div>
 <div><h4>Versioned run directory</h4><p>Provenance: the evidence has a fixed home under <code>runs/</code>.</p></div>
 <div><h4>Baseline and final metrics</h4><p>Shows what changed across the run.</p></div>
 <div><h4>Three responder evals</h4><p>Responder, answer-model, and decoder evals, covering the three trained answer surfaces.</p></div>
@@ -75,12 +75,12 @@ rather than trusted. The same artifacts appear in the
 [transformer](../build/transformer.md) evidence stack.
 
 <div className="qlm-grid">
-<div><h4><code>experiment_intent.json</code></h4><p>Hypothesis, allowed data, planned artifacts, acceptance gates, failure criteria, and final decision. See <a href="./experiment-registry.md">experiment registry</a>.</p></div>
-<div><h4><code>corpus_hygiene.json</code></h4><p>Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile evidence. See <a href="./corpus-hygiene.md">corpus hygiene</a>.</p></div>
+<div><h4><code>experiment_intent.json</code></h4><p>Hypothesis, allowed data, planned artifacts, acceptance gates, failure criteria, and final decision. See <a href="../experiment-registry/">experiment registry</a>.</p></div>
+<div><h4><code>corpus_hygiene.json</code></h4><p>Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile evidence. See <a href="../corpus-hygiene/">corpus hygiene</a>.</p></div>
 <div><h4><code>training_plan.json</code></h4><p>Allowed data sources, scheduled example mixture, replay-plan status, and planned artifacts.</p></div>
-<div><h4><code>training_recipe.json</code></h4><p>Model, tokenizer, data, objective, optimizer, artifact, gate, replay, and rerun details. See <a href="./training-recipes.md">training recipes</a>.</p></div>
-<div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state, with proof that candidate records are not training data until admitted. See <a href="./candidate-quarantine.md">candidate quarantine</a>.</p></div>
-<div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval. See <a href="./closed-world-verifier.md">closed-world verifier</a>.</p></div>
+<div><h4><code>training_recipe.json</code></h4><p>Model, tokenizer, data, objective, optimizer, artifact, gate, replay, and rerun details. See <a href="../training-recipes/">training recipes</a>.</p></div>
+<div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state, with proof that candidate records are not training data until admitted. See <a href="../candidate-quarantine/">candidate quarantine</a>.</p></div>
+<div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval. See <a href="../closed-world-verifier/">closed-world verifier</a>.</p></div>
 <div><h4><code>constraint_first_promotion.json</code></h4><p>Proof that quality metrics were blocked until closed-world constraints passed.</p></div>
 </div>
 
@@ -174,10 +174,10 @@ as a diagnostic.
 
 <div className="qlm-next">
 
-<a href="./release-candidate.md"><strong>Read next</strong><span>Release candidate readiness</span><small>The RC track and the single-responsibility blocker on the alpha tag.</small></a>
+<a href="../release-candidate/"><strong>Read next</strong><span>Release candidate readiness</span><small>The RC track and the single-responsibility blocker on the alpha tag.</small></a>
 
-<a href="./docs-drift.md"><strong>Read</strong><span>Docs drift</span><small>Why docs are a promotion gate and an anti-drift discipline.</small></a>
+<a href="../docs-drift/"><strong>Read</strong><span>Docs drift</span><small>Why docs are a promotion gate and an anti-drift discipline.</small></a>
 
-<a href="../build/transformer.md"><strong>Concept</strong><span>The transformer</span><small>Why the from-scratch model is documented but not promoted.</small></a>
+<a href="../../build/transformer/"><strong>Concept</strong><span>The transformer</span><small>Why the from-scratch model is documented but not promoted.</small></a>
 
 </div>

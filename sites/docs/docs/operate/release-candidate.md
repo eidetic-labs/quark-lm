@@ -162,7 +162,7 @@ eval counts, run ids, commands, or roadmap commitments after the next promoted
 run, it is stale until updated; see [Docs drift](./docs-drift.md).
 
 <div className="qlm-next">
-<a href="./release-discipline.md"><strong>Read next</strong><span>Release discipline</span><small>The per-run promotion checklist and SemVer release-identifier rules.</small></a>
-<a href="../build/transformer.md"><strong>The blocker</strong><span>The transformer</span><small>Why the from-scratch model is unpromoted, blocked on branch_diversity_target.</small></a>
-<a href="../learn/language-model.md"><strong>Go deeper</strong><span>Language model</span><small>The three evidence states: memory-served is not weight-consolidated.</small></a>
+<a href="../release-discipline/"><strong>Read next</strong><span>Release discipline</span><small>The per-run promotion checklist and SemVer release-identifier rules.</small></a>
+<a href="../../build/transformer/"><strong>The blocker</strong><span>The transformer</span><small>Why the from-scratch model is unpromoted, blocked on branch_diversity_target.</small></a>
+<a href="../../learn/language-model/"><strong>Go deeper</strong><span>Language model</span><small>The three evidence states: memory-served is not weight-consolidated.</small></a>
 </div>

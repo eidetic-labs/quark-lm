@@ -149,7 +149,7 @@ is made by the constraint-first promotion gate in
 :::
 
 <div className="qlm-next">
-<a href="./corpus-hygiene.md"><strong>Read next</strong><span>Corpus hygiene</span><small>The constraint-first promotion gate that depends on the corpus diff.</small></a>
-<a href="../build/admission-workflow.md"><strong>Read</strong><span>Admission workflow</span><small>How a fact is ledgered and its training and curriculum permissions set.</small></a>
-<a href="../build/transformer.md"><strong>Concept</strong><span>Transformer</span><small>Why memory-served is kept apart from weight-consolidated.</small></a>
+<a href="../corpus-hygiene/"><strong>Read next</strong><span>Corpus hygiene</span><small>The constraint-first promotion gate that depends on the corpus diff.</small></a>
+<a href="../../build/admission-workflow/"><strong>Read</strong><span>Admission workflow</span><small>How a fact is ledgered and its training and curriculum permissions set.</small></a>
+<a href="../../build/transformer/"><strong>Concept</strong><span>Transformer</span><small>Why memory-served is kept apart from weight-consolidated.</small></a>
 </div>

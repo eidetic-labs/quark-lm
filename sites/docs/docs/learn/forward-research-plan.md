@@ -90,12 +90,12 @@ The plan defines seven operating-system mechanics. Each one exists so a later
 training screen cannot move a metric without first leaving auditable evidence.
 
 <ol className="qlm-steps">
-<li><strong><a href="../operate/experiment-registry.md">Experiment registry</a></strong><p>Record hypothesis, allowed data, planned artifacts, gates, failure criteria, and decision before every run.</p></li>
+<li><strong><a href="../../operate/experiment-registry/">Experiment registry</a></strong><p>Record hypothesis, allowed data, planned artifacts, gates, failure criteria, and decision before every run.</p></li>
 <li><strong>Replay extraction</strong><p>Move profile-aware replay planning out of the transformer monolith into a standalone planner, preserving prior behavior under focused tests.</p></li>
-<li><strong><a href="../operate/corpus-hygiene.md">Corpus hygiene</a></strong><p>Report source mixtures, duplicate pressure, train/eval overlap, generated-candidate ratios, and rare-profile coverage.</p></li>
-<li><strong><a href="../operate/candidate-quarantine.md">Candidate quarantine</a></strong><p>Store generated lessons, probes, and repair notes as candidates that cannot train weights until admitted to the ledger.</p></li>
-<li><strong><a href="../operate/closed-world-verifier.md">Closed-world verifier</a></strong><p>Start deterministic; train a verifier later only from admitted candidate history and run outcomes.</p></li>
-<li><strong><a href="../operate/training-recipes.md">Recipe layer</a></strong><p>Make model, tokenizer, curriculum, replay plan, objective, optimizer, snapshot cadence, and promotion gates named and reproducible.</p></li>
+<li><strong><a href="../../operate/corpus-hygiene/">Corpus hygiene</a></strong><p>Report source mixtures, duplicate pressure, train/eval overlap, generated-candidate ratios, and rare-profile coverage.</p></li>
+<li><strong><a href="../../operate/candidate-quarantine/">Candidate quarantine</a></strong><p>Store generated lessons, probes, and repair notes as candidates that cannot train weights until admitted to the ledger.</p></li>
+<li><strong><a href="../../operate/closed-world-verifier/">Closed-world verifier</a></strong><p>Start deterministic; train a verifier later only from admitted candidate history and run outcomes.</p></li>
+<li><strong><a href="../../operate/training-recipes/">Recipe layer</a></strong><p>Make model, tokenizer, curriculum, replay plan, objective, optimizer, snapshot cadence, and promotion gates named and reproducible.</p></li>
 <li><strong>Constraint-first promotion</strong><p>Compare loss, rank, and top-k only after retention, leakage, unknown-policy, target coverage, and diversity pass.</p></li>
 </ol>
 
@@ -160,7 +160,7 @@ transformer weights and without relaxing the target-token, coverage, or
 diversity gates.
 
 <div className="qlm-next">
-<a href="../build/transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>Every objective name, run path, and evidence table behind the unpromoted gate.</small></a>
-<a href="./deep-research-review.md"><strong>Read next</strong><span>Deep research review</span><small>The v0.70 cross-check of primary papers, open-source mechanics, and the codebase.</small></a>
-<a href="./research-implementation-map.md"><strong>Read next</strong><span>Research implementation map</span><small>Where each reviewed source landed in the implemented operating system.</small></a>
+<a href="../../build/transformer-screen-history/"><strong>Read next</strong><span>Transformer screen history</span><small>Every objective name, run path, and evidence table behind the unpromoted gate.</small></a>
+<a href="../deep-research-review/"><strong>Read next</strong><span>Deep research review</span><small>The v0.70 cross-check of primary papers, open-source mechanics, and the codebase.</small></a>
+<a href="../research-implementation-map/"><strong>Read next</strong><span>Research implementation map</span><small>Where each reviewed source landed in the implemented operating system.</small></a>
 </div>
