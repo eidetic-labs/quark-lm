@@ -5,7 +5,7 @@ description: The v0.74 cross-referenced map from papers and open-source mechanic
 
 # Research Implementation Map
 
-<p className="qlm-meta"><span>7 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>7 min read</span><span>For contributors</span><span>Last reviewed 2026-06-14</span></p>
 
 <div className="qlm-lead">
 
@@ -17,8 +17,6 @@ description: The v0.74 cross-referenced map from papers and open-source mechanic
 - The three-phase implementation ladder it has driven since v0.74, and the single mechanic that remains.
 
 </div>
-
-Last reviewed: 2026-06-14.
 
 The full map lives in the repository root at `RESEARCH_IMPLEMENTATION_MAP.md`.
 This page is the durable summary: what the map is, why it exists, and which work

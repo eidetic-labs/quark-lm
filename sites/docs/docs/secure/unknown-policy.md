@@ -5,7 +5,7 @@ description: How QuarkLM should answer outside the corpus.
 
 # Unknown Policy
 
-<p className="qlm-meta"><span>5 min read</span><span>Security</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
 
 <div className="qlm-lead">
 

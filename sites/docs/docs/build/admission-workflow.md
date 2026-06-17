@@ -42,15 +42,25 @@ guarded update that learned it.
 
 ## What admission does, and does not do
 
-<div className="qlm-grid">
-<div><h4>Does: append</h4><p>Appends a validated fact to the admitted corpus.</p></div>
-<div><h4>Does not: move weights</h4><p>Moves no neural weights.</p></div>
-<div><h4>Does: reject duplicates</h4><p>Rejects duplicate ids before writing.</p></div>
-<div><h4>Does not: train</h4><p>Does not train, evaluate, or promote anything.</p></div>
-<div><h4>Does: sync probes</h4><p>Regenerates admission probes from the new corpus (default paths).</p></div>
-<div><h4>Does not: rebuild artifacts</h4><p>Does not regenerate <code>build/train.txt</code> or memory cards.</p></div>
-<div><h4>Does: make eligible</h4><p>Makes the fact curriculum- and training-<em>eligible</em>.</p></div>
-<div><h4>Does not: consolidate</h4><p>Does not make the fact <code>weight-consolidated</code>.</p></div>
+<div className="qlm-decision">
+<div>
+<h4>Admission does</h4>
+<ul>
+<li>Append a validated fact to the admitted corpus.</li>
+<li>Reject duplicate ids before writing.</li>
+<li>Regenerate admission probes from the new corpus (default paths).</li>
+<li>Make the fact curriculum- and training-<em>eligible</em>.</li>
+</ul>
+</div>
+<div>
+<h4>Admission does not</h4>
+<ul>
+<li>Move any neural weights.</li>
+<li>Train, evaluate, or promote anything.</li>
+<li>Regenerate <code>build/train.txt</code> or memory cards.</li>
+<li>Make the fact <code>weight-consolidated</code>.</li>
+</ul>
+</div>
 </div>
 
 Admission writes one log line. Everything downstream — curriculum text,
