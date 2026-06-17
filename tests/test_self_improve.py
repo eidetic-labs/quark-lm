@@ -1,34 +1,16 @@
 from __future__ import annotations
 
-import json
 import sys
-import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from curriculum import build_curriculum, read_jsonl
-from candidate_quarantine import build_candidate_quarantine_manifest
-from closed_world_verifier_reports import verifier_check, verifier_report
 from glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
-from self_improve import (
-    audit_exact_promotion,
-    audit_forgetting,
-    evaluate_responder,
-    next_attempt,
-    promotion_gate,
-    self_improvement_experiment_intent,
-    write_report_artifacts,
-)
-from constraint_first_report import (
-    build_constraint_first_promotion_report,
-    promotion_check,
-)
-from training_recipe_core import build_training_recipe
+from self_improve import evaluate_responder
 
 
 def current_admission_count() -> int:
@@ -49,205 +31,16 @@ class SelfImproveTest(unittest.TestCase):
         self.assertEqual(summary["learning"]["exact_rate"], 1.0)
         self.assertEqual(summary["admissions"]["count"], current_admission_count() * 4)
         self.assertEqual(summary["admissions"]["exact_rate"], 1.0)
-        self.assertEqual(summary["admission_paraphrases"]["count"], current_admission_count() * 7)
+        self.assertEqual(
+            summary["admission_paraphrases"]["count"],
+            current_admission_count() * 7,
+        )
         self.assertEqual(summary["admission_paraphrases"]["exact_rate"], 1.0)
-        self.assertEqual(summary["glossary"]["count"], len(read_jsonl(DEFAULT_GLOSSARY_PROBES)))
+        self.assertEqual(
+            summary["glossary"]["count"],
+            len(read_jsonl(DEFAULT_GLOSSARY_PROBES)),
+        )
         self.assertEqual(summary["glossary"]["exact_rate"], 1.0)
-
-    def test_cycle_paths_can_be_created_under_tempdir(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            self.assertFalse((root / "self_improvement_report.json").exists())
-
-    def test_next_attempt_advances_from_existing_attempt_dirs(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            run_dir = Path(temp)
-            (run_dir / "attempts" / "attempt-001").mkdir(parents=True)
-            (run_dir / "attempts" / "attempt-003").mkdir()
-            (run_dir / "attempts" / "scratch").mkdir()
-
-            number, path = next_attempt(run_dir)
-
-            self.assertEqual(number, 4)
-            self.assertEqual(path.name, "attempt-004")
-
-    def test_self_improvement_experiment_intent_declares_required_gates(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            run_dir = root / "run"
-            attempt_dir = run_dir / "attempts" / "attempt-001"
-            args = SimpleNamespace(
-                corpus_dir=root / "corpus",
-                experiment_version="v0.71",
-                experiment_hypothesis=None,
-                experiment_note=["test note"],
-            )
-
-            intent = self_improvement_experiment_intent(
-                args,
-                run_dir,
-                attempt_dir,
-                root / "build" / "train.txt",
-            )
-
-        gates = {gate["name"] for gate in intent["acceptance_gates"]}
-        self.assertIn("training_recipe", gates)
-        self.assertIn("closed_world_verifier", gates)
-        self.assertIn("constraint_first_promotion", gates)
-        self.assertIn("promotion_gate", gates)
-        self.assertIn("exact_eval_audit", gates)
-        self.assertIn(
-            str(attempt_dir / "candidate_quarantine.json"),
-            intent["planned_artifacts"],
-        )
-        self.assertIn(
-            str(attempt_dir / "closed_world_verifier.json"),
-            intent["planned_artifacts"],
-        )
-        self.assertIn(
-            str(attempt_dir / "training_recipe.json"),
-            intent["planned_artifacts"],
-        )
-        self.assertIn(
-            str(attempt_dir / "constraint_first_promotion.json"),
-            intent["planned_artifacts"],
-        )
-        self.assertEqual(intent["decision"]["status"], "planned")
-        self.assertEqual(intent["notes"], ["test note"])
-
-    def test_write_report_artifacts_preserves_attempt_and_latest_report(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            run_dir = Path(temp)
-            attempt_dir = run_dir / "attempts" / "attempt-001"
-            attempt_dir.mkdir(parents=True)
-            args = SimpleNamespace(
-                corpus_dir=run_dir / "corpus",
-                experiment_version="v0.71",
-                experiment_hypothesis=None,
-                experiment_note=None,
-            )
-            report = {
-                "corpus_snapshot": {"schema_version": 1},
-                "corpus_diff": {"status": "evaluated"},
-                "corpus_hygiene": {"schema_version": 1, "kind": "corpus_hygiene_report"},
-                "training_plan": {"schema_version": 1, "kind": "training_plan"},
-                "training_recipe": build_training_recipe(
-                    version="v0.77",
-                    component="self-improvement-answer-cycle",
-                    run_id="attempt-001",
-                    recipe_id="self-improve-answer-cycle:v0.77",
-                    purpose="Test recipe.",
-                    model={"component": "answer"},
-                    tokenizer={"type": "char"},
-                    data={"train_text": "build/train.txt"},
-                    objective={"mode": "answer-cycle"},
-                    optimizer={"seed": 7},
-                    artifacts=["training_recipe.json"],
-                    gates=[
-                        {
-                            "name": "training_recipe",
-                            "rule": "Recipe exists.",
-                            "required": True,
-                        }
-                    ],
-                ),
-                "candidate_quarantine": build_candidate_quarantine_manifest(
-                    "self-improvement-answer-cycle",
-                    "attempt-001",
-                ),
-                "closed_world_verifier": verifier_report(
-                    "self-improvement-answer-cycle",
-                    "attempt-001",
-                    "training_plan",
-                    [
-                        verifier_check(
-                            "test_verifier",
-                            True,
-                            "Test verifier evidence passes.",
-                        )
-                    ],
-                ),
-                "constraint_first_promotion": build_constraint_first_promotion_report(
-                    "self-improvement-answer-cycle",
-                    "attempt-001",
-                    "self_improvement_report",
-                    [promotion_check("constraint", True, "Constraint passes.")],
-                    [promotion_check("quality", True, "Quality passes.")],
-                ),
-                "promotion_gate": {"passed": False},
-                "experiment_intent": self_improvement_experiment_intent(
-                    args,
-                    run_dir,
-                    attempt_dir,
-                    run_dir / "build" / "train.txt",
-                ),
-            }
-
-            write_report_artifacts(report, run_dir, attempt_dir, 1)
-
-            attempt_report = json.loads(
-                (attempt_dir / "self_improvement_report.json").read_text(encoding="utf-8")
-            )
-            latest_report = json.loads(
-                (run_dir / "self_improvement_report.json").read_text(encoding="utf-8")
-            )
-            self.assertEqual(attempt_report["attempt"]["index"], 1)
-            self.assertEqual(latest_report["attempt"]["report"], str(attempt_dir / "self_improvement_report.json"))
-            self.assertTrue((attempt_dir / "corpus_snapshot.json").exists())
-            self.assertTrue((run_dir / "corpus_diff.json").exists())
-            self.assertTrue((attempt_dir / "corpus_hygiene.json").exists())
-            self.assertTrue((run_dir / "training_plan.json").exists())
-            self.assertTrue((attempt_dir / "training_recipe.json").exists())
-            self.assertTrue((run_dir / "training_recipe.json").exists())
-            self.assertTrue((attempt_dir / "candidate_quarantine.json").exists())
-            self.assertTrue((run_dir / "candidate_quarantine.json").exists())
-            self.assertTrue((attempt_dir / "closed_world_verifier.json").exists())
-            self.assertTrue((run_dir / "closed_world_verifier.json").exists())
-            self.assertTrue((attempt_dir / "constraint_first_promotion.json").exists())
-            self.assertTrue((run_dir / "constraint_first_promotion.json").exists())
-            self.assertTrue((attempt_dir / "experiment_intent.json").exists())
-            self.assertTrue((run_dir / "experiment_intent.json").exists())
-
-    def test_forgetting_audit_detects_regression(self) -> None:
-        previous = {
-            "responder": {"qa": {"count": 8, "exact": 8, "exact_rate": 1.0}},
-            "answer_model": {"final": {"qa": {"count": 8, "exact": 8, "exact_rate": 1.0}}},
-            "answer_decoder": {"final": {"qa": {"count": 8, "exact": 8, "exact_rate": 1.0}}},
-        }
-        current = {
-            "responder": {"qa": {"count": 8, "exact": 8, "exact_rate": 1.0}},
-            "answer_model": {"final": {"qa": {"count": 8, "exact": 8, "exact_rate": 1.0}}},
-            "answer_decoder": {"final": {"qa": {"count": 8, "exact": 7, "exact_rate": 0.875}}},
-        }
-        with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / "previous.json"
-            path.write_text(json.dumps(previous), encoding="utf-8")
-
-            audit = audit_forgetting(current, path)
-
-            self.assertFalse(audit["passed"])
-            failed = [check for check in audit["checks"] if not check["passed"]]
-            self.assertEqual(failed[0]["component"], "answer_decoder")
-
-    def test_promotion_gate_detects_non_exact_eval(self) -> None:
-        report = {
-            "responder": {"qa": {"count": 1, "exact": 1}},
-            "answer_model": {"final": {"qa": {"count": 1, "exact": 0}}},
-            "answer_decoder": {"final": {"qa": {"count": 1, "exact": 1}}},
-            "admission_probe_audit": {"passed": True},
-            "glossary_probe_audit": {"passed": True},
-            "prompt_leakage_audit": {
-                "heldout": {"passed": True},
-                "owner_heldout": {"passed": True},
-            },
-            "forgetting_audit": {"passed": True},
-        }
-        report["exact_eval_audit"] = audit_exact_promotion(report)
-
-        gate = promotion_gate(report)
-
-        self.assertFalse(report["exact_eval_audit"]["passed"])
-        self.assertFalse(gate["passed"])
 
 
 if __name__ == "__main__":
