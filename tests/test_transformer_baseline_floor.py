@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import tempfile
+import unittest
+from pathlib import Path
+
+from transformer_char_model_test_support import parse_args, train_transformer_answers
 from transformer_baseline_floor_anchor_selection import (
     baseline_floor_profile_attempt,
     baseline_floor_profile_setup,

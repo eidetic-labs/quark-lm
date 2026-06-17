@@ -93,13 +93,6 @@ def evaluate_answer_candidates(
                     record["target"],
                 )
         else:
-            candidate_scores = [
-                {
-                    "target": candidate,
-                    "selector_score": selector.score(record["prompt"], candidate),
-                }
-                for candidate in candidates
-            ]
             predicted_candidate = selector.predict(record["prompt"], candidates)
             candidate_scorer = "answer_candidate_selector"
             target_nll = continuation_nll(

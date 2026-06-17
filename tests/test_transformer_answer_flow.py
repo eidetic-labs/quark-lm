@@ -1,6 +1,28 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import unittest
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerCandidateSelector,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    answer_sequence_nll,
+    build_answer_selector,
+    continuation_nll,
+    direct_answer_lesson,
+    direct_answer_sequence_nll,
+    evaluate_answer_records,
+    sampled_choice_candidates,
+    train_answer_char,
+    train_answer_mixed_step,
+    train_direct_answer_lesson,
+    transformer_answer_generator_training_pool,
+    transformer_direct_answer_training_pool,
+)
 
 
 class TransformerAnswerFlowTest(unittest.TestCase):

@@ -1,6 +1,24 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import tempfile
+import unittest
+from pathlib import Path
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    CharTokenizer,
+    GenerationConfig,
+    OptimizationConfig,
+    ScalarOptimizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    context_before,
+    flatten_scalars,
+    generation_distribution,
+    load_optimizer_state,
+    save_optimizer_state,
+    score_transformer_records,
+)
 
 
 class TransformerCharModelCoreTest(unittest.TestCase):

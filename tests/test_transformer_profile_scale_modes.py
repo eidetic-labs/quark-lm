@@ -1,6 +1,24 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import tempfile
+import unittest
+from pathlib import Path
+
+from transformer_char_model_test_support import (
+    CharTokenizer,
+    branch_diversity_profile_delta_has_coverage_gain,
+    memory_consolidation_missing_first_token_values,
+    memory_consolidation_source_plan_targets,
+    missing_first_token_anchor_batch,
+    missing_first_token_ids_by_profile,
+    parse_args,
+    profile_specific_missing_first_token_target_map,
+    profile_specific_missing_first_token_targets,
+    remaining_profile_binding_profile_order,
+    remaining_profile_binding_source_labels,
+    train_transformer_answers,
+)
 
 
 class TransformerProfileScaleModesTest(unittest.TestCase):

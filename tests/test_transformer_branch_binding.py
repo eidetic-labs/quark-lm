@@ -1,6 +1,27 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import math
+import random
+import unittest
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    direct_answer_branch_diversity_batch,
+    direct_answer_branch_target_ids,
+    direct_answer_lesson,
+    direct_answer_target_balanced_branch_diversity_batch,
+    train_direct_answer_branch_bidirectional_binding_unlikelihood,
+    train_direct_answer_branch_context_replay_coverage_unlikelihood,
+    train_direct_answer_branch_coverage_binding_unlikelihood,
+    train_direct_answer_branch_rank_margin_unlikelihood,
+    train_direct_answer_branch_target_diversity_unlikelihood,
+    train_direct_answer_branch_target_replay_coverage_unlikelihood,
+    train_direct_answer_branch_target_set_coverage_unlikelihood,
+)
 
 
 class TransformerBranchBindingTest(unittest.TestCase):

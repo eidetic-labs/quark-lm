@@ -1,6 +1,31 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import json
+import random
+import tempfile
+import unittest
+from pathlib import Path
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    baseline_floor_anchor_profile_groups,
+    baseline_floor_anchor_profile_target_count,
+    baseline_floor_objective_anchor_batch,
+    baseline_floor_repair_anchor_records,
+    branch_replay_plan,
+    context_before,
+    direct_answer_branch_context,
+    direct_answer_profiled_branch_batch,
+    direct_answer_profiled_replay_records,
+    direct_answer_target_balanced_branch_diversity_batch,
+    parse_args,
+    train_direct_answer_baseline_floor_anchor_batch,
+    train_transformer_answers,
+)
 
 
 class TransformerBranchReplayTest(unittest.TestCase):

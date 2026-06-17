@@ -1,6 +1,32 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import tempfile
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    TransformerGuidedAnswerGenerator,
+    build_answer_selector,
+    build_transformer_answer_generator,
+    direct_answer_lesson,
+    evaluate_answer_generator_records,
+    evaluate_answer_records,
+    evaluate_direct_answer_records,
+    parse_args,
+    train_direct_answer_first_error,
+    train_transformer_answers,
+    transformer_experiment_decision,
+    transformer_experiment_intent,
+    transformer_training_recipe,
+    transformer_training_recipe_id,
+)
 
 
 class TransformerCliEvalTest(unittest.TestCase):

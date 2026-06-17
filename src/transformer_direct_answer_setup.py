@@ -28,7 +28,6 @@ from transformer_direct_answer_replay_setup import (
 )
 from transformer_direct_answer_setup_flags import direct_answer_setup_flag_field_kwargs
 import transformer_direct_modes as modes
-from transformer_direct_modes import ReplayPredictionOverrides
 from transformer_experiment import is_profile_aware_direct_answer_mode
 from transformer_memory_plan_helpers import (
     remaining_profile_binding_source_labels,
@@ -47,7 +46,7 @@ class DirectAnswerRunSetup:
     direct_profile_aware_targets: bool
     direct_replay_plan_path: Path | None
     direct_replay_plan: dict[str, Any] | None
-    direct_replay_prediction_overrides: ReplayPredictionOverrides | None
+    direct_replay_prediction_overrides: modes.ReplayPredictionOverrides | None
     direct_replay_prediction_anchors_active: bool
     direct_answer_baseline_floor_update_gate_active: bool
     direct_answer_baseline_floor_adaptive_updates_active: bool

@@ -1,6 +1,44 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import unittest
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    audit_prompt_context_coverage,
+    direct_answer_branch_context,
+    direct_answer_branch_repair_error,
+    direct_answer_branch_span_position,
+    direct_answer_branch_span_repair_error,
+    direct_answer_early_stop_error,
+    direct_answer_first_error,
+    direct_answer_generated_prefix_recovery,
+    direct_answer_hard_branch_contrast,
+    direct_answer_lesson,
+    direct_answer_repeat_loop_error,
+    direct_answer_rollout_error,
+    direct_answer_sequence_repair_errors,
+    direct_answer_target_balanced_branch_diversity_batch,
+    has_repeated_suffix,
+    train_direct_answer_balanced_repair_unlikelihood,
+    train_direct_answer_branch_contrast_unlikelihood,
+    train_direct_answer_branch_repair_unlikelihood,
+    train_direct_answer_branch_span_contrast_unlikelihood,
+    train_direct_answer_branch_span_repair_unlikelihood,
+    train_direct_answer_branch_topk_softmax_unlikelihood,
+    train_direct_answer_early_stop_unlikelihood,
+    train_direct_answer_first_error_unlikelihood,
+    train_direct_answer_generated_prefix_recovery_unlikelihood,
+    train_direct_answer_hard_branch_contrast_unlikelihood,
+    train_direct_answer_loop_escape_unlikelihood,
+    train_direct_answer_repeat_loop_unlikelihood,
+    train_direct_answer_rollout_unlikelihood,
+    train_direct_answer_sequence_repair_unlikelihood,
+)
 
 
 class TransformerDirectAnswerRepairsTest(unittest.TestCase):

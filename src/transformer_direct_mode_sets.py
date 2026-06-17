@@ -236,3 +236,9 @@ _include_memory_consolidation_modes(
     )
 )
 del _include_memory_consolidation_modes
+
+__all__ = tuple(
+    name
+    for name in globals()
+    if name.isupper() or name == "ReplayPredictionOverrides"
+)

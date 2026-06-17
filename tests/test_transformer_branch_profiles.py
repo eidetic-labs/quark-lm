@@ -1,6 +1,28 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import random
+import unittest
+
+from transformer_char_model_test_support import (
+    ANSWER_TERMINATOR,
+    AnswerExample,
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    audit_direct_answer_branch_context_coverage,
+    branch_diversity_snapshot_preserves_target_coverage,
+    branch_diversity_snapshot_score,
+    branch_diversity_snapshot_target_coverage_diagnostics,
+    branch_routing_audit_summary,
+    direct_answer_branch_context,
+    direct_answer_branch_profile,
+    direct_answer_dominant_branch_prediction,
+    direct_answer_first_error,
+    direct_answer_lesson,
+    summarize_branch_context_coverage_gate,
+    summarize_branch_diversity_target,
+    train_direct_answer_branch_collapse_unlikelihood,
+)
 
 
 class TransformerBranchProfilesTest(unittest.TestCase):

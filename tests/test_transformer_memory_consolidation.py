@@ -1,6 +1,17 @@
 from __future__ import annotations
 
-from transformer_char_model_test_support import *  # noqa: F401,F403
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from transformer_char_model_test_support import (
+    branch_diversity_snapshot_collapsed_profile_names,
+    branch_diversity_snapshot_profile_diversity_delta,
+    branch_diversity_snapshot_target_coverage_delta,
+    parse_args,
+    train_transformer_answers,
+)
 
 
 class TransformerMemoryConsolidationTest(unittest.TestCase):

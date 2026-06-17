@@ -11,7 +11,6 @@ from transformer_direct_answer_replay_anchor_summary import attach_anchor_summar
 from transformer_direct_answer_replay_binding_summary import attach_binding_summary
 from transformer_direct_answer_replay_flags import replay_flag_summary_fields
 import transformer_direct_modes as modes
-from transformer_direct_modes import ReplayPredictionOverrides
 
 
 def attach_direct_answer_replay_summary(
@@ -24,7 +23,7 @@ def attach_direct_answer_replay_summary(
     remaining_source_labels: list[str],
     learning_rate_scales: tuple[float, ...],
     outer_learning_rate_scales: tuple[float, ...],
-    prediction_overrides: ReplayPredictionOverrides,
+    prediction_overrides: modes.ReplayPredictionOverrides,
     repair_anchors: list[BranchReplayRecord],
     frontier_anchors: list[BranchReplayRecord],
 ) -> None:
