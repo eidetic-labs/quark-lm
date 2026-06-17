@@ -13,6 +13,10 @@ import check_release_gate  # noqa: E402
 
 
 class ReleaseGateTest(unittest.TestCase):
+    def test_srp_default_limits_match_methodology_gate(self) -> None:
+        self.assertEqual(check_release_gate.DEFAULT_SRP_REVIEW_LINES, 250)
+        self.assertEqual(check_release_gate.DEFAULT_SRP_P0_LINES, 500)
+
     def test_semver_accepts_alpha_tag_with_v_prefix(self) -> None:
         self.assertEqual(check_release_gate.validate_semver("v0.115.0-alpha.1"), "0.115.0-alpha.1")
 

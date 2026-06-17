@@ -49,6 +49,9 @@ IGNORED_PARTS = {
     "sites/marketing/build",
 }
 
+DEFAULT_SRP_REVIEW_LINES = 250
+DEFAULT_SRP_P0_LINES = 500
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -95,9 +98,9 @@ def count_lines(path: Path) -> int:
 
 def collect_srp_findings(
     root: Path,
-    source_limit: int = 500,
-    test_limit: int = 1000,
-    p0_limit: int = 1000,
+    source_limit: int = DEFAULT_SRP_REVIEW_LINES,
+    test_limit: int = DEFAULT_SRP_REVIEW_LINES,
+    p0_limit: int = DEFAULT_SRP_P0_LINES,
 ) -> list[Finding]:
     findings: list[Finding] = []
     suffixes = {".py", ".js", ".mjs"}
@@ -182,9 +185,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate QuarkLM release-gate hygiene.")
     parser.add_argument("--version", default="v0.115.0-alpha.1", help="Proposed SemVer release/tag.")
     parser.add_argument("--alpha", action="store_true", help="Fail on alpha-blocking SRP findings.")
-    parser.add_argument("--source-lines", type=int, default=500)
-    parser.add_argument("--test-lines", type=int, default=1000)
-    parser.add_argument("--p0-lines", type=int, default=1000)
+    parser.add_argument("--source-lines", type=int, default=DEFAULT_SRP_REVIEW_LINES, help="Source-file SRP review ceiling.")
+    parser.add_argument("--test-lines", type=int, default=DEFAULT_SRP_REVIEW_LINES, help="Test-file SRP review ceiling.")
+    parser.add_argument("--p0-lines", type=int, default=DEFAULT_SRP_P0_LINES, help="Hard oversized-file SRP ceiling.")
     args = parser.parse_args(argv)
 
     blockers: list[str] = []
