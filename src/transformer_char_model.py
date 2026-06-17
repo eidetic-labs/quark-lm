@@ -26,6 +26,18 @@ from transformer_text_commands import (
 )
 from transformer_tiny_lm import TinyTransformerLM
 
+__all__ = [
+    "GenerationConfig",
+    "OptimizationConfig",
+    "TinyTransformerLM",
+    "TransformerConfig",
+    "eval_transformer",
+    "initialize_transformer_for_training",
+    "main",
+    "train_transformer",
+    "train_transformer_answers",
+]
+
 
 def initialize_transformer_for_training(
     args: argparse.Namespace,

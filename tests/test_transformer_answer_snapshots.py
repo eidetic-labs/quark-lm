@@ -3,16 +3,9 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock
 
-from transformer_answer_training_snapshots import (
-    build_answer_training_snapshot_callback,
-    generator_snapshot_record,
-    selector_snapshot_record,
-)
 from transformer_direct_answer_snapshot_lifecycle import (
-    DirectAnswerSnapshotRecorder,
     finalize_direct_answer_snapshots,
 )
-from transformer_direct_answer_snapshot_records import direct_answer_snapshot_record
 
 
 class TransformerAnswerSnapshotFinalizationTests(unittest.TestCase):
