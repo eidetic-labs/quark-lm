@@ -17,7 +17,7 @@ from replay_plan import BranchReplayRecord
 from transformer_baseline_floor_training import (
     train_direct_answer_baseline_floor_anchor_branch_diversity,
 )
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_recovery_outcomes import (
     BaselineFloorMissingFirstTokenOutcome,
     evaluate_baseline_floor_missing_first_token_outcome,
 )

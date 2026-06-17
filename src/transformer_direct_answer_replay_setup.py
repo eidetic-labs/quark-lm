@@ -8,17 +8,15 @@ from typing import Any
 
 from answer_model import AnswerExample
 from replay_plan import (
-    BranchReplayRecord,
     branch_replay_parts,
     branch_replay_plan,
 )
 from tokenizer import CharTokenizer
-from transformer_baseline_floor_anchor_selection import (
+from transformer_baseline_floor_anchor_batches import (
     baseline_floor_frontier_anchor_records,
     baseline_floor_repair_anchor_records,
 )
 from transformer_direct_answer_batches import direct_answer_profiled_replay_records
-from transformer_direct_answer_replay_artifacts import write_direct_answer_replay_plan
 from transformer_direct_answer_replay_summary import attach_direct_answer_replay_summary
 
 

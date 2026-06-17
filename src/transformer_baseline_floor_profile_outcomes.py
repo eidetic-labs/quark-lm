@@ -9,19 +9,7 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
-from transformer_baseline_floor_profile_outcome_types import (
-    BaselineFloorBranchDiversityRecoveryOutcome,
-    BaselineFloorCollapsedProfileBindingOutcome,
-    BaselineFloorCoverageRecoveryOutcome,
-    BaselineFloorMissingFirstTokenOutcome,
-    BaselineFloorProfileOutcome,
-)
-from transformer_baseline_floor_recovery_outcomes import (
-    evaluate_baseline_floor_branch_diversity_recovery_outcome,
-    evaluate_baseline_floor_collapsed_profile_binding_outcome,
-    evaluate_baseline_floor_coverage_recovery_outcome,
-    evaluate_baseline_floor_missing_first_token_outcome,
-)
+from transformer_baseline_floor_profile_outcome_types import BaselineFloorProfileOutcome
 
 
 def evaluate_baseline_floor_profile_outcome(

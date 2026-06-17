@@ -46,20 +46,26 @@ from transformer_answer_training_steps import (
 )
 from transformer_baseline_floor_anchor_selection import (
     baseline_floor_anchor_profile_groups,
-    baseline_floor_anchor_profile_target_count,
     baseline_floor_objective_anchor_batch,
+)
+from transformer_baseline_floor_anchor_batches import (
     baseline_floor_repair_anchor_records,
+)
+from transformer_baseline_floor_anchor_profiles import (
+    baseline_floor_anchor_profile_target_count,
 )
 from transformer_baseline_floor_training import (
     train_direct_answer_baseline_floor_anchor_batch,
 )
 from transformer_direct_answer_repair_selection import direct_answer_hard_branch_contrast
+from transformer_branch_diversity_summary import summarize_branch_diversity_target
 from transformer_branch_logit_diagnostics import (
     direct_answer_branch_logit_prior_profile,
-    summarize_branch_diversity_target,
 )
 from transformer_branch_profiles import (
     direct_answer_branch_profile,
+)
+from transformer_branch_representation_profiles import (
     direct_answer_branch_representation_profile,
 )
 from transformer_char_model import train_transformer_answers

@@ -8,14 +8,10 @@ from typing import Any, Sequence
 
 from replay_plan import BranchReplayRecord, branch_replay_parts
 from transformer_baseline_floor_anchor_batches import (
-    baseline_floor_frontier_anchor_records,
     baseline_floor_objective_anchor_batch,
-    baseline_floor_repair_anchor_records,
 )
 from transformer_baseline_floor_anchor_profiles import (
-    baseline_floor_anchor_profile_counts,
     baseline_floor_anchor_profile_groups,
-    baseline_floor_anchor_profile_target_count,
 )
 from transformer_remaining_profile_binding import (
     remaining_profile_binding_profile_order,

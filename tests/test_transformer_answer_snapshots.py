@@ -3,43 +3,19 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock
 
-from transformer_answer_snapshots import (
-    DirectAnswerSnapshotRecorder,
+from transformer_answer_training_snapshots import (
     build_answer_training_snapshot_callback,
-    direct_answer_snapshot_record,
-    finalize_direct_answer_snapshots,
     generator_snapshot_record,
     selector_snapshot_record,
 )
-from transformer_answer_training_snapshots import (
-    build_answer_training_snapshot_callback as answer_training_callback_impl,
-    generator_snapshot_record as generator_snapshot_record_impl,
-    selector_snapshot_record as selector_snapshot_record_impl,
-)
 from transformer_direct_answer_snapshot_lifecycle import (
-    DirectAnswerSnapshotRecorder as direct_snapshot_recorder_impl,
-    finalize_direct_answer_snapshots as finalize_direct_answer_snapshots_impl,
+    DirectAnswerSnapshotRecorder,
+    finalize_direct_answer_snapshots,
 )
-from transformer_direct_answer_snapshot_records import (
-    direct_answer_snapshot_record as direct_answer_snapshot_record_impl,
-)
+from transformer_direct_answer_snapshot_records import direct_answer_snapshot_record
 
 
 class TransformerAnswerSnapshotFinalizationTests(unittest.TestCase):
-    def test_snapshot_facade_exports_split_implementations(self) -> None:
-        self.assertIs(DirectAnswerSnapshotRecorder, direct_snapshot_recorder_impl)
-        self.assertIs(
-            finalize_direct_answer_snapshots,
-            finalize_direct_answer_snapshots_impl,
-        )
-        self.assertIs(direct_answer_snapshot_record, direct_answer_snapshot_record_impl)
-        self.assertIs(
-            build_answer_training_snapshot_callback,
-            answer_training_callback_impl,
-        )
-        self.assertIs(selector_snapshot_record, selector_snapshot_record_impl)
-        self.assertIs(generator_snapshot_record, generator_snapshot_record_impl)
-
     def test_appends_final_snapshot_when_last_step_is_behind(self) -> None:
         model = object()
         tokenizer = object()

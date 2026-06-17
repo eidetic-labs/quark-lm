@@ -11,7 +11,7 @@ from transformer_baseline_floor_attempt_state import (
 from transformer_baseline_floor_owner_preservation import (
     check_owner_paraphrase_binding_preservation,
 )
-from transformer_baseline_floor_profile_outcomes import BaselineFloorProfileOutcome
+from transformer_baseline_floor_profile_outcome_types import BaselineFloorProfileOutcome
 
 
 class TransformerBaselineFloorAttemptStateTest(unittest.TestCase):

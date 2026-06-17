@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from transformer_answer_snapshots import finalize_direct_answer_snapshots
+from transformer_direct_answer_snapshot_lifecycle import finalize_direct_answer_snapshots
 from transformer_direct_answer_metrics import build_direct_answer_metrics
 from transformer_direct_answer_phase_types import DirectAnswerPhaseResult
 

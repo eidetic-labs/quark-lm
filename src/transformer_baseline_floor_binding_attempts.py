@@ -11,7 +11,7 @@ from transformer_baseline_floor_binding_attempt import (
     run_collapsed_profile_binding_attempt,
 )
 from transformer_baseline_floor_binding_types import CollapsedProfileBindingResult
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_profile_outcome_types import (
     BaselineFloorCollapsedProfileBindingOutcome,
 )
 

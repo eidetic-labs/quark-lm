@@ -28,7 +28,7 @@ from transformer_baseline_floor_coverage_recovery_probes import (
 from transformer_baseline_floor_training import (
     train_direct_answer_baseline_floor_anchor_batch,
 )
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_recovery_outcomes import (
     BaselineFloorCoverageRecoveryOutcome,
     evaluate_baseline_floor_coverage_recovery_outcome,
 )

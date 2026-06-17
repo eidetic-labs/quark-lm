@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from transformer_answer_snapshots import (
+from transformer_direct_answer_snapshot_lifecycle import (
     DirectAnswerBestSnapshotTracker,
     DirectAnswerSnapshotRecorder,
 )

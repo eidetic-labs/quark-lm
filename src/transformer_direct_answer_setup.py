@@ -24,8 +24,8 @@ from transformer_direct_answer_memory_setup import (
 )
 from transformer_direct_answer_replay_setup import (
     prepare_direct_answer_replay_plan,
-    write_direct_answer_replay_plan,
 )
+from transformer_direct_answer_replay_artifacts import write_direct_answer_replay_plan
 from transformer_direct_answer_setup_flags import direct_answer_setup_flag_field_kwargs
 import transformer_direct_modes as modes
 from transformer_experiment import is_profile_aware_direct_answer_mode

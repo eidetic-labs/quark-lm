@@ -8,7 +8,7 @@ from typing import Any
 from transformer_baseline_floor_owner_preservation import (
     OwnerParaphraseBindingPreservation,
 )
-from transformer_baseline_floor_profile_outcomes import BaselineFloorProfileOutcome
+from transformer_baseline_floor_profile_outcome_types import BaselineFloorProfileOutcome
 
 
 @dataclass

@@ -24,7 +24,7 @@ from transformer_baseline_floor_binding_types import CollapsedProfileBindingResu
 from transformer_baseline_floor_training import (
     train_direct_answer_baseline_floor_anchor_branch_diversity,
 )
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_recovery_outcomes import (
     BaselineFloorCollapsedProfileBindingOutcome,
     evaluate_baseline_floor_collapsed_profile_binding_outcome,
 )

@@ -8,7 +8,7 @@ from typing import Any
 
 from answer_model import AnswerExample
 from tokenizer import CharTokenizer
-from transformer_answer_snapshots import (
+from transformer_answer_training_snapshots import (
     generator_snapshot_record,
     selector_snapshot_record,
 )

@@ -14,7 +14,6 @@ from transformer_branch_logit_bias import (
 )
 from transformer_branch_logit_decomposition import dominant_vs_target_decomposition
 from transformer_branch_logit_rows import collect_branch_logit_prior_rows
-from transformer_branch_diversity_summary import summarize_branch_diversity_target
 from transformer_direct_modes import ANSWER_TERMINATOR
 
 

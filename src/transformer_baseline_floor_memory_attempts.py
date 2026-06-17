@@ -19,7 +19,7 @@ from transformer_baseline_floor_memory_results import (
     fallback_missing_first_token_result,
     missing_first_token_probe_metadata,
 )
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_recovery_outcomes import (
     BaselineFloorMissingFirstTokenOutcome,
     evaluate_baseline_floor_missing_first_token_outcome,
 )

@@ -9,10 +9,10 @@ from branch_diversity_snapshot_coverage import branch_diversity_snapshot_target_
 from tokenizer import CharTokenizer
 from transformer_branch_logit_diagnostics import (
     direct_answer_branch_logit_prior_profile,
-    summarize_branch_diversity_target,
 )
-from transformer_branch_profiles import (
-    direct_answer_branch_profile,
+from transformer_branch_diversity_summary import summarize_branch_diversity_target
+from transformer_branch_profiles import direct_answer_branch_profile
+from transformer_branch_representation_profiles import (
     direct_answer_branch_representation_profile,
 )
 from transformer_direct_answer_branch_context_evaluation import (

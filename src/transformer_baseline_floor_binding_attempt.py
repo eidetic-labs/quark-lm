@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
 from replay_plan import BranchReplayRecord
-from transformer_baseline_floor_profile_outcomes import (
+from transformer_baseline_floor_profile_outcome_types import (
     BaselineFloorCollapsedProfileBindingOutcome,
 )
 
@@ -177,4 +177,3 @@ def _binding_probe_metadata(
             else []
         ),
     }
-
