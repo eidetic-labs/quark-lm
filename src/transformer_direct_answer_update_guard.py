@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import Any
 
 from autograd import Scalar
-from branch_diversity_snapshots import (
+from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_by_profile,
     branch_diversity_snapshot_target_coverage_diagnostics,

@@ -14,18 +14,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from neural_char_metrics import average_nll, continuation_nll
-from neural_char_ops import context_before, make_context, sample_from_probs, softmax
+from neural_char_ops import make_context, sample_from_probs, softmax
 from tokenizer import CharTokenizer
 
 
 __all__ = [
     "CharMLP",
     "ModelConfig",
-    "average_nll",
-    "context_before",
-    "continuation_nll",
-    "make_context",
 ]
 
 

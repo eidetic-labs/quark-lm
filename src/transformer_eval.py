@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from neural_char_model import continuation_nll
+from neural_char_metrics import continuation_nll
 from probes import read_jsonl, summarize
 from transformer_model import GenerationConfig
 

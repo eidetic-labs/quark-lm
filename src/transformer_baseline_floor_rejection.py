@@ -5,9 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from branch_diversity_snapshots import (
-    branch_diversity_snapshot_target_coverage_diagnostics,
-)
+from branch_diversity_snapshot_coverage import branch_diversity_snapshot_target_coverage_diagnostics
 from transformer_baseline_floor_rejection_counts import (
     increment_rejection_counter,
     increment_rejection_reason,

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from branch_diversity_snapshots import (
+from branch_diversity_snapshots import branch_diversity_snapshot_score
+from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
-    branch_diversity_snapshot_score,
     branch_diversity_snapshot_target_coverage_delta,
 )
 from transformer_baseline_floor_profile_outcome_types import (

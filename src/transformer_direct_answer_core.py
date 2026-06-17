@@ -6,7 +6,7 @@ from typing import Any
 
 from answer_model import AnswerExample
 from autograd import Scalar
-from neural_char_model import make_context
+from neural_char_ops import make_context
 from tokenizer import CharTokenizer
 from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_math import cross_entropy_scalars

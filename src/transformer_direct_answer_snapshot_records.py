@@ -5,9 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from branch_diversity_diagnostics import branch_routing_audit_summary
-from branch_diversity_snapshots import (
-    branch_diversity_snapshot_target_coverage_by_profile,
-)
+from branch_diversity_snapshot_coverage import branch_diversity_snapshot_target_coverage_by_profile
 from tokenizer import CharTokenizer
 from transformer_branch_logit_diagnostics import (
     direct_answer_branch_logit_prior_profile,

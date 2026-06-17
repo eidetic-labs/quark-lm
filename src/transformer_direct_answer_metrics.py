@@ -8,9 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from branch_diversity_snapshots import (
-    branch_diversity_snapshot_target_coverage_by_profile,
-)
+from branch_diversity_snapshot_coverage import branch_diversity_snapshot_target_coverage_by_profile
 from transformer_direct_answer_metric_sections import (
     build_baseline_floor_metric_section,
     build_memory_consolidation_metric_section,

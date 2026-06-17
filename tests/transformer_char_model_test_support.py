@@ -13,16 +13,19 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from neural_char_model import context_before, continuation_nll
+from neural_char_metrics import continuation_nll
+from neural_char_ops import context_before
 from tokenizer import CharTokenizer
 from answer_model import AnswerExample
 from branch_diversity_diagnostics import branch_routing_audit_summary
 from branch_diversity_snapshots import (
     branch_diversity_snapshot_collapsed_profile_names,
     branch_diversity_profile_delta_has_coverage_gain,
-    branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_profile_diversity_delta,
     branch_diversity_snapshot_score,
+)
+from branch_diversity_snapshot_coverage import (
+    branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
 )

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from neural_char_model import continuation_nll
+from neural_char_metrics import continuation_nll
 from probes import summarize
 from tokenizer import CharTokenizer
 from transformer_answer_selector import AnswerCandidateSelector

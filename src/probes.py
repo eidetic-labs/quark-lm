@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from neural_char_model import CharMLP, continuation_nll
+from neural_char_model import CharMLP
+from neural_char_metrics import continuation_nll
 from tokenizer import CharTokenizer
 
 

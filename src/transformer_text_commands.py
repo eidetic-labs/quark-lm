@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
-from neural_char_model import context_before
+from neural_char_ops import context_before
 from tokenizer import CharTokenizer
 from transformer_eval import (
     build_transformer_eval_report,

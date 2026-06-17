@@ -6,10 +6,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from branch_diversity_snapshots import (
-    branch_diversity_snapshot_preserves_target_coverage,
-    branch_diversity_snapshot_score,
-)
+from branch_diversity_snapshots import branch_diversity_snapshot_score
+from branch_diversity_snapshot_coverage import branch_diversity_snapshot_preserves_target_coverage
 from tokenizer import CharTokenizer
 from transformer_direct_answer_snapshot_records import direct_answer_snapshot_record
 from transformer_model import GenerationConfig

@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 from typing import Any, Callable
 
-from branch_diversity_snapshots import (
+from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_diagnostics,
 )

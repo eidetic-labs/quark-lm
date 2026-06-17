@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from answer_model import feature_names
-from neural_char_model import make_context
+from neural_char_ops import make_context
 from tokenizer import CharTokenizer
 from transformer_answer_generator_constants import GENERATOR_BOS
 

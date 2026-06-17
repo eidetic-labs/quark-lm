@@ -8,7 +8,9 @@ import random
 from pathlib import Path
 
 from curriculum import DEFAULT_OUTPUT_DIR, build_curriculum, write_curriculum
-from neural_char_model import CharMLP, ModelConfig, average_nll, context_before
+from neural_char_model import CharMLP, ModelConfig
+from neural_char_metrics import average_nll
+from neural_char_ops import context_before
 from probes import read_jsonl, target_nll_summary
 from tokenizer import CharTokenizer
 

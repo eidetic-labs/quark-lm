@@ -2,13 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from branch_diversity_snapshot_coverage import (
-    branch_diversity_snapshot_preserves_target_coverage,
-    branch_diversity_snapshot_target_coverage_by_profile,
-    branch_diversity_snapshot_target_coverage_delta,
-    branch_diversity_snapshot_target_coverage_diagnostics,
-)
-
 
 def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ...]:
     summary = snapshot.get("branch_diversity_target", {})
@@ -95,12 +88,8 @@ def branch_diversity_snapshot_collapsed_profile_names(
 __all__ = [
     "branch_diversity_profile_delta_has_coverage_gain",
     "branch_diversity_snapshot_collapsed_profile_names",
-    "branch_diversity_snapshot_preserves_target_coverage",
     "branch_diversity_snapshot_profile_diversity_delta",
     "branch_diversity_snapshot_score",
-    "branch_diversity_snapshot_target_coverage_by_profile",
-    "branch_diversity_snapshot_target_coverage_delta",
-    "branch_diversity_snapshot_target_coverage_diagnostics",
 ]
 
 

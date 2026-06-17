@@ -9,7 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from neural_char_model import CharMLP, ModelConfig, context_before
+from neural_char_model import CharMLP, ModelConfig
+from neural_char_ops import context_before
 from tokenizer import CharTokenizer
 
 

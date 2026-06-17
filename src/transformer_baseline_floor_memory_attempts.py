@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Any, Callable, Sequence
 
 from branch_diversity_snapshots import (
-    branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_profile_diversity_delta,
     branch_diversity_snapshot_score,
+)
+from branch_diversity_snapshot_coverage import (
+    branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
 from transformer_baseline_floor_memory_candidate import MissingFirstTokenCandidate

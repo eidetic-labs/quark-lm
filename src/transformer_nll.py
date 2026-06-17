@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from neural_char_model import context_before
+from neural_char_ops import context_before
 
 
 def average_nll(

@@ -5,10 +5,8 @@ from __future__ import annotations
 import random
 from typing import Any, Callable, Sequence
 
-from branch_diversity_snapshots import (
-    branch_diversity_snapshot_preserves_target_coverage,
-    branch_diversity_snapshot_score,
-)
+from branch_diversity_snapshots import branch_diversity_snapshot_score
+from branch_diversity_snapshot_coverage import branch_diversity_snapshot_preserves_target_coverage
 from replay_plan import BranchReplayRecord
 from transformer_baseline_floor_training import (
     train_direct_answer_baseline_floor_anchor_repair_stage,

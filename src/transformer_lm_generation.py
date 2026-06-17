@@ -8,7 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from neural_char_model import make_context
+from neural_char_ops import make_context
 from tokenizer import CharTokenizer
 from transformer_checkpoint import load_checkpoint_payload
 from transformer_math import (
