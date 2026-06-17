@@ -1,0 +1,196 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+PROFILE_REPLAY_PLAN_PATH = "runs/profile-screen/direct_answer_replay_plan.json"
+
+
+@dataclass(frozen=True)
+class ProfileReplayModeCase:
+    name: str
+    mode: str
+    expected_gate: str | None = None
+
+    @property
+    def recipe_id(self) -> str:
+        return f"transformer-answer:{self.mode}:v0.78"
+
+
+PROFILE_REPLAY_MODE_CASES = (
+    ProfileReplayModeCase(
+        "target_share",
+        "branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood",
+    ),
+    ProfileReplayModeCase(
+        "prompt_ownership",
+        (
+            "branch-balanced-context-profile-prompt-ownership-target-share-"
+            "preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_anchored_prompt",
+        (
+            "branch-balanced-context-profile-baseline-anchored-prompt-ownership-"
+            "target-share-preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_floor_gated_prompt",
+        (
+            "branch-balanced-context-profile-baseline-floor-gated-prompt-"
+            "ownership-target-share-preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_floor_adaptive_prompt",
+        (
+            "branch-balanced-context-profile-baseline-floor-adaptive-prompt-"
+            "ownership-target-share-preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_floor_repaired_prompt",
+        (
+            "branch-balanced-context-profile-baseline-floor-repaired-prompt-"
+            "ownership-target-share-preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_floor_objective_prompt",
+        (
+            "branch-balanced-context-profile-baseline-floor-objective-prompt-"
+            "ownership-target-share-preserving-deficit-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "baseline_floor_stabilization",
+        "branch-context-profile-baseline-floor-stabilization-unlikelihood",
+    ),
+    ProfileReplayModeCase(
+        "profile_targeted_stabilization",
+        (
+            "branch-context-profile-baseline-floor-profile-targeted-"
+            "stabilization-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "sequential_stabilization",
+        (
+            "branch-context-profile-baseline-floor-sequential-profile-"
+            "stabilization-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "calibrated_sequential_stabilization",
+        (
+            "branch-context-profile-baseline-floor-calibrated-sequential-"
+            "profile-stabilization-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_calibrated",
+        (
+            "branch-context-profile-baseline-floor-profile-scale-calibrated-"
+            "sequential-profile-stabilization-unlikelihood"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_diversity",
+        (
+            "branch-context-profile-baseline-floor-diversity-profile-scale-"
+            "calibrated-sequential-profile-stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_diversity_calibrated_"
+            "sequential_stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-frontier-profile-"
+            "scale-calibrated-sequential-profile-stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_frontier_calibrated_"
+            "sequential_stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_coverage_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-coverage-frontier-"
+            "profile-scale-calibrated-sequential-profile-stabilization-"
+            "unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_coverage_frontier_"
+            "calibrated_sequential_stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_coverage_prep_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-coverage-prep-"
+            "frontier-profile-scale-calibrated-sequential-profile-"
+            "stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_coverage_prep_frontier_"
+            "calibrated_sequential_stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_coverage_recovery_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-coverage-recovery-"
+            "frontier-profile-scale-calibrated-sequential-profile-"
+            "stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_coverage_recovery_frontier_"
+            "calibrated_sequential_stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_branch_stable_coverage_recovery_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-branch-stable-"
+            "coverage-recovery-frontier-profile-scale-calibrated-sequential-"
+            "profile-stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_branch_stable_"
+            "coverage_recovery_frontier_calibrated_sequential_"
+            "stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_branch_diversity_recovery_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-branch-stable-"
+            "coverage-recovery-branch-diversity-frontier-profile-scale-"
+            "calibrated-sequential-profile-stabilization-unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_branch_diversity_"
+            "recovery_frontier_calibrated_sequential_"
+            "stabilization_screen"
+        ),
+    ),
+    ProfileReplayModeCase(
+        "profile_scale_memory_consolidation_frontier",
+        (
+            "branch-context-profile-baseline-floor-diversity-branch-stable-"
+            "coverage-recovery-branch-diversity-collapsed-profile-binding-"
+            "remaining-profile-owner-paraphrase-memory-consolidation-frontier-"
+            "profile-scale-calibrated-sequential-profile-stabilization-"
+            "unlikelihood"
+        ),
+        (
+            "baseline_floor_profile_scale_memory_consolidation_"
+            "frontier_calibrated_sequential_stabilization_screen"
+        ),
+    ),
+)

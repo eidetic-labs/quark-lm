@@ -15,6 +15,19 @@ Self-improvement applies to every part of the system: model weights, training
 code, curriculum design, corpus quality, eval coverage, response reliability,
 provenance, documentation, and this goal framework.
 
+## Current Goal Phase
+
+Active phase: targeted test SRP updates.
+
+- Split oversized or mixed-concern test modules into focused test files and
+  support helpers before changing the source directory structure.
+- Preserve production behavior while improving test ownership, readability, and
+  reviewability.
+- Keep protected docs and marketing content unchanged unless a release or
+  explicit content request requires updates.
+- Treat passing focused test slices, full discovery, release-gate checks, and
+  code-quality review as the evidence gate for this phase.
+
 ## Current Canonical Evidence
 
 Keep this file as the durable goal contract. Long version history and detailed

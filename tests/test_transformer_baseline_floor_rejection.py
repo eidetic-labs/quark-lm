@@ -1,65 +1,11 @@
 import unittest
 
+from support.baseline_floor_rejection import empty_guard
 from transformer_baseline_floor_rejection import (
     BaselineFloorProfileRejectionAccounting,
     record_baseline_floor_profile_attempt_rejection,
     record_baseline_floor_profile_rejection,
 )
-from transformer_baseline_floor_special_rejections import (
-    record_baseline_floor_branch_diversity_recovery_rejection,
-    record_baseline_floor_collapsed_profile_binding_rejection,
-    record_baseline_floor_coverage_recovery_rejection,
-    record_baseline_floor_missing_first_token_rejection,
-)
-
-
-ZERO_KEYS = (
-    "sequential_profile_rejections",
-    "profile_scale_memory_rejections",
-    "profile_scale_remaining_profile_binding_prioritized_rejections",
-    "profile_scale_owner_paraphrase_binding_prioritized_rejections",
-    "profile_scale_memory_consolidation_prioritized_rejections",
-    "profile_scale_diversity_rejections",
-    "profile_scale_diversity_floor_rejections",
-    "profile_scale_diversity_score_regressions",
-    "profile_scale_frontier_rejections",
-    "profile_scale_coverage_frontier_rejections",
-    "profile_scale_coverage_frontier_gains",
-    "profile_scale_coverage_frontier_ties",
-    "profile_scale_coverage_frontier_regressions",
-    "profile_scale_coverage_prep_frontier_rejections",
-    "profile_scale_coverage_recovery_frontier_rejections",
-    "profile_scale_branch_stable_coverage_recovery_frontier_rejections",
-    "profile_scale_branch_diversity_recovery_frontier_rejections",
-    "profile_scale_collapsed_profile_binding_frontier_rejections",
-    "profile_scale_memory_consolidation_missing_first_token_rejections",
-)
-
-
-MAP_KEYS = (
-    "profile_scale_diversity_rejection_reasons",
-    "profile_scale_coverage_frontier_rejection_reasons",
-    "profile_scale_coverage_prep_frontier_rejection_reasons",
-    "profile_scale_coverage_recovery_frontier_rejection_reasons",
-    "profile_scale_branch_stable_coverage_recovery_frontier_rejection_reasons",
-    "profile_scale_branch_diversity_recovery_frontier_rejection_reasons",
-    "profile_scale_collapsed_profile_binding_frontier_rejection_reasons",
-    "profile_scale_memory_consolidation_missing_first_token_rejection_reasons",
-)
-
-
-def empty_guard() -> dict[str, object]:
-    guard: dict[str, object] = {key: 0 for key in ZERO_KEYS}
-    guard.update({key: {} for key in MAP_KEYS})
-    guard["sequential_profile_rejection_counts"] = {}
-    guard["profile_scale_rejection_scale_counts"] = {}
-    guard["sequential_profile_probe_sample"] = []
-    guard["profile_scale_probe_sample"] = []
-    guard["profile_scale_diversity_probe_sample"] = []
-    guard["profile_scale_frontier_probe_sample"] = []
-    guard["profile_scale_coverage_frontier_probe_sample"] = []
-    guard["profile_scale_coverage_prep_frontier_probe_sample"] = []
-    return guard
 
 
 class TransformerBaselineFloorRejectionTest(unittest.TestCase):
@@ -202,95 +148,6 @@ class TransformerBaselineFloorRejectionTest(unittest.TestCase):
             "coverage_tie_without_score_gain",
         )
         self.assertEqual(sample["worst_violation"], 0.25)
-
-    def test_coverage_recovery_rejection_records_primary_and_branch_stable(self) -> None:
-        guard = empty_guard()
-
-        record_baseline_floor_coverage_recovery_rejection(
-            guard,
-            "branch_score_regression",
-            branch_stable_active=True,
-        )
-
-        self.assertEqual(
-            guard["profile_scale_coverage_recovery_frontier_rejections"],
-            1,
-        )
-        self.assertEqual(
-            guard["profile_scale_coverage_recovery_frontier_rejection_reasons"],
-            {"branch_score_regression": 1},
-        )
-        self.assertEqual(
-            guard[
-                "profile_scale_branch_stable_coverage_recovery_frontier_rejections"
-            ],
-            1,
-        )
-        self.assertEqual(
-            guard[
-                "profile_scale_branch_stable_coverage_recovery_frontier_rejection_reasons"
-            ],
-            {"branch_score_regression": 1},
-        )
-
-    def test_branch_diversity_recovery_rejection_records_reason(self) -> None:
-        guard = empty_guard()
-
-        record_baseline_floor_branch_diversity_recovery_rejection(
-            guard,
-            "score_tie",
-        )
-
-        self.assertEqual(
-            guard["profile_scale_branch_diversity_recovery_frontier_rejections"],
-            1,
-        )
-        self.assertEqual(
-            guard[
-                "profile_scale_branch_diversity_recovery_frontier_rejection_reasons"
-            ],
-            {"score_tie": 1},
-        )
-
-    def test_collapsed_profile_binding_rejection_records_reason(self) -> None:
-        guard = empty_guard()
-
-        record_baseline_floor_collapsed_profile_binding_rejection(
-            guard,
-            "profile_diversity_regression",
-        )
-
-        self.assertEqual(
-            guard["profile_scale_collapsed_profile_binding_frontier_rejections"],
-            1,
-        )
-        self.assertEqual(
-            guard[
-                "profile_scale_collapsed_profile_binding_frontier_rejection_reasons"
-            ],
-            {"profile_diversity_regression": 1},
-        )
-
-    def test_missing_first_token_rejection_records_reason(self) -> None:
-        guard = empty_guard()
-
-        record_baseline_floor_missing_first_token_rejection(
-            guard,
-            "target_profile_regression",
-        )
-
-        self.assertEqual(
-            guard[
-                "profile_scale_memory_consolidation_missing_first_token_rejections"
-            ],
-            1,
-        )
-        self.assertEqual(
-            guard[
-                "profile_scale_memory_consolidation_missing_first_token_rejection_reasons"
-            ],
-            {"target_profile_regression": 1},
-        )
 
 
 if __name__ == "__main__":
