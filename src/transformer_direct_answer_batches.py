@@ -7,10 +7,6 @@ from collections import Counter
 from typing import Any
 
 from answer_model import AnswerExample
-from transformer_direct_answer_profiled_batches import (
-    direct_answer_profiled_branch_batch,
-    direct_answer_profiled_replay_records,
-)
 from tokenizer import CharTokenizer
 from transformer_direct_answer_core import direct_answer_branch_context
 from transformer_direct_modes import ANSWER_TERMINATOR

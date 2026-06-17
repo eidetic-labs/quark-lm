@@ -18,7 +18,6 @@ def build_random_transformer_weights(config: TransformerConfig) -> dict[str, Any
         return rng.uniform(-scale, scale)
 
     dim = config.embedding_dim
-    ff_dim = config.feedforward_dim
     scale = 1.0 / math.sqrt(dim)
     first_block = build_random_transformer_block(config, rand)
     return {

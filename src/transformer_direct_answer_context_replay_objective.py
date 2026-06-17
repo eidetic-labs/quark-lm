@@ -16,10 +16,10 @@ from transformer_baseline_floor_anchor_selection import (
 )
 from transformer_direct_answer_batches import (
     direct_answer_branch_diversity_batch,
-    direct_answer_profiled_branch_batch,
     direct_answer_target_balanced_branch_diversity_batch,
 )
 from transformer_direct_answer_core import DirectAnswerLesson
+from transformer_direct_answer_profiled_batches import direct_answer_profiled_branch_batch
 from transformer_direct_answer_repairs import train_direct_answer_lesson
 from transformer_direct_modes import (
     ANSWER_TERMINATOR,

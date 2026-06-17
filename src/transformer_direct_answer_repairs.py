@@ -9,19 +9,7 @@ from answer_model import AnswerExample
 from autograd import Scalar
 from tokenizer import CharTokenizer
 from transformer_direct_answer_core import DirectAnswerLesson
-from transformer_direct_answer_branch_repairs import (
-    direct_answer_branch_repair_error,
-    direct_answer_branch_span_repair_error,
-)
-from transformer_direct_answer_repair_discovery import (
-    direct_answer_early_stop_error,
-    direct_answer_first_error,
-    direct_answer_generated_prefix_recovery,
-    direct_answer_repeat_loop_error,
-    direct_answer_rollout_error,
-    direct_answer_sequence_repair_errors,
-    has_repeated_suffix,
-)
+from transformer_direct_answer_repair_discovery import direct_answer_first_error
 from transformer_direct_modes import ANSWER_TERMINATOR
 
 

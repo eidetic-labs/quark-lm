@@ -9,10 +9,6 @@ from tokenizer import CharTokenizer
 from transformer_direct_answer_core import (
     direct_answer_sequence_nll,
 )
-from transformer_direct_answer_branch_context_evaluation import (
-    audit_direct_answer_branch_context_coverage,
-    summarize_branch_context_coverage_gate,
-)
 from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_model import GenerationConfig
 

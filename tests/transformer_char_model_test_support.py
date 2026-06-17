@@ -68,8 +68,6 @@ from transformer_direct_answer_batches import (
     direct_answer_branch_batch,
     direct_answer_branch_diversity_batch,
     direct_answer_dominant_branch_prediction,
-    direct_answer_profiled_branch_batch,
-    direct_answer_profiled_replay_records,
     direct_answer_target_balanced_branch_batch,
     direct_answer_target_balanced_branch_diversity_batch,
 )
@@ -108,11 +106,17 @@ from transformer_direct_answer_core import (
     direct_answer_lesson,
     direct_answer_sequence_nll,
 )
-from transformer_direct_answer_evaluation import (
+from transformer_direct_answer_branch_context_evaluation import (
     audit_direct_answer_branch_context_coverage,
+    summarize_branch_context_coverage_gate,
+)
+from transformer_direct_answer_evaluation import (
     audit_prompt_context_coverage,
     evaluate_direct_answer_records,
-    summarize_branch_context_coverage_gate,
+)
+from transformer_direct_answer_profiled_batches import (
+    direct_answer_profiled_branch_batch,
+    direct_answer_profiled_replay_records,
 )
 from transformer_direct_answer_repair_objectives import (
     train_direct_answer_balanced_repair_unlikelihood,
@@ -125,16 +129,20 @@ from transformer_direct_answer_repair_objectives import (
     train_direct_answer_rollout_unlikelihood,
     train_direct_answer_sequence_repair_unlikelihood,
 )
-from transformer_direct_answer_repairs import (
+from transformer_direct_answer_branch_repairs import (
     direct_answer_branch_repair_error,
     direct_answer_branch_span_repair_error,
+)
+from transformer_direct_answer_repair_discovery import (
     direct_answer_early_stop_error,
-    direct_answer_first_error,
     direct_answer_generated_prefix_recovery,
     direct_answer_repeat_loop_error,
     direct_answer_rollout_error,
     direct_answer_sequence_repair_errors,
     has_repeated_suffix,
+)
+from transformer_direct_answer_repairs import (
+    direct_answer_first_error,
     train_direct_answer_first_error,
     train_direct_answer_first_error_unlikelihood,
     train_direct_answer_lesson,
