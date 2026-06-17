@@ -6,6 +6,19 @@ slug: /operate/
 
 # Operate
 
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- When a run becomes a release, and why completion alone never earns it
+- The constraint-first rule that blocks quality metrics until the boundary holds
+- The evidence bundle every promoted run carries, and the controls that gate it
+- Why docs are part of the promotion gate, not a byproduct of it
+
+</div>
+
 Operating QuarkLM means deciding when a run becomes a release and proving that
 the decision was earned. A run is not promoted because it completed. It is
 promoted only when it preserves the closed-world boundary, passes the recorded
@@ -22,18 +35,39 @@ Promotion is constraint-first. Closed-world constraints — data boundary,
 candidate exclusion, quarantine validity, branch coverage, branch diversity,
 target-coverage preservation — must pass *before* any loss, NLL, rank, or
 exact-quality number is allowed to count toward promotion. Quality metrics stay
-advisory until the constraint report says they are eligible. This is why a run
-can produce better numbers and still be rejected, and why the transformer is not
-promoted while `branch_diversity_target` fails.
+advisory until the constraint report says they are eligible.
 
-Two distinctions are enforced across every page here:
+<div className="qlm-keypoint">
 
-- A generated lesson, probe, repair, or memory proposal is **not training
-  data** until it is admitted to `corpus/ledger.json`. Candidate records carry
-  history; the candidate store is not a training source.
-- Retrieval answering a probe is **memory-served**, not **weight-consolidated**.
-  Exact retrieval evidence proves the corpus contains the answer; it does not
-  prove the transformer learned it. See [Build](../build/index.md).
+**Better numbers do not earn promotion**
+
+This is why a run can produce better numbers and still be rejected, and why the
+transformer is not promoted while `branch_diversity_target` fails. Constraints
+are checked first; quality is allowed to count only after they pass.
+
+</div>
+
+Two distinctions are enforced across every page here.
+
+<div className="qlm-keypoint">
+
+**A candidate is not training data**
+
+A generated lesson, probe, repair, or memory proposal is not training data until
+it is admitted to `corpus/ledger.json`. Candidate records carry history; the
+candidate store is not a training source.
+
+</div>
+
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
+Retrieval answering a probe is `memory-served`, not `weight-consolidated`. Exact
+retrieval evidence proves the corpus *contains* the answer; it does not prove
+the transformer *learned* it. See [Build](../build/index.md).
+
+</div>
 
 ## Operating surfaces
 
@@ -41,52 +75,71 @@ Each promoted run carries a fixed bundle of evidence artifacts. These are JSON
 written during the run, validated deterministically, with no hidden promotion
 behavior.
 
-| Artifact | Records |
-| --- | --- |
-| `experiment_intent.json` | Hypothesis, allowed data, planned artifacts, acceptance gates, failure criteria, and the closing decision for a run. |
-| `corpus_hygiene.json` | Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile coverage. |
-| `training_plan.json` | Allowed data sources, the closed-world data boundary, scheduled example mixture, replay summary, and planned artifacts. |
-| `candidate_quarantine.json` | Candidate lifecycle state and proof that generated candidates are not training data until admitted. |
-| `closed_world_verifier.json` | Deterministic pass/fail evidence for candidate checks and training-plan approval. |
-| `training_recipe.json` | Reproducible model, tokenizer, data, objective, optimizer, artifact, and gate recipe. |
-| `constraint_first_promotion.json` | The gate that blocks quality metrics until closed-world constraints pass. |
-| `corpus_snapshot.json` | Current ledger source hashes and record counts. |
-| `corpus_diff.json` | Comparison to the previous promoted run. |
+<div className="qlm-grid">
+<div><h4><code>experiment_intent.json</code></h4><p>Hypothesis, allowed data, planned artifacts, acceptance gates, failure criteria, and the closing decision for a run.</p></div>
+<div><h4><code>corpus_hygiene.json</code></h4><p>Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile coverage.</p></div>
+<div><h4><code>training_plan.json</code></h4><p>Allowed data sources, the closed-world data boundary, scheduled example mixture, replay summary, and planned artifacts.</p></div>
+<div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state and proof that generated candidates are not training data until admitted.</p></div>
+<div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval.</p></div>
+<div><h4><code>training_recipe.json</code></h4><p>Reproducible model, tokenizer, data, objective, optimizer, artifact, and gate recipe.</p></div>
+<div><h4><code>constraint_first_promotion.json</code></h4><p>The gate that blocks quality metrics until closed-world constraints pass.</p></div>
+<div><h4><code>corpus_snapshot.json</code></h4><p>Current ledger source hashes and record counts.</p></div>
+<div><h4><code>corpus_diff.json</code></h4><p>Comparison to the previous promoted run.</p></div>
+</div>
 
 Alongside the per-run artifacts sit the control documents that govern whether a
 run is allowed to become a tag, and the hosting controls that keep the public
 surfaces in sync.
 
-| Control | Purpose |
-| --- | --- |
-| `ALPHA_GATE.md` / `RC_SPEC.md` / `RC_GAP_AUDIT.md` / `RC_CHECKLIST.md` | Alpha gate, release-candidate track, gap, checklist, and forbidden-claim controls. |
-| `.readthedocs.yaml` / `sites/DEPLOYMENT.md` | Docs-on-Read-the-Docs and marketing-on-GitHub-Pages hosting controls. |
-| README / Docusaurus / marketing | Public state that must not drift. |
+<div className="qlm-grid">
+<div><h4>Promotion controls</h4><p><code>ALPHA_GATE.md</code> / <code>RC_SPEC.md</code> / <code>RC_GAP_AUDIT.md</code> / <code>RC_CHECKLIST.md</code> — alpha gate, release-candidate track, gap, checklist, and forbidden-claim controls.</p></div>
+<div><h4>Hosting controls</h4><p><code>.readthedocs.yaml</code> / <code>sites/DEPLOYMENT.md</code> — docs-on-Read-the-Docs and marketing-on-GitHub-Pages hosting controls.</p></div>
+<div><h4>Public state</h4><p>README / Docusaurus / marketing — public state that must not drift.</p></div>
+</div>
+
+:::note
 
 Run directories are versioned and immutable: `runs/self-improve-*` holds
 promoted responder evidence, and unpromoted transformer screens keep their
 original names so provenance stays exact. Failed runs are not discarded; they
 remain as versioned diagnostic evidence.
 
+:::
+
 ## Docs are a promotion gate
 
 Docs are part of the loop, not a byproduct of it. The release is not complete
 until the docs are complete: if a page references current eval counts, commands,
 run ids, hosting targets, or roadmap commitments, that page must move with the
-version. This is an anti-drift discipline, not a training input — promoted-version
-facts are read from the shared `sites/shared/current-state.json` source wherever
-possible so README, Docusaurus, and marketing cannot quietly disagree.
+version.
+
+<div className="qlm-keypoint">
+
+**Anti-drift is a discipline, not a training input**
+
+Promoted-version facts are read from the shared
+`sites/shared/current-state.json` source wherever possible, so README,
+Docusaurus, and marketing cannot quietly disagree. The docs move with the
+version; they do not feed the model.
+
+</div>
 
 ## Where to read next
 
-| Page | Covers |
-| --- | --- |
-| [Release readiness](./release-candidate.md) | The alpha and release-candidate tracks, the current decision, required commands and artifacts, and the claims that are forbidden until the evidence supports them. |
-| [Release discipline](./release-discipline.md) | The full checklist a promoted run must satisfy, and SemVer release-identifier rules. |
-| [Experiment registry](./experiment-registry.md) | Why every run starts with an explicit intent instead of a loose command. |
-| [Corpus hygiene](./corpus-hygiene.md) | How data risk is made visible before any metric is interpreted. |
-| [Candidate quarantine](./candidate-quarantine.md) | The candidate lifecycle and the rule that keeps generated material out of training until admitted. |
-| [Closed-world verifier](./closed-world-verifier.md) | The deterministic check that decides whether a candidate or plan may influence the next learning step. |
-| [Training recipes](./training-recipes.md) | Reproducible recipes and the constraint-first promotion report. |
-| [Provenance](./provenance.md) | Corpus snapshots and diffs, recorded next to weight and eval changes. |
-| [Docs drift](./docs-drift.md) | The rule that keeps docs and marketing synchronized with releases. |
+<div className="qlm-grid">
+<div><h4><a href="./release-candidate.md">Release readiness</a></h4><p>The alpha and release-candidate tracks, the current decision, required commands and artifacts, and the claims that are forbidden until the evidence supports them.</p></div>
+<div><h4><a href="./release-discipline.md">Release discipline</a></h4><p>The full checklist a promoted run must satisfy, and SemVer release-identifier rules.</p></div>
+<div><h4><a href="./experiment-registry.md">Experiment registry</a></h4><p>Why every run starts with an explicit intent instead of a loose command.</p></div>
+<div><h4><a href="./corpus-hygiene.md">Corpus hygiene</a></h4><p>How data risk is made visible before any metric is interpreted.</p></div>
+<div><h4><a href="./candidate-quarantine.md">Candidate quarantine</a></h4><p>The candidate lifecycle and the rule that keeps generated material out of training until admitted.</p></div>
+<div><h4><a href="./closed-world-verifier.md">Closed-world verifier</a></h4><p>The deterministic check that decides whether a candidate or plan may influence the next learning step.</p></div>
+<div><h4><a href="./training-recipes.md">Training recipes</a></h4><p>Reproducible recipes and the constraint-first promotion report.</p></div>
+<div><h4><a href="./provenance.md">Provenance</a></h4><p>Corpus snapshots and diffs, recorded next to weight and eval changes.</p></div>
+<div><h4><a href="./docs-drift.md">Docs drift</a></h4><p>The rule that keeps docs and marketing synchronized with releases.</p></div>
+</div>
+
+<div className="qlm-next">
+<a href="./release-candidate.md"><strong>Read next</strong><span>Release readiness</span><small>The current decision, required artifacts, and forbidden claims.</small></a>
+<a href="./candidate-quarantine.md"><strong>Go deeper</strong><span>Candidate quarantine</span><small>The rule that keeps generated material out of training until admitted.</small></a>
+<a href="./closed-world-verifier.md"><strong>The deciding check</strong><span>Closed-world verifier</span><small>What may influence the next learning step, decided deterministically.</small></a>
+</div>

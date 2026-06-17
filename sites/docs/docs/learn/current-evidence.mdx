@@ -7,16 +7,35 @@ import state from '../../../shared/current-state.json';
 
 # Current Evidence
 
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- What the current promoted run is, and why every value here is read from machine-tracked state rather than hand-written.
+- Which track is promoted (the responder track) and which is not (the from-scratch transformer).
+- How `memory-served` evidence differs from `weight-consolidated` evidence, and why that gap sets the release posture.
+
+</div>
+
 This page records the current promoted run and the evidence that justifies it.
 Every value in the snapshot table is read from <code>sites/shared/current-state.json</code>,
 so the page cannot drift from the machine-tracked state. The current promoted run
 is <code>{state.currentRun}</code>.
 
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
 Two things stay strictly separate here, as everywhere in QuarkLM: what retrieval
 memory can *serve* from the admitted corpus, and what the transformer has
 *learned* into its weights. Retrieval answering a probe is `memory-served`
-evidence; it is not `weight-consolidated` evidence. See
-[Language model](./language-model.md) for the three evidence states and
+evidence; it is not `weight-consolidated` evidence.
+
+</div>
+
+See [Language model](./language-model.md) for the three evidence states and
 [Build](../build/index.md) for the two paths that produce them.
 
 Older milestone evidence that is no longer part of the current-state table is
@@ -26,11 +45,18 @@ complete version-by-version transformer screen log lives in
 
 ## What is promoted
 
-The promoted run is the responder track: the deterministic responder, retrieval
-memory, the learned answer classifier, and the generative answer decoder. The
-from-scratch transformer is **not** promoted. It remains diagnostic evidence,
-blocked on `branch_diversity_target` (see [Transformer status](#transformer-status)
-below).
+The promoted run is the responder track. The from-scratch transformer is
+**not** promoted. It remains diagnostic evidence, blocked on
+`branch_diversity_target` (see [Transformer status](#transformer-status) below).
+
+The responder track is four components:
+
+<div className="qlm-grid">
+<div><h4>Deterministic responder</h4><p>Answers probes from the admitted corpus with provenance, moving no weights.</p></div>
+<div><h4>Retrieval memory</h4><p>Builds cards from the closed-world corpus and serves exact answers.</p></div>
+<div><h4>Learned answer classifier</h4><p>Routes a probe to its answer candidate.</p></div>
+<div><h4>Generative answer decoder</h4><p>Produces the answer text when no candidate is selected.</p></div>
+</div>
 
 | Signal | Current value |
 | --- | --- |
@@ -100,7 +126,7 @@ reach exact answers across the eval set while the raw greedy transformer stays a
 while the neural weights have not yet *learned* to route them. That gap is the
 reason the evidence states are kept apart.
 
-```text
+```text title="serve vs. learn: the two paths"
 serve:  question -> retrieval / responder / selector / generator -> exact answer
 learn:  question -> raw greedy transformer ----------------------> not yet routed
 ```
@@ -125,8 +151,14 @@ counts as neural promotion.
 | Retrieval memory status | <code>{state.transformerRetrievalMemoryStatus}</code> |
 | Latest retrieval memory report | <code>{state.transformerLatestRetrievalMemoryRun}</code> |
 
+<div className="qlm-keypoint">
+
+**Exact retrieval proves the corpus, not the weights**
+
 Exact retrieval is `memory-served`. It proves the corpus contains the answer. It
 does not prove the transformer learned it.
+
+</div>
 
 ## Release posture
 
@@ -143,3 +175,25 @@ that names a language model cannot be cut while the from-scratch transformer
 fails `branch_diversity_target`. The honest claim is the narrow one: the corpus
 is admitted and served exactly; the neural weights have not yet learned to route
 prompts to distinct answers.
+
+<div className="qlm-next">
+
+<a href="../build/transformer.md">
+<strong>Read next</strong>
+<span>The transformer</span>
+<small>How the from-scratch weight-consolidation path works.</small>
+</a>
+
+<a href="./language-model.md">
+<strong>Read next</strong>
+<span>Language model</span>
+<small>The three evidence states and what each one proves.</small>
+</a>
+
+<a href="./historical-evidence.md">
+<strong>Read next</strong>
+<span>Historical evidence archive</span>
+<small>Milestone evidence retired from the current-state table.</small>
+</a>
+
+</div>

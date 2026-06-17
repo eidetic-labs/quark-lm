@@ -5,7 +5,19 @@ description: The v0.70 cross-referenced research and implementation-gap review f
 
 # Deep Research Review
 
-Last reviewed: 2026-06-14.
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-14</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- Why v0.70 is a research checkpoint, not a model improvement
+- The eight operating-system pieces a new training mechanic must sit inside
+- Which sources the review cross-referenced, and why none of them is a source of weights or data
+- The structural codebase gap the review found, and the checkpoint sequence it set in motion
+- Why the transformer remains unpromoted and blocked on branch diversity
+
+</div>
 
 The full review lives in the repository root at `DEEP_RESEARCH_REVIEW.md`.
 
@@ -23,22 +35,32 @@ inside that system, not when it moves a loss number on its own.
 
 The required pieces are:
 
-| Piece | What it provides |
-| --- | --- |
-| Experiment registry | A recorded hypothesis, acceptance gate, and decision for every screen. |
-| Training recipes | An explicit model, data, objective, optimizer, and replay specification. |
-| Corpus hygiene | Duplicate and train/eval overlap checks over the admitted corpus. |
-| Candidate quarantine | Generated material held outside training until verified and admitted. |
-| Deterministic closed-world verifier | A pass/fail check on the data boundary before evidence is trusted. |
-| Extracted replay planner | Replay planning moved out of the model module into its own surface. |
-| Constraint-first promotion | Gates that run before any loss, rank, or quality number can count. |
-| Transformer module boundaries | The model split into inspectable surfaces rather than one file. |
+<div className="qlm-grid">
+<div><h4>Experiment registry</h4><p>A recorded hypothesis, acceptance gate, and decision for every screen.</p></div>
+<div><h4>Training recipes</h4><p>An explicit model, data, objective, optimizer, and replay specification.</p></div>
+<div><h4>Corpus hygiene</h4><p>Duplicate and train/eval overlap checks over the admitted corpus.</p></div>
+<div><h4>Candidate quarantine</h4><p>Generated material held outside training until verified and admitted.</p></div>
+<div><h4>Deterministic closed-world verifier</h4><p>A pass/fail check on the data boundary before evidence is trusted.</p></div>
+<div><h4>Extracted replay planner</h4><p>Replay planning moved out of the model module into its own surface.</p></div>
+<div><h4>Constraint-first promotion</h4><p>Gates that run before any loss, rank, or quality number can count.</p></div>
+<div><h4>Transformer module boundaries</h4><p>The model split into inspectable surfaces rather than one file.</p></div>
+</div>
 
 That is the path that keeps "I learned something new" from meaning
 "I generated something new." Inside this system the phrase means proposed,
 quarantined, verified, admitted, trained, evaluated, and promoted — in that
 order. Generated material is not training data until it is verified against
 admitted sources and admitted to `corpus/ledger.json`.
+
+<div className="qlm-keypoint">
+
+**A mechanic earns its place inside the system, not on a loss number**
+
+A new objective is justified only when it sits inside the operating system above.
+Moving a loss number on its own is not justification — that is how "I learned
+something new" quietly degrades into "I generated something new."
+
+</div>
 
 ## Sources cross-referenced
 
@@ -58,10 +80,16 @@ together. The clusters are:
 - implementation references from nanoGPT, minGPT, GPT-NeoX, LLM Foundry,
   LitGPT, Avalanche, Open-Instruct, and Hugging Face tokenizers.
 
+:::note
+
 All of these are design references only. None of them is a source of weights or
 data. QuarkLM still forbids pretrained weights, pretrained tokenizers, external
 embeddings, external datasets, copied code, and external-model-shaped training
-data. The version-by-version map from each source cluster to the mechanic it
+data.
+
+:::
+
+The version-by-version map from each source cluster to the mechanic it
 motivated is kept in the
 [Research implementation map](./research-implementation-map.md); the gap matrix
 that compares QuarkLM against those mechanics is in the
@@ -89,16 +117,16 @@ The review set a sequence of research-control checkpoints, not direct-answer
 knobs. Each one builds part of the operating system above, and each is recorded
 where its evidence belongs rather than restated here:
 
-| Checkpoint | What it added |
-| --- | --- |
-| v0.71 | Experiment registry and run-intent schemas. |
-| v0.72 | Standalone replay planner in `src/replay_plan.py`. |
-| v0.73 | Corpus hygiene and training-plan artifacts (`corpus_hygiene.json`, `training_plan.json`). |
-| v0.74 | The [Research implementation map](./research-implementation-map.md), tying mechanics to sources, gaps, and acceptance evidence. |
-| v0.75 | Candidate quarantine artifacts and lifecycle state. |
-| v0.76 | Deterministic closed-world verifier checks. |
-| v0.77 | Recipes and constraint-first promotion gates. |
-| v0.78–v0.80 | Transformer experiment, artifact, model/config, checkpoint, and eval surfaces split out of the model module. |
+<ol className="qlm-steps">
+<li><strong>v0.71 — Experiment registry</strong><p>Experiment registry and run-intent schemas.</p></li>
+<li><strong>v0.72 — Standalone replay planner</strong><p>Replay planning extracted into `src/replay_plan.py`.</p></li>
+<li><strong>v0.73 — Corpus hygiene and training plan</strong><p>Hygiene and training-plan artifacts (`corpus_hygiene.json`, `training_plan.json`).</p></li>
+<li><strong>v0.74 — Research implementation map</strong><p>The <a href="./research-implementation-map.md">Research implementation map</a>, tying mechanics to sources, gaps, and acceptance evidence.</p></li>
+<li><strong>v0.75 — Candidate quarantine</strong><p>Candidate quarantine artifacts and lifecycle state.</p></li>
+<li><strong>v0.76 — Closed-world verifier</strong><p>Deterministic closed-world verifier checks.</p></li>
+<li><strong>v0.77 — Recipes and promotion gates</strong><p>Recipes and constraint-first promotion gates.</p></li>
+<li><strong>v0.78–v0.80 — Transformer module split</strong><p>Transformer experiment, artifact, model/config, checkpoint, and eval surfaces split out of the model module.</p></li>
+</ol>
 
 The per-screen direct-answer history that followed — every objective name, its
 attempt and acceptance counts, and its rejection evidence — is the job of the
@@ -112,11 +140,17 @@ rejected diagnostics rather than a sequence of promotions.
 
 The review leaves one durable rule for every later screen:
 
+<div className="qlm-keypoint">
+
+**Metrics are not promotion criteria**
+
 No larger transformer screen runs without an experiment-intent artifact, a
 corpus plan, a replay plan, verifier checks, and explicit promotion
 constraints. Loss, rank, top-k, and NLL are useful metrics, but they are not
 promotion criteria. A snapshot is promoted only after retention, leakage,
 unknown-policy, coverage, diversity, and contamination gates pass first.
+
+</div>
 
 This is why the screens after v0.70 read as a long list of accepted guarded
 updates that still reject promotion. Many of them improve coverage or
@@ -137,4 +171,21 @@ Retrieval memory answers `219/219` eval probes exactly, with provenance and no
 weight updates. That is evidence for the memory-served rail, not for neural
 promotion. The transformer remains unpromoted and blocked on branch diversity:
 the system can serve every admitted answer while the weights have not yet
-learned to route them. `memory-served` is not `weight-consolidated`.
+learned to route them.
+
+<div className="qlm-keypoint">
+
+**`memory-served` is not `weight-consolidated`**
+
+Retrieval answering every admitted probe proves the corpus contains the answer.
+It does not prove the weights learned to route to it. The two rails stay
+labeled separately so a green memory rail can never be read as a promoted
+transformer.
+
+</div>
+
+<div className="qlm-next">
+<a href="./branch-diversity-research.md"><strong>Read next</strong><span>Branch diversity research</span><small>The open `branch_diversity_target` blocker and the candidate repair.</small></a>
+<a href="./forward-research-plan.md"><strong>Read next</strong><span>Forward research plan</span><small>The forward strategy through the current screen.</small></a>
+<a href="./research-implementation-map.md"><strong>Read next</strong><span>Research implementation map</span><small>Each source cluster tied to the mechanic it motivated.</small></a>
+</div>

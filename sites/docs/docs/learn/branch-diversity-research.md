@@ -5,7 +5,18 @@ description: External research and v0.115 hidden-projection evidence for QuarkLM
 
 # Branch Diversity Research
 
-Last reviewed: 2026-06-15.
+<p className="qlm-meta"><span>8 min read</span><span>For contributors</span><span>Last reviewed 2026-06-15</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- Why `branch_diversity_target` is the gate that keeps the from-scratch transformer unpromoted
+- The run-by-run evidence (v0.112 through v0.115) that narrows the failure
+- The external research consulted while choosing each next repair, and what it does and does not license
+- The decision standing for the next repair
+
+</div>
 
 Branch diversity is the current transformer bottleneck. The promotion gate
 `branch_diversity_target` fails when multi-target evaluation profiles collapse
@@ -30,10 +41,17 @@ Two facts are true at the same time and must not be merged:
 - The transformer's neural weights have not learned to route those answers, so
   promotion stays blocked.
 
-The first is `memory-served`; the second is `weight-consolidated`. Retrieval
-answering every probe proves the corpus contains the answer. It does not prove
-the transformer learned it, and this page never treats retrieved answers as
-learned weights.
+The first is `memory-served`; the second is `weight-consolidated`.
+
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
+Retrieval answering every probe proves the corpus contains the answer. It does
+not prove the transformer learned it, and this page never treats retrieved
+answers as learned weights.
+
+</div>
 
 ## The diagnostic arc
 
@@ -41,7 +59,7 @@ The recent screens stopped adding new branch objectives and instead diagnosed
 why the existing ones collapse. The sections below read newest-first; the
 underlying progression is:
 
-```text
+```text title="diagnostic-arc.txt"
 v0.112  classify the failure         -> critical target_routing_gap
 v0.113  audit the routing gap        -> output-bias escape + low separation
 v0.114  instrument logit priors      -> hidden-projection pressure, 9/9 profiles
@@ -51,6 +69,16 @@ v0.115  first repair candidate       -> hidden advantage down, gate still fails
 Each screen keeps retrieval exact at `219/219` and remains rejected on
 `branch_diversity_target`. None of them is promotion evidence; all of them are
 versioned diagnostic evidence for the next repair.
+
+<div className="qlm-keypoint">
+
+**None of these screens is promotion evidence**
+
+A repair that improved a metric by relaxing `branch_diversity_target` would not
+count. Every screen below stays rejected on the gate by design — they are
+diagnostics that narrow the next repair, not steps toward promotion.
+
+</div>
 
 ## v0.115 Evidence
 
@@ -131,6 +159,10 @@ coverage, `predicted_unique: 1`, and average target rank `22.5`.
 
 ## What External Work Suggests
 
+The sources below are design references consulted while choosing each repair.
+None of them is promotion evidence; each row records what other work does and
+the narrower implication for QuarkLM's closed-world branch gate.
+
 | Source | What others do | QuarkLM implication |
 | --- | --- | --- |
 | [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) | Shows that common decoding choices can produce bland or repetitive language even from strong likelihood-trained models. | Decoding diversity is not enough. QuarkLM needs branch diversity in the learned distribution before promotion. |
@@ -144,19 +176,26 @@ coverage, `predicted_unique: 1`, and average target rank `22.5`.
 | [OLMo](https://arxiv.org/abs/2402.00838) and [LLM360](https://arxiv.org/abs/2312.06550) | Release training code, data, checkpoints, evaluations, and intermediate artifacts. | Keep root-cause diagnostics and promotion decisions artifacted. |
 | [nanoGPT](https://github.com/karpathy/nanoGPT/blob/master/model.py) and [minGPT](https://github.com/karpathy/minGPT/blob/master/mingpt/model.py) | Use clean GPT mechanics, cross-entropy training, logits, validation loss, checkpointing, and sampling. | Structure references only; they do not directly solve QuarkLM's tiny closed-world branch gate. |
 
+:::note
+These references shape *how* the failure is instrumented and repaired. They do
+not change the gate: a screen still has to pass `branch_diversity_target` on
+QuarkLM's own closed-world corpus before the transformer is promoted.
+:::
+
 ## Taxonomy
 
 v0.112 adds `branch_diversity_target.root_cause`, v0.113 adds
-`branch_routing_audit`, and v0.114 adds `branch_logit_prior_profiles`:
+`branch_routing_audit`, and v0.114 adds `branch_logit_prior_profiles`. The
+root-cause classifier names the failure mode with one of these hypotheses:
 
-| Hypothesis | Meaning |
-| --- | --- |
-| `global_output_prior_collapse` | Multi-target profiles collapse to one shared dominant token. |
-| `profile_local_prediction_collapse` | Profiles collapse, but not to one shared token. |
-| `target_routing_gap` | At least one profile has zero target-token coverage. |
-| `target_rank_burial` | Correct targets are usually outside the top-k set. |
-| `wrong_diversity_not_target_coverage` | Predictions are diverse but miss the target tokens. |
-| `mixed_branch_diversity_gap` | Multiple weaker failure modes appear together. |
+<div className="qlm-grid">
+<div><h4><code>global_output_prior_collapse</code></h4><p>Multi-target profiles collapse to one shared dominant token.</p></div>
+<div><h4><code>profile_local_prediction_collapse</code></h4><p>Profiles collapse, but not to one shared token.</p></div>
+<div><h4><code>target_routing_gap</code></h4><p>At least one profile has zero target-token coverage.</p></div>
+<div><h4><code>target_rank_burial</code></h4><p>Correct targets are usually outside the top-k set.</p></div>
+<div><h4><code>wrong_diversity_not_target_coverage</code></h4><p>Predictions are diverse but miss the target tokens.</p></div>
+<div><h4><code>mixed_branch_diversity_gap</code></h4><p>Multiple weaker failure modes appear together.</p></div>
+</div>
 
 ## Decision
 
@@ -165,16 +204,21 @@ branch target before adding another branch objective. It must hold the existing
 gates fixed: a repair that improved a metric by relaxing
 `branch_diversity_target` would not count.
 
-1. Target hidden-projection contributions that make dominant tokens beat
-   missing target tokens.
-2. Compare prompt-to-branch hidden-state separation for failed profiles.
-3. Separate zero-coverage profiles from buried-target profiles.
-4. Add candidate construction and sampling diagnostics for profile/target
-   imbalance.
-5. Require both `branch_diversity_target.root_cause` and `branch_routing_audit`
-   to improve without relaxing `branch_diversity_target`.
+<ol className="qlm-steps">
+<li><strong>Target hidden-projection contributions</strong><p>Address the contributions that make dominant tokens beat missing target tokens.</p></li>
+<li><strong>Compare hidden-state separation</strong><p>Measure prompt-to-branch hidden-state separation for failed profiles.</p></li>
+<li><strong>Separate the failure modes</strong><p>Split zero-coverage profiles from buried-target profiles.</p></li>
+<li><strong>Add construction and sampling diagnostics</strong><p>Instrument candidate construction and sampling for profile/target imbalance.</p></li>
+<li><strong>Require both audits to improve</strong><p>Both <code>branch_diversity_target.root_cause</code> and <code>branch_routing_audit</code> must improve without relaxing <code>branch_diversity_target</code>.</p></li>
+</ol>
 
 The screen that acts on this decision is recorded in the
 [transformer screen history](../build/transformer-screen-history.md) when it
 runs. Until a screen passes the gate, the transformer stays unpromoted and
 retrieval memory remains the answering rail.
+
+<div className="qlm-next">
+<a href="../build/transformer.md"><strong>Read next</strong><span>The transformer</span><small>How the from-scratch model works and where the gate fits.</small></a>
+<a href="../build/transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>Every screen, objective name, run path, and evidence table.</small></a>
+<a href="./forward-research-plan.md"><strong>Read next</strong><span>Forward research plan</span><small>The research-backed sequence that frames the strategy.</small></a>
+</div>
