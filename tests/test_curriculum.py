@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.curriculum import build_curriculum, read_jsonl, write_curriculum
-from closed_world_lm.glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
+from curriculum import build_curriculum, read_jsonl, write_curriculum
+from glossary_probes import DEFAULT_OUTPUT as DEFAULT_GLOSSARY_PROBES
 
 
 def current_admission_count() -> int:

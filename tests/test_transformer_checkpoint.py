@@ -10,14 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.tokenizer import CharTokenizer
-from closed_world_lm.transformer_char_model import TinyTransformerLM
-from closed_world_lm.transformer_checkpoint import (
+from tokenizer import CharTokenizer
+from transformer_char_model import TinyTransformerLM
+from transformer_checkpoint import (
     checkpoint_summary,
     load_checkpoint_payload,
     validate_checkpoint_payload,
 )
-from closed_world_lm.transformer_model import (
+from transformer_model import (
     TRANSFORMER_CHECKPOINT_FORMAT,
     TransformerConfig,
 )

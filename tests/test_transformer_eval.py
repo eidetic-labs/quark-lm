@@ -10,9 +10,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.tokenizer import CharTokenizer
-from closed_world_lm.transformer_char_model import TinyTransformerLM
-from closed_world_lm.transformer_eval import (
+from tokenizer import CharTokenizer
+from transformer_char_model import TinyTransformerLM
+from transformer_eval import (
     build_transformer_eval_report,
     eval_candidates_from_records,
     load_probe_records,
@@ -21,7 +21,7 @@ from closed_world_lm.transformer_eval import (
     write_eval_report,
     write_eval_samples,
 )
-from closed_world_lm.transformer_model import GenerationConfig, TransformerConfig
+from transformer_model import GenerationConfig, TransformerConfig
 
 
 class TransformerEvalTests(unittest.TestCase):

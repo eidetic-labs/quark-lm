@@ -9,13 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.answer_decoder import (
+from answer_decoder import (
     DECODER_SELF_LEARNING_REPEATS,
     AnswerDecoder,
     build_decoder,
     decoder_training_pool,
 )
-from closed_world_lm.answer_model import AnswerExample, prompt_templates
+from answer_model import AnswerExample, prompt_templates
 
 
 class AnswerDecoderTest(unittest.TestCase):

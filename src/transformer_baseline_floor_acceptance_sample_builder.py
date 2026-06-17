@@ -1,0 +1,162 @@
+"""Build baseline-floor profile acceptance sample payloads."""
+
+from __future__ import annotations
+
+from transformer_baseline_floor_acceptance_attempt import (
+    BaselineFloorProfileAcceptanceAttempt,
+)
+from transformer_baseline_floor_acceptance_samples import (
+    BaselineFloorProfileAcceptanceSample,
+)
+from transformer_baseline_floor_probe_samples import BaselineFloorProbeSampleStreams
+
+
+def build_baseline_floor_profile_acceptance_sample(
+    attempt: BaselineFloorProfileAcceptanceAttempt,
+) -> BaselineFloorProfileAcceptanceSample:
+    return BaselineFloorProfileAcceptanceSample(
+        profile=attempt.profile,
+        records=attempt.records,
+        frontier_records=attempt.frontier_records,
+        learning_rate_scale=attempt.learning_rate_scale,
+        streams=BaselineFloorProbeSampleStreams(
+            coverage_recovery=True,
+            branch_stable_coverage_recovery=(
+                attempt.branch_stable_coverage_recovery_active
+            ),
+            branch_diversity_recovery=attempt.branch_diversity_recovery_active,
+            collapsed_profile_binding=attempt.collapsed_profile_binding_active,
+            remaining_profile_binding=attempt.remaining_profile_binding_active,
+            owner_paraphrase_binding=attempt.owner_paraphrase_binding_active,
+            memory_consolidation=attempt.memory_consolidation_active,
+            missing_first_token=attempt.missing_first_token_active,
+        ),
+        remaining_profile_binding_active=attempt.remaining_profile_binding_active,
+        remaining_profile_binding_prioritized=(
+            attempt.remaining_profile_binding_prioritized
+        ),
+        remaining_profile_binding_target_profiles=(
+            attempt.remaining_profile_binding_target_profiles
+        ),
+        remaining_profile_binding_source_profiles=(
+            attempt.remaining_profile_binding_source_profiles
+        ),
+        owner_paraphrase_binding_active=attempt.owner_paraphrase_binding_active,
+        owner_paraphrase_binding_prioritized=(
+            attempt.owner_paraphrase_binding_prioritized
+        ),
+        owner_paraphrase_binding_target_profiles=(
+            attempt.owner_paraphrase_binding_target_profiles
+        ),
+        owner_paraphrase_binding_preserved_profiles=(
+            attempt.owner_paraphrase_binding_preserved_profiles
+        ),
+        owner_paraphrase_binding_preserved=attempt.owner_paraphrase_binding_preserved,
+        owner_paraphrase_binding_preservation_delta=(
+            attempt.owner_paraphrase_binding_preservation_delta
+        ),
+        memory_consolidation_active=attempt.memory_consolidation_active,
+        memory_consolidation_prioritized=attempt.memory_consolidation_prioritized,
+        memory_consolidation_target_profiles=(
+            attempt.memory_consolidation_target_profiles
+        ),
+        memory_consolidation_source_plan=attempt.memory_consolidation_source_plan,
+        memory_consolidation_collapsed_memory_backed_profiles=(
+            attempt.memory_consolidation_collapsed_memory_backed_profiles
+        ),
+        memory_consolidation_remaining_collapsed_active=(
+            attempt.memory_consolidation_remaining_collapsed_active
+        ),
+        memory_consolidation_profile_specific_active=(
+            attempt.memory_consolidation_profile_specific_active
+        ),
+        memory_consolidation_profile_specific_missing_first_token_target_map=(
+            attempt.memory_consolidation_profile_specific_missing_first_token_target_map
+        ),
+        diversity_active=attempt.diversity_active,
+        diversity_outcome=attempt.diversity_outcome,
+        profile_score=attempt.profile_score,
+        profile_base_score=attempt.profile_base_score,
+        coverage_active=attempt.coverage_active,
+        coverage_outcome=attempt.coverage_outcome,
+        coverage_prep_accepted=attempt.coverage_prep_accepted,
+        coverage_delta=attempt.coverage_delta,
+        coverage_recovery_active=attempt.coverage_recovery_active,
+        coverage_recovery_attempted=attempt.coverage_recovery_attempted,
+        coverage_recovery_accepted=attempt.coverage_recovery_accepted,
+        coverage_recovery_outcome=attempt.coverage_recovery_outcome,
+        coverage_recovery_records=attempt.coverage_recovery_records,
+        coverage_recovery_learning_rate_scale=(
+            attempt.coverage_recovery_learning_rate_scale
+        ),
+        coverage_recovery_delta=attempt.coverage_recovery_delta,
+        branch_stable_coverage_recovery_active=(
+            attempt.branch_stable_coverage_recovery_active
+        ),
+        coverage_recovery_branch_stable_checked=(
+            attempt.coverage_recovery_branch_stable_checked
+        ),
+        coverage_recovery_branch_stable_accepted=(
+            attempt.coverage_recovery_branch_stable_accepted
+        ),
+        coverage_recovery_branch_stability_preserved=(
+            attempt.coverage_recovery_branch_stability_preserved
+        ),
+        coverage_recovery_prepared_score=attempt.coverage_recovery_prepared_score,
+        coverage_recovery_score=attempt.coverage_recovery_score,
+        branch_diversity_recovery_active=attempt.branch_diversity_recovery_active,
+        branch_diversity_recovery_attempted=(
+            attempt.branch_diversity_recovery_attempted
+        ),
+        branch_diversity_recovery_accepted=(
+            attempt.branch_diversity_recovery_accepted
+        ),
+        branch_diversity_recovery_outcome=attempt.branch_diversity_recovery_outcome,
+        branch_diversity_recovery_rejection_reason=(
+            attempt.branch_diversity_recovery_rejection_reason
+        ),
+        branch_diversity_recovery_learning_rate_scale=(
+            attempt.branch_diversity_recovery_learning_rate_scale
+        ),
+        branch_diversity_recovery_records=attempt.branch_diversity_recovery_records,
+        branch_diversity_recovery_base_score=(
+            attempt.branch_diversity_recovery_base_score
+        ),
+        branch_diversity_recovery_score=attempt.branch_diversity_recovery_score,
+        branch_diversity_recovery_delta=attempt.branch_diversity_recovery_delta,
+        collapsed_profile_binding_active=attempt.collapsed_profile_binding_active,
+        collapsed_profile_binding_attempted=attempt.collapsed_profile_binding_attempted,
+        collapsed_profile_binding_accepted=attempt.collapsed_profile_binding_accepted,
+        collapsed_profile_binding_outcome=attempt.collapsed_profile_binding_outcome,
+        collapsed_profile_binding_target_profiles=(
+            attempt.collapsed_profile_binding_target_profiles
+        ),
+        collapsed_profile_binding_rejection_reason=(
+            attempt.collapsed_profile_binding_rejection_reason
+        ),
+        collapsed_profile_binding_learning_rate_scale=(
+            attempt.collapsed_profile_binding_learning_rate_scale
+        ),
+        collapsed_profile_binding_records=attempt.collapsed_profile_binding_records,
+        collapsed_profile_binding_base_score=(
+            attempt.collapsed_profile_binding_base_score
+        ),
+        collapsed_profile_binding_score=attempt.collapsed_profile_binding_score,
+        collapsed_profile_binding_delta=attempt.collapsed_profile_binding_delta,
+        missing_first_token_active=attempt.missing_first_token_active,
+        missing_first_token_attempted=attempt.missing_first_token_attempted,
+        missing_first_token_accepted=attempt.missing_first_token_accepted,
+        missing_first_token_outcome=attempt.missing_first_token_outcome,
+        missing_first_token_target_profiles=attempt.missing_first_token_target_profiles,
+        missing_first_token_target_ids=attempt.missing_first_token_target_ids,
+        missing_first_token_profile_specific=attempt.missing_first_token_profile_specific,
+        missing_first_token_rejection_reason=attempt.missing_first_token_rejection_reason,
+        missing_first_token_learning_rate_scale=(
+            attempt.missing_first_token_learning_rate_scale
+        ),
+        missing_first_token_records=attempt.missing_first_token_records,
+        missing_first_token_base_score=attempt.missing_first_token_base_score,
+        missing_first_token_score=attempt.missing_first_token_score,
+        missing_first_token_delta=attempt.missing_first_token_delta,
+    )
+

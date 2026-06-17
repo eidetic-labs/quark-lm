@@ -11,14 +11,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.transformer_objectives import (
+from transformer_objectives import (
     DIRECT_ANSWER_OBJECTIVE_MODES,
     DirectAnswerObjectiveRegistry,
     PERIODIC_DIRECT_ANSWER_OBJECTIVE_MODES,
     staged_unlikelihood_objective_name,
     validate_direct_answer_objective_mode,
 )
-from closed_world_lm.transformer_training import (
+from transformer_training import (
     JsonlHistoryWriter,
     LossAccumulator,
     ShuffledTrainingCursor,

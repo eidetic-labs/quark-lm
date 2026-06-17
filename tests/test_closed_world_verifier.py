@@ -11,21 +11,23 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.candidate_quarantine import (
+from candidate_quarantine import (
     build_candidate_quarantine_manifest,
     candidate_quarantine_summary,
     candidate_record,
 )
-from closed_world_lm.closed_world_verifier import (
-    attach_verifier_summary,
-    verifier_report_summary,
+from closed_world_candidate_verifier import (
     verify_candidate_quarantine_manifest,
     verify_candidate_record,
-    verify_training_plan,
+)
+from closed_world_training_plan_verifier import verify_training_plan
+from closed_world_verifier_reports import (
+    attach_verifier_summary,
+    verifier_report_summary,
     write_verifier_report,
 )
-from closed_world_lm.corpus_hygiene import build_training_plan
-from closed_world_lm.respond import CorpusResponder
+from corpus_hygiene import build_training_plan
+from respond import CorpusResponder
 
 
 class ClosedWorldVerifierTest(unittest.TestCase):

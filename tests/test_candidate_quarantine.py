@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.candidate_quarantine import (
+from candidate_quarantine import (
     build_candidate_quarantine_manifest,
     candidate_id_from_parts,
     candidate_quarantine_summary,

@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.memory_consolidation import (
+from memory_consolidation import (
     build_memory_consolidation_plan,
     write_memory_consolidation_plan,
 )

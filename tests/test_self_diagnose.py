@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.self_diagnose import diagnose_report, main, parse_args
+from self_diagnose import diagnose_report, main, parse_args
 
 
 class SelfDiagnoseTest(unittest.TestCase):
@@ -89,11 +89,11 @@ class SelfDiagnoseTest(unittest.TestCase):
 
         self.assertEqual(
             commands["regenerate_admission_probes"],
-            "PYTHONPATH=src python3 -m closed_world_lm.admission_probes",
+            "PYTHONPATH=src python3 -m admission_probes",
         )
         self.assertEqual(
             commands["regenerate_glossary_probes"],
-            "PYTHONPATH=src python3 -m closed_world_lm.glossary_probes",
+            "PYTHONPATH=src python3 -m glossary_probes",
         )
 
     def test_json_flag_can_be_stdout_only_or_write_path(self) -> None:

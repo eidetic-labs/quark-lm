@@ -9,7 +9,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.transformer_experiment import (
+from transformer_experiment import (
     TRAINING_DATA_DESCRIPTION,
     TRANSFORMER_RECIPE_VERSION,
     TransformerRunArtifacts,

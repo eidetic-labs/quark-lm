@@ -11,7 +11,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.replay_plan import (
+from replay_plan import (
     branch_replay_parts,
     branch_replay_plan,
     direct_answer_profile_key,

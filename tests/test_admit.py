@@ -11,8 +11,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.admit import AdmittedFact, append_admission, append_admissions, main
-from closed_world_lm.curriculum import read_jsonl
+from admit import AdmittedFact, append_admission, append_admissions, main
+from curriculum import read_jsonl
 
 
 class AdmitTest(unittest.TestCase):

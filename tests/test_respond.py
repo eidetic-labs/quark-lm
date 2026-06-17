@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.curriculum import build_curriculum
-from closed_world_lm.respond import CorpusResponder
+from curriculum import build_curriculum
+from respond import CorpusResponder
 
 
 class RespondTest(unittest.TestCase):

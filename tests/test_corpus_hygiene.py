@@ -11,7 +11,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from closed_world_lm.corpus_hygiene import (
+from corpus_hygiene import (
     attach_replay_plan_summary,
     build_corpus_hygiene_report,
     build_training_plan,
@@ -19,7 +19,7 @@ from closed_world_lm.corpus_hygiene import (
     source_mixture,
     train_eval_overlap,
 )
-from closed_world_lm.candidate_quarantine import (
+from candidate_quarantine import (
     build_candidate_quarantine_manifest,
     candidate_quarantine_summary,
 )

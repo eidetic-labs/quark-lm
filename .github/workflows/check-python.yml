@@ -1,0 +1,36 @@
+name: Check QuarkLM Python
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'package.json'
+      - '.github/workflows/check-python.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'package.json'
+      - '.github/workflows/check-python.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m compileall -q src tests scripts
+      - run: PYTHONPATH=src python3 -m unittest discover -s tests
+      - run: python3 scripts/check_release_gate.py --version v0.115.0-alpha.1
