@@ -7,10 +7,50 @@ description: External research and v0.115 hidden-projection evidence for QuarkLM
 
 Last reviewed: 2026-06-15.
 
-QuarkLM's branch-diversity problem is the current transformer bottleneck.
-Retrieval memory can serve the admitted corpus exactly, and guarded weight
-updates can be accepted locally, but the transformer still predicts too few
-branch tokens across multi-target profiles.
+Branch diversity is the current transformer bottleneck. The promotion gate
+`branch_diversity_target` fails when multi-target evaluation profiles collapse
+to too few predicted branch tokens: the model learns to predict one dominant
+token rather than routing each prompt to its own answer. Until that gate
+passes, the from-scratch transformer is not promoted. See
+[Transformer](../build/transformer.md) for how the gate fits the wider model.
+
+This page is the standing record of two things: the run-by-run evidence that
+narrows the failure, and the external research consulted while choosing each
+next repair. It is the diagnostic companion to the
+[transformer screen history](../build/transformer-screen-history.md), which
+lists every screen, and to the [forward research plan](./forward-research-plan.md)
+and [deep research review](./deep-research-review.md), which frame the strategy.
+
+## The distinction this page protects
+
+Two facts are true at the same time and must not be merged:
+
+- Retrieval memory serves the admitted corpus exactly, answering `219/219`
+  evaluation probes with provenance and no weight updates.
+- The transformer's neural weights have not learned to route those answers, so
+  promotion stays blocked.
+
+The first is `memory-served`; the second is `weight-consolidated`. Retrieval
+answering every probe proves the corpus contains the answer. It does not prove
+the transformer learned it, and this page never treats retrieved answers as
+learned weights.
+
+## The diagnostic arc
+
+The recent screens stopped adding new branch objectives and instead diagnosed
+why the existing ones collapse. The sections below read newest-first; the
+underlying progression is:
+
+```text
+v0.112  classify the failure         -> critical target_routing_gap
+v0.113  audit the routing gap        -> output-bias escape + low separation
+v0.114  instrument logit priors      -> hidden-projection pressure, 9/9 profiles
+v0.115  first repair candidate       -> hidden advantage down, gate still fails
+```
+
+Each screen keeps retrieval exact at `219/219` and remains rejected on
+`branch_diversity_target`. None of them is promotion evidence; all of them are
+versioned diagnostic evidence for the next repair.
 
 ## v0.115 Evidence
 
@@ -120,8 +160,10 @@ v0.112 adds `branch_diversity_target.root_cause`, v0.113 adds
 
 ## Decision
 
-The next repair should instrument the route from prompt evidence to branch
-target before adding another branch objective:
+The next repair continues to instrument the route from prompt evidence to
+branch target before adding another branch objective. It must hold the existing
+gates fixed: a repair that improved a metric by relaxing
+`branch_diversity_target` would not count.
 
 1. Target hidden-projection contributions that make dominant tokens beat
    missing target tokens.
@@ -131,3 +173,8 @@ target before adding another branch objective:
    imbalance.
 5. Require both `branch_diversity_target.root_cause` and `branch_routing_audit`
    to improve without relaxing `branch_diversity_target`.
+
+The screen that acts on this decision is recorded in the
+[transformer screen history](../build/transformer-screen-history.md) when it
+runs. Until a screen passes the gate, the transformer stays unpromoted and
+retrieval memory remains the answering rail.

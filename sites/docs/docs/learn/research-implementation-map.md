@@ -8,266 +8,160 @@ description: The v0.74 cross-referenced map from papers and open-source mechanic
 Last reviewed: 2026-06-14.
 
 The full map lives in the repository root at `RESEARCH_IMPLEMENTATION_MAP.md`.
+This page is the durable summary: what the map is, why it exists, and which work
+it has driven since v0.74.
 
-v0.74 is a research-control checkpoint. It does not claim better model
-behavior. It records the source-backed implementation map that should guide the
-next mechanics before another larger transformer repair run.
+## What v0.74 records
 
-## Why It Exists
+v0.74 is a research-control checkpoint. It makes no claim about model behavior.
+It records a cross-referenced ledger that ties external research and public
+open-source mechanics to QuarkLM's own gaps and to the next versioned work,
+before any larger transformer repair run.
 
-The project already had a forward plan and a deep research review. The missing
-piece was a direct implementation ledger:
+The project already had a forward plan
+([Forward research plan](./forward-research-plan.md)) and a deep research review
+([Deep research review](./deep-research-review.md)). The missing piece was a
+direct implementation ledger with five columns:
 
-- research cluster;
-- public implementation pattern;
-- QuarkLM gap;
-- required mechanic;
-- acceptance evidence.
+| Column | What it answers |
+| --- | --- |
+| Research cluster | Which published work the mechanic draws on. |
+| Public implementation pattern | How comparable open systems structure that piece. |
+| QuarkLM gap | What the current codebase is missing. |
+| Required mechanic | The versioned change that closes the gap. |
+| Acceptance evidence | The artifact that proves it worked or rejected the run. |
 
-That ledger prevents QuarkLM from drifting into knob turning. Each new version
-should now connect to a stated research and implementation reason.
+That ledger keeps QuarkLM from drifting into knob turning. Each new version now
+connects to a stated research and implementation reason rather than to an
+unexplained metric move.
 
-## Source Clusters
+## Source clusters
 
-The v0.74 map cross-references:
+The map cross-references design references only. No source listed below enters
+QuarkLM as weights, tokenizers, embeddings, datasets, copied code, or
+external-model-shaped training text.
 
-- transformer language modeling from the original Transformer paper, GPT-style
-  decoder practice, nanoGPT, llm.c, GPT-NeoX, and OLMo;
-- continual-learning and catastrophic-forgetting work, including EWC and
-  lifelong-learning surveys;
-- small-data language-learning work such as BabyLM and TinyStories;
-- self-generated data methods such as Self-Instruct, STaR, Self-Refine, and
-  Reflexion;
-- verifier and process-supervision work such as GSM8K verifiers and process
-  reward models;
-- data curation and contamination work from The Pile, Dolma, DataComp-LM, and
-  Open-Instruct;
-- tokenizer work from BPE, SentencePiece, and byte-level subword systems;
-- transparent open-model practice from Pythia, OLMo, OLMo 2, and LLM360.
+| Cluster | Representative references |
+| --- | --- |
+| Transformer language modeling | the original Transformer paper, GPT-style decoder practice, nanoGPT, llm.c, GPT-NeoX, OLMo. |
+| Continual learning and catastrophic forgetting | EWC and lifelong-learning surveys. |
+| Small-data language learning | BabyLM, TinyStories. |
+| Self-generated data methods | Self-Instruct, STaR, Self-Refine, Reflexion. |
+| Verifiers and process supervision | GSM8K verifiers, process reward models. |
+| Data curation and contamination | The Pile, Dolma, DataComp-LM, Open-Instruct. |
+| Tokenizers | BPE, SentencePiece, byte-level subword systems. |
+| Transparent open-model practice | Pythia, OLMo, OLMo 2, LLM360. |
 
-These are design references only. QuarkLM still forbids pretrained weights,
-pretrained tokenizers, external embeddings, external datasets, copied code, and
-external-model-shaped training data.
+[Research grounding](./research-grounding.md) holds the per-paper map and the
+QuarkLM implication drawn from each cluster.
 
-## Implementation Decision
+## How the map is used
 
-QuarkLM should continue the self-improvement operating system before another
-direct-answer objective mode:
+Each mechanic in the ladder is constrained by the same boundary, so a research
+reference can guide design without crossing into QuarkLM's training data.
 
-1. **v0.75:** candidate quarantine artifacts and lifecycle states. Implemented.
-2. **v0.76:** deterministic closed-world verifier checks. Implemented.
-3. **v0.77:** recipe objects and constraint-first promotion gates. Implemented.
-4. **v0.78:** transformer responsibility surfaces for experiments,
-   artifacts, trainer utilities, and objective catalog. Implemented.
-5. **v0.79:** transformer model/config and checkpoint metadata surfaces.
-   Implemented.
-6. **v0.80:** transformer eval/checkpoint-load surfaces. Implemented.
-7. **v0.81:** profile target-share anti-collapse objective. Implemented.
-8. **v0.82:** profile target-share full-stack screen. Implemented and
-   rejected.
-9. **v0.83:** prompt-specific branch ownership. Implemented and rejected.
-10. **v0.84:** baseline replay anchors. Implemented and rejected.
-11. **v0.85:** baseline-floor update gating. Implemented and rejected.
-12. **v0.86:** adaptive baseline-floor retries. Implemented and rejected.
-13. **v0.87:** baseline-floor repair retries. Implemented and rejected.
-14. **v0.88:** objective-side baseline-floor anchors. Implemented and rejected.
-15. **v0.89:** stabilization-only baseline-floor updates. Implemented and
-   rejected.
-16. **v0.90:** baseline-floor rejection diagnostics. Implemented.
-17. **v0.91:** profile-targeted floor stabilization. Implemented and rejected.
-18. **v0.92:** sequential source-profile floor stabilization. Implemented and
-   rejected.
-19. **v0.93:** calibrated sequential profile-floor stabilization. Implemented
-   with one accepted guarded update; rejected for promotion.
-20. **v0.94:** profile-scale calibrated floor stabilization. Implemented with
-   eight accepted guarded source-profile updates; rejected for promotion.
-21. **v0.95:** diversity-aware profile-scale acceptance. Implemented with
-   five accepted score-improving source-profile updates; rejected for promotion.
-22. **v0.96:** frontier-driven branch diversity under the full baseline
-   target-token floor. Implemented with nine score-improving source-profile
-   updates; rejected for promotion.
-23. **v0.97:** coverage-frontier audited missing-target repair. Implemented
-   with one coverage-gaining update; rejected for promotion.
-24. **v0.98:** coverage-prep frontier repair. Implemented with six safe
-   preparation moves; rejected for promotion.
-25. **v0.99:** coverage-recovery frontier retry. Implemented with two recovery
-   conversions; rejected for promotion.
-26. **v0.100.0:** branch-stable coverage recovery. Implemented with two
-   branch-stable recovery conversions; rejected for promotion.
-27. **v0.101.0:** branch-diversity recovery. Implemented with five local
-   branch-score refinements; rejected for promotion.
-28. **v0.102.0:** collapsed-profile binding. Implemented with one targeted
-   binding update and three remaining collapsed eval profiles; rejected for
-   promotion.
-29. **v0.103.0:** remaining-profile binding. Implemented with six prioritized
-   remaining-profile acceptances and a learning coverage gain; rejected for
-   promotion.
-30. **v0.104.0:** owner/paraphrase residual binding. Implemented with six
-   prioritized acceptances and protected-learning rejection evidence; rejected
-   for promotion.
-31. **v0.105.0:** closed-world retrieval memory. Implemented with a corpus-only
-   `retrieval_memory_report.json` artifact, `497` memory cards, and `219/219`
-   exact retrieval evals without external embeddings or weight updates.
-32. **v0.106.0:** memory-guided consolidation planning. Implemented with
-   `memory_consolidation_plan.json`, `9` memory-backed neural failed profiles,
-   and top priorities `owner`, `paraphrases`, `glossary`,
-   `admission_paraphrases`, and `admissions`.
-33. **v0.107.0:** gated memory-consolidation training. Implemented with a
-   declared source consolidation plan, consumed targets `owner`, `paraphrases`,
-   and `glossary`, and `26` prioritized attempts with `8` acceptances and `18`
-   rejections; rejected for promotion on `branch_diversity_target`.
-34. **v0.108.0:** expanded memory-consolidation target window. Implemented with
-   target-profile-to-source-label mapping and a five-profile source-plan screen
-   for `owner`, `paraphrases`, `heldout`, `qa`, and `glossary`; rejected for
-   promotion on `branch_diversity_target`.
-35. **v0.109.0:** missing first-token memory-consolidation pressure.
-   Implemented with plan-derived missing first-token maps, `8` candidates,
-   `22` attempts, `1` accepted guarded coverage-gain update, `21` rejections,
-   `7` fallback acceptances, and exact `219/219` retrieval; rejected for
-   promotion on `branch_diversity_target`.
-36. **v0.110.0:** remaining-collapsed missing first-token targeting.
-   Implemented with an explicit source-plan collapsed-profile requirement,
-   consumed targets `owner`, `paraphrases`, and `learning`, `6` candidates,
-   `16` attempts, `1` accepted guarded coverage-gain update, `15` rejections,
-   `5` fallback acceptances, and exact `219/219` retrieval; rejected for
-   promotion on `branch_diversity_target`.
-37. **v0.111.0:** profile-specific remaining-collapsed missing first-token
-   pressure. Implemented with source-label-to-target-profile maps,
-   `6` candidates, `18` attempts, `0` direct missing-token acceptances, `18`
-   rejections, `6` fallbacks, `1` accepted profile-specific update shape, and
-   exact `219/219` retrieval; rejected for promotion on
-   `branch_diversity_target`.
-38. **v0.112.0:** branch-diversity root-cause diagnostics. Implemented with
-   `BRANCH_DIVERSITY_RESEARCH.md`, Learn docs, root-cause taxonomy under
-   `branch_diversity_target.root_cause`, `24` profile-specific missing-token
-   attempts, `0` direct missing-token acceptances, `8` fallbacks, exact
-   `219/219` retrieval, and a critical `target_routing_gap` diagnosis;
-   rejected for promotion on `branch_diversity_target`.
-39. **v0.113.0:** branch routing audit diagnostics. Implemented with
-   `branch_routing_audit` under direct-answer snapshots, output-bias escape
-   risk, prompt-to-branch representation separation, and target-imbalance
-   summaries; rejected for promotion on `branch_diversity_target`.
-40. **v0.114.0:** logit-prior and centroid-separation instrumentation.
-   Implemented with `branch_logit_prior_profiles`, centroid-distance and
-   centroid-margin summaries, and `branch_routing_audit.logit_prior`; rejected
-   for promotion on `branch_diversity_target`.
-41. **v0.115.0:** hidden-projection margin candidate. Implemented with
-   `branch-hidden-projection-margin-unlikelihood`, parser/dispatch support,
-   focused tests, and a one-step output-bias-frozen screen; rejected for
-   promotion on `branch_diversity_target`.
+- Papers, official project docs, and public repositories are studied as
+  structure references.
+- The codebase is compared against those references.
+- The comparison becomes a versioned implementation requirement with declared
+  acceptance evidence.
 
-## Current Gap
+What the map explicitly forbids: copying outside code; importing pretrained
+weights, tokenizers, embeddings, or datasets; using an external model as a
+teacher, verifier, judge, reward model, or repair generator; and treating
+retrieval, exact responders, generated candidates, or research notes as proof
+that the neural weights learned a behavior.
 
-QuarkLM already has:
+## Implementation ladder
 
-- v0.71 experiment intent;
-- v0.72 replay planning;
-- v0.73 corpus hygiene and training plans;
-- v0.75 candidate quarantine artifacts and lifecycle states;
-- v0.76 deterministic closed-world verifier checks;
-- v0.77 recipe objects and constraint-first promotion gates.
-- v0.78 transformer experiment/artifact surfaces, trainer utilities, and
-  direct-answer objective catalog.
-- v0.79 transformer model/config and checkpoint metadata surfaces.
-- v0.80 transformer eval/checkpoint-load surfaces.
-- v0.81 profile target-share objective mode:
-  `branch-balanced-context-profile-target-share-preserving-deficit-unlikelihood`.
-- v0.82 full target-share screen evidence:
-  `runs/transformer-answer-v0.82-fullstack-profile-target-share-smoke-dim4-context80/`.
-- v0.83 prompt-specific ownership mode:
-  `branch-balanced-context-profile-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.83 full prompt-ownership screen evidence:
-  `runs/transformer-answer-v0.83-fullstack-prompt-ownership-smoke-dim4-context80/`.
-- v0.84 baseline-anchored prompt-ownership mode:
-  `branch-balanced-context-profile-baseline-anchored-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.84 full baseline-anchor screen evidence:
-  `runs/transformer-answer-v0.84-fullstack-baseline-anchored-prompt-ownership-smoke-dim4-context80/`.
-- v0.85 baseline-floor update-gated prompt-ownership mode:
-  `branch-balanced-context-profile-baseline-floor-gated-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.85 full baseline-floor update-gate screen evidence:
-  `runs/transformer-answer-v0.85-fullstack-baseline-floor-gated-prompt-ownership-smoke-dim4-context80/`.
-- v0.86 adaptive baseline-floor prompt-ownership mode:
-  `branch-balanced-context-profile-baseline-floor-adaptive-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.86 full adaptive baseline-floor screen evidence:
-  `runs/transformer-answer-v0.86-fullstack-baseline-floor-adaptive-prompt-ownership-smoke-dim4-context80/`.
-- v0.87 baseline-floor repaired prompt-ownership mode:
-  `branch-balanced-context-profile-baseline-floor-repaired-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.87 clean full repaired baseline-floor screen evidence:
-  `runs/transformer-answer-v0.87-fullstack-baseline-floor-repaired-prompt-ownership-clean-smoke-dim4-context80/`.
-- v0.88 baseline-floor objective prompt-ownership mode:
-  `branch-balanced-context-profile-baseline-floor-objective-prompt-ownership-target-share-preserving-deficit-unlikelihood`.
-- v0.88 full baseline-floor objective screen evidence:
-  `runs/transformer-answer-v0.88-fullstack-baseline-floor-objective-prompt-ownership-smoke-dim4-context80/`.
-- v0.89 baseline-floor stabilization mode:
-  `branch-context-profile-baseline-floor-stabilization-unlikelihood`.
-- v0.89 full baseline-floor stabilization screen evidence:
-  `runs/transformer-answer-v0.89-fullstack-baseline-floor-stabilization-smoke-dim4-context80/`.
-- v0.90 baseline-floor rejection diagnostic evidence:
-  `runs/transformer-answer-v0.90-fullstack-baseline-floor-stabilization-diagnostics-smoke-dim4-context80/`.
-- v0.91 profile-targeted baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.91-fullstack-baseline-floor-profile-targeted-stabilization-smoke-dim4-context80/`.
-- v0.92 sequential source-profile baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.92-fullstack-baseline-floor-sequential-profile-stabilization-smoke-dim4-context80/`.
-- v0.93 calibrated sequential baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.93-baseline-floor-calibrated-sequential-profile-stabilization-step1-dim4-context80/`.
-- v0.94 profile-scale calibrated baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.94-baseline-floor-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.95 diversity-aware profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.95-baseline-floor-diversity-profile-scale-calibrated-sequential-stabilization-configured-step1-dim4-context80/`.
-- v0.96 frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.96-baseline-floor-diversity-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.97 coverage-frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.97-baseline-floor-diversity-coverage-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.98 coverage-prep frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.98-baseline-floor-diversity-coverage-prep-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.99 coverage-recovery frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.99-baseline-floor-diversity-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.100.0 branch-stable coverage-recovery frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.100.0-baseline-floor-diversity-branch-stable-coverage-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.101.0 branch-diversity recovery frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.101.0-baseline-floor-diversity-branch-diversity-recovery-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.102.0 collapsed-profile binding frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.102.0-baseline-floor-diversity-collapsed-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.103.0 remaining-profile binding frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.103.0-baseline-floor-diversity-remaining-profile-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.104.0 owner/paraphrase binding frontier profile-scale baseline-floor stabilization evidence:
-  `runs/transformer-answer-v0.104.0-baseline-floor-diversity-owner-paraphrase-binding-frontier-profile-scale-calibrated-sequential-stabilization-step1-dim4-context80/`.
-- v0.105.0 closed-world retrieval memory evidence:
-  `runs/transformer-answer-v0.105.0-retrieval-memory-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
-- v0.106.0 memory-guided consolidation planning evidence:
-  `runs/transformer-answer-v0.106.0-memory-guided-consolidation-owner-paraphrase-frontier-profile-scale-step1-dim4-context80/`.
-- v0.107.0 gated memory-consolidation training evidence:
-  `runs/transformer-answer-v0.107.0-gated-memory-consolidation-owner-paraphrase-glossary-frontier-profile-scale-step1-dim4-context80/`.
-- v0.108.0 expanded memory-consolidation target-window evidence:
-  `runs/transformer-answer-v0.108.0-expanded-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
-- v0.109.0 missing first-token memory-consolidation evidence:
-  `runs/transformer-answer-v0.109.0-missing-first-token-memory-consolidation-owner-paraphrase-heldout-qa-glossary-frontier-profile-scale-step1-dim4-context80/`.
-- v0.110.0 remaining-collapsed missing-token evidence:
-  `runs/transformer-answer-v0.110.0-remaining-collapsed-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
-- v0.111.0 profile-specific remaining-collapsed missing-token evidence:
-  `runs/transformer-answer-v0.111.0-profile-specific-missing-first-token-memory-consolidation-owner-paraphrase-learning-frontier-profile-scale-step1-dim4-context80/`.
-- v0.112.0 branch-diversity root-cause evidence:
-  `runs/transformer-answer-v0.112.0-branch-diversity-root-cause-profile-specific-memory-consolidation-step1-dim4-context80/`.
-- v0.113.0 branch-routing audit evidence:
-  `runs/transformer-answer-v0.113.0-branch-routing-audit-profile-specific-memory-consolidation-step1-dim4-context80/`.
-- v0.114.0 logit-prior instrumentation evidence:
-  `runs/transformer-answer-v0.114.0-logit-prior-representation-instrumentation-profile-specific-memory-consolidation-step1-dim4-context80/`.
-- v0.115.0 hidden-projection margin candidate evidence:
-  `runs/transformer-answer-v0.115.0-hidden-projection-margin-candidate-step1-dim4-context80/`.
+The map directs QuarkLM to build the self-improvement operating system before
+adding another direct-answer objective mode. The work falls into three phases.
 
-It still needs:
+### Operating-system surfaces (v0.75–v0.80)
 
-- a broader guarded routing repair that uses v0.115.0 hidden-projection
-  evidence to improve zero-coverage profiles and buried-target profiles without
-  regressing retrieval provenance or relaxing promotion gates.
+These versions install the auditable surfaces that every later screen depends
+on. They are implemented and not in dispute.
 
-## Operating Rule
+| Version | Mechanic |
+| --- | --- |
+| v0.75 | Candidate quarantine artifacts and lifecycle states. See [Candidate quarantine](../operate/candidate-quarantine.md). |
+| v0.76 | Deterministic closed-world verifier checks. See [Closed-world verifier](../operate/closed-world-verifier.md). |
+| v0.77 | Recipe objects and constraint-first promotion gates. See [Training recipes](../operate/training-recipes.md). |
+| v0.78 | Transformer experiment, artifact, trainer-utility, and objective-catalog surfaces. |
+| v0.79 | Transformer model/config and checkpoint-metadata surfaces. |
+| v0.80 | Transformer eval and checkpoint-load surfaces. |
 
-Every future mechanics version should answer three questions:
+### Branch-diversity repair attempts (v0.81–v0.104)
+
+With the surfaces in place, the map drove a long sequence of guarded
+direct-answer objectives aimed at one problem: multi-target eval profiles
+collapse to too few predicted branch tokens. Each attempt is recorded as
+versioned diagnostic evidence; most are implemented and rejected for promotion.
+
+The arc moved in a consistent direction. Early objectives added profile
+target-share and prompt-ownership pressure (v0.81–v0.83) but trained snapshots
+still lost target-token coverage. Baseline-floor work (v0.84–v0.92) then made
+coverage preservation an update-acceptance rule; under that floor every
+attempted update was rejected, which proved the repair *shape* itself had to
+change. Calibrated smaller updates (v0.93–v0.95) produced the first accepted
+guarded source-profile movements that preserved the floor, and frontier and
+coverage-recovery work (v0.96–v0.104) converted some of that safe movement into
+local coverage gains while branch diversity stayed below the gate.
+
+No screen in this phase promoted. Each one tightened what the next attempt was
+allowed to claim.
+
+### Memory rail and routing diagnostics (v0.105–v0.115)
+
+v0.105 separated the memory rail from neural consolidation explicitly:
+closed-world retrieval memory built a corpus-only `retrieval_memory_report.json`
+with `497` memory cards and `219/219` exact retrieval evals, with no external
+embeddings and no weight updates. That evidence is `memory-served`, not
+`weight-consolidated`; it proves the corpus contains the answers, not that the
+transformer learned to route them.
+
+The versions that follow used that separation to guide gated consolidation and
+then to diagnose why consolidation keeps failing.
+
+| Version | Mechanic | Outcome |
+| --- | --- | --- |
+| v0.105 | Closed-world retrieval memory. | `497` cards, `219/219` exact retrieval, no weight updates. |
+| v0.106 | Memory-guided consolidation planning. | Ranked `9` memory-served, neural-failed profiles into a target list. |
+| v0.107–v0.111 | Gated memory-consolidation training under that plan. | Guarded acceptances on individual source profiles; retrieval stays exact at `219/219`; rejected on `branch_diversity_target`. |
+| v0.112 | Branch-diversity root-cause diagnostics. | Critical `target_routing_gap` diagnosis. |
+| v0.113 | Branch routing audit. | High output-bias escape risk, low representation separation across `9/9` profiles, `glossary` imbalance. |
+| v0.114 | Logit-prior and centroid-separation instrumentation. | Dominant-token wins decompose as hidden-projection pressure across `9/9` profiles. |
+| v0.115 | Hidden-projection margin candidate. | Lowers collapsed-token hidden advantage; still rejected on `branch_diversity_target`. |
+
+The diagnosis is now precise: the failure is a routing gap, not missing loss
+movement. [Branch diversity research](./branch-diversity-research.md) holds the
+per-version evidence, and [Transformer screen history](../build/transformer-screen-history.md)
+holds the full run-by-run log and objective names.
+
+## Current gap
+
+The operating-system surfaces are built and the routing failure is
+instrumented down to hidden-projection pressure. What remains is a single
+required mechanic:
+
+- a broader guarded routing repair that uses the v0.115 hidden-projection
+  evidence to improve zero-coverage and buried-target profiles, without
+  regressing retrieval provenance and without relaxing the promotion gates.
+
+Until that mechanic clears `branch_diversity_target`, the from-scratch
+transformer stays unpromoted, and the docs say so plainly. See
+[Transformer](../build/transformer.md) for the current status and evidence
+table.
+
+## Operating rule
+
+Every future mechanics version must answer three questions before it is added
+to the ladder:
 
 1. Which research or implementation pattern justifies this mechanic?
 2. Which closed-world boundary does it protect?
-3. Which artifact proves it worked or rejected the run?
+3. Which artifact proves it worked, or recorded the rejected run?
 
-That is how QuarkLM keeps the claim clean: the model grows from its admitted
-dataset, and the project keeps enough evidence to prove what changed.
+That is how QuarkLM keeps the claim clean. The model grows only from its
+admitted, ledgered corpus, and the project keeps enough evidence to show
+exactly what each version changed and what it did not.

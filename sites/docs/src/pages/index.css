@@ -3,20 +3,22 @@
   --q-paper: #ffffff;
   --q-muted: #4a4a4a;
   --q-line: #e5e5e5;
-  --q-lavender: #b4ace6;
-  --q-lavender-deep: #7c72c7;
-  --q-lavender-tint: #eae6f8;
-  --q-indigo: #818cf8;
+  --q-accent: #0891b2;
+  --q-accent-soft: #22d3ee;
+  --q-accent-tint: #cffafe;
+  --q-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   color: var(--q-ink);
   background: var(--q-paper);
 }
 
 [data-theme='dark'] .qdocs-home {
   --q-ink: #ffffff;
-  --q-paper: #070912;
-  --q-muted: #c8c8d0;
-  --q-line: rgba(255, 255, 255, 0.16);
-  --q-lavender-tint: rgba(180, 172, 230, 0.14);
+  --q-paper: #07090f;
+  --q-muted: #aab2c0;
+  --q-line: rgba(255, 255, 255, 0.14);
+  --q-accent: #22d3ee;
+  --q-accent-soft: #67e8f9;
+  --q-accent-tint: rgba(34, 211, 238, 0.13);
 }
 
 .qdocs-hero {
@@ -33,12 +35,11 @@
 .qdocs-hero__grid {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--q-line) 76%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--q-line) 76%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
+  background-image: radial-gradient(color-mix(in srgb, var(--q-accent) 22%, transparent) 1px, transparent 1.4px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
   pointer-events: none;
+  opacity: 0.7;
 }
 
 .qdocs-hero__copy,
@@ -55,9 +56,10 @@
   gap: 10px;
   margin: 0 0 18px;
   color: var(--q-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-family: var(--q-mono);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
@@ -65,15 +67,16 @@
   width: 8px;
   height: 8px;
   border-radius: 99px;
-  background: var(--q-lavender-deep);
-  box-shadow: 0 0 0 6px var(--q-lavender-tint);
+  background: var(--q-accent);
+  box-shadow: 0 0 0 5px var(--q-accent-tint), 0 0 12px var(--q-accent);
 }
 
 .qdocs-hero h1 {
   margin: 0;
   font-size: clamp(4rem, 9vw, 7.6rem);
   line-height: 0.92;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
+  font-weight: 500;
 }
 
 .qdocs-hero h1 span {
@@ -81,7 +84,7 @@
 }
 
 .qdocs-accent {
-  color: var(--q-lavender-deep);
+  color: var(--q-accent);
 }
 
 .qdocs-lede {
@@ -108,7 +111,7 @@
   padding: 0 18px;
   border: 1px solid var(--q-line);
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
 }
 
@@ -117,9 +120,9 @@
 }
 
 .qdocs-button--primary {
-  background: var(--q-ink);
-  color: var(--q-paper);
-  border-color: var(--q-ink);
+  background: var(--q-accent);
+  color: #04222b;
+  border-color: var(--q-accent);
 }
 
 .qdocs-button--ghost {
@@ -134,9 +137,10 @@
   padding: 0 16px;
   border: 1px solid var(--q-line);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--q-lavender-tint) 52%, transparent);
+  background: color-mix(in srgb, var(--q-accent-tint) 50%, transparent);
   color: var(--q-muted);
-  font-size: 0.85rem;
+  font-family: var(--q-mono);
+  font-size: 0.82rem;
 }
 
 .qdocs-stats {
@@ -156,9 +160,10 @@
 .qdocs-stats dt {
   margin-bottom: 6px;
   color: var(--q-muted);
+  font-family: var(--q-mono);
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -178,7 +183,7 @@
   border: 1px solid var(--q-line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--q-paper) 88%, transparent);
-  box-shadow: 0 18px 50px rgba(10, 10, 10, 0.12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
   overflow: hidden;
 }
 
@@ -203,6 +208,7 @@
 .qdocs-stack__chrome code {
   margin-left: auto;
   color: var(--q-muted);
+  font-family: var(--q-mono);
   font-size: 0.78rem;
 }
 
@@ -228,8 +234,9 @@
 
 .qdocs-stack li span {
   grid-row: span 2;
-  color: var(--q-lavender-deep);
-  font-weight: 700;
+  color: var(--q-accent);
+  font-family: var(--q-mono);
+  font-weight: 500;
 }
 
 .qdocs-stack strong,
@@ -239,6 +246,7 @@
 
 .qdocs-stack code {
   color: var(--q-muted);
+  font-family: var(--q-mono);
   font-size: 0.8rem;
 }
 
@@ -257,6 +265,7 @@
   margin: 0;
   font-size: clamp(2rem, 4vw, 3.4rem);
   line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 
 .qdocs-section-head p:not(.qdocs-eyebrow),
@@ -288,21 +297,24 @@
   background: var(--q-paper);
   color: var(--q-ink);
   text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease;
 }
 
 .qdocs-nav-card:hover {
   color: var(--q-ink);
   text-decoration: none;
-  border-color: var(--q-lavender-deep);
+  border-color: var(--q-accent);
+  transform: translateY(-2px);
 }
 
 .qdocs-nav-card__head {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  color: var(--q-lavender-deep);
+  color: var(--q-accent);
+  font-family: var(--q-mono);
   font-size: 0.78rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -311,6 +323,7 @@
 .qdocs-primitive h3 {
   margin: 18px 0 10px;
   font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .qdocs-nav-card p,
@@ -339,8 +352,8 @@
 
 .qdocs-card-cta {
   margin-top: 18px;
-  color: var(--q-lavender-deep);
-  font-weight: 700;
+  color: var(--q-accent);
+  font-weight: 500;
 }
 
 .qdocs-section--split {
@@ -356,9 +369,10 @@
 
 .qdocs-path > p {
   margin: 0;
-  color: var(--q-lavender-deep);
+  color: var(--q-accent);
+  font-family: var(--q-mono);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -384,6 +398,7 @@
 
 .qdocs-path a span {
   color: var(--q-muted);
+  font-family: var(--q-mono);
 }
 
 .qdocs-primitive-grid {
@@ -392,13 +407,14 @@
 
 .qdocs-primitive p {
   margin: 0;
-  color: var(--q-lavender-deep);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--q-accent);
+  font-family: var(--q-mono);
   font-size: 0.78rem;
 }
 
 .qdocs-primitive--accent {
-  background: var(--q-lavender-tint);
+  background: var(--q-accent-tint);
+  border-color: color-mix(in srgb, var(--q-accent) 40%, var(--q-line));
 }
 
 .qdocs-band {

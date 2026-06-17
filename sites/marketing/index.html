@@ -17,7 +17,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://quark-lm.eidetic-labs.com" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#07090F" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
     <link rel="icon" href="/static/img/brand/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
@@ -35,9 +35,15 @@
     <header class="site-header">
       <a class="brand" href="/" aria-label="QuarkLM home">
         <span class="brand__mark" aria-hidden="true">
-          <img src="/static/img/brand/quarklm_mark.svg" alt="" width="32" height="32" />
+          <svg viewBox="0 0 96 96" fill="none">
+            <g stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="48" cy="48" r="26.4" fill="none" stroke="currentColor" stroke-width="9.6" />
+              <circle cx="66.66" cy="66.66" r="6.6" fill="currentColor" />
+              <circle cx="48" cy="48" r="10.8" style="fill:var(--accent)" />
+            </g>
+          </svg>
         </span>
-        <span class="brand__wordmark">QuarkLM</span>
+        <span class="brand__wordmark">Quark<b>LM</b></span>
         <span class="brand__by">by Eidetic Labs</span>
       </a>
 
@@ -109,41 +115,45 @@
           </p>
         </div>
 
-        <aside class="hero__stage" aria-label="QuarkLM learning loop">
+        <aside class="hero__stage" aria-label="QuarkLM self-improvement loop">
           <svg class="quark-stage" viewBox="0 0 620 620" role="img" aria-labelledby="stage-title">
-            <title id="stage-title">QuarkLM closed-world learning loop</title>
+            <title id="stage-title">QuarkLM closed-world self-improvement loop: admit, train, probe, audit, docs</title>
             <defs>
-              <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.16" />
+              <pattern id="sensor" width="26" height="26" patternUnits="userSpaceOnUse">
+                <circle class="stage-grid-dot" cx="1" cy="1" r="1" />
               </pattern>
             </defs>
-            <rect width="620" height="620" fill="url(#grid)" />
-            <g class="stage-orbits" fill="none">
+            <rect width="620" height="620" fill="url(#sensor)" />
+            <g class="stage-orbits">
               <circle cx="310" cy="310" r="236" />
               <circle cx="310" cy="310" r="168" />
               <circle cx="310" cy="310" r="96" />
             </g>
+            <g class="stage-tracks">
+              <path d="M310 74 A236 236 0 0 1 534 237" style="animation-delay:0s" />
+              <path d="M534 237 A236 236 0 0 1 449 501" style="animation-delay:0.5s" />
+              <path d="M449 501 A236 236 0 0 1 171 501" style="animation-delay:1s" />
+              <path d="M171 501 A236 236 0 0 1 86 237" style="animation-delay:1.5s" />
+              <path d="M86 237 A236 236 0 0 1 310 74" style="animation-delay:2s" />
+            </g>
             <g class="stage-links">
-              <line x1="310" y1="310" x2="310" y2="78" />
-              <line x1="310" y1="310" x2="520" y2="214" />
-              <line x1="310" y1="310" x2="486" y2="456" />
-              <line x1="310" y1="310" x2="134" y2="456" />
-              <line x1="310" y1="310" x2="100" y2="214" />
+              <line x1="310" y1="310" x2="310" y2="74" />
+              <line x1="310" y1="310" x2="534" y2="237" />
+              <line x1="310" y1="310" x2="449" y2="501" />
+              <line x1="310" y1="310" x2="171" y2="501" />
+              <line x1="310" y1="310" x2="86" y2="237" />
             </g>
             <g class="stage-core" transform="translate(310 310)">
-              <path class="stage-shell" d="M0 -95 82 -47v94L0 95-82 47v-94L0 -95Z" />
-              <path class="stage-triad" d="M0 -46 48 38H-48L0 -46Z" />
-              <circle class="stage-quark stage-quark--top" cx="0" cy="-46" r="19" />
-              <circle class="stage-quark stage-quark--right" cx="48" cy="38" r="19" />
-              <circle class="stage-quark stage-quark--left" cx="-48" cy="38" r="19" />
-              <circle class="stage-nucleus" cx="0" cy="8" r="7" />
+              <circle class="stage-ring" cx="0" cy="0" r="70" />
+              <circle class="stage-tail" cx="49.5" cy="49.5" r="17.5" />
+              <circle class="stage-quark" cx="0" cy="0" r="28.6" />
             </g>
             <g class="stage-nodes">
-              <g transform="translate(310 78)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">ADMIT</text></g>
-              <g transform="translate(520 214)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">TRAIN</text></g>
-              <g transform="translate(486 456)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">PROBE</text></g>
-              <g transform="translate(134 456)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">AUDIT</text></g>
-              <g transform="translate(100 214)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">DOCS</text></g>
+              <g transform="translate(310 74)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">ADMIT</text></g>
+              <g transform="translate(534 237)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">TRAIN</text></g>
+              <g transform="translate(449 501)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">PROBE</text></g>
+              <g transform="translate(171 501)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">AUDIT</text></g>
+              <g transform="translate(86 237)"><rect x="-70" y="-22" width="140" height="44" rx="6" /><text y="5">DOCS</text></g>
             </g>
           </svg>
         </aside>
@@ -229,7 +239,7 @@
           </p>
         </header>
         <div class="evidence-grid">
-          <div class="evidence"><span>RC posture</span><strong>prototype near</strong><p>Research Prototype RC is the near-term track; Language Model RC waits on branch routing.</p></div>
+          <div class="evidence"><span>Release posture</span><strong>alpha blocked</strong><p>Alpha waits on SRP refactors; Language Model RC waits on branch routing.</p></div>
           <div class="evidence"><span>Admission probes</span><strong>48/48 · 84/84</strong><p>Direct and paraphrase probes generated from admitted memory.</p></div>
           <div class="evidence"><span>Glossary probes</span><strong>38/38</strong><p>Definition probes generated from admitted glossary words.</p></div>
           <div class="evidence"><span>Projection repair</span><strong>0.0842 → 0.0736</strong><p>v0.115.0 lowers collapsed-token hidden advantage, but 9/9 branch profiles still collapse.</p></div>
@@ -245,7 +255,7 @@
         <div class="roadmap">
           <article>
             <h3>Package migration</h3>
-            <p>Move the Python import path from `closed_world_lm` toward QuarkLM naming without breaking run artifacts.</p>
+            <p>Keep the flattened Python module surface under `src/` stable while preserving reproducible run artifacts.</p>
           </article>
           <article>
             <h3>Release-synced docs</h3>
@@ -256,8 +266,8 @@
             <p>Admit more memory while preserving anti-forgetting checks and generated eval coverage.</p>
           </article>
           <article>
-            <h3>Release candidate boundary</h3>
-            <p>Package an honest Research Prototype RC first, then resume transformer work as a profile-balanced routing repair without relaxing promotion gates.</p>
+            <h3>Alpha quality gate</h3>
+            <p>Split oversized modules before any SemVer alpha tag, then resume transformer work without relaxing promotion gates.</p>
           </article>
         </div>
       </section>
@@ -274,7 +284,15 @@
 
     <footer class="site-footer">
       <div class="site-footer__brand">
-        <img src="/static/img/brand/quarklm_mark.svg" alt="" width="24" height="24" />
+        <span class="brand__mark" style="width: 24px; height: 24px" aria-hidden="true">
+          <svg viewBox="0 0 96 96" fill="none">
+            <g stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="48" cy="48" r="26.4" fill="none" stroke="currentColor" stroke-width="9.6" />
+              <circle cx="66.66" cy="66.66" r="6.6" fill="currentColor" />
+              <circle cx="48" cy="48" r="10.8" style="fill:var(--accent)" />
+            </g>
+          </svg>
+        </span>
         <span>QuarkLM · by Eidetic Labs</span>
       </div>
       <nav class="site-footer__nav" aria-label="Footer">

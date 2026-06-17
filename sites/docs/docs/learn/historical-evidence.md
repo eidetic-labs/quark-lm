@@ -5,13 +5,39 @@ description: Earlier QuarkLM run evidence moved out of GOAL.md.
 
 # Historical Evidence Archive
 
-This page preserves older run evidence that used to live in `GOAL.md`.
-`GOAL.md` is now the durable goal contract. Current status, release-candidate
-posture, and the latest transformer evidence live in
+This page preserves older run evidence that used to live in `GOAL.md`. It is a
+record, not a status report. `GOAL.md` is now the durable goal contract; current
+status, release posture, and the latest transformer evidence live in
 [Current evidence](./current-evidence.mdx), `STATUS.md`, and
 `sites/shared/current-state.json`.
 
-## Early Learned Components
+The archive exists so that evidence is never lost when it leaves the
+current-state surfaces. QuarkLM keeps failed and superseded runs as versioned
+diagnostic evidence rather than discarding them, so the chain of what was tried,
+what passed, and what was rejected stays inspectable. Moving an entry here is how
+that history is retained without letting old numbers drift back into the goal
+contract or the README.
+
+## How to read this archive
+
+The same distinction enforced everywhere in QuarkLM applies to every row below.
+A run that answers a probe correctly proves the corpus *contains* the answer; it
+does not prove the transformer *learned* it. Two tracks ran in parallel, and the
+archive keeps them apart:
+
+| Track | What its evidence means |
+| --- | --- |
+| Responder / learned-component track | The deterministic responder, retrieval memory, the learned answer model, and the answer decoder serve admitted knowledge. Exact results here are `memory-served` or learned-classifier evidence, not from-scratch transformer promotion. |
+| Transformer screen track | The from-scratch decoder-only transformer is the `weight-consolidation` path. Its screens stayed separate from promoted responder evidence and are still blocked on `branch_diversity_target`. |
+
+See [Language model](./language-model.md) for the three evidence states and
+[Build](../build/index.md) for the two paths that produce them.
+
+## Early learned components
+
+These runs built and tightened the responder track's learned components before
+the transformer architecture work began. They move classifier and decoder
+exactness, not from-scratch transformer weights.
 
 | Run | Archived signal |
 | --- | --- |
@@ -20,14 +46,19 @@ posture, and the latest transformer evidence live in
 | `runs/answer-v0.2/` | Learned answer model passed stricter unseen paraphrase probes: QA `8/8`, unknown `4/4`, held-out `8/8`, paraphrase `8/8`. |
 | `runs/decoder-v0.2/` | Generative answer decoder moved from `0/8`, `0/4`, `0/8`, `0/8` exactness to QA `8/8`, unknown `4/4`, held-out `8/8`, paraphrase `8/8`. |
 
-## Early Self-Improvement Runs
+## Early self-improvement runs
+
+These runs built the admission, audit, and self-diagnosis discipline that the
+loop still depends on. They show the corpus growing through ledgered admissions
+and the probes being generated from those admitted sources, so a passing probe is
+evidence the corpus can answer it rather than a hand-written test.
 
 | Run | Archived signal |
 | --- | --- |
 | `runs/self-improve-v0.9/` | Stricter lesson split kept held-out facts out of exact held-out prompt training; prompt leakage audit passed; answer model and decoder passed QA, unknown, held-out, and paraphrase evals. |
 | `runs/self-improve-v0.12/` | Added operational self and learning-admission concepts plus the first admitted memory event; answer model and decoder passed owner, self, learning, and admissions evals. |
 | `runs/self-improve-v0.14/` | Expanded admitted memory log to two facts; admission probes expanded to `8`; forgetting and prompt leakage audits passed. |
-| `runs/self-improve-v0.16/` | Moved provenance code into `closed_world_lm.provenance`; wrote corpus snapshots and diffs; forgetting and leakage audits passed. |
+| `runs/self-improve-v0.16/` | Moved provenance code into `provenance`; wrote corpus snapshots and diffs; forgetting and leakage audits passed. |
 | `runs/self-improve-v0.17/` | Generated admission probes from `corpus/admissions.jsonl`; probe sync passed with zero missing, extra, or mismatched ids. |
 | `runs/self-improve-v0.18/` | Renamed the product to QuarkLM, added `quark-lm-*` script aliases, and generated admission paraphrase probes. |
 | `runs/self-improve-v0.19/` | Added glossary word `stone` and admitted `learned-ivy-stone`; direct probes reached `12/12`, paraphrase probes `21/21`, and bridge lessons protected held-out transfer. |
@@ -38,12 +69,17 @@ posture, and the latest transformer evidence live in
 | `runs/self-improve-v0.24/` | First transformer architecture work was kept separate from promoted responder evidence. |
 | `runs/self-improve-v0.25/` through `runs/self-improve-v0.42/` | Continued the promoted responder track while transformer screens stayed separate until neural promotion gates mature. Current promoted responder evidence remains `runs/self-improve-v0.42/`. |
 
-## Transformer Evidence Index
+## Transformer evidence index
 
 The transformer run history is now documented primarily in
 [Transformer](../build/transformer.md), [Provenance](../operate/provenance.md),
-and [Current evidence](./current-evidence.mdx). The old `GOAL.md` evidence
-section included these major phases:
+and [Current evidence](./current-evidence.mdx). This index keeps the major phases
+the old `GOAL.md` evidence section recorded, as a map into that detail.
+
+Read each phase against the same rule: candidate-selector and generator results
+are auxiliary evidence, while raw greedy transformer answers are the only signal
+that would count toward neural promotion. None of these phases cleared the
+branch-diversity gate.
 
 | Phase | Representative runs | Archived signal |
 | --- | --- | --- |
@@ -56,9 +92,15 @@ section included these major phases:
 | Representation screens | `runs/transformer-answer-v0.43-context-mean-branch-batch-smoke-dim4-context16/` through `runs/transformer-answer-v0.43-prompt-position-scale32-repcontrast50-smoke-dim4-context80/` | Context summaries, projections, prompt attention, prompt-position projections, and representation contrast moved measured surfaces but did not pass branch diversity. |
 | Structure audit and pre-layer norm | `STRUCTURE_AUDIT.md`, `runs/transformer-answer-v0.44-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/`, `runs/transformer-answer-v0.44-target-balanced-prelayernorm-repcontrast50-prompt-position-smoke-dim4-context80/` | Open-source structure was studied as reference only; pre-layer-norm partially cracked non-QA collapse but remained rejected because formal branch-diversity gates failed. |
 
-## Archive Rule
+The generator reaching `219/219` while the direct transformer stayed at `0/219`
+is the archived form of the distinction the project still holds today: the system
+could already *serve* every answer while the neural weights had not yet *learned*
+to route them. The complete version-by-version log continues in
+[Transformer screen history](../build/transformer-screen-history.md).
 
-Historical evidence should not drift back into `GOAL.md` or README. Add
-version-specific detail to this page only when it is archival context. Add
-current release evidence to [Current evidence](./current-evidence.mdx), shared
-current state, and the relevant Build or Operate docs.
+## Archive rule
+
+Historical evidence should not drift back into `GOAL.md` or the README.
+Version-specific detail belongs on this page only when it is archival context.
+Current release evidence belongs in [Current evidence](./current-evidence.mdx),
+the shared current state, and the relevant Build or Operate docs.
