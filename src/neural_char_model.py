@@ -19,6 +19,16 @@ from neural_char_ops import context_before, make_context, sample_from_probs, sof
 from tokenizer import CharTokenizer
 
 
+__all__ = [
+    "CharMLP",
+    "ModelConfig",
+    "average_nll",
+    "context_before",
+    "continuation_nll",
+    "make_context",
+]
+
+
 @dataclass
 class ModelConfig:
     vocab_size: int

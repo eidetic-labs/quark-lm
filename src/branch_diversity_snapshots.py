@@ -92,6 +92,18 @@ def branch_diversity_snapshot_collapsed_profile_names(
     return sorted(names)
 
 
+__all__ = [
+    "branch_diversity_profile_delta_has_coverage_gain",
+    "branch_diversity_snapshot_collapsed_profile_names",
+    "branch_diversity_snapshot_preserves_target_coverage",
+    "branch_diversity_snapshot_profile_diversity_delta",
+    "branch_diversity_snapshot_score",
+    "branch_diversity_snapshot_target_coverage_by_profile",
+    "branch_diversity_snapshot_target_coverage_delta",
+    "branch_diversity_snapshot_target_coverage_diagnostics",
+]
+
+
 def branch_diversity_snapshot_profile_diversity_delta(
     snapshot: dict[str, Any],
     baseline: dict[str, Any],

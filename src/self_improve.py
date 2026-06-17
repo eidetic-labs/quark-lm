@@ -26,26 +26,30 @@ from self_improvement_audits import (
     audit_all_protected_prompts,
     audit_exact_promotion,
     audit_forgetting,
-    audit_prompt_leakage,
-    component_final_evals,
     evaluate_responder,
     promotion_gate,
-    read_report,
-    summarize_exact,
 )
 from self_improvement_artifacts import next_attempt, write_report_artifacts
 from self_improvement_cycle_setup import prepare_answer_cycle_setup
 from self_improvement_experiment import (
-    SELF_IMPROVEMENT_RECIPE_ID,
     self_improvement_experiment_decision,
     self_improvement_experiment_intent,
-    self_improvement_training_recipe,
 )
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_BUILD_DIR = PROJECT_DIR / "build"
 DEFAULT_RUN_DIR = PROJECT_DIR / "runs" / "self-improve-latest"
+
+__all__ = [
+    "audit_exact_promotion",
+    "audit_forgetting",
+    "evaluate_responder",
+    "next_attempt",
+    "promotion_gate",
+    "self_improvement_experiment_intent",
+    "write_report_artifacts",
+]
 
 
 def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:

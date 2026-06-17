@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from corpus_responder import CorpusResponder, DEFAULT_TRAIN_TEXT, FactRecord
+from corpus_responder import CorpusResponder, DEFAULT_TRAIN_TEXT
 from probes import read_jsonl
 
 
