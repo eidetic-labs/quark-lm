@@ -153,10 +153,10 @@ external weights, tokenizers, embeddings, datasets, or training text — see
 
 <div className="qlm-next">
 
-<a href="./closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic checks that turn the quarantine into a contract.</small></a>
+<a href="../closed-world-verifier/"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic checks that turn the quarantine into a contract.</small></a>
 
-<a href="./corpus-hygiene.md"><strong>Read</strong><span>Corpus hygiene</span><small>The rest of the training-plan trail and source-mixture checks.</small></a>
+<a href="../corpus-hygiene/"><strong>Read</strong><span>Corpus hygiene</span><small>The rest of the training-plan trail and source-mixture checks.</small></a>
 
-<a href="../learn/self-improvement-loop.md"><strong>Concept</strong><span>Self-improvement loop</span><small>The full lifecycle this quarantine rule sits inside.</small></a>
+<a href="../../learn/self-improvement-loop/"><strong>Concept</strong><span>Self-improvement loop</span><small>The full lifecycle this quarantine rule sits inside.</small></a>
 
 </div>

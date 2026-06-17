@@ -149,10 +149,10 @@ them. Full run-by-run detail is in
 
 <div className="qlm-next">
 
-<a href="./transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>The version-by-version screen log and every evidence table.</small></a>
+<a href="../transformer-screen-history/"><strong>Read next</strong><span>Transformer screen history</span><small>The version-by-version screen log and every evidence table.</small></a>
 
-<a href="./transformer-responsibilities.md"><strong>Read</strong><span>Transformer responsibilities</span><small>How the answer-training surfaces are divided across modules.</small></a>
+<a href="../transformer-responsibilities/"><strong>Read</strong><span>Transformer responsibilities</span><small>How the answer-training surfaces are divided across modules.</small></a>
 
-<a href="../secure/purity-boundary.md"><strong>Concept</strong><span>Purity boundary</span><small>Why pretrained weights, tokenizers, and embeddings are out of bounds.</small></a>
+<a href="../../secure/purity-boundary/"><strong>Concept</strong><span>Purity boundary</span><small>Why pretrained weights, tokenizers, and embeddings are out of bounds.</small></a>
 
 </div>

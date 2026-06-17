@@ -106,9 +106,9 @@ These versions install the auditable surfaces that every later screen depends
 on. They are implemented and not in dispute.
 
 <div className="qlm-grid">
-<div><h4>v0.75</h4><p>Candidate quarantine artifacts and lifecycle states. See <a href="../operate/candidate-quarantine.md">Candidate quarantine</a>.</p></div>
-<div><h4>v0.76</h4><p>Deterministic closed-world verifier checks. See <a href="../operate/closed-world-verifier.md">Closed-world verifier</a>.</p></div>
-<div><h4>v0.77</h4><p>Recipe objects and constraint-first promotion gates. See <a href="../operate/training-recipes.md">Training recipes</a>.</p></div>
+<div><h4>v0.75</h4><p>Candidate quarantine artifacts and lifecycle states. See <a href="../../operate/candidate-quarantine/">Candidate quarantine</a>.</p></div>
+<div><h4>v0.76</h4><p>Deterministic closed-world verifier checks. See <a href="../../operate/closed-world-verifier/">Closed-world verifier</a>.</p></div>
+<div><h4>v0.77</h4><p>Recipe objects and constraint-first promotion gates. See <a href="../../operate/training-recipes/">Training recipes</a>.</p></div>
 <div><h4>v0.78</h4><p>Transformer experiment, artifact, trainer-utility, and objective-catalog surfaces.</p></div>
 <div><h4>v0.79</h4><p>Transformer model/config and checkpoint-metadata surfaces.</p></div>
 <div><h4>v0.80</h4><p>Transformer eval and checkpoint-load surfaces.</p></div>
@@ -201,7 +201,7 @@ admitted, ledgered corpus, and the project keeps enough evidence to show
 exactly what each version changed and what it did not.
 
 <div className="qlm-next">
-<a href="./research-grounding.md"><strong>Read next</strong><span>Research grounding</span><small>The per-paper map and the QuarkLM implication drawn from each cluster.</small></a>
-<a href="./branch-diversity-research.md"><strong>Read next</strong><span>Branch diversity research</span><small>The per-version evidence behind the unpromoted routing gate.</small></a>
-<a href="../build/transformer.md"><strong>Read next</strong><span>The transformer</span><small>Current status and the evidence table for the from-scratch model.</small></a>
+<a href="../research-grounding/"><strong>Read next</strong><span>Research grounding</span><small>The per-paper map and the QuarkLM implication drawn from each cluster.</small></a>
+<a href="../branch-diversity-research/"><strong>Read next</strong><span>Branch diversity research</span><small>The per-version evidence behind the unpromoted routing gate.</small></a>
+<a href="../../build/transformer/"><strong>Read next</strong><span>The transformer</span><small>Current status and the evidence table for the from-scratch model.</small></a>
 </div>

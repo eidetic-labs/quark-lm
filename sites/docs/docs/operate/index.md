@@ -51,7 +51,7 @@ Two distinctions are enforced across every page here.
 
 <div className="qlm-grid">
 <div><h4>A candidate is not training data</h4><p>A generated lesson, probe, repair, or memory proposal is not training data until it is admitted to <code>corpus/ledger.json</code>. Candidate records carry history; the candidate store is not a training source.</p></div>
-<div><h4>Memory-served is not weight-consolidated</h4><p>Retrieval answering a probe is <code>memory-served</code>, not <code>weight-consolidated</code>. Exact retrieval proves the corpus <em>contains</em> the answer; it does not prove the transformer <em>learned</em> it. See <a href="../build/index.md">Build</a>.</p></div>
+<div><h4>Memory-served is not weight-consolidated</h4><p>Retrieval answering a probe is <code>memory-served</code>, not <code>weight-consolidated</code>. Exact retrieval proves the corpus <em>contains</em> the answer; it does not prove the transformer <em>learned</em> it. See <a href="../build/">Build</a>.</p></div>
 </div>
 
 ## Operating surfaces
@@ -112,19 +112,19 @@ version; they do not feed the model.
 ## Where to read next
 
 <div className="qlm-grid">
-<div><h4><a href="./release-candidate.md">Release readiness</a></h4><p>The alpha and release-candidate tracks, the current decision, required commands and artifacts, and the claims that are forbidden until the evidence supports them.</p></div>
-<div><h4><a href="./release-discipline.md">Release discipline</a></h4><p>The full checklist a promoted run must satisfy, and SemVer release-identifier rules.</p></div>
-<div><h4><a href="./experiment-registry.md">Experiment registry</a></h4><p>Why every run starts with an explicit intent instead of a loose command.</p></div>
-<div><h4><a href="./corpus-hygiene.md">Corpus hygiene</a></h4><p>How data risk is made visible before any metric is interpreted.</p></div>
-<div><h4><a href="./candidate-quarantine.md">Candidate quarantine</a></h4><p>The candidate lifecycle and the rule that keeps generated material out of training until admitted.</p></div>
-<div><h4><a href="./closed-world-verifier.md">Closed-world verifier</a></h4><p>The deterministic check that decides whether a candidate or plan may influence the next learning step.</p></div>
-<div><h4><a href="./training-recipes.md">Training recipes</a></h4><p>Reproducible recipes and the constraint-first promotion report.</p></div>
-<div><h4><a href="./provenance.md">Provenance</a></h4><p>Corpus snapshots and diffs, recorded next to weight and eval changes.</p></div>
-<div><h4><a href="./docs-drift.md">Docs drift</a></h4><p>The rule that keeps docs and marketing synchronized with releases.</p></div>
+<div><h4><a href="./release-candidate/">Release readiness</a></h4><p>The alpha and release-candidate tracks, the current decision, required commands and artifacts, and the claims that are forbidden until the evidence supports them.</p></div>
+<div><h4><a href="./release-discipline/">Release discipline</a></h4><p>The full checklist a promoted run must satisfy, and SemVer release-identifier rules.</p></div>
+<div><h4><a href="./experiment-registry/">Experiment registry</a></h4><p>Why every run starts with an explicit intent instead of a loose command.</p></div>
+<div><h4><a href="./corpus-hygiene/">Corpus hygiene</a></h4><p>How data risk is made visible before any metric is interpreted.</p></div>
+<div><h4><a href="./candidate-quarantine/">Candidate quarantine</a></h4><p>The candidate lifecycle and the rule that keeps generated material out of training until admitted.</p></div>
+<div><h4><a href="./closed-world-verifier/">Closed-world verifier</a></h4><p>The deterministic check that decides whether a candidate or plan may influence the next learning step.</p></div>
+<div><h4><a href="./training-recipes/">Training recipes</a></h4><p>Reproducible recipes and the constraint-first promotion report.</p></div>
+<div><h4><a href="./provenance/">Provenance</a></h4><p>Corpus snapshots and diffs, recorded next to weight and eval changes.</p></div>
+<div><h4><a href="./docs-drift/">Docs drift</a></h4><p>The rule that keeps docs and marketing synchronized with releases.</p></div>
 </div>
 
 <div className="qlm-next">
-<a href="./release-candidate.md"><strong>Read next</strong><span>Release readiness</span><small>The current decision, required artifacts, and forbidden claims.</small></a>
-<a href="./candidate-quarantine.md"><strong>Go deeper</strong><span>Candidate quarantine</span><small>The rule that keeps generated material out of training until admitted.</small></a>
-<a href="./closed-world-verifier.md"><strong>The deciding check</strong><span>Closed-world verifier</span><small>What may influence the next learning step, decided deterministically.</small></a>
+<a href="./release-candidate/"><strong>Read next</strong><span>Release readiness</span><small>The current decision, required artifacts, and forbidden claims.</small></a>
+<a href="./candidate-quarantine/"><strong>Go deeper</strong><span>Candidate quarantine</span><small>The rule that keeps generated material out of training until admitted.</small></a>
+<a href="./closed-world-verifier/"><strong>The deciding check</strong><span>Closed-world verifier</span><small>What may influence the next learning step, decided deterministically.</small></a>
 </div>

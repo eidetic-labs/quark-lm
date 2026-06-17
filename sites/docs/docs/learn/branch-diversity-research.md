@@ -218,7 +218,7 @@ runs. Until a screen passes the gate, the transformer stays unpromoted and
 retrieval memory remains the answering rail.
 
 <div className="qlm-next">
-<a href="../build/transformer.md"><strong>Read next</strong><span>The transformer</span><small>How the from-scratch model works and where the gate fits.</small></a>
-<a href="../build/transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>Every screen, objective name, run path, and evidence table.</small></a>
-<a href="./forward-research-plan.md"><strong>Read next</strong><span>Forward research plan</span><small>The research-backed sequence that frames the strategy.</small></a>
+<a href="../../build/transformer/"><strong>Read next</strong><span>The transformer</span><small>How the from-scratch model works and where the gate fits.</small></a>
+<a href="../../build/transformer-screen-history/"><strong>Read next</strong><span>Transformer screen history</span><small>Every screen, objective name, run path, and evidence table.</small></a>
+<a href="../forward-research-plan/"><strong>Read next</strong><span>Forward research plan</span><small>The research-backed sequence that frames the strategy.</small></a>
 </div>

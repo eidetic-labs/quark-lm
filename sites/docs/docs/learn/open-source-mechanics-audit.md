@@ -157,7 +157,7 @@ already serve the answer.
 :::
 
 <div className="qlm-next">
-<a href="./branch-diversity-research.md"><strong>Read next</strong><span>Branch diversity research</span><small>The current evidence behind the rejected promotion and the next candidate.</small></a>
-<a href="../build/transformer.md"><strong>Go deeper</strong><span>The transformer</span><small>How the memory rail and the weight rail sit in the wider model.</small></a>
-<a href="./deep-research-review.md"><strong>See the detail</strong><span>Deep research review</span><small>Every objective name, attempt count, and acceptance tally behind the arc.</small></a>
+<a href="../branch-diversity-research/"><strong>Read next</strong><span>Branch diversity research</span><small>The current evidence behind the rejected promotion and the next candidate.</small></a>
+<a href="../../build/transformer/"><strong>Go deeper</strong><span>The transformer</span><small>How the memory rail and the weight rail sit in the wider model.</small></a>
+<a href="../deep-research-review/"><strong>See the detail</strong><span>Deep research review</span><small>Every objective name, attempt count, and acceptance tally behind the arc.</small></a>
 </div>

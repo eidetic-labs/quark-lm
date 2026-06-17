@@ -79,9 +79,9 @@ embeddings, or training text — see [Purity boundary](../secure/purity-boundary
 ## How a lesson becomes (maybe) learned behavior
 
 <ol className="qlm-steps">
-<li><strong>Admit</strong><p>A fact, rule, probe, or repair is ledgered into <code>corpus/</code> with source context. Until it is named in <code>corpus/ledger.json</code>, it is not training data. See <a href="./admission-workflow.md">Admission workflow</a>.</p></li>
+<li><strong>Admit</strong><p>A fact, rule, probe, or repair is ledgered into <code>corpus/</code> with source context. Until it is named in <code>corpus/ledger.json</code>, it is not training data. See <a href="./admission-workflow/">Admission workflow</a>.</p></li>
 <li><strong>Serve</strong><p><code>curriculum</code> regenerates training and validation text and <code>memory_retrieval</code> builds memory cards, so the knowledge is answerable immediately — with provenance, and without moving any weights.</p></li>
-<li><strong>Propose</strong><p>Training candidates are built from admitted sources and current failure reports, then held in <a href="../operate/candidate-quarantine.md">candidate quarantine</a> until the verifier clears them.</p></li>
+<li><strong>Propose</strong><p>Training candidates are built from admitted sources and current failure reports, then held in <a href="../operate/candidate-quarantine/">candidate quarantine</a> until the verifier clears them.</p></li>
 <li><strong>Consolidate under guard</strong><p>The transformer receives only constrained pressure from those candidates. An update is <em>attempted</em>, not assumed: the guard can reject it and restore prior weights.</p></li>
 <li><strong>Evaluate</strong><p>Constraint-first promotion runs the verifier, contamination, branch-context, coverage, and diversity checks <em>before</em> any loss, NLL, or exact-quality number is allowed to count.</p></li>
 <li><strong>Promote or keep as diagnostic</strong><p>A run is promoted only if it preserves the boundary, passes the gates, and updates the docs that describe current state. Failed runs stay as versioned diagnostic evidence; they are not discarded.</p></li>
@@ -101,11 +101,11 @@ finishing.
 ## Where to change things
 
 <div className="qlm-grid">
-<div><h4><a href="./quickstart.md">Quickstart</a></h4><p>Run the prototype end to end, and read what each command produces.</p></div>
-<div><h4><a href="./admission-workflow.md">Admission workflow</a></h4><p>Teach a new fact by ledgering it into the closed-world corpus.</p></div>
-<div><h4><a href="./generated-probes.md">Generated probes</a></h4><p>Keep evaluation probes generated from admitted text, not hand-written.</p></div>
-<div><h4><a href="./transformer.md">Transformer</a></h4><p>Train the from-scratch transformer prototype and read its screens.</p></div>
-<div><h4><a href="./transformer-responsibilities.md">Transformer responsibilities</a></h4><p>Understand the transformer surfaces and what each one owns.</p></div>
+<div><h4><a href="./quickstart/">Quickstart</a></h4><p>Run the prototype end to end, and read what each command produces.</p></div>
+<div><h4><a href="./admission-workflow/">Admission workflow</a></h4><p>Teach a new fact by ledgering it into the closed-world corpus.</p></div>
+<div><h4><a href="./generated-probes/">Generated probes</a></h4><p>Keep evaluation probes generated from admitted text, not hand-written.</p></div>
+<div><h4><a href="./transformer/">Transformer</a></h4><p>Train the from-scratch transformer prototype and read its screens.</p></div>
+<div><h4><a href="./transformer-responsibilities/">Transformer responsibilities</a></h4><p>Understand the transformer surfaces and what each one owns.</p></div>
 </div>
 
 ## Rule
@@ -120,7 +120,7 @@ unless explicitly allowed by the ledger.
 </div>
 
 <div className="qlm-next">
-<a href="./quickstart.md"><strong>Read next</strong><span>Quickstart</span><small>Run the prototype and read what each command produces.</small></a>
-<a href="./admission-workflow.md"><strong>Go deeper</strong><span>Admission workflow</span><small>Ledger a new fact into the closed-world corpus.</small></a>
-<a href="../learn/language-model.md"><strong>Switch to the why</strong><span>Language model</span><small>The memory-native philosophy and the three evidence states.</small></a>
+<a href="./quickstart/"><strong>Read next</strong><span>Quickstart</span><small>Run the prototype and read what each command produces.</small></a>
+<a href="./admission-workflow/"><strong>Go deeper</strong><span>Admission workflow</span><small>Ledger a new fact into the closed-world corpus.</small></a>
+<a href="../learn/language-model/"><strong>Switch to the why</strong><span>Language model</span><small>The memory-native philosophy and the three evidence states.</small></a>
 </div>

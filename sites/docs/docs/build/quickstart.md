@@ -177,19 +177,19 @@ into the corpus.
 
 <div className="qlm-next">
 
-<a href="./transformer.md">
+<a href="../transformer/">
 <strong>Read next</strong>
 <span>The transformer</span>
 <small>How the from-scratch model works and why it stays blocked on branch_diversity_target.</small>
 </a>
 
-<a href="../secure/purity-boundary.md">
+<a href="../../secure/purity-boundary/">
 <strong>Read next</strong>
 <span>The purity boundary</span>
 <small>The separation a run must preserve before anything is promoted.</small>
 </a>
 
-<a href="../operate/release-discipline.md">
+<a href="../../operate/release-discipline/">
 <strong>Step up</strong>
 <span>Release discipline</span>
 <small>What turns a smoke check into a promoted run.</small>
