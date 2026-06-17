@@ -6,12 +6,22 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from transformer_char_model_test_support import (
+from support.commands import (
+    parse_args,
+    train_transformer_answers,
+    transformer_experiment_decision,
+    transformer_experiment_intent,
+    transformer_training_recipe,
+    transformer_training_recipe_id,
+)
+from support.core import (
     ANSWER_TERMINATOR,
     AnswerExample,
     CharTokenizer,
     TinyTransformerLM,
     TransformerConfig,
+)
+from support.direct_answer import (
     TransformerGuidedAnswerGenerator,
     build_answer_selector,
     build_transformer_answer_generator,
@@ -19,13 +29,7 @@ from transformer_char_model_test_support import (
     evaluate_answer_generator_records,
     evaluate_answer_records,
     evaluate_direct_answer_records,
-    parse_args,
     train_direct_answer_first_error,
-    train_transformer_answers,
-    transformer_experiment_decision,
-    transformer_experiment_intent,
-    transformer_training_recipe,
-    transformer_training_recipe_id,
 )
 
 

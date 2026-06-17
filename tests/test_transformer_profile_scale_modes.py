@@ -5,19 +5,20 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from transformer_char_model_test_support import (
-    CharTokenizer,
+from support.branch_diversity import (
     branch_diversity_profile_delta_has_coverage_gain,
+)
+from support.commands import parse_args, train_transformer_answers
+from support.core import CharTokenizer
+from support.memory import (
     memory_consolidation_missing_first_token_values,
     memory_consolidation_source_plan_targets,
     missing_first_token_anchor_batch,
     missing_first_token_ids_by_profile,
-    parse_args,
     profile_specific_missing_first_token_target_map,
     profile_specific_missing_first_token_targets,
     remaining_profile_binding_profile_order,
     remaining_profile_binding_source_labels,
-    train_transformer_answers,
 )
 
 

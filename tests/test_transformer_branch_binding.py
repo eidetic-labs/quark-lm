@@ -4,12 +4,14 @@ import math
 import random
 import unittest
 
-from transformer_char_model_test_support import (
+from support.core import (
     ANSWER_TERMINATOR,
     AnswerExample,
     CharTokenizer,
     TinyTransformerLM,
     TransformerConfig,
+)
+from support.direct_answer import (
     direct_answer_branch_diversity_batch,
     direct_answer_branch_target_ids,
     direct_answer_lesson,

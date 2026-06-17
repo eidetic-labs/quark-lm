@@ -3,20 +3,24 @@ from __future__ import annotations
 import random
 import unittest
 
-from transformer_char_model_test_support import (
+from support.branch_diversity import (
+    direct_answer_branch_logit_prior_profile,
+    direct_answer_branch_representation_profile,
+)
+from support.core import (
     ANSWER_TERMINATOR,
     AnswerExample,
     CharTokenizer,
     TinyTransformerLM,
     TransformerConfig,
+    exclude_scalars,
+)
+from support.direct_answer import (
     direct_answer_branch_batch,
     direct_answer_branch_diversity_batch,
-    direct_answer_branch_logit_prior_profile,
-    direct_answer_branch_representation_profile,
     direct_answer_lesson,
     direct_answer_target_balanced_branch_batch,
     direct_answer_target_balanced_branch_diversity_batch,
-    exclude_scalars,
     train_direct_answer_branch_batch_contrast_unlikelihood,
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_hidden_projection_margin_unlikelihood,

@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from transformer_char_model_test_support import (
+from support.core import (
     ANSWER_TERMINATOR,
     CharTokenizer,
     GenerationConfig,
