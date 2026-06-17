@@ -5,7 +5,18 @@ description: The research-backed implementation sequence for QuarkLM's next self
 
 # Forward Research Plan
 
-Last reviewed: 2026-06-14.
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Last reviewed 2026-06-14</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- Why the v0.68 result moved the next step away from another direct-answer knob and toward an operating system around training.
+- The seven operating-system mechanics, each one an auditable-evidence gate before a metric can move.
+- Where the sequence stands: the operating system is implemented, the direct-answer objective is not promoted, and retrieval memory is a separate non-parametric rail.
+- The current decision and what the next repair must clear.
+
+</div>
 
 The full plan lives in the repository root at `FORWARD_RESEARCH_PLAN.md`.
 
@@ -62,25 +73,31 @@ For QuarkLM, that finding has five consequences:
 - promotion must reject loss or rank gains that erase coverage, diversity,
   retention, or unknown-policy behavior.
 
+<div className="qlm-keypoint">
+
+**"Learned something new" is a reserved phrase**
+
 This is the discipline that keeps "the model learned something new" from
 becoming self-contamination. The phrase is reserved for material that has been
 proposed, quarantined, verified, admitted to the ledger, trained, evaluated, and
 promoted.
+
+</div>
 
 ## Implementation sequence
 
 The plan defines seven operating-system mechanics. Each one exists so a later
 training screen cannot move a metric without first leaving auditable evidence.
 
-| Step | Mechanic | Why it exists |
-| --- | --- | --- |
-| 1 | [Experiment registry](../operate/experiment-registry.md) | Record hypothesis, allowed data, planned artifacts, gates, failure criteria, and decision before every run. |
-| 2 | Replay extraction | Move profile-aware replay planning out of the transformer monolith into a standalone planner, preserving prior behavior under focused tests. |
-| 3 | [Corpus hygiene](../operate/corpus-hygiene.md) | Report source mixtures, duplicate pressure, train/eval overlap, generated-candidate ratios, and rare-profile coverage. |
-| 4 | [Candidate quarantine](../operate/candidate-quarantine.md) | Store generated lessons, probes, and repair notes as candidates that cannot train weights until admitted to the ledger. |
-| 5 | [Closed-world verifier](../operate/closed-world-verifier.md) | Start deterministic; train a verifier later only from admitted candidate history and run outcomes. |
-| 6 | [Recipe layer](../operate/training-recipes.md) | Make model, tokenizer, curriculum, replay plan, objective, optimizer, snapshot cadence, and promotion gates named and reproducible. |
-| 7 | Constraint-first promotion | Compare loss, rank, and top-k only after retention, leakage, unknown-policy, target coverage, and diversity pass. |
+<ol className="qlm-steps">
+<li><strong><a href="../operate/experiment-registry.md">Experiment registry</a></strong><p>Record hypothesis, allowed data, planned artifacts, gates, failure criteria, and decision before every run.</p></li>
+<li><strong>Replay extraction</strong><p>Move profile-aware replay planning out of the transformer monolith into a standalone planner, preserving prior behavior under focused tests.</p></li>
+<li><strong><a href="../operate/corpus-hygiene.md">Corpus hygiene</a></strong><p>Report source mixtures, duplicate pressure, train/eval overlap, generated-candidate ratios, and rare-profile coverage.</p></li>
+<li><strong><a href="../operate/candidate-quarantine.md">Candidate quarantine</a></strong><p>Store generated lessons, probes, and repair notes as candidates that cannot train weights until admitted to the ledger.</p></li>
+<li><strong><a href="../operate/closed-world-verifier.md">Closed-world verifier</a></strong><p>Start deterministic; train a verifier later only from admitted candidate history and run outcomes.</p></li>
+<li><strong><a href="../operate/training-recipes.md">Recipe layer</a></strong><p>Make model, tokenizer, curriculum, replay plan, objective, optimizer, snapshot cadence, and promotion gates named and reproducible.</p></li>
+<li><strong>Constraint-first promotion</strong><p>Compare loss, rank, and top-k only after retention, leakage, unknown-policy, target coverage, and diversity pass.</p></li>
+</ol>
 
 ## Where the sequence stands
 
@@ -113,10 +130,19 @@ corpus-only retrieval memory. It builds `497` cards from the closed corpus and
 answers `219/219` eval probes exactly, with provenance and **no weight updates,
 no external model, and no external embeddings**. That is evidence that the
 corpus contains the answers and that memory can serve them — not evidence that
-the transformer has learned them. `memory-served` is not `weight-consolidated`,
-and the two are tracked as distinct evidence states. From v0.106.0 onward,
-retrieval success is used to rank consolidation targets for gated training
-without counting a retrieved answer as a learned weight.
+the transformer has learned them. From v0.106.0 onward, retrieval success is
+used to rank consolidation targets for gated training without counting a
+retrieved answer as a learned weight.
+
+<div className="qlm-keypoint">
+
+**`memory-served` is not `weight-consolidated`**
+
+Retrieval answering every admitted probe proves the corpus contains the answers
+and that memory can serve them. It does not prove the transformer learned them.
+The two are tracked as distinct evidence states.
+
+</div>
 
 ## Current decision
 
@@ -132,3 +158,9 @@ not change that status. The next repair must improve branch diversity under the
 existing constraint-first gates, without treating retrieved answers as learned
 transformer weights and without relaxing the target-token, coverage, or
 diversity gates.
+
+<div className="qlm-next">
+<a href="../build/transformer-screen-history.md"><strong>Read next</strong><span>Transformer screen history</span><small>Every objective name, run path, and evidence table behind the unpromoted gate.</small></a>
+<a href="./deep-research-review.md"><strong>Read next</strong><span>Deep research review</span><small>The v0.70 cross-check of primary papers, open-source mechanics, and the codebase.</small></a>
+<a href="./research-implementation-map.md"><strong>Read next</strong><span>Research implementation map</span><small>Where each reviewed source landed in the implemented operating system.</small></a>
+</div>

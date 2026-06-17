@@ -5,6 +5,19 @@ description: Corpus hygiene and training-plan artifacts for QuarkLM runs.
 
 # Corpus Hygiene
 
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- What `corpus_hygiene.json` and `training_plan.json` record, and why a run writes both before its metrics count.
+- Why hygiene is descriptive while the verifier and the promotion gate are decisive.
+- How the candidate ratio keeps generated examples out of training until they are admitted.
+- Why the hygiene trail is part of the evidence bundle, not a promotion shortcut.
+
+</div>
+
 Corpus hygiene is the first evidence surface a run produces. Before any metric is
 read, it makes the *shape of the data* visible: where the training text came
 from, whether examples are duplicated, and whether the eval set overlaps the
@@ -13,8 +26,10 @@ prompts, a lopsided source mixture — is caught here, not after promotion.
 
 `src/corpus_hygiene.py` (added in v0.73) writes two required run artifacts:
 
-- `corpus_hygiene.json` — what the data looks like;
-- `training_plan.json` — what the run is permitted to do with it.
+<div className="qlm-grid">
+<div><h4>corpus_hygiene.json</h4><p>What the data looks like — sources, duplicates, overlap, coverage.</p></div>
+<div><h4>training_plan.json</h4><p>What the run is permitted to do with it, inside the closed-world boundary.</p></div>
+</div>
 
 Self-improvement answer cycles and transformer answer-training runs write both
 artifacts before their metrics are treated as evidence. The artifacts do not
@@ -24,7 +39,7 @@ promotion — can act on it.
 
 ## Where hygiene sits in the chain
 
-```text
+```text title="Corpus hygiene in the evidence chain"
 admitted corpus (ledger.json)
   -> corpus_hygiene.json     describe the data: sources, duplicates, overlap, coverage
   -> training_plan.json      declare what the run may train on, inside the boundary
@@ -32,26 +47,32 @@ admitted corpus (ledger.json)
   -> constraint-first gate   only then are quality metrics allowed to count
 ```
 
-Hygiene is descriptive; the verifier and the gate are decisive. Keeping the two
+<div className="qlm-keypoint">
+
+**Descriptive, not decisive**
+
+Hygiene describes the data; the verifier and the gate decide. Keeping the two
 separate is deliberate: a report that could itself promote a run would be a
 quality shortcut, not a check.
+
+</div>
 
 ## Corpus hygiene report
 
 `corpus_hygiene.json` records the measurable properties of the data the run drew
 from:
 
-| Field | Records |
-| --- | --- |
-| Corpus source counts | How many records came from each admitted source. |
-| Training text path and character count | The exact text the run trained on, and its size. |
-| Training-example source mixture | The proportion of examples drawn from each source family. |
-| Duplicate training examples | Repeated training examples that could inflate apparent learning. |
-| Duplicate admission and eval ids | Repeated identifiers across admitted and eval records. |
-| Train/eval prompt overlap | Eval prompts that also appear in training — the contamination check. |
-| Protected heldout prompt overlap | Overlap against the protected heldout set that may never be trained on. |
-| Candidate-example ratio | The share of examples that originate from generated candidates. |
-| Rare-profile coverage | Whether low-frequency answer profiles are represented at all. |
+<div className="qlm-grid">
+<div><h4>Corpus source counts</h4><p>How many records came from each admitted source.</p></div>
+<div><h4>Training text path and character count</h4><p>The exact text the run trained on, and its size.</p></div>
+<div><h4>Training-example source mixture</h4><p>The proportion of examples drawn from each source family.</p></div>
+<div><h4>Duplicate training examples</h4><p>Repeated training examples that could inflate apparent learning.</p></div>
+<div><h4>Duplicate admission and eval ids</h4><p>Repeated identifiers across admitted and eval records.</p></div>
+<div><h4>Train/eval prompt overlap</h4><p>Eval prompts that also appear in training — the contamination check.</p></div>
+<div><h4>Protected heldout prompt overlap</h4><p>Overlap against the protected heldout set that may never be trained on.</p></div>
+<div><h4>Candidate-example ratio</h4><p>The share of examples that originate from generated candidates.</p></div>
+<div><h4>Rare-profile coverage</h4><p>Whether low-frequency answer profiles are represented at all.</p></div>
+</div>
 
 The report does not promote or reject a model by itself. It makes data risk
 visible before promotion gates or transformer screens interpret metrics. A high
@@ -64,25 +85,30 @@ verifier and the reader why an exact-answer count should be distrusted.
 describes the data, the plan states what the run is permitted to do with it,
 inside the closed-world boundary.
 
-| Field | Records |
-| --- | --- |
-| Component and run id | Which component is training, and the run it belongs to. |
-| Allowed data sources | The admitted sources the run may draw from, stated up front. |
-| Closed-world data boundary | The flags asserting no external weights, tokenizer, embeddings, or text. |
-| Hygiene report path | The `corpus_hygiene.json` this plan was built against. |
-| Eval-set counts | The size of each eval set the run will be scored on. |
-| Base and scheduled example mixture | The intended source mixture, before and after scheduling. |
-| Candidate policy status | Whether generated candidates are excluded from training. |
-| Training recipe path and summary | The reproducible [recipe](./training-recipes.md), when written. |
-| Replay-plan path and summary | The profile-aware replay plan, when one is written. |
-| Closed-world verifier path and summary | The [verifier](./closed-world-verifier.md) approval, when written. |
-| Planned artifacts | The evidence files the run commits to emitting. |
+<div className="qlm-grid">
+<div><h4>Component and run id</h4><p>Which component is training, and the run it belongs to.</p></div>
+<div><h4>Allowed data sources</h4><p>The admitted sources the run may draw from, stated up front.</p></div>
+<div><h4>Closed-world data boundary</h4><p>The flags asserting no external weights, tokenizer, embeddings, or text.</p></div>
+<div><h4>Hygiene report path</h4><p>The <code>corpus_hygiene.json</code> this plan was built against.</p></div>
+<div><h4>Eval-set counts</h4><p>The size of each eval set the run will be scored on.</p></div>
+<div><h4>Base and scheduled example mixture</h4><p>The intended source mixture, before and after scheduling.</p></div>
+<div><h4>Candidate policy status</h4><p>Whether generated candidates are excluded from training.</p></div>
+<div><h4>Training recipe path and summary</h4><p>The reproducible <a href="./training-recipes.md">recipe</a>, when written.</p></div>
+<div><h4>Replay-plan path and summary</h4><p>The profile-aware replay plan, when one is written.</p></div>
+<div><h4>Closed-world verifier path and summary</h4><p>The <a href="./closed-world-verifier.md">verifier</a> approval, when written.</p></div>
+<div><h4>Planned artifacts</h4><p>The evidence files the run commits to emitting.</p></div>
+</div>
 
-The candidate ratio is the load-bearing field. Generated or proposed examples
-are reported here, but reporting them is not the same as admitting them: a
-candidate cannot become training data without a later admission to the ledger
-and a verification path. The plan records the lane; the
+<div className="qlm-keypoint">
+
+**The candidate ratio is the load-bearing field**
+
+Generated or proposed examples are reported here, but reporting them is not the
+same as admitting them: a candidate cannot become training data without a later
+admission to the ledger and a verification path. The plan records the lane; the
 [candidate quarantine](./candidate-quarantine.md) enforces it.
+
+</div>
 
 ## How the surfaces grew, and what they prove
 
@@ -109,12 +135,36 @@ source-profile updates that preserved the baseline floor (first one
 `bridge:owner` update, then several profile-scale updates) were allowed to
 become trusted model state.
 
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
+A `200/200` retry is a memory-served count, not learned weights. The corpus-hygiene
+trail demonstrates, run after run, that broader coverage or a better-looking
+number cannot become trusted model state by itself — only a guarded update that
+keeps the data boundary and the baseline floor intact can.
+
+</div>
+
 This is the point of the report. The corpus-hygiene trail is part of the
-evidence bundle, not a quality promotion shortcut. It demonstrates, run after
-run, that broader coverage or a better-looking number cannot become trusted
-model state by itself — only a guarded update that keeps the data boundary and
-the baseline floor intact can. The from-scratch transformer remains unpromoted
-on `branch_diversity_target`; the hygiene trail is part of why that claim is
-honest. See [Transformer](../build/transformer.md) for the routing problem
-itself, and [Build](../build/index.md) for the `memory-served` versus
-`weight-consolidated` distinction these artifacts protect.
+evidence bundle, not a quality promotion shortcut. The from-scratch transformer
+remains unpromoted on `branch_diversity_target`; the hygiene trail is part of
+why that claim is honest.
+
+:::note
+See [Transformer](../build/transformer.md) for the routing problem itself, and
+[Build](../build/index.md) for the `memory-served` versus `weight-consolidated`
+distinction these artifacts protect.
+:::
+
+## What is next
+
+<div className="qlm-next">
+
+<a href="./closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic gate that decides whether a plan may influence the next step.</small></a>
+
+<a href="./candidate-quarantine.md"><strong>Read</strong><span>Candidate quarantine</span><small>How generated candidates are kept out of training until admitted.</small></a>
+
+<a href="../build/transformer.md"><strong>Concept</strong><span>Transformer</span><small>The target-routing problem the hygiene trail keeps unpromoted.</small></a>
+
+</div>

@@ -5,7 +5,18 @@ description: The v0.74 cross-referenced map from papers and open-source mechanic
 
 # Research Implementation Map
 
-Last reviewed: 2026-06-14.
+<p className="qlm-meta"><span>7 min read</span><span>For contributors</span><span>Last reviewed 2026-06-14</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- What the v0.74 research-control checkpoint records, and why it makes no claim about model behavior.
+- The five-column ledger that ties external research and open-source mechanics to QuarkLM's own gaps.
+- The closed-world boundary every cross-reference is held inside.
+- The three-phase implementation ladder it has driven since v0.74, and the single mechanic that remains.
+
+</div>
 
 The full map lives in the repository root at `RESEARCH_IMPLEMENTATION_MAP.md`.
 This page is the durable summary: what the map is, why it exists, and which work
@@ -21,19 +32,25 @@ before any larger transformer repair run.
 The project already had a forward plan
 ([Forward research plan](./forward-research-plan.md)) and a deep research review
 ([Deep research review](./deep-research-review.md)). The missing piece was a
-direct implementation ledger with five columns:
+direct implementation ledger with five columns.
 
-| Column | What it answers |
-| --- | --- |
-| Research cluster | Which published work the mechanic draws on. |
-| Public implementation pattern | How comparable open systems structure that piece. |
-| QuarkLM gap | What the current codebase is missing. |
-| Required mechanic | The versioned change that closes the gap. |
-| Acceptance evidence | The artifact that proves it worked or rejected the run. |
+<div className="qlm-grid">
+<div><h4>Research cluster</h4><p>Which published work the mechanic draws on.</p></div>
+<div><h4>Public implementation pattern</h4><p>How comparable open systems structure that piece.</p></div>
+<div><h4>QuarkLM gap</h4><p>What the current codebase is missing.</p></div>
+<div><h4>Required mechanic</h4><p>The versioned change that closes the gap.</p></div>
+<div><h4>Acceptance evidence</h4><p>The artifact that proves it worked or rejected the run.</p></div>
+</div>
+
+<div className="qlm-keypoint">
+
+**A ledger, not a knob**
 
 That ledger keeps QuarkLM from drifting into knob turning. Each new version now
 connects to a stated research and implementation reason rather than to an
 unexplained metric move.
+
+</div>
 
 ## Source clusters
 
@@ -41,16 +58,16 @@ The map cross-references design references only. No source listed below enters
 QuarkLM as weights, tokenizers, embeddings, datasets, copied code, or
 external-model-shaped training text.
 
-| Cluster | Representative references |
-| --- | --- |
-| Transformer language modeling | the original Transformer paper, GPT-style decoder practice, nanoGPT, llm.c, GPT-NeoX, OLMo. |
-| Continual learning and catastrophic forgetting | EWC and lifelong-learning surveys. |
-| Small-data language learning | BabyLM, TinyStories. |
-| Self-generated data methods | Self-Instruct, STaR, Self-Refine, Reflexion. |
-| Verifiers and process supervision | GSM8K verifiers, process reward models. |
-| Data curation and contamination | The Pile, Dolma, DataComp-LM, Open-Instruct. |
-| Tokenizers | BPE, SentencePiece, byte-level subword systems. |
-| Transparent open-model practice | Pythia, OLMo, OLMo 2, LLM360. |
+<div className="qlm-grid">
+<div><h4>Transformer language modeling</h4><p>The original Transformer paper, GPT-style decoder practice, nanoGPT, llm.c, GPT-NeoX, OLMo.</p></div>
+<div><h4>Continual learning and catastrophic forgetting</h4><p>EWC and lifelong-learning surveys.</p></div>
+<div><h4>Small-data language learning</h4><p>BabyLM, TinyStories.</p></div>
+<div><h4>Self-generated data methods</h4><p>Self-Instruct, STaR, Self-Refine, Reflexion.</p></div>
+<div><h4>Verifiers and process supervision</h4><p>GSM8K verifiers, process reward models.</p></div>
+<div><h4>Data curation and contamination</h4><p>The Pile, Dolma, DataComp-LM, Open-Instruct.</p></div>
+<div><h4>Tokenizers</h4><p>BPE, SentencePiece, byte-level subword systems.</p></div>
+<div><h4>Transparent open-model practice</h4><p>Pythia, OLMo, OLMo 2, LLM360.</p></div>
+</div>
 
 [Research grounding](./research-grounding.md) holds the per-paper map and the
 QuarkLM implication drawn from each cluster.
@@ -60,17 +77,23 @@ QuarkLM implication drawn from each cluster.
 Each mechanic in the ladder is constrained by the same boundary, so a research
 reference can guide design without crossing into QuarkLM's training data.
 
-- Papers, official project docs, and public repositories are studied as
-  structure references.
-- The codebase is compared against those references.
-- The comparison becomes a versioned implementation requirement with declared
-  acceptance evidence.
+<ol className="qlm-steps">
+<li><strong>Study as structure references</strong><p>Papers, official project docs, and public repositories are studied as structure references.</p></li>
+<li><strong>Compare against the codebase</strong><p>The codebase is compared against those references.</p></li>
+<li><strong>Turn the gap into a versioned requirement</strong><p>The comparison becomes a versioned implementation requirement with declared acceptance evidence.</p></li>
+</ol>
 
-What the map explicitly forbids: copying outside code; importing pretrained
-weights, tokenizers, embeddings, or datasets; using an external model as a
-teacher, verifier, judge, reward model, or repair generator; and treating
-retrieval, exact responders, generated candidates, or research notes as proof
-that the neural weights learned a behavior.
+<div className="qlm-keypoint">
+
+**What the map explicitly forbids**
+
+Copying outside code; importing pretrained weights, tokenizers, embeddings, or
+datasets; using an external model as a teacher, verifier, judge, reward model,
+or repair generator; and treating retrieval, exact responders, generated
+candidates, or research notes as proof that the neural weights learned a
+behavior.
+
+</div>
 
 ## Implementation ladder
 
@@ -82,14 +105,14 @@ adding another direct-answer objective mode. The work falls into three phases.
 These versions install the auditable surfaces that every later screen depends
 on. They are implemented and not in dispute.
 
-| Version | Mechanic |
-| --- | --- |
-| v0.75 | Candidate quarantine artifacts and lifecycle states. See [Candidate quarantine](../operate/candidate-quarantine.md). |
-| v0.76 | Deterministic closed-world verifier checks. See [Closed-world verifier](../operate/closed-world-verifier.md). |
-| v0.77 | Recipe objects and constraint-first promotion gates. See [Training recipes](../operate/training-recipes.md). |
-| v0.78 | Transformer experiment, artifact, trainer-utility, and objective-catalog surfaces. |
-| v0.79 | Transformer model/config and checkpoint-metadata surfaces. |
-| v0.80 | Transformer eval and checkpoint-load surfaces. |
+<div className="qlm-grid">
+<div><h4>v0.75</h4><p>Candidate quarantine artifacts and lifecycle states. See <a href="../operate/candidate-quarantine.md">Candidate quarantine</a>.</p></div>
+<div><h4>v0.76</h4><p>Deterministic closed-world verifier checks. See <a href="../operate/closed-world-verifier.md">Closed-world verifier</a>.</p></div>
+<div><h4>v0.77</h4><p>Recipe objects and constraint-first promotion gates. See <a href="../operate/training-recipes.md">Training recipes</a>.</p></div>
+<div><h4>v0.78</h4><p>Transformer experiment, artifact, trainer-utility, and objective-catalog surfaces.</p></div>
+<div><h4>v0.79</h4><p>Transformer model/config and checkpoint-metadata surfaces.</p></div>
+<div><h4>v0.80</h4><p>Transformer eval and checkpoint-load surfaces.</p></div>
+</div>
 
 ### Branch-diversity repair attempts (v0.81–v0.104)
 
@@ -108,17 +131,26 @@ guarded source-profile movements that preserved the floor, and frontier and
 coverage-recovery work (v0.96–v0.104) converted some of that safe movement into
 local coverage gains while branch diversity stayed below the gate.
 
+:::note
 No screen in this phase promoted. Each one tightened what the next attempt was
 allowed to claim.
+:::
 
 ### Memory rail and routing diagnostics (v0.105–v0.115)
 
 v0.105 separated the memory rail from neural consolidation explicitly:
 closed-world retrieval memory built a corpus-only `retrieval_memory_report.json`
 with `497` memory cards and `219/219` exact retrieval evals, with no external
-embeddings and no weight updates. That evidence is `memory-served`, not
-`weight-consolidated`; it proves the corpus contains the answers, not that the
-transformer learned to route them.
+embeddings and no weight updates.
+
+<div className="qlm-keypoint">
+
+**`memory-served` is not `weight-consolidated`**
+
+That evidence is `memory-served`, not `weight-consolidated`: it proves the
+corpus contains the answers, not that the transformer learned to route them.
+
+</div>
 
 The versions that follow used that separation to guide gated consolidation and
 then to diagnose why consolidation keeps failing.
@@ -156,12 +188,20 @@ table.
 ## Operating rule
 
 Every future mechanics version must answer three questions before it is added
-to the ladder:
+to the ladder.
 
-1. Which research or implementation pattern justifies this mechanic?
-2. Which closed-world boundary does it protect?
-3. Which artifact proves it worked, or recorded the rejected run?
+<ol className="qlm-steps">
+<li><strong>Which research or implementation pattern justifies this mechanic?</strong></li>
+<li><strong>Which closed-world boundary does it protect?</strong></li>
+<li><strong>Which artifact proves it worked, or recorded the rejected run?</strong></li>
+</ol>
 
 That is how QuarkLM keeps the claim clean. The model grows only from its
 admitted, ledgered corpus, and the project keeps enough evidence to show
 exactly what each version changed and what it did not.
+
+<div className="qlm-next">
+<a href="./research-grounding.md"><strong>Read next</strong><span>Research grounding</span><small>The per-paper map and the QuarkLM implication drawn from each cluster.</small></a>
+<a href="./branch-diversity-research.md"><strong>Read next</strong><span>Branch diversity research</span><small>The per-version evidence behind the unpromoted routing gate.</small></a>
+<a href="../build/transformer.md"><strong>Read next</strong><span>The transformer</span><small>Current status and the evidence table for the from-scratch model.</small></a>
+</div>

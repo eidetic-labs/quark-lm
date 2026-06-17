@@ -5,6 +5,19 @@ description: What QuarkLM may and may not train on.
 
 # Purity Boundary
 
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+
+<div className="qlm-lead">
+
+**What you will learn**
+
+- The four inputs that may never reach QuarkLM's neural weights, and why each is excluded.
+- How `corpus/ledger.json` acts as the single admission gate, with two independent per-source permissions.
+- Why a ledgered source can still be barred from training, and why generated material is not yet trainable.
+- The one distinction that is easy to miss: studying open-source structure is allowed; importing open-source weights, tokenizers, embeddings, or text is not.
+
+</div>
+
 The purity boundary is the line between knowledge QuarkLM's neural weights are
 allowed to learn from and everything else. Its neural weights learn only from the
 admitted, ledgered corpus. Nothing arrives pretrained, and no text becomes
@@ -13,17 +26,27 @@ prohibitions, the ledger that enforces them, and the one distinction that is eas
 to miss: studying open-source structure is allowed; importing open-source weights,
 tokenizers, embeddings, or text is not.
 
+<div className="qlm-keypoint">
+
+**The corpus is the only training input**
+
+Every input that touches neural weights — training, validation, tokenizer
+fitting, and repair data — must trace back to a source admitted in
+`corpus/ledger.json`. Truth is not sufficient; admission is.
+
+</div>
+
 ## What may not enter
 
 Four things are excluded from every part of the model that touches neural
 weights: training, validation, tokenizer fitting, and repair data.
 
-| Excluded input | Why it is excluded |
-| --- | --- |
-| Pretrained weights | They carry knowledge from outside the corpus that cannot be traced to an admitted source. |
-| Pretrained tokenizers | A pretrained vocabulary encodes a world the corpus never admitted; it crosses the same boundary as pretrained weights. |
-| External embeddings | They inject learned representations the corpus did not produce. |
-| Unledgered training text | Any text not named and allowed in `corpus/ledger.json` is not training data, regardless of how true it is. |
+<div className="qlm-grid">
+<div><h4>Pretrained weights</h4><p>They carry knowledge from outside the corpus that cannot be traced to an admitted source.</p></div>
+<div><h4>Pretrained tokenizers</h4><p>A pretrained vocabulary encodes a world the corpus never admitted; it crosses the same boundary as pretrained weights.</p></div>
+<div><h4>External embeddings</h4><p>They inject learned representations the corpus did not produce.</p></div>
+<div><h4>Unledgered training text</h4><p>Any text not named and allowed in <code>corpus/ledger.json</code> is not training data, regardless of how true it is.</p></div>
+</div>
 
 These four are not a code-comment policy. They are the same four boundary flags
 the deterministic [closed-world verifier](../operate/closed-world-verifier.md)
@@ -39,10 +62,10 @@ records the four prohibitions above and a `training_data_policy` stating that on
 curriculum generated from allowed source files in the ledger may be used for
 training. It then lists every source with two independent permissions:
 
-| Field | Controls |
-| --- | --- |
-| `allowed_for_curriculum_generation` | Whether `curriculum` may derive training and validation text from the source. |
-| `allowed_for_training` | Whether the source's derived material may reach a weight update. |
+<div className="qlm-grid">
+<div><h4><code>allowed_for_curriculum_generation</code></h4><p>Whether <code>curriculum</code> may derive training and validation text from the source.</p></div>
+<div><h4><code>allowed_for_training</code></h4><p>Whether the source's derived material may reach a weight update.</p></div>
+</div>
 
 Both permissions default to closed. A source is allowed only when its ledger
 entry says so explicitly. The human-authored glossary, the grammar and story
@@ -60,7 +83,7 @@ not so the model can learn from them. Letting an eval probe into training would
 teach the model the test, which is the leak the
 [prompt leakage](./prompt-leakage.md) discipline guards against.
 
-```text
+```text title="corpus/ledger.json — permission summary"
 corpus/ledger.json
   glossary-v0     curriculum: yes   training: yes
   grammar-v0      curriculum: yes   training: yes
@@ -78,10 +101,16 @@ the ledger. Until then it sits in
 confirms a ledger admission link before the material can become training-eligible.
 Generation does not bypass admission; it feeds it.
 
-This is also why retrieval memory answering a probe is not evidence that the
-weights learned it. Retrieval serves admitted knowledge with provenance and moves
-no weights — it is `memory-served`, not `weight-consolidated`. The two states are
-kept separate everywhere; see [Language model](../learn/language-model.md).
+<div className="qlm-keypoint">
+
+**Memory-served is not weight-consolidated**
+
+Retrieval memory answering a probe is not evidence that the weights learned it.
+Retrieval serves admitted knowledge with provenance and moves no weights — it is
+`memory-served`, not `weight-consolidated`. The two states are kept separate
+everywhere; see [Language model](../learn/language-model.md).
+
+</div>
 
 ## Structure may be studied; substance may not be imported
 
@@ -99,10 +128,33 @@ future subword tokenizer must be a separate artifact trained from admitted text
 only — a pretrained vocabulary would cross the boundary that pretrained weights
 do.
 
+:::note
+
+Studying structure is a docs-gated activity, not a training input. The structure
+audit is recorded in `STRUCTURE_AUDIT.md`; adopting a shape requires evidence in
+docs, tests, and run records — it never admits external content into the corpus.
+
+:::
+
 ## Rule
 
-New training data must be admitted to `corpus/ledger.json` or generated from
-admitted corpus files and then admitted in turn. A source's two ledger
-permissions decide whether it may reach curriculum and weights; both are closed
-until the ledger opens them. Evaluation probes may be ledgered for provenance,
-but they are not training data unless the ledger explicitly allows it.
+To admit new training data, follow the ledger path: a source is either admitted
+directly, or generated from admitted corpus files and then admitted in turn.
+
+<ol className="qlm-steps">
+<li><strong>Admit the source to the ledger</strong><p>New training data must be named in <code>corpus/ledger.json</code>, or generated from admitted corpus files and then admitted in turn.</p></li>
+<li><strong>Open the two permissions explicitly</strong><p>A source's <code>allowed_for_curriculum_generation</code> and <code>allowed_for_training</code> flags decide whether it may reach curriculum and weights; both stay closed until the ledger opens them.</p></li>
+<li><strong>Keep evaluation probes out of training</strong><p>Evaluation probes may be ledgered for provenance, but they are not training data unless the ledger explicitly allows it.</p></li>
+</ol>
+
+## What is next
+
+<div className="qlm-next">
+
+<a href="../operate/closed-world-verifier.md"><strong>Read next</strong><span>Closed-world verifier</span><small>The deterministic check for the four boundary flags before a training plan is trusted.</small></a>
+
+<a href="./prompt-leakage.md"><strong>Read next</strong><span>Prompt leakage</span><small>How held-out evaluation prompts are kept out of training lessons.</small></a>
+
+<a href="../operate/candidate-quarantine.md"><strong>Read next</strong><span>Candidate quarantine</span><small>Where generated material waits for a ledger admission link before it becomes trainable.</small></a>
+
+</div>
