@@ -142,6 +142,15 @@ final loss, optimizer state, and a trained-parameter signature. This is still a
 gate, not PyTorch training: a future PyTorch trainer must match the scalar
 artifact before its weight updates can count as evidence.
 
+The current training-backend layer adds a PyTorch training candidate artifact
+without promoting PyTorch training. The artifact records runtime availability,
+requested device and dtype, optimizer config, and the scalar training case the
+future trainer must match. If PyTorch is available, the candidate is still
+`pending` with `training_not_implemented`; if the runtime or requested dtype is
+unavailable, it records a blocked or pending case rather than fabricated
+metrics. Real PyTorch training, autograd, AdamW parity, gradient clipping,
+scheduling, and checkpoint compatibility remain future gates.
+
 ## Where the sequence stands
 
 The seven mechanics are built. The direct-answer objective they were meant to

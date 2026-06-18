@@ -251,6 +251,15 @@ final loss, optimizer state, and a trained-parameter signature. This is still a
 gate, not PyTorch training: a future PyTorch trainer must match the scalar
 artifact before its weight updates can count as evidence.
 
+The current training-backend layer adds a PyTorch training candidate artifact
+that reports runtime availability, requested device and dtype, optimizer
+config, and the scalar training case it would need to match. When PyTorch is
+available, the candidate remains `pending` with
+`training_not_implemented`; when the runtime or requested dtype is unavailable,
+it records a blocked or pending case instead of fabricating metrics. Real
+PyTorch training, autograd, AdamW parity, gradient clipping, scheduling, and
+checkpoint compatibility remain future work behind this gate.
+
 ## Current QuarkLM Diagnosis
 
 ### Strengths
