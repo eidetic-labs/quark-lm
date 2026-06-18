@@ -153,6 +153,38 @@ class TransformerCliEvalTest(unittest.TestCase):
         self.assertTrue(args.use_kv_cache)
         self.assertEqual(args.samples_jsonl, Path("samples.jsonl"))
 
+    def test_parse_incremental_update_args_accepts_guard_inputs(self) -> None:
+        args = parse_args(
+            [
+                "incremental-update",
+                "--base-checkpoint",
+                "base.json",
+                "--candidate-checkpoint",
+                "candidate.json",
+                "--accepted-checkpoint",
+                "accepted.json",
+                "--report",
+                "report.json",
+                "--new-lesson-probe",
+                "new.jsonl",
+                "--regression-probe",
+                "regression.jsonl",
+                "--nll-tolerance",
+                "0.125",
+                "--trace-top-tokens",
+                "3",
+            ]
+        )
+
+        self.assertEqual(args.base_checkpoint, Path("base.json"))
+        self.assertEqual(args.candidate_checkpoint, Path("candidate.json"))
+        self.assertEqual(args.accepted_checkpoint, Path("accepted.json"))
+        self.assertEqual(args.report, Path("report.json"))
+        self.assertEqual(args.new_lesson_probe, [Path("new.jsonl")])
+        self.assertEqual(args.regression_probe, [Path("regression.jsonl")])
+        self.assertEqual(args.nll_tolerance, 0.125)
+        self.assertEqual(args.trace_top_tokens, 3)
+
 
 if __name__ == "__main__":
     unittest.main()

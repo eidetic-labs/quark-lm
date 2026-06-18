@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-import argparse
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from support.commands import parse_args
 from support.core import TinyTransformerLM, continuation_nll
+from support.incremental_training import (
+    record,
+    train_args,
+    train_incremental_candidate,
+    write_text,
+)
 from transformer_char_model import train_transformer
 from transformer_incremental_update import guarded_incremental_update
 
@@ -20,13 +24,13 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
             root = Path(temp)
             base_text = "q:\na: no\n" * 4
             expanded_text = base_text + ("q2:\na: ok!\n" * 4)
-            base_corpus = _write_text(root / "base.txt", base_text)
-            base_valid = _write_text(root / "base_valid.txt", base_text)
-            expanded_corpus = _write_text(root / "expanded.txt", expanded_text)
-            expanded_valid = _write_text(root / "expanded_valid.txt", expanded_text)
+            base_corpus = write_text(root / "base.txt", base_text)
+            base_valid = write_text(root / "base_valid.txt", base_text)
+            expanded_corpus = write_text(root / "expanded.txt", expanded_text)
+            expanded_valid = write_text(root / "expanded_valid.txt", expanded_text)
 
             base_metrics = train_transformer(
-                _train_args(
+                train_args(
                     corpus=base_corpus,
                     valid=base_valid,
                     run=root / "base_run",
@@ -40,7 +44,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 self.fail("base checkpoint did not include tokenizer")
 
             resumed_metrics = train_transformer(
-                _train_args(
+                train_args(
                     corpus=expanded_corpus,
                     valid=expanded_valid,
                     run=root / "resumed_run",
@@ -68,7 +72,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
     def test_guarded_incremental_update_accepts_passing_candidate(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            base_metrics, candidate_metrics = _train_incremental_candidate(
+            base_metrics, candidate_metrics = train_incremental_candidate(
                 root,
                 old_repeats=12,
                 new_repeats=4,
@@ -82,8 +86,8 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 base_checkpoint=Path(base_metrics["checkpoint"]),
                 candidate_checkpoint=Path(candidate_metrics["checkpoint"]),
                 accepted_checkpoint=accepted_checkpoint,
-                new_lesson_records=[_record("new", "q2:\na:", " ok!")],
-                regression_records=[_record("old", "q:\na:", " no")],
+                new_lesson_records=[record("new", "q2:\na:", " ok!")],
+                regression_records=[record("old", "q:\na:", " no")],
                 report_path=report_path,
             )
             accepted_model, accepted_tokenizer = TinyTransformerLM.load(accepted_checkpoint)
@@ -108,7 +112,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
     def test_guarded_incremental_update_rejects_regression_candidate(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            base_metrics, candidate_metrics = _train_incremental_candidate(
+            base_metrics, candidate_metrics = train_incremental_candidate(
                 root,
                 old_repeats=16,
                 new_repeats=8,
@@ -122,8 +126,8 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 base_checkpoint=Path(base_metrics["checkpoint"]),
                 candidate_checkpoint=Path(candidate_metrics["checkpoint"]),
                 accepted_checkpoint=accepted_checkpoint,
-                new_lesson_records=[_record("new", "q2:\na:", " ok!")],
-                regression_records=[_record("old", "q:\na:", " no")],
+                new_lesson_records=[record("new", "q2:\na:", " ok!")],
+                regression_records=[record("old", "q:\na:", " no")],
                 report_path=report_path,
             )
             written_report = _read_json(report_path)
@@ -137,86 +141,6 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 "regression_target_nll_preserved",
                 report["rejection_reasons"],
             )
-
-
-def _write_text(path: Path, text: str) -> Path:
-    path.write_text(text, encoding="utf-8")
-    return path
-
-
-def _train_args(
-    *,
-    corpus: Path,
-    valid: Path,
-    run: Path,
-    steps: int,
-    resume_checkpoint: Path | None = None,
-) -> argparse.Namespace:
-    argv = [
-        "train",
-        "--corpus",
-        str(corpus),
-        "--valid",
-        str(valid),
-        "--run",
-        str(run),
-        "--steps",
-        str(steps),
-        "--learning-rate",
-        "0.08",
-        "--eval-every",
-        "0",
-        "--valid-limit",
-        "128",
-        "--context-size",
-        "8",
-        "--embedding-dim",
-        "4",
-        "--feedforward-dim",
-        "8",
-        "--seed",
-        "1",
-    ]
-    if resume_checkpoint is not None:
-        argv.extend(["--resume-checkpoint", str(resume_checkpoint)])
-    return parse_args(argv)
-
-
-def _train_incremental_candidate(
-    root: Path,
-    *,
-    old_repeats: int,
-    new_repeats: int,
-    candidate_steps: int,
-) -> tuple[dict[str, object], dict[str, object]]:
-    base_text = "q:\na: no\n" * old_repeats
-    expanded_text = base_text + ("q2:\na: ok!\n" * new_repeats)
-    base_corpus = _write_text(root / "base.txt", base_text)
-    base_valid = _write_text(root / "base_valid.txt", base_text)
-    expanded_corpus = _write_text(root / "expanded.txt", expanded_text)
-    expanded_valid = _write_text(root / "expanded_valid.txt", expanded_text)
-    base_metrics = train_transformer(
-        _train_args(
-            corpus=base_corpus,
-            valid=base_valid,
-            run=root / "base_run",
-            steps=640,
-        )
-    )
-    candidate_metrics = train_transformer(
-        _train_args(
-            corpus=expanded_corpus,
-            valid=expanded_valid,
-            run=root / "candidate_run",
-            steps=candidate_steps,
-            resume_checkpoint=Path(str(base_metrics["checkpoint"])),
-        )
-    )
-    return base_metrics, candidate_metrics
-
-
-def _record(record_id: str, prompt: str, target: str) -> dict[str, str]:
-    return {"id": record_id, "prompt": prompt, "target": target}
 
 
 def _read_json(path: Path) -> dict[str, object]:

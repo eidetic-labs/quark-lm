@@ -14,6 +14,7 @@ from typing import Any
 from tokenizer import CharTokenizer
 from transformer_answer_training import train_transformer_answers_command
 from transformer_cli import run_transformer_cli
+from transformer_incremental_update_command import incremental_update_command
 import transformer_model as transformer_model_types
 from transformer_text_commands import (
     eval_transformer_command,
@@ -33,6 +34,7 @@ __all__ = [
     "TransformerConfig",
     "eval_transformer",
     "initialize_transformer_for_training",
+    "incremental_update",
     "main",
     "train_transformer",
     "train_transformer_answers",
@@ -62,12 +64,17 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def incremental_update(args: argparse.Namespace) -> dict[str, Any]:
+    return incremental_update_command(args, TinyTransformerLM)
+
+
 def main(argv: list[str] | None = None) -> int:
     return run_transformer_cli(
         argv,
         train_transformer=train_transformer,
         eval_transformer=eval_transformer,
         train_transformer_answers=train_transformer_answers,
+        incremental_update=incremental_update,
     )
 
 
