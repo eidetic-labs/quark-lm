@@ -66,6 +66,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
         self.assertTrue(learned_tokenizer.extends(base_tokenizer))
         self.assertEqual(resumed_metrics["resume"]["tokenizer_extended"], True)
         self.assertEqual(resumed_metrics["resume"]["added_tokens"], ["!", "2", "k"])
+        self.assertTrue(resumed_metrics["resume"]["vocab_expansion_audit"]["passed"])
         self.assertGreater(before, after)
         self.assertEqual(learned_model.generate(learned_tokenizer, prompt, len(target)), target)
 

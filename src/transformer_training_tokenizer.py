@@ -14,6 +14,7 @@ from tokenizer_artifacts import (
 )
 from tokenizer_protocol import TokenizerProtocol
 from transformer_model import transformer_config_from_args
+from transformer_vocab_expansion_audit import audit_vocab_expansion_parity
 from transformer_vocab_expansion import expand_weights_for_tokenizer
 
 
@@ -22,6 +23,7 @@ def training_tokenizer(
     train_text: str,
     model_cls: Any,
 ) -> TokenizerProtocol:
+    args._training_text_for_vocab_audit = train_text
     if args.resume_checkpoint is None:
         return _fresh_training_tokenizer(args, train_text)
     _model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
@@ -52,18 +54,30 @@ def initialize_transformer_for_training_command(
             "resume checkpoint tokenizer is not an append-only prefix of "
             "the admitted training tokenizer"
         )
+    vocab_expansion_audit = None
     if tokenizer.vocab_size > checkpoint_tokenizer.vocab_size:
+        base_model_payload = model.to_dict(checkpoint_tokenizer)
+        base_model = model_cls(checkpoint_config, base_model_payload["weights"])
         if _can_resize_model_vocab(checkpoint_tokenizer, tokenizer):
             model.resize_vocab(tokenizer.vocab_size)
         else:
-            model_payload = model.to_dict(checkpoint_tokenizer)
             expanded_weights = expand_weights_for_tokenizer(
-                model_payload["weights"],
+                base_model_payload["weights"],
                 checkpoint_tokenizer,
                 tokenizer,
             )
             expanded_config = transformer_config_from_args(args, tokenizer.vocab_size)
             model = model_cls(expanded_config, expanded_weights)
+        vocab_expansion_audit = audit_vocab_expansion_parity(
+            base_model=base_model,
+            expanded_model=model,
+            base_tokenizer=checkpoint_tokenizer,
+            expanded_tokenizer=tokenizer,
+            train_text=getattr(args, "_training_text_for_vocab_audit", ""),
+            context_size=args.context_size,
+        )
+        if not vocab_expansion_audit["passed"]:
+            raise ValueError("vocabulary expansion changed old-token logits")
     return model, {
         "resumed": True,
         "resume_checkpoint": str(args.resume_checkpoint),
@@ -71,6 +85,7 @@ def initialize_transformer_for_training_command(
         "previous_vocab_size": checkpoint_tokenizer.vocab_size,
         "vocab_size": tokenizer.vocab_size,
         "added_tokens": tokenizer.tokens[checkpoint_tokenizer.vocab_size :],
+        "vocab_expansion_audit": vocab_expansion_audit,
     }
 
 

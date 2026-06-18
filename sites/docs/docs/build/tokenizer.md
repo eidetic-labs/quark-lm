@@ -61,6 +61,11 @@ tokenizer must expose `encode`, `decode`, `extend`, `extends`, `to_dict`,
 diagnostic paths working against the same boundary whether a screen uses the
 character baseline or closed-world subword tokens.
 
+When a resumed checkpoint receives append-only tokenizer growth, QuarkLM runs a
+vocabulary-expansion parity audit before accepting the resized model. The audit
+samples admitted training contexts and compares old-vocabulary logits before and
+after expansion; any old-logit drift blocks the resume.
+
 ## Train with a subword tokenizer
 
 The default remains character tokenization. Use the subword path explicitly:

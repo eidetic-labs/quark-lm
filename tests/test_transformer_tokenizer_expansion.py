@@ -12,7 +12,9 @@ from closed_world_subword_tokenizer import ClosedWorldSubwordTokenizer, MergeRul
 from tokenizer import CharTokenizer
 from transformer_lm_weight_initialization import build_random_transformer_weights
 from transformer_model import TransformerConfig
+from transformer_tiny_lm import TinyTransformerLM
 from transformer_vocab_expansion import expand_weights_for_tokenizer
+from transformer_vocab_expansion_audit import audit_vocab_expansion_parity
 
 
 class TransformerTokenizerExpansionTest(unittest.TestCase):
@@ -113,6 +115,43 @@ class TransformerTokenizerExpansionTest(unittest.TestCase):
             for dim in range(config.embedding_dim)
         ]
         self.assertEqual(expanded_weights["token_embeddings"][merge_id], expected_embedding)
+
+    def test_vocab_expansion_audit_preserves_old_logits(self) -> None:
+        base = CharTokenizer.train("kite\n")
+        expanded = ClosedWorldSubwordTokenizer.from_char_tokens(base.tokens).with_merge(
+            MergeRule("k", "i", "ki")
+        )
+        config = TransformerConfig(
+            vocab_size=base.vocab_size,
+            context_size=8,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=13,
+        )
+        weights = build_random_transformer_weights(config)
+        expanded_weights = expand_weights_for_tokenizer(weights, base, expanded)
+
+        report = audit_vocab_expansion_parity(
+            base_model=TinyTransformerLM(config, weights),
+            expanded_model=TinyTransformerLM(
+                TransformerConfig(
+                    vocab_size=expanded.vocab_size,
+                    context_size=8,
+                    embedding_dim=4,
+                    feedforward_dim=8,
+                    seed=13,
+                ),
+                expanded_weights,
+            ),
+            base_tokenizer=base,
+            expanded_tokenizer=expanded,
+            train_text="kite\n",
+            context_size=8,
+        )
+
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["base_vocab_size"], base.vocab_size)
+        self.assertEqual(report["expanded_vocab_size"], expanded.vocab_size)
 
 
 if __name__ == "__main__":
