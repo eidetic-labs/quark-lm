@@ -25,6 +25,7 @@ def complete_transformer_answer_training_run(
     post_direct_candidate_snapshot: dict[str, Any] | None,
     post_direct_candidate_snapshot_skipped: bool,
     direct_answer_metrics: dict[str, Any] | None,
+    train_time_seconds: float = 0.0,
     train_selector: Callable[..., dict[str, Any]] = train_answer_selector_stage,
     train_generator: Callable[..., dict[str, Any]] = train_answer_generator_stage,
     finalize_run: Callable[..., dict[str, Any]] = finalize_transformer_answer_run,
@@ -88,6 +89,9 @@ def complete_transformer_answer_training_run(
         setup.verifier_path,
         setup.constraint_first_path,
         setup.experiment_path,
+        setup.eval_records,
+        setup.eval_candidates,
+        train_time_seconds,
         record_experiment_decision,
         write_experiment_intent,
     )

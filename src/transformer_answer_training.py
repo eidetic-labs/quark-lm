@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -22,6 +23,7 @@ def train_transformer_answers_command(
         tuple[Any, dict[str, Any]],
     ],
 ) -> dict[str, Any]:
+    started = time.perf_counter()
     setup = prepare_transformer_answer_run(
         args,
         initialize_transformer_for_training_fn,
@@ -88,4 +90,5 @@ def train_transformer_answers_command(
         post_direct_candidate_snapshot=post_direct_candidate_snapshot,
         post_direct_candidate_snapshot_skipped=post_direct_candidate_snapshot_skipped,
         direct_answer_metrics=direct_answer_metrics,
+        train_time_seconds=time.perf_counter() - started,
     )

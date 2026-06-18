@@ -21,6 +21,7 @@ class TransformerRunArtifacts:
     memory_consolidation_plan: Path
     replay_mixture_report: Path
     sweep_plan: Path
+    long_answer_diagnostics: Path
     metrics: Path
     metrics_history: Path
     lessons: Path
@@ -47,6 +48,7 @@ class TransformerRunArtifacts:
             memory_consolidation_plan=run_dir / "memory_consolidation_plan.json",
             replay_mixture_report=run_dir / "replay_mixture_report.json",
             sweep_plan=run_dir / "sweep_plan.json",
+            long_answer_diagnostics=run_dir / "long_answer_diagnostics.json",
             metrics=run_dir / "transformer_answer_metrics.json",
             metrics_history=run_dir / "transformer_answer_metrics.jsonl",
             lessons=run_dir / "transformer_answer_lessons.jsonl",
@@ -73,6 +75,7 @@ class TransformerRunArtifacts:
             self.memory_consolidation_plan,
             self.replay_mixture_report,
             self.sweep_plan,
+            self.long_answer_diagnostics,
             self.metrics,
         ]
 
@@ -91,6 +94,7 @@ class TransformerRunArtifacts:
             self.memory_consolidation_plan,
             self.replay_mixture_report,
             self.sweep_plan,
+            self.long_answer_diagnostics,
             self.metrics,
             self.metrics_history,
             self.lessons,

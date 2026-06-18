@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import math
+import time
 from typing import Any
 
 from neural_char_ops import make_context
 from transformer_math import softmax_floats
+from transformer_model import GenerationConfig
 
 
 def answer_diagnostics(
@@ -14,9 +16,19 @@ def answer_diagnostics(
     tokenizer: Any,
     prompt: str,
     target: str,
+    generation_config: GenerationConfig | None = None,
 ) -> dict[str, Any]:
+    generation_config = generation_config or GenerationConfig()
     target_ids = tokenizer.encode(target)
-    completion = model.generate(tokenizer, prompt, len(target_ids))
+    started = time.perf_counter()
+    generation = model.generate_with_trace(
+        tokenizer,
+        prompt,
+        len(target_ids),
+        generation_config,
+    )
+    generation_time_ms = (time.perf_counter() - started) * 1000.0
+    completion = generation["text"]
     completion_ids = tokenizer.encode(completion)
     return {
         "prompt": prompt,
@@ -27,6 +39,9 @@ def answer_diagnostics(
         "completion_token_count": len(completion_ids),
         "first_drift_index": first_drift_index(target, completion),
         "per_token_nll": per_token_nll(model, tokenizer, prompt, target),
+        "generation_time_ms": generation_time_ms,
+        "generation_trace_steps": len(generation["trace"]),
+        "generation_config": generation["generation_config"],
     }
 
 

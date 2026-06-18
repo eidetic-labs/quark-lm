@@ -83,11 +83,13 @@ class TransformerExperimentTests(unittest.TestCase):
         self.assertIn(artifacts.memory_consolidation_plan, artifacts.training_plan_artifacts())
         self.assertIn(artifacts.replay_mixture_report, artifacts.training_plan_artifacts())
         self.assertIn(artifacts.sweep_plan, artifacts.training_plan_artifacts())
+        self.assertIn(artifacts.long_answer_diagnostics, artifacts.training_plan_artifacts())
         self.assertIn(str(artifacts.replay_plan), artifacts.intent_artifacts())
         self.assertIn(str(artifacts.retrieval_memory), artifacts.intent_artifacts())
         self.assertIn(str(artifacts.memory_consolidation_plan), artifacts.intent_artifacts())
         self.assertIn(str(artifacts.replay_mixture_report), artifacts.intent_artifacts())
         self.assertIn(str(artifacts.sweep_plan), artifacts.intent_artifacts())
+        self.assertIn(str(artifacts.long_answer_diagnostics), artifacts.intent_artifacts())
 
     def test_experiment_intent_uses_v078_recipe_and_artifact_surface(self) -> None:
         args = _args()
@@ -115,6 +117,10 @@ class TransformerExperimentTests(unittest.TestCase):
             intent["planned_artifacts"],
         )
         self.assertIn("runs/profile-screen/sweep_plan.json", intent["planned_artifacts"])
+        self.assertIn(
+            "runs/profile-screen/long_answer_diagnostics.json",
+            intent["planned_artifacts"],
+        )
         self.assertIn(PROFILE_REPLAY_PLAN_PATH, intent["planned_artifacts"])
 
     def test_profile_replay_modes_keep_profile_surface(self) -> None:

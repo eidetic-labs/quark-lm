@@ -67,6 +67,7 @@ behavior.
 <div><h4><code>sweep_plan.json</code></h4><p>Controlled tokenizer, architecture, optimizer, and training-budget axes for transformer screens.</p></div>
 <div><h4><code>sweep_report.json</code></h4><p>Cross-trial answer-sweep evidence comparing declared tokenizer, architecture, optimizer, and step-budget axes.</p></div>
 <div><h4><code>replay_mixture_report.json</code></h4><p>New lessons, retained facts, glossary/self facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase evidence.</p></div>
+<div><h4><code>long_answer_diagnostics.json</code></h4><p>First-drift, per-token loss, token-count, generation-time, train-time, and candidate-rank diagnostics for the longest eval answers.</p></div>
 <div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state and proof that generated candidates are not training data until admitted.</p></div>
 <div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval.</p></div>
 <div><h4><code>training_recipe.json</code></h4><p>Reproducible model, tokenizer, data, objective, optimizer, artifact, and gate recipe.</p></div>

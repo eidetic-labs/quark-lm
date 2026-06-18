@@ -73,6 +73,10 @@ class TransformerExperimentContractsTest(unittest.TestCase):
             "runs/profile-screen/sweep_plan.json",
             intent["planned_artifacts"],
         )
+        self.assertIn(
+            "runs/profile-screen/long_answer_diagnostics.json",
+            intent["planned_artifacts"],
+        )
         self.assertEqual(intent["decision"]["status"], "planned")
 
     def test_transformer_training_recipe_records_replay_and_rerun_surface(self) -> None:

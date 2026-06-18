@@ -88,6 +88,7 @@ audited rather than trusted:
 | `training_plan.json` / `corpus_hygiene.json` | Source mixture, duplicate and train/eval overlap checks, candidate ratio, allowed sources. |
 | `sweep_plan.json` | The controlled tokenizer, architecture, optimizer, and training-budget axes for the screen. |
 | `replay_mixture_report.json` | New lessons, retained facts, glossary/self facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase evidence. |
+| `long_answer_diagnostics.json` | Longest eval answers with first drift, per-token NLL, token counts, generation timing, train timing, and candidate rank. |
 | `candidate_quarantine.json` | Candidate lifecycle state; candidates are not training data until admitted to the ledger. |
 | `closed_world_verifier.json` | Deterministic check that the data boundary, candidate exclusion, quarantine, and protected train/eval overlap pass. |
 | `training_recipe.json` / `constraint_first_promotion.json` | Model, tokenizer, data, objective, optimizer, replay, and gates; blocks any loss, NLL, rank, or exact-quality number until constraints pass first. |

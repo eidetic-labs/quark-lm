@@ -90,6 +90,11 @@ trial directories, tokenizer evidence, and constraint-first status for each
 trial; each trial still keeps its own `sweep_plan.json`, verifier, recipe, and
 promotion report.
 
+Answer-training runs also write `long_answer_diagnostics.json`. That report
+samples the longest eval answers per eval file and records first drift, per-token
+loss, token counts, generation time, train time, candidate rank, and the current
+branch-diversity signal. It is diagnostic evidence, not a promotion shortcut.
+
 ## Constraint-first promotion
 
 `constraint_first_promotion.json` separates closed-world *constraints* from

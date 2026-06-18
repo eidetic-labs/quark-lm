@@ -53,6 +53,11 @@ class TransformerAnswerTokenizerTest(unittest.TestCase):
             report = json.loads(
                 (run_dir / "tokenizer_report.json").read_text(encoding="utf-8")
             )
+            diagnostics = json.loads(
+                Path(metrics["long_answer_diagnostics"]["path"]).read_text(
+                    encoding="utf-8"
+                )
+            )
 
         self.assertEqual(metrics["tokenizer_type"], "closed-world-subword")
         self.assertEqual(manifest["tokenizer_type"], "closed-world-subword")
@@ -65,6 +70,7 @@ class TransformerAnswerTokenizerTest(unittest.TestCase):
             metrics["sweep_plan"]["current_trial"]["tokenizer_type"],
             "closed-world-subword",
         )
+        self.assertEqual(diagnostics["kind"], "transformer_long_answer_diagnostics")
         self.assertFalse(metrics["pretrained_tokenizer"])
 
 

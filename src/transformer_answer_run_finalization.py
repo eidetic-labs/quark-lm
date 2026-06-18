@@ -18,6 +18,10 @@ from transformer_experiment import (
     TRAINING_DATA_DESCRIPTION,
     transformer_experiment_decision,
 )
+from transformer_long_answer_report import (
+    build_long_answer_diagnostics_report,
+    write_long_answer_diagnostics_report,
+)
 from transformer_model import (
     TRANSFORMER_ARCHITECTURE,
     TRANSFORMER_CHECKPOINT_FORMAT,
@@ -69,6 +73,9 @@ def finalize_transformer_answer_run(
     verifier_path: Path,
     constraint_first_path: Path,
     experiment_path: Path,
+    eval_records: dict[str, list[dict[str, Any]]],
+    eval_candidates: dict[str, list[str]],
+    train_time_seconds: float,
     record_experiment_decision_fn: Any,
     write_experiment_intent_fn: Any,
 ) -> dict[str, Any]:
@@ -84,6 +91,20 @@ def finalize_transformer_answer_run(
     )
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(artifacts.tokenizer)
+    long_answer_diagnostics = build_long_answer_diagnostics_report(
+        run_id=args.run.name,
+        model=model,
+        tokenizer=tokenizer,
+        eval_records=eval_records,
+        eval_candidates=eval_candidates,
+        generation_config=generation_config,
+        train_time_seconds=train_time_seconds,
+        direct_answer_metrics=direct_answer_metrics,
+    )
+    write_long_answer_diagnostics_report(
+        artifacts.long_answer_diagnostics,
+        long_answer_diagnostics,
+    )
     metrics = {
         "architecture": TRANSFORMER_ARCHITECTURE,
         "checkpoint": str(checkpoint_path),
@@ -100,6 +121,7 @@ def finalize_transformer_answer_run(
         "training_candidate_count": len(training_candidates),
         "candidate_scope": args.candidate_scope,
         "include_completions": args.include_completions,
+        "train_time_seconds": train_time_seconds,
         "generation_config": asdict(generation_config),
         "target_loss_weight": args.target_loss_weight,
         "choice_loss_weight": args.choice_loss_weight,
@@ -148,6 +170,10 @@ def finalize_transformer_answer_run(
         "replay_mixture_report_path": str(replay_mixture_path),
         "sweep_plan": sweep_plan,
         "sweep_plan_path": str(sweep_plan_path),
+        "long_answer_diagnostics": {
+            "path": str(artifacts.long_answer_diagnostics),
+            "summary": long_answer_diagnostics["summary"],
+        },
         "training_plan": training_plan,
         "training_plan_path": str(training_plan_path),
         "training_recipe": training_recipe,
