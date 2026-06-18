@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 from transformer_training_parameter_manifest import (
@@ -67,6 +68,19 @@ def summarize_torch_training_state(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def torch_training_weights_from_state(
+    *,
+    fixture: dict[str, Any],
+    state: dict[str, Any],
+) -> dict[str, Any]:
+    """Overlay trainable tensors onto the fixture's initial weight tree."""
+
+    weights = copy.deepcopy(fixture["initial_weights"])
+    for parameter in state["parameters"]:
+        _assign_weight(weights, parameter["name"], parameter["tensor"])
+    return weights
+
+
 def validate_torch_training_state_summary(
     summary: dict[str, Any],
     manifest: dict[str, Any],
@@ -121,6 +135,22 @@ def _resolve_weight(weights: dict[str, Any], name: str) -> Any:
         else:
             current = current[segment]
     return current
+
+
+def _assign_weight(weights: dict[str, Any], name: str, value: Any) -> None:
+    segments = name.split(".")
+    current: Any = weights
+    for segment in segments[:-1]:
+        current = (
+            current[int(segment)]
+            if isinstance(current, list)
+            else current[segment]
+        )
+    final_segment = segments[-1]
+    if isinstance(current, list):
+        current[int(final_segment)] = value
+    else:
+        current[final_segment] = value
 
 
 def _shape(value: Any) -> list[int]:

@@ -6,6 +6,8 @@ from typing import Any
 
 
 def torch_tensor(torch: Any, value: Any, runtime: dict[str, Any]) -> Any:
+    if _is_tensor_like(value):
+        return value
     return torch.tensor(
         value,
         dtype=getattr(torch, runtime["dtype"]),
@@ -31,3 +33,7 @@ def torch_to_list(value: Any) -> list[float]:
     if hasattr(value, "detach"):
         value = value.detach().cpu()
     return [float(item) for item in value.tolist()]
+
+
+def _is_tensor_like(value: Any) -> bool:
+    return not isinstance(value, (list, int, float)) and hasattr(value, "tolist")
