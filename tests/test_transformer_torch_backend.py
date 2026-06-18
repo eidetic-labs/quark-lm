@@ -134,8 +134,19 @@ class TransformerTorchBackendTests(unittest.TestCase):
     def test_torch_candidate_matches_scalar_fixture_for_tied_output_profile(self) -> None:
         self.assert_torch_fixture_matches(_scalar_fixture(tie_output_embeddings=True))
 
+    def test_torch_candidate_matches_scalar_fixture_for_context_summary_profile(self) -> None:
+        self.assert_torch_fixture_matches(
+            _scalar_fixture(
+                use_context_mean=True,
+                use_context_projection=True,
+                use_prompt_prefix_projection=True,
+                use_prompt_position_projection=True,
+                use_prompt_attention_summary=True,
+            )
+        )
+
     def test_torch_candidate_reports_unsupported_profile_without_drifting(self) -> None:
-        fixture = _scalar_fixture(use_context_mean=True)
+        fixture = _scalar_fixture(use_kv_cache_path=True)
 
         candidate = build_torch_backend_parity_candidate(
             fixture=fixture,
@@ -179,6 +190,11 @@ def _scalar_fixture(
     num_layers: int = 1,
     tie_output_embeddings: bool = False,
     use_context_mean: bool = False,
+    use_context_projection: bool = False,
+    use_prompt_prefix_projection: bool = False,
+    use_prompt_position_projection: bool = False,
+    use_prompt_attention_summary: bool = False,
+    use_kv_cache_path: bool = False,
 ) -> dict:
     tokenizer = CharTokenizer.train("abc ")
     model = TinyTransformerLM.init_random(
@@ -196,9 +212,15 @@ def _scalar_fixture(
             use_gated_mlp=use_gated_mlp,
             use_rotary_positions=use_rotary_positions,
             tie_output_embeddings=tie_output_embeddings,
+            use_kv_cache_path=use_kv_cache_path,
             use_context_mean=use_context_mean,
+            use_context_projection=use_context_projection,
+            use_prompt_prefix_projection=use_prompt_prefix_projection,
+            use_prompt_position_projection=use_prompt_position_projection,
+            use_prompt_attention_summary=use_prompt_attention_summary,
         )
     )
+    _seed_context_summary_weights(model)
     context = make_context(tokenizer.encode("ab"), 4, tokenizer.pad_id)
     return build_scalar_backend_parity_fixture(
         fixture_id="tiny-scalar",
@@ -210,6 +232,18 @@ def _scalar_fixture(
         corpus_hash="corpus-hash",
         max_new_chars=2,
     )
+
+
+def _seed_context_summary_weights(model: TinyTransformerLM) -> None:
+    model.context_projection_w[0][1].data = 0.07
+    model.context_projection_b[1].data = -0.03
+    model.prompt_prefix_projection_w[1][0].data = -0.05
+    model.prompt_prefix_projection_b[2].data = 0.04
+    model.prompt_position_projection_w[2][0][3].data = 0.06
+    model.prompt_position_projection_b[3].data = -0.02
+    model.prompt_summary_query[0].data = 0.11
+    model.prompt_summary_w[2][1].data = -0.08
+    model.prompt_summary_b[1].data = 0.05
 
 
 if __name__ == "__main__":

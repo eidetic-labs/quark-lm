@@ -8,11 +8,6 @@ from typing import Any
 def minimal_forward_unsupported_reason(config: dict[str, Any]) -> str | None:
     unsupported_flags = [
         "use_kv_cache_path",
-        "use_context_mean",
-        "use_context_projection",
-        "use_prompt_prefix_projection",
-        "use_prompt_position_projection",
-        "use_prompt_attention_summary",
     ]
     for flag in unsupported_flags:
         if config.get(flag):
