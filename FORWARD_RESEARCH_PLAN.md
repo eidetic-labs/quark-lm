@@ -223,22 +223,21 @@ PyTorch track should start as an experimental backend that must match scalar
 logits, losses, and fixed-prompt generation on tiny parity fixtures before its
 training runs can count as model-quality evidence.
 
-The first implementation layer for that track is the dependency-free backend
-policy and parity-fixture contract. Scalar fixtures record backend metadata,
-model config, tokenizer summary, forward logits, losses, and fixed-prompt
-generation traces. Candidate backends must compare against those fixtures before
-their outputs can be trusted as model-quality evidence. This contract does not
-add PyTorch as a dependency.
+The first implementation layer for that track should be the dependency-free
+backend policy and parity-fixture contract. Scalar fixtures should record
+backend metadata, model config, tokenizer summary, forward logits, losses, and
+fixed-prompt generation traces. Candidate backends must compare against those
+fixtures before their outputs can be trusted as model-quality evidence. This
+contract does not add PyTorch as a dependency.
 
-The second implementation layer is an optional PyTorch backend surface: runtime
-availability detection plus candidate parity artifacts. It records whether
-PyTorch is installed, which device and dtype would be used, and why candidate
-cases are blocked, pending, or matched.
+The next layer should be an optional PyTorch backend surface: runtime
+availability detection plus candidate parity artifacts. It should record
+whether PyTorch is installed, which device and dtype would be used, and why
+candidate cases are blocked, pending, or matched.
 
-The third implementation layer adds minimal PyTorch forward parity for the
-simplest one-layer profile. It can reproduce scalar logits, losses, and greedy
-generation for fixtures that use the default architecture path. More advanced
-profiles, training, and optimizer behavior still require separate parity gates
+Only after the policy and fixture contract exist should QuarkLM add minimal
+PyTorch forward parity for the simplest one-layer profile. More advanced
+profiles, training, and optimizer behavior each require separate parity gates
 before they can count as model-quality evidence.
 
 ## Current QuarkLM Diagnosis

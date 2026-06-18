@@ -17,21 +17,19 @@ provenance, documentation, and this goal framework.
 
 ## Current Goal Phase
 
-Active phase: PyTorch-first backend contract, scalar parity fixtures, and
-minimal PyTorch forward parity.
+Active phase: PyTorch-first backend strategy documentation and formal roadmap
+alignment.
 
 - Preserve scalar Python as the auditable reference implementation.
 - Record backend policy, purity metadata, and parity status in transformer
   recipes, metrics, and constraint-first evidence.
-- Define deterministic scalar parity fixtures that future PyTorch outputs must
-  match before PyTorch runs can count as model-quality evidence.
-- Keep PyTorch optional: runtime libraries remain allowed only when they do not
-  import learned assets or unledgered data.
-- Add the PyTorch backend in stages: availability detection and candidate
-  parity artifacts first, minimal forward math second, training only after
-  scalar parity passes.
-- Treat focused backend tests, full Python discovery, docs builds, and
-  code-quality review as the evidence gate for this phase.
+- Define deterministic scalar parity fixture requirements that future PyTorch
+  outputs must match before PyTorch runs can count as model-quality evidence.
+- Keep PyTorch as a planned experimental backend; do not add it as a dependency
+  or promoted capability until the parity contract and runtime boundary are
+  explicit.
+- Treat docs builds and documentation review as the evidence gate for this
+  phase.
 
 ## Current Canonical Evidence
 
@@ -74,13 +72,14 @@ Public surfaces:
 - No pretrained tokenizer.
 - No external embeddings.
 - No unledgered training text.
-- Runtime libraries are allowed when they do not introduce pretrained weights,
-  pretrained tokenizers, external embeddings, copied model code, or unledgered
-  data.
-- Scalar Python remains the canonical reference implementation until any
-  PyTorch backend passes deterministic parity gates. PyTorch is the planned
+- Scalar Python remains QuarkLM's canonical reference implementation because it
+  keeps the model math inspectable and dependency-free. PyTorch is the planned
   performance backend for scalable training, batched evaluation, optimized
-  attention, and hardware acceleration; NumPy is not a required interim backend.
+  attention, and hardware acceleration. PyTorch is allowed as a runtime
+  library; it does not change the closed-world boundary unless pretrained
+  weights, pretrained tokenizers, external embeddings, copied model code, or
+  unledgered data are introduced. NumPy is not a required interim backend and
+  should only be added later for a narrow diagnostic need.
 - Any future tokenizer upgrade must be trained only from admitted corpus text;
   pretrained vocabularies are outside the boundary.
 - Every run must record an untrained or prior-checkpoint baseline and trained
