@@ -5,7 +5,7 @@ description: Corpus hygiene and training-plan artifacts for QuarkLM runs.
 
 # Corpus Hygiene
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -36,6 +36,31 @@ artifacts before their metrics are treated as evidence. The artifacts do not
 promote or reject a model. They make data risk legible so the gates downstream —
 the [closed-world verifier](./closed-world-verifier.md) and constraint-first
 promotion — can act on it.
+
+## Corpus growth preflight
+
+`corpus_growth_plan.json` is the pre-admission companion to hygiene. It is
+written before a proposed batch is appended to `corpus/admissions.jsonl`, so the
+project can inspect growth pressure before it changes the corpus.
+
+```bash title="Preflight an admission batch"
+PYTHONPATH=src python3 -m corpus_growth_plan \
+  --batch batches/new-facts.jsonl \
+  --output build/corpus_growth_plan.json
+```
+
+<div className="qlm-grid">
+<div><h4>Source provenance</h4><p>Batch path, admissions path, corpus directory, and eval files used for the check.</p></div>
+<div><h4>Duplicate checks</h4><p>Duplicate ids inside the batch, conflicts with existing admissions, and repeated person/object fact keys.</p></div>
+<div><h4>Train/eval split checks</h4><p>Generated direct and paraphrase probes are compared against eval prompts before admission.</p></div>
+<div><h4>Retention probes</h4><p>Existing admitted facts are sampled so the next training run must retain prior knowledge.</p></div>
+<div><h4>Unknown-policy probes</h4><p>Outside-corpus prompts are proposed with the expected `unknown` target.</p></div>
+<div><h4>Tokenizer stress strings</h4><p>Longer corpus-derived strings are listed for tokenizer compression pressure.</p></div>
+</div>
+
+The growth plan is read-only. A passing report means the batch is ready to be
+admitted by the normal admission command; it does not itself admit data or train
+weights.
 
 ## Where hygiene sits in the chain
 

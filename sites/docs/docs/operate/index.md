@@ -63,6 +63,7 @@ behavior.
 <div className="qlm-grid">
 <div><h4><code>experiment_intent.json</code></h4><p>Hypothesis, allowed data, planned artifacts, acceptance gates, failure criteria, and the closing decision for a run.</p></div>
 <div><h4><code>corpus_hygiene.json</code></h4><p>Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile coverage.</p></div>
+<div><h4><code>corpus_growth_plan.json</code></h4><p>Pre-admission batch evidence for provenance, duplicate conflicts, train/eval split risk, retention probes, unknown-policy probes, and tokenizer stress strings.</p></div>
 <div><h4><code>training_plan.json</code></h4><p>Allowed data sources, the closed-world data boundary, scheduled example mixture, replay summary, and planned artifacts.</p></div>
 <div><h4><code>sweep_plan.json</code></h4><p>Controlled tokenizer, architecture, optimizer, and training-budget axes for transformer screens.</p></div>
 <div><h4><code>sweep_report.json</code></h4><p>Cross-trial answer-sweep evidence comparing declared tokenizer, architecture, optimizer, and step-budget axes.</p></div>
