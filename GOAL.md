@@ -17,15 +17,17 @@ provenance, documentation, and this goal framework.
 
 ## Current Goal Phase
 
-Active phase: targeted test SRP updates.
+Active phase: PyTorch-first backend contract and scalar parity fixtures.
 
-- Split oversized or mixed-concern test modules into focused test files and
-  support helpers before changing the source directory structure.
-- Preserve production behavior while improving test ownership, readability, and
-  reviewability.
-- Keep protected docs and marketing content unchanged unless a release or
-  explicit content request requires updates.
-- Treat passing focused test slices, full discovery, release-gate checks, and
+- Preserve scalar Python as the auditable reference implementation.
+- Record backend policy, purity metadata, and parity status in transformer
+  recipes, metrics, and constraint-first evidence.
+- Define deterministic scalar parity fixtures that future PyTorch outputs must
+  match before PyTorch runs can count as model-quality evidence.
+- Keep PyTorch dependency-free until the parity contract is in place; runtime
+  libraries remain allowed only when they do not import learned assets or
+  unledgered data.
+- Treat focused backend tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 
 ## Current Canonical Evidence

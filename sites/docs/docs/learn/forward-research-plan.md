@@ -115,6 +115,13 @@ This is a roadmap decision, not a shipped capability claim. A PyTorch backend
 must begin as experimental and earn trust against deterministic scalar parity
 fixtures before its runs can count as model-quality evidence.
 
+The first implemented layer is the backend policy and scalar parity-fixture
+contract. Scalar fixtures record backend metadata, model config, tokenizer
+summary, forward logits, losses, and fixed-prompt generation traces. Future
+candidate backends must compare against those fixtures before their outputs can
+be trusted as model-quality evidence. This contract does not add PyTorch as a
+dependency.
+
 ## Where the sequence stands
 
 The seven mechanics are built. The direct-answer objective they were meant to

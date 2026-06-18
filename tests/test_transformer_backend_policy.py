@@ -65,6 +65,21 @@ class TransformerBackendPolicyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_transformer_backend_metadata(metadata)
 
+    def test_pytorch_backend_rejects_unknown_parity_status(self) -> None:
+        metadata = transformer_backend_metadata(
+            active_backend=PYTORCH_BACKEND,
+            parity_status="almost",
+        )
+
+        with self.assertRaises(ValueError):
+            validate_transformer_backend_metadata(metadata)
+
+    def test_scalar_backend_must_keep_reference_status(self) -> None:
+        metadata = transformer_backend_metadata(parity_status="matched")
+
+        with self.assertRaises(ValueError):
+            validate_transformer_backend_metadata(metadata)
+
     def test_artifact_validation_rejects_missing_required_fields(self) -> None:
         metadata = transformer_backend_metadata(active_backend=PYTORCH_BACKEND)
 

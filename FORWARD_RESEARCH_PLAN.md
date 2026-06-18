@@ -223,6 +223,13 @@ PyTorch track should start as an experimental backend that must match scalar
 logits, losses, and fixed-prompt generation on tiny parity fixtures before its
 training runs can count as model-quality evidence.
 
+The first implementation layer for that track is the dependency-free backend
+policy and parity-fixture contract. Scalar fixtures record backend metadata,
+model config, tokenizer summary, forward logits, losses, and fixed-prompt
+generation traces. Candidate backends must compare against those fixtures before
+their outputs can be trusted as model-quality evidence. This contract does not
+add PyTorch as a dependency.
+
 ## Current QuarkLM Diagnosis
 
 ### Strengths

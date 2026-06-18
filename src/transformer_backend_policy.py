@@ -9,6 +9,8 @@ SCALAR_BACKEND = "scalar_python"
 PYTORCH_BACKEND = "pytorch"
 PLANNED_PERFORMANCE_BACKEND = PYTORCH_BACKEND
 ALLOWED_BACKENDS = {SCALAR_BACKEND, PYTORCH_BACKEND}
+SCALAR_PARITY_STATUS = "reference"
+PYTORCH_PARITY_STATUSES = {"pending", "matched", "failed"}
 
 
 def transformer_backend_metadata(
@@ -25,7 +27,9 @@ def transformer_backend_metadata(
     """Build the policy fields every transformer backend artifact must expose."""
 
     backend = _normalize_backend(active_backend)
-    status = parity_status or ("reference" if backend == SCALAR_BACKEND else "pending")
+    status = parity_status or (
+        SCALAR_PARITY_STATUS if backend == SCALAR_BACKEND else "pending"
+    )
     return {
         "backend": backend,
         "backend_role": _backend_role(backend),
@@ -66,8 +70,7 @@ def validate_transformer_backend_metadata(
     if metadata.get("requires_scalar_parity") is not (backend != SCALAR_BACKEND):
         raise ValueError("requires_scalar_parity does not match backend")
     _validate_purity(metadata.get("purity"))
-    if backend == PYTORCH_BACKEND and metadata.get("parity_status") == "reference":
-        raise ValueError("pytorch backend cannot claim reference parity status")
+    _validate_parity_status(backend, metadata.get("parity_status"))
     if require_artifact_fields:
         _validate_required_artifact_fields(metadata)
 
@@ -97,6 +100,13 @@ def _validate_purity(purity: Any) -> None:
     ):
         if purity.get(key) is not False:
             raise ValueError(f"purity.{key} must be false")
+
+
+def _validate_parity_status(backend: str, status: Any) -> None:
+    if backend == SCALAR_BACKEND and status != SCALAR_PARITY_STATUS:
+        raise ValueError("scalar_python backend parity_status must be reference")
+    if backend == PYTORCH_BACKEND and status not in PYTORCH_PARITY_STATUSES:
+        raise ValueError("pytorch backend parity_status must be pending, matched, or failed")
 
 
 def _validate_required_artifact_fields(metadata: dict[str, Any]) -> None:
