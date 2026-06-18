@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from neural_char_metrics import continuation_nll
+from tokenizer_protocol import TokenizerProtocol
 from transformer_answer_diagnostics import answer_diagnostics
 
 
@@ -20,7 +21,7 @@ def build_long_answer_diagnostics_report(
     *,
     run_id: str,
     model: Any,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     eval_records: dict[str, list[dict[str, Any]]],
     eval_candidates: dict[str, list[str]],
     generation_config: Any,
@@ -80,7 +81,7 @@ def write_long_answer_diagnostics_report(
 
 def _selected_long_records(
     eval_records: dict[str, list[dict[str, Any]]],
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     records_per_eval: int,
 ) -> list[tuple[str, list[dict[str, Any]]]]:
     selected = []
@@ -100,7 +101,7 @@ def _selected_long_records(
 
 def _candidate_ranking(
     model: Any,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     prompt: str,
     target: str,
     candidates: list[str],

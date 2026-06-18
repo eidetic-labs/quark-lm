@@ -9,9 +9,10 @@ from closed_world_subword_tokenizer import (
     ClosedWorldSubwordTokenizer,
 )
 from tokenizer import CHAR_TOKENIZER_TYPE, CharTokenizer
+from tokenizer_protocol import TokenizerProtocol
 
 
-def tokenizer_from_dict(payload: dict[str, Any]) -> CharTokenizer | ClosedWorldSubwordTokenizer:
+def tokenizer_from_dict(payload: dict[str, Any]) -> TokenizerProtocol:
     tokenizer_type = payload.get("tokenizer_type") or payload.get("type")
     if tokenizer_type in {None, CHAR_TOKENIZER_TYPE, "tokenizer.CharTokenizer"}:
         if "merge_rules" in payload:

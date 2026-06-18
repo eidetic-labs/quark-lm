@@ -12,6 +12,7 @@ from memory_consolidation import (
     build_memory_consolidation_plan,
     write_memory_consolidation_plan,
 )
+from tokenizer_protocol import TokenizerProtocol
 from constraint_first_report import write_constraint_first_report
 from transformer_constraints import transformer_constraint_report
 from transformer_experiment import (
@@ -34,7 +35,7 @@ from transformer_optimizer import ScalarOptimizer, save_optimizer_state
 def finalize_transformer_answer_run(
     args: argparse.Namespace,
     model: Any,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     optimizer: ScalarOptimizer,
     artifacts: Any,
     resume_metadata: dict[str, Any],

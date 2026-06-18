@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from tokenizer import CharTokenizer
+from tokenizer_protocol import TokenizerProtocol
 from transformer_answer_evaluation import evaluate_answer_records
 from transformer_answer_generator import (
     TransformerGuidedAnswerGenerator,
@@ -17,7 +17,7 @@ from transformer_model import GenerationConfig
 
 def answer_training_snapshot_record(
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     eval_records: dict[str, list[dict[str, Any]]],
     eval_candidates: dict[str, list[str]],
     candidates: list[str],
@@ -57,7 +57,7 @@ def build_answer_training_snapshot_callback(
     args: Any,
     setup: Any,
     model: Callable[[], Any],
-    tokenizer: Callable[[], CharTokenizer],
+    tokenizer: Callable[[], TokenizerProtocol],
 ) -> Callable[[int, float | None, float | None, float | None, float | None], dict[str, Any]]:
     def snapshot(
         step: int,
@@ -90,7 +90,7 @@ def build_answer_training_snapshot_callback(
 
 def selector_snapshot_record(
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     selector: AnswerCandidateSelector,
     eval_records: dict[str, list[dict[str, Any]]],
     eval_candidates: dict[str, list[str]],
@@ -123,7 +123,7 @@ def selector_snapshot_record(
 def generator_snapshot_record(
     generator: TransformerGuidedAnswerGenerator,
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     eval_records: dict[str, list[dict[str, Any]]],
     step: int,
     train_loss: float | None,

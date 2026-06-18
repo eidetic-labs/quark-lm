@@ -52,6 +52,15 @@ compression, pair informativeness, reuse across sources, and branch-diverse
 contexts. It penalizes single-context chunks and rejects candidates that would
 turn the tokenizer into an answer table.
 
+## Interface contract
+
+`TokenizerProtocol` is the shared interface for tokenizer implementations. A
+tokenizer must expose `encode`, `decode`, `extend`, `extends`, `to_dict`,
+`from_dict`, `pad_id`, `vocab_size`, `tokenizer_type`, and its append-only
+`tokens` list. This keeps the transformer, checkpoint, tokenizer-manifest, and
+diagnostic paths working against the same boundary whether a screen uses the
+character baseline or closed-world subword tokens.
+
 ## Train with a subword tokenizer
 
 The default remains character tokenization. Use the subword path explicitly:

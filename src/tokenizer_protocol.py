@@ -1,4 +1,4 @@
-"""Shared tokenizer interface for closed-world model components."""
+"""Shared tokenizer protocol for closed-world tokenizer implementations."""
 
 from __future__ import annotations
 
@@ -7,33 +7,27 @@ from typing import Any, Protocol, runtime_checkable
 
 @runtime_checkable
 class TokenizerProtocol(Protocol):
-    tokens: list[str]
-    stoi: dict[str, int]
-    itos: dict[int, str]
+    @property
+    def tokens(self) -> list[str]: ...
 
     @property
-    def tokenizer_type(self) -> str:
-        raise NotImplementedError
+    def pad_id(self) -> int: ...
 
     @property
-    def pad_id(self) -> int:
-        raise NotImplementedError
+    def vocab_size(self) -> int: ...
 
     @property
-    def vocab_size(self) -> int:
-        raise NotImplementedError
+    def tokenizer_type(self) -> str: ...
 
-    def encode(self, text: str) -> list[int]:
-        raise NotImplementedError
+    def encode(self, text: str) -> list[int]: ...
 
-    def decode(self, ids: list[int]) -> str:
-        raise NotImplementedError
+    def decode(self, ids: list[int]) -> str: ...
 
-    def extend(self, text: str) -> "TokenizerProtocol":
-        raise NotImplementedError
+    def extend(self, text: str) -> "TokenizerProtocol": ...
 
-    def extends(self, base: "TokenizerProtocol") -> bool:
-        raise NotImplementedError
+    def extends(self, base: Any) -> bool: ...
 
-    def to_dict(self) -> dict[str, Any]:
-        raise NotImplementedError
+    def to_dict(self) -> dict[str, Any]: ...
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "TokenizerProtocol": ...

@@ -16,6 +16,7 @@ from answer_model import (
     load_training_examples,
     write_lessons,
 )
+from tokenizer_protocol import TokenizerProtocol
 from probes import read_jsonl
 from memory_retrieval import (
     build_retrieval_memory_report,
@@ -42,7 +43,7 @@ from transformer_training_tokenizer import training_tokenizer
 
 @dataclass
 class TransformerAnswerRunSetup:
-    tokenizer: Any
+    tokenizer: TokenizerProtocol
     examples: list[AnswerExample]
     training_pool: list[AnswerExample]
     model: Any
@@ -84,7 +85,7 @@ class TransformerAnswerRunSetup:
 def prepare_transformer_answer_run(
     args: argparse.Namespace,
     initialize_transformer_for_training_fn: Callable[
-        [argparse.Namespace, Any],
+        [argparse.Namespace, TokenizerProtocol],
         tuple[Any, dict[str, Any]],
     ],
     model_class: type[Any],

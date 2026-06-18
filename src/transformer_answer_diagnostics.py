@@ -7,13 +7,14 @@ import time
 from typing import Any
 
 from neural_char_ops import make_context
+from tokenizer_protocol import TokenizerProtocol
 from transformer_math import softmax_floats
 from transformer_model import GenerationConfig
 
 
 def answer_diagnostics(
     model: Any,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     prompt: str,
     target: str,
     generation_config: GenerationConfig | None = None,
@@ -47,7 +48,7 @@ def answer_diagnostics(
 
 def per_token_nll(
     model: Any,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     prompt: str,
     target: str,
 ) -> list[dict[str, Any]]:

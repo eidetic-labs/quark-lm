@@ -12,6 +12,7 @@ from tokenizer_artifacts import (
     propose_closed_world_subword_tokenizer,
     write_tokenizer_artifacts,
 )
+from tokenizer_protocol import TokenizerProtocol
 from transformer_model import transformer_config_from_args
 from transformer_vocab_expansion import expand_weights_for_tokenizer
 
@@ -20,7 +21,7 @@ def training_tokenizer(
     args: argparse.Namespace,
     train_text: str,
     model_cls: Any,
-) -> Any:
+) -> TokenizerProtocol:
     if args.resume_checkpoint is None:
         return _fresh_training_tokenizer(args, train_text)
     _model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
@@ -34,7 +35,7 @@ def training_tokenizer(
 
 def initialize_transformer_for_training_command(
     args: argparse.Namespace,
-    tokenizer: Any,
+    tokenizer: TokenizerProtocol,
     model_cls: Any,
 ) -> tuple[Any, dict[str, Any]]:
     if args.resume_checkpoint is None:
@@ -73,7 +74,10 @@ def initialize_transformer_for_training_command(
     }
 
 
-def _fresh_training_tokenizer(args: argparse.Namespace, train_text: str) -> Any:
+def _fresh_training_tokenizer(
+    args: argparse.Namespace,
+    train_text: str,
+) -> TokenizerProtocol:
     if args.tokenizer == "char":
         args.tokenizer_manifest_hash = None
         return CharTokenizer.train(train_text)
@@ -91,7 +95,7 @@ def _subword_training_tokenizer(
     args: argparse.Namespace,
     train_text: str,
     base_tokenizer: Any | None,
-) -> Any:
+) -> TokenizerProtocol:
     proposal = propose_closed_world_subword_tokenizer(
         train_text,
         source_files=[str(_training_source_path(args))],

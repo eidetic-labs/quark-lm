@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from answer_model import AnswerExample, semantic_feature_names
-from tokenizer import CharTokenizer
+from tokenizer_protocol import TokenizerProtocol
 from transformer_direct_answer_core import (
     direct_answer_sequence_nll,
 )
@@ -15,7 +15,7 @@ from transformer_model import GenerationConfig
 
 def evaluate_direct_answer_records(
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     records: list[dict[str, Any]],
     max_new_chars: int,
     terminator: str = ANSWER_TERMINATOR,

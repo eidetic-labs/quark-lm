@@ -6,7 +6,7 @@ from typing import Any
 
 from neural_char_metrics import continuation_nll
 from probes import summarize
-from tokenizer import CharTokenizer
+from tokenizer_protocol import TokenizerProtocol
 from transformer_answer_selector import AnswerCandidateSelector
 from transformer_eval import score_transformer_records
 from transformer_model import GenerationConfig
@@ -14,7 +14,7 @@ from transformer_model import GenerationConfig
 
 def evaluate_answer_records(
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     records: list[dict[str, Any]],
     candidates: list[str],
     max_new_chars: int,
@@ -51,7 +51,7 @@ def evaluate_answer_records(
 
 def evaluate_answer_candidates(
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
     records: list[dict[str, Any]],
     candidates: list[str],
     selector: AnswerCandidateSelector | None = None,

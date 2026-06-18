@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from tokenizer import CharTokenizer
+from tokenizer_protocol import TokenizerProtocol
 from transformer_answer_sweep import run_transformer_answer_sweep
 from transformer_answer_training import train_transformer_answers_command
 from transformer_cli import run_transformer_cli
@@ -45,7 +45,7 @@ __all__ = [
 
 def initialize_transformer_for_training(
     args: argparse.Namespace,
-    tokenizer: CharTokenizer,
+    tokenizer: TokenizerProtocol,
 ) -> tuple[TinyTransformerLM, dict[str, Any]]:
     return initialize_transformer_for_training_command(args, tokenizer, TinyTransformerLM)
 
