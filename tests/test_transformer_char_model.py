@@ -14,6 +14,28 @@ from support.core import (
 )
 
 
+def train_continuation(
+    model: TinyTransformerLM,
+    tokenizer: CharTokenizer,
+    prompt: str,
+    target: str,
+    *,
+    epochs: int,
+    learning_rate: float,
+) -> None:
+    ids = tokenizer.encode(prompt + target)
+    answer_positions = range(len(tokenizer.encode(prompt)), len(ids))
+    for _ in range(epochs):
+        for position in answer_positions:
+            context = context_before(
+                ids,
+                position,
+                model.config.context_size,
+                tokenizer.pad_id,
+            )
+            model.train_step(context, ids[position], learning_rate=learning_rate)
+
+
 class TransformerCharModelCoreTest(unittest.TestCase):
     def test_train_step_updates_random_transformer_weights(self) -> None:
         text = "question: where is mia's ball?\nanswer: under the box.\n"
@@ -119,7 +141,6 @@ class TransformerCharModelCoreTest(unittest.TestCase):
         prompt = "q:\na:"
         target = " ok"
         tokenizer = CharTokenizer.train(prompt + target)
-        ids = tokenizer.encode(prompt + target)
         config = TransformerConfig(
             vocab_size=tokenizer.vocab_size,
             context_size=6,
@@ -128,23 +149,53 @@ class TransformerCharModelCoreTest(unittest.TestCase):
             seed=1,
         )
         model = TinyTransformerLM.init_random(config)
-        answer_positions = range(len(prompt), len(ids))
         before = continuation_nll(model, tokenizer, prompt, target)
 
-        for _ in range(40):
-            for position in answer_positions:
-                context = context_before(
-                    ids,
-                    position,
-                    config.context_size,
-                    tokenizer.pad_id,
-                )
-                model.train_step(context, ids[position], learning_rate=0.05)
-
+        train_continuation(
+            model,
+            tokenizer,
+            prompt,
+            target,
+            epochs=40,
+            learning_rate=0.05,
+        )
         after = continuation_nll(model, tokenizer, prompt, target)
 
         self.assertGreater(before, after)
         self.assertEqual(model.generate(tokenizer, prompt, len(target)), target)
+
+    def test_extended_vocab_model_learns_new_lesson_answer(self) -> None:
+        base_text = "q:\na: no"
+        prompt = "q2:\na:"
+        target = " ok!"
+        tokenizer = CharTokenizer.train(base_text)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=8,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=1,
+        )
+        model = TinyTransformerLM.init_random(config)
+
+        extended = tokenizer.extend(prompt + target)
+        model.resize_vocab(extended.vocab_size)
+        before = continuation_nll(model, extended, prompt, target)
+
+        train_continuation(
+            model,
+            extended,
+            prompt,
+            target,
+            epochs=80,
+            learning_rate=0.05,
+        )
+        after = continuation_nll(model, extended, prompt, target)
+
+        self.assertEqual(extended.encode(base_text), tokenizer.encode(base_text))
+        self.assertGreater(extended.vocab_size, tokenizer.vocab_size)
+        self.assertGreater(before, after)
+        self.assertEqual(model.generate(extended, prompt, len(target)), target)
 
 
 if __name__ == "__main__":
