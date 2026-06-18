@@ -17,16 +17,19 @@ provenance, documentation, and this goal framework.
 
 ## Current Goal Phase
 
-Active phase: PyTorch-first backend contract and scalar parity fixtures.
+Active phase: PyTorch-first backend contract, scalar parity fixtures, and
+optional PyTorch skeleton.
 
 - Preserve scalar Python as the auditable reference implementation.
 - Record backend policy, purity metadata, and parity status in transformer
   recipes, metrics, and constraint-first evidence.
 - Define deterministic scalar parity fixtures that future PyTorch outputs must
   match before PyTorch runs can count as model-quality evidence.
-- Keep PyTorch dependency-free until the parity contract is in place; runtime
-  libraries remain allowed only when they do not import learned assets or
-  unledgered data.
+- Keep PyTorch optional: runtime libraries remain allowed only when they do not
+  import learned assets or unledgered data.
+- Add the PyTorch backend in stages: availability detection and candidate
+  parity artifacts first, backend math second, training only after scalar
+  parity passes.
 - Treat focused backend tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

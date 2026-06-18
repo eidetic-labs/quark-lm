@@ -122,6 +122,13 @@ candidate backends must compare against those fixtures before their outputs can
 be trusted as model-quality evidence. This contract does not add PyTorch as a
 dependency.
 
+The second implemented layer is an optional PyTorch skeleton: runtime
+availability detection plus candidate parity artifacts. It records whether
+PyTorch is installed, which device and dtype would be used, and why candidate
+cases are blocked or pending. It still does not implement PyTorch transformer
+math, does not train, and does not pass parity until its outputs are generated
+by a real backend implementation.
+
 ## Where the sequence stands
 
 The seven mechanics are built. The direct-answer objective they were meant to

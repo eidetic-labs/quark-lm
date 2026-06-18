@@ -24,6 +24,10 @@ def validate_backend_parity_fixture(fixture: dict[str, Any]) -> None:
         raise ValueError("fixture_id is required")
     if fixture.get("architecture") != TRANSFORMER_ARCHITECTURE:
         raise ValueError(f"architecture must be {TRANSFORMER_ARCHITECTURE}")
+    if not isinstance(fixture.get("model_config"), dict):
+        raise ValueError("model_config must be a dict")
+    if not isinstance(fixture.get("weights"), dict):
+        raise ValueError("weights must be a dict")
     validate_transformer_backend_metadata(
         fixture.get("reference_backend", {}),
         require_artifact_fields=True,

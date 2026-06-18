@@ -47,6 +47,7 @@ class TransformerBackendParityTests(unittest.TestCase):
         self.assertEqual(fixture["kind"], PARITY_FIXTURE_KIND)
         self.assertEqual(fixture["reference_backend"]["backend"], "scalar_python")
         self.assertEqual(fixture["reference_backend"]["corpus_hash"], "corpus-hash")
+        self.assertIn("token_embeddings", fixture["weights"])
         self.assertEqual(forward_case["context"], context)
         self.assertEqual(forward_case["target"], target)
         self.assertEqual(len(forward_case["logits"]), tokenizer.vocab_size)

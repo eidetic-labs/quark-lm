@@ -57,6 +57,7 @@ def build_scalar_backend_parity_fixture(
             tokenizer_manifest_hash=tokenizer_manifest_hash,
         ),
         "model_config": asdict(model.config),
+        "weights": model.to_dict()["weights"],
         "tokenizer": _tokenizer_summary(tokenizer, tokenizer_manifest_hash),
         "tolerance": {"absolute": absolute_tolerance, "relative": relative_tolerance},
         "forward_cases": [
