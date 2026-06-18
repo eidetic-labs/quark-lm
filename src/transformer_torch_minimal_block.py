@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any
 
+from transformer_torch_attention import torch_apply_rotary, torch_causal_attention
 from transformer_torch_norms import torch_layer_norm, torch_rms_norm
 from transformer_torch_tensor_ops import torch_linear, torch_tensor
 
@@ -26,21 +26,34 @@ def torch_minimal_logits(
         ]
     )
     attention_input = _attention_input(x, weights, config, torch, runtime)
-    q = torch.stack(
-        [torch_linear(row, weights["wq"], weights["bq"], torch, runtime) for row in attention_input]
-    )
-    k = torch.stack(
-        [torch_linear(row, weights["wk"], weights["bk"], torch, runtime) for row in attention_input]
-    )
-    v = torch.stack(
-        [torch_linear(row, weights["wv"], weights["bv"], torch, runtime) for row in attention_input]
-    )
-    attended = _causal_attention(q, k, v, config, torch)
+    q = _project_rows(attention_input, weights, "wq", "bq", torch, runtime)
+    k = _project_rows(attention_input, weights, "wk", "bk", torch, runtime)
+    v = _project_rows(attention_input, weights, "wv", "bv", torch, runtime)
+    if config.get("use_rotary_positions"):
+        q = torch_apply_rotary(q, config, torch)
+        k = torch_apply_rotary(k, config, torch)
+    attended = torch_causal_attention(q, k, v, config, torch)
     projected = torch_linear(attended, weights["wo"], weights["bo"], torch, runtime)
     hidden = x[config["context_size"] - 1] + projected
     final_hidden = _feed_forward(hidden, weights, config, torch, runtime)
     final_hidden = _finalize_hidden(final_hidden, weights, config, torch, runtime)
     return torch_linear(final_hidden, weights["wout"], weights["bout"], torch, runtime)
+
+
+def _project_rows(
+    rows: Any,
+    weights: dict[str, Any],
+    weight_key: str,
+    bias_key: str,
+    torch: Any,
+    runtime: dict[str, Any],
+) -> Any:
+    return torch.stack(
+        [
+            torch_linear(row, weights[weight_key], weights[bias_key], torch, runtime)
+            for row in rows
+        ]
+    )
 
 
 def _attention_input(
@@ -156,45 +169,3 @@ def _finalize_hidden(
         torch_tensor(torch, weights["final_ln_bias"], runtime),
         config["layer_norm_epsilon"],
     )
-
-
-def _causal_attention(
-    q: Any,
-    k: Any,
-    v: Any,
-    config: dict[str, Any],
-    torch: Any,
-) -> Any:
-    position = config["context_size"] - 1
-    head_dim = config["embedding_dim"] // config["attention_heads"]
-    attended = []
-    for head in range(config["attention_heads"]):
-        attended.extend(_attention_head(q, k, v, position, head, head_dim, torch))
-    return torch.stack(attended)
-
-
-def _attention_head(
-    q: Any,
-    k: Any,
-    v: Any,
-    position: int,
-    head: int,
-    head_dim: int,
-    torch: Any,
-) -> list[Any]:
-    start = head * head_dim
-    end = start + head_dim
-    scale = 1.0 / math.sqrt(head_dim)
-    scores = torch.stack(
-        [
-            (q[position][start:end] * k[past][start:end]).sum() * scale
-            for past in range(position + 1)
-        ]
-    )
-    weights = torch.softmax(scores, dim=0)
-    return [
-        torch.stack(
-            [weights[past] * v[past][dim] for past in range(position + 1)]
-        ).sum()
-        for dim in range(start, end)
-    ]

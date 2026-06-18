@@ -146,8 +146,20 @@ class TransformerTorchBackendTests(unittest.TestCase):
         self.assertEqual(candidate["backend"]["parity_status"], "matched")
         self.assertTrue(report["passed"])
 
+    def test_torch_candidate_matches_scalar_fixture_for_rotary_profile(self) -> None:
+        fixture = _scalar_fixture(use_rotary_positions=True, attention_heads=2)
+
+        candidate = build_torch_backend_parity_candidate(
+            fixture=fixture,
+            importer=fake_torch_importer(),
+        )
+        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
+
+        self.assertEqual(candidate["backend"]["parity_status"], "matched")
+        self.assertTrue(report["passed"])
+
     def test_torch_candidate_reports_unsupported_profile_without_drifting(self) -> None:
-        fixture = _scalar_fixture(use_rotary_positions=True)
+        fixture = _scalar_fixture(num_layers=2)
 
         candidate = build_torch_backend_parity_candidate(
             fixture=fixture,
@@ -188,6 +200,7 @@ def _scalar_fixture(
     use_gated_mlp: bool = False,
     use_rotary_positions: bool = False,
     attention_heads: int = 1,
+    num_layers: int = 1,
 ) -> dict:
     tokenizer = CharTokenizer.train("abc ")
     model = TinyTransformerLM.init_random(
@@ -196,6 +209,7 @@ def _scalar_fixture(
             context_size=4,
             embedding_dim=4,
             attention_heads=attention_heads,
+            num_layers=num_layers,
             feedforward_dim=8,
             seed=17,
             use_layer_norm=use_layer_norm,
