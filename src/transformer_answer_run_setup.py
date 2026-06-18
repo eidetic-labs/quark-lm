@@ -21,7 +21,6 @@ from memory_retrieval import (
     build_retrieval_memory_report,
     write_retrieval_memory_report,
 )
-from tokenizer import CharTokenizer
 from transformer_answer_governance_setup import (
     prepare_transformer_answer_governance,
 )
@@ -38,11 +37,12 @@ from transformer_model import (
 from transformer_optimizer import ScalarOptimizer, load_optimizer_state
 from transformer_text_commands import ensure_curriculum
 from transformer_training import JsonlHistoryWriter
+from transformer_training_tokenizer import training_tokenizer
 
 
 @dataclass
 class TransformerAnswerRunSetup:
-    tokenizer: CharTokenizer
+    tokenizer: Any
     examples: list[AnswerExample]
     training_pool: list[AnswerExample]
     model: Any
@@ -84,13 +84,14 @@ class TransformerAnswerRunSetup:
 def prepare_transformer_answer_run(
     args: argparse.Namespace,
     initialize_transformer_for_training_fn: Callable[
-        [argparse.Namespace, CharTokenizer],
+        [argparse.Namespace, Any],
         tuple[Any, dict[str, Any]],
     ],
+    model_class: type[Any],
 ) -> TransformerAnswerRunSetup:
     ensure_curriculum(args.train_text, args.valid)
     train_text = args.train_text.read_text(encoding="utf-8")
-    tokenizer = CharTokenizer.train(train_text)
+    tokenizer = training_tokenizer(args, train_text, model_class)
     examples = load_training_examples(args.train_text, args.corpus_dir)
     training_pool = answer_training_pool(examples)
     model, resume_metadata = initialize_transformer_for_training_fn(args, tokenizer)

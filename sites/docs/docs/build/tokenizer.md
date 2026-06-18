@@ -65,8 +65,21 @@ PYTHONPATH=src python3 -m transformer_char_model train \
   --steps 80
 ```
 
+Transformer answer-training screens use the same governed tokenizer path:
+
+```bash title="Answer-training subword screen"
+PYTHONPATH=src python3 -m transformer_char_model answer-train \
+  --run runs/transformer-answer-subword-screen \
+  --tokenizer closed-world-subword \
+  --tokenizer-max-token-chars 4 \
+  --tokenizer-max-new-tokens 16 \
+  --steps 0
+```
+
 The run writes `tokenizer_manifest.json` and `tokenizer_report.json` next to the
-checkpoint unless explicit paths are supplied.
+checkpoint unless explicit paths are supplied. Answer-training metrics and
+`sweep_plan.json` record the tokenizer type and manifest hash so char and
+subword screens can be compared without hidden tokenizer drift.
 
 The self-improvement answer cycle also writes those artifacts automatically.
 In that path they are candidate evidence, not an active-tokenizer change. The

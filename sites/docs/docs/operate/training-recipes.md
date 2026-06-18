@@ -79,7 +79,10 @@ records the tokenizer, transformer profile, context, width, heads, layers,
 optimizer, and step-budget axes for the screen. `replay_mixture_report.json`
 records whether the run exposed new lessons, retained facts, glossary/self
 facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase
-evidence. Together they replace "turning knobs" with a comparable trial record.
+evidence. Answer-training screens now record tokenizer type and manifest hash
+from the governed tokenizer path, so char and closed-world subword trials are
+comparable without importing a pretrained vocabulary. Together these artifacts
+replace "turning knobs" with a comparable trial record.
 
 ## Constraint-first promotion
 

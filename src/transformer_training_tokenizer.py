@@ -94,7 +94,7 @@ def _subword_training_tokenizer(
 ) -> Any:
     proposal = propose_closed_world_subword_tokenizer(
         train_text,
-        source_files=[str(args.corpus)],
+        source_files=[str(_training_source_path(args))],
         max_token_chars=args.tokenizer_max_token_chars,
         max_new_tokens=args.tokenizer_max_new_tokens,
         base_tokenizer=base_tokenizer,
@@ -119,3 +119,10 @@ def _subword_training_tokenizer(
 
 def _artifact_path(value: str | None, default: Path) -> Path:
     return Path(value) if value else default
+
+
+def _training_source_path(args: argparse.Namespace) -> Path:
+    source = getattr(args, "corpus", None) or getattr(args, "train_text", None)
+    if source is None:
+        return Path("unknown")
+    return Path(source)

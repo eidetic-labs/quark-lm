@@ -136,8 +136,11 @@ an opt-in profile; and `--tokenizer closed-world-subword`, which writes
 corpus-only tokenizer manifest and report artifacts. Neither screen promotes the
 transformer by itself. They create controlled evidence for comparing baseline
 character tokenization against guarded subword compression and modernized small
-transformer mechanics. Each `answer-train` run now writes `sweep_plan.json` so
-that comparison axis is explicit before any result is interpreted.
+transformer mechanics. `answer-train` now accepts the same governed tokenizer
+flags as classic transformer training, so a screen can vary tokenizer type
+without leaving the closed-world manifest path. Each `answer-train` run writes
+`sweep_plan.json` so that comparison axis is explicit before any result is
+interpreted.
 
 ## Current evidence
 

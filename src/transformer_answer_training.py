@@ -25,6 +25,7 @@ def train_transformer_answers_command(
     setup = prepare_transformer_answer_run(
         args,
         initialize_transformer_for_training_fn,
+        model_class,
     )
     model = setup.model
     tokenizer = setup.tokenizer

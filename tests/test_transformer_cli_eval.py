@@ -134,6 +134,16 @@ class TransformerCliEvalTest(unittest.TestCase):
                 "Custom failure.",
                 "--experiment-note",
                 "Custom note.",
+                "--tokenizer",
+                "closed-world-subword",
+                "--tokenizer-manifest",
+                "answer_tokenizer_manifest.json",
+                "--tokenizer-report",
+                "answer_tokenizer_report.json",
+                "--tokenizer-max-token-chars",
+                "3",
+                "--tokenizer-max-new-tokens",
+                "9",
             ]
         )
 
@@ -142,6 +152,11 @@ class TransformerCliEvalTest(unittest.TestCase):
         self.assertEqual(args.experiment_acceptance_gate, ["custom_gate:Custom rule."])
         self.assertEqual(args.experiment_failure_criterion, ["Custom failure."])
         self.assertEqual(args.experiment_note, ["Custom note."])
+        self.assertEqual(args.tokenizer, "closed-world-subword")
+        self.assertEqual(args.tokenizer_manifest, "answer_tokenizer_manifest.json")
+        self.assertEqual(args.tokenizer_report, "answer_tokenizer_report.json")
+        self.assertEqual(args.tokenizer_max_token_chars, 3)
+        self.assertEqual(args.tokenizer_max_new_tokens, 9)
 
     def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
         args = parse_args(

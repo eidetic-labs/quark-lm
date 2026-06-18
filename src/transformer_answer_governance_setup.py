@@ -24,7 +24,6 @@ from corpus_hygiene import (
 )
 from experiment_registry import write_experiment_intent
 from probes import read_jsonl
-from tokenizer import CharTokenizer
 from training_recipe_core import attach_recipe_summary, write_training_recipe
 from transformer_experiment import (
     TransformerRunArtifacts,
@@ -69,7 +68,7 @@ class TransformerAnswerGovernanceSetup:
 def prepare_transformer_answer_governance(
     *,
     args: argparse.Namespace,
-    tokenizer: CharTokenizer,
+    tokenizer: object,
     examples: list[AnswerExample],
     training_pool: list[AnswerExample],
     artifacts: TransformerRunArtifacts,

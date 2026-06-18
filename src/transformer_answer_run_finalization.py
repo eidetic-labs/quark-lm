@@ -12,7 +12,6 @@ from memory_consolidation import (
     build_memory_consolidation_plan,
     write_memory_consolidation_plan,
 )
-from tokenizer import CharTokenizer
 from constraint_first_report import write_constraint_first_report
 from transformer_constraints import transformer_constraint_report
 from transformer_experiment import (
@@ -22,7 +21,6 @@ from transformer_experiment import (
 from transformer_model import (
     TRANSFORMER_ARCHITECTURE,
     TRANSFORMER_CHECKPOINT_FORMAT,
-    TRANSFORMER_TOKENIZER,
     GenerationConfig,
     transformer_run_metadata,
 )
@@ -32,7 +30,7 @@ from transformer_optimizer import ScalarOptimizer, save_optimizer_state
 def finalize_transformer_answer_run(
     args: argparse.Namespace,
     model: Any,
-    tokenizer: CharTokenizer,
+    tokenizer: Any,
     optimizer: ScalarOptimizer,
     artifacts: Any,
     resume_metadata: dict[str, Any],
@@ -164,7 +162,11 @@ def finalize_transformer_answer_run(
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "external_embeddings": False,
-        "tokenizer": TRANSFORMER_TOKENIZER,
+        "tokenizer": checkpoint_metadata["dataset"]["tokenizer"],
+        "tokenizer_type": checkpoint_metadata["dataset"]["tokenizer_type"],
+        "tokenizer_manifest_hash": checkpoint_metadata["dataset"][
+            "tokenizer_manifest_hash"
+        ],
         "training_data": TRAINING_DATA_DESCRIPTION,
     }
     memory_consolidation_plan = build_memory_consolidation_plan(

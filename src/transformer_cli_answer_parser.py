@@ -11,6 +11,7 @@ from transformer_cli_shared_options import (
     add_architecture_options,
     add_generation_sampling_options,
     add_optimizer_options,
+    add_tokenizer_options,
 )
 from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_experiment import TRANSFORMER_RECIPE_VERSION
@@ -49,6 +50,7 @@ def add_answer_train_parser(
     _add_generator_options(answer_parser)
     _add_direct_answer_options(answer_parser)
     add_architecture_options(answer_parser)
+    add_tokenizer_options(answer_parser)
     answer_parser.add_argument("--seed", type=int, default=17)
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
