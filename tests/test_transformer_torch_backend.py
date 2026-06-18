@@ -131,8 +131,11 @@ class TransformerTorchBackendTests(unittest.TestCase):
             )
         )
 
+    def test_torch_candidate_matches_scalar_fixture_for_tied_output_profile(self) -> None:
+        self.assert_torch_fixture_matches(_scalar_fixture(tie_output_embeddings=True))
+
     def test_torch_candidate_reports_unsupported_profile_without_drifting(self) -> None:
-        fixture = _scalar_fixture(tie_output_embeddings=True)
+        fixture = _scalar_fixture(use_context_mean=True)
 
         candidate = build_torch_backend_parity_candidate(
             fixture=fixture,
@@ -175,6 +178,7 @@ def _scalar_fixture(
     attention_heads: int = 1,
     num_layers: int = 1,
     tie_output_embeddings: bool = False,
+    use_context_mean: bool = False,
 ) -> dict:
     tokenizer = CharTokenizer.train("abc ")
     model = TinyTransformerLM.init_random(
@@ -192,6 +196,7 @@ def _scalar_fixture(
             use_gated_mlp=use_gated_mlp,
             use_rotary_positions=use_rotary_positions,
             tie_output_embeddings=tie_output_embeddings,
+            use_context_mean=use_context_mean,
         )
     )
     context = make_context(tokenizer.encode("ab"), 4, tokenizer.pad_id)

@@ -7,7 +7,6 @@ from typing import Any
 
 def minimal_forward_unsupported_reason(config: dict[str, Any]) -> str | None:
     unsupported_flags = [
-        "tie_output_embeddings",
         "use_kv_cache_path",
         "use_context_mean",
         "use_context_projection",

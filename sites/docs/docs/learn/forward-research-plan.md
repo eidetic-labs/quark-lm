@@ -129,9 +129,10 @@ blocked, pending, or matched.
 The current experimental layer adds PyTorch-style forward parity through that
 optional runtime surface. It covers the default scalar path plus post-layer
 norm, pre-layer norm, pre-RMSNorm, gated MLP, multi-head attention,
-rotary-position, and deeper layer-stack fixtures. Tied output embeddings, real
-training, and optimizer behavior each require separate parity gates before they
-can count as model-quality evidence.
+rotary-position, deeper layer-stack, and tied output embedding fixtures.
+Context-summary and prompt-projection variants, real training, and optimizer
+behavior each require separate parity gates before they can count as
+model-quality evidence.
 
 ## Where the sequence stands
 

@@ -6,6 +6,7 @@ from typing import Any
 
 from transformer_torch_attention import torch_apply_rotary, torch_causal_attention
 from transformer_torch_norms import torch_layer_norm, torch_rms_norm
+from transformer_torch_output import torch_output_logits
 from transformer_torch_tensor_ops import torch_linear, torch_tensor
 
 
@@ -30,7 +31,7 @@ def torch_minimal_logits(
         x = _forward_full_block(x, block, config, torch, runtime)
     final_hidden = _forward_final_block(x, blocks[-1], config, torch, runtime)
     final_hidden = _finalize_hidden(final_hidden, weights, config, torch, runtime)
-    return torch_linear(final_hidden, weights["wout"], weights["bout"], torch, runtime)
+    return torch_output_logits(final_hidden, weights, config, torch, runtime)
 
 
 def _transformer_blocks(weights: dict[str, Any]) -> list[dict[str, Any]]:
