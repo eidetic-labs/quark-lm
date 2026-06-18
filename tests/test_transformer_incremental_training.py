@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -74,6 +75,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 candidate_steps=1500,
             )
             accepted_checkpoint = root / "accepted" / "transformer.json"
+            report_path = root / "reports" / "accepted_update.json"
 
             report = guarded_incremental_update(
                 model_cls=TinyTransformerLM,
@@ -82,13 +84,17 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 accepted_checkpoint=accepted_checkpoint,
                 new_lesson_records=[_record("new", "q2:\na:", " ok!")],
                 regression_records=[_record("old", "q:\na:", " no")],
+                report_path=report_path,
             )
             accepted_model, accepted_tokenizer = TinyTransformerLM.load(accepted_checkpoint)
+            written_report = _read_json(report_path)
 
             if accepted_tokenizer is None:
                 self.fail("accepted checkpoint did not include tokenizer")
             self.assertTrue(report["accepted"])
+            self.assertEqual(report["status"], "accepted")
             self.assertEqual(report["rejection_reasons"], [])
+            self.assertEqual(written_report, report)
             self.assertTrue(accepted_checkpoint.exists())
             self.assertEqual(
                 accepted_model.generate(accepted_tokenizer, "q2:\na:", 4),
@@ -109,6 +115,7 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 candidate_steps=1000,
             )
             accepted_checkpoint = root / "accepted" / "transformer.json"
+            report_path = root / "reports" / "rejected_update.json"
 
             report = guarded_incremental_update(
                 model_cls=TinyTransformerLM,
@@ -117,10 +124,15 @@ class TransformerIncrementalTrainingTest(unittest.TestCase):
                 accepted_checkpoint=accepted_checkpoint,
                 new_lesson_records=[_record("new", "q2:\na:", " ok!")],
                 regression_records=[_record("old", "q:\na:", " no")],
+                report_path=report_path,
             )
+            written_report = _read_json(report_path)
 
             self.assertFalse(report["accepted"])
+            self.assertEqual(report["status"], "rejected")
             self.assertFalse(accepted_checkpoint.exists())
+            self.assertIsNone(report["accepted_checkpoint"])
+            self.assertEqual(written_report, report)
             self.assertIn(
                 "regression_target_nll_preserved",
                 report["rejection_reasons"],
@@ -205,6 +217,10 @@ def _train_incremental_candidate(
 
 def _record(record_id: str, prompt: str, target: str) -> dict[str, str]:
     return {"id": record_id, "prompt": prompt, "target": target}
+
+
+def _read_json(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

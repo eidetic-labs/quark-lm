@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ def guarded_incremental_update(
     regression_records: list[dict[str, Any]],
     nll_tolerance: float = 0.0,
     generation_config: GenerationConfig | None = None,
+    report_path: Path | None = None,
 ) -> dict[str, Any]:
     generation_config = generation_config or GenerationConfig()
     base_model, base_tokenizer = model_cls.load(base_checkpoint)
@@ -39,7 +41,7 @@ def guarded_incremental_update(
         },
     )
     if not tokenizer_gate["passed"]:
-        return _decision_report(
+        report = _decision_report(
             base_checkpoint,
             candidate_checkpoint,
             accepted_checkpoint,
@@ -47,6 +49,7 @@ def guarded_incremental_update(
             new_lesson={},
             regression={},
         )
+        return _finalize_report(report, report_path)
 
     max_new_chars = _max_target_chars([*new_lesson_records, *regression_records])
     new_scores = score_transformer_records(
@@ -112,6 +115,22 @@ def guarded_incremental_update(
     if report["accepted"]:
         accepted_checkpoint.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(candidate_checkpoint, accepted_checkpoint)
+    return _finalize_report(report, report_path)
+
+
+def write_guarded_update_report(path: Path, report: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(report, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+
+
+def _finalize_report(
+    report: dict[str, Any],
+    report_path: Path | None,
+) -> dict[str, Any]:
+    if report_path is not None:
+        write_guarded_update_report(report_path, report)
     return report
 
 
@@ -126,6 +145,7 @@ def _decision_report(
 ) -> dict[str, Any]:
     accepted = all(gate["passed"] for gate in gates)
     return {
+        "status": "accepted" if accepted else "rejected",
         "accepted": accepted,
         "base_checkpoint": str(base_checkpoint),
         "candidate_checkpoint": str(candidate_checkpoint),
