@@ -11,6 +11,10 @@ from transformer_torch_training_readiness import (
     TORCH_TRAINING_READY_STATUS,
     build_torch_training_readiness,
 )
+from transformer_torch_training_state import (
+    build_torch_training_state,
+    summarize_torch_training_state,
+)
 from transformer_training_parity_fixture import validate_training_parity_fixture
 
 
@@ -47,6 +51,12 @@ def build_torch_training_parity_candidate(
         runtime=runtime,
         readiness=readiness,
     )
+    state_summary = _training_state_summary(
+        fixture=fixture,
+        importer=importer,
+        readiness=readiness,
+        runtime=runtime,
+    )
     return {
         "schema_version": TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
         "kind": TORCH_TRAINING_PARITY_CANDIDATE_KIND,
@@ -70,6 +80,7 @@ def build_torch_training_parity_candidate(
         "optimizer_config": dict(fixture["optimizer_config"]),
         "parameter_manifest": dict(fixture["parameter_manifest"]),
         "training_readiness": readiness,
+        "training_state": state_summary,
         "training_case": outputs["training_case"],
     }
 
@@ -135,4 +146,27 @@ def _case_stub(
         "target": case["target"],
         "learning_rate": case["learning_rate"],
         "steps": case["steps"],
+    }
+
+
+def _training_state_summary(
+    *,
+    fixture: dict[str, Any],
+    importer: TorchImporter,
+    readiness: dict[str, Any],
+    runtime: dict[str, Any],
+) -> dict[str, Any]:
+    if readiness["status"] != TORCH_TRAINING_READY_STATUS:
+        return {
+            "status": "not_built",
+            "reason": "pytorch training runtime is not ready",
+        }
+    state = build_torch_training_state(
+        fixture=fixture,
+        torch=importer("torch"),
+        runtime=runtime,
+    )
+    return {
+        "status": "built",
+        **summarize_torch_training_state(state),
     }

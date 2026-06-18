@@ -164,6 +164,14 @@ AdamW optimizer availability. Real PyTorch training, autograd loss execution,
 AdamW parity, gradient clipping, scheduling, and checkpoint compatibility
 remain future gates.
 
+The current trainable-state bridge builds PyTorch tensors from the scalar
+fixture's initial weights by replaying the manifest names and shapes. Candidate
+artifacts store only a JSON-safe state summary, not runtime tensors, so the
+evidence trail can confirm tensor names, shapes, optimizer-slot ranges, and
+`requires_grad` status without making PyTorch a required dependency. The next
+implementation layer is to run the tiny fixture loss through those tensors and
+then match scalar optimizer behavior.
+
 ## Where the sequence stands
 
 The seven mechanics are built. The direct-answer objective they were meant to

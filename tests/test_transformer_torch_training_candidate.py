@@ -59,6 +59,7 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
             "autograd",
             candidate["training_readiness"]["summary"]["failed_checks"],
         )
+        self.assertEqual(candidate["training_state"]["status"], "not_built")
         self.assertEqual(
             candidate["training_case"]["reason"],
             "pytorch training runtime is missing required capabilities",
@@ -76,6 +77,11 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
 
         self.assertTrue(candidate["runtime"]["available"])
         self.assertEqual(candidate["training_readiness"]["status"], "ready")
+        self.assertEqual(candidate["training_state"]["status"], "built")
+        self.assertEqual(
+            candidate["training_state"]["parameter_count"],
+            fixture["parameter_manifest"]["parameter_count"],
+        )
         self.assertEqual(
             candidate["implementation_status"],
             TORCH_TRAINING_IMPLEMENTATION_STATUS,

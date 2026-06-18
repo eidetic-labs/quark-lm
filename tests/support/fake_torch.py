@@ -16,7 +16,8 @@ def fake_torch_importer(
         float32="float32",
         float64="float64",
         tensor=lambda value, dtype=None, device=None, requires_grad=False: FakeTensor(
-            value
+            value,
+            requires_grad=requires_grad,
         ),
         stack=lambda values: FakeTensor([raw_value(value) for value in values]),
         tanh=lambda value: FakeTensor(_map_unary(raw_value(value), math.tanh)),
@@ -39,8 +40,9 @@ def fake_torch_importer(
 
 
 class FakeTensor:
-    def __init__(self, value: object) -> None:
+    def __init__(self, value: object, *, requires_grad: bool = False) -> None:
         self.value = _copy_raw(value)
+        self.requires_grad = requires_grad
 
     def __iter__(self):
         return (FakeTensor(item) for item in self.value)
