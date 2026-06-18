@@ -122,12 +122,16 @@ candidate backends must compare against those fixtures before their outputs can
 be trusted as model-quality evidence. This contract does not add PyTorch as a
 dependency.
 
-The second implemented layer is an optional PyTorch skeleton: runtime
+The second implemented layer is an optional PyTorch backend surface: runtime
 availability detection plus candidate parity artifacts. It records whether
 PyTorch is installed, which device and dtype would be used, and why candidate
-cases are blocked or pending. It still does not implement PyTorch transformer
-math, does not train, and does not pass parity until its outputs are generated
-by a real backend implementation.
+cases are blocked, pending, or matched.
+
+The third implemented layer adds minimal PyTorch forward parity for the
+simplest one-layer profile. It can reproduce scalar logits, losses, and greedy
+generation for fixtures that use the default architecture path. More advanced
+profiles, training, and optimizer behavior still require separate parity gates
+before they can count as model-quality evidence.
 
 ## Where the sequence stands
 

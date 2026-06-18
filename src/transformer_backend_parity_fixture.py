@@ -78,6 +78,7 @@ def _tokenizer_summary(tokenizer: Any, manifest_hash: str | None) -> dict[str, A
         "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
         "vocab_size": tokenizer.vocab_size,
         "pad_id": tokenizer.pad_id,
+        "tokens": list(getattr(tokenizer, "tokens", [])),
         "tokenizer_manifest_hash": manifest_hash,
     }
 
