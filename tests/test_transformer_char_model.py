@@ -73,6 +73,42 @@ class TransformerCharModelCoreTest(unittest.TestCase):
         self.assertEqual(loaded.config.vocab_size, config.vocab_size)
         self.assertEqual(loaded_tokenizer.tokens, tokenizer.tokens)  # type: ignore[union-attr]
 
+    def test_tokenizer_extension_and_vocab_resize_make_new_tokens_trainable(self) -> None:
+        tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=5)
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        old_logits = model._forward_floats(context)
+
+        extended = tokenizer.extend("abd!")
+        model.resize_vocab(extended.vocab_size)
+        target = extended.stoi["!"]
+
+        self.assertEqual(extended.encode("abc"), tokenizer.encode("abc"))
+        self.assertEqual(model.config.vocab_size, extended.vocab_size)
+        self.assertEqual(model._forward_floats(context)[: tokenizer.vocab_size], old_logits)
+
+        before = model.nll(context, target)
+        for _ in range(20):
+            model.train_step(context, target, learning_rate=0.04)
+        after = model.nll(context, target)
+
+        self.assertGreater(before, after)
+
+    def test_vocab_resize_supports_tied_output_embeddings(self) -> None:
+        tokenizer, ids, config, model = char_model_fixture(
+            "abc abc\n",
+            seed=6,
+            tie_output_embeddings=True,
+        )
+        context = context_before(ids, 4, config.context_size, tokenizer.pad_id)
+        extended = tokenizer.extend("abc?")
+
+        model.resize_vocab(extended.vocab_size)
+        probs = model.predict(context)
+
+        self.assertEqual(len(model.token_embeddings), extended.vocab_size)
+        self.assertEqual(len(probs), extended.vocab_size)
+        self.assertAlmostEqual(sum(probs), 1.0)
+
 
 if __name__ == "__main__":
     unittest.main()

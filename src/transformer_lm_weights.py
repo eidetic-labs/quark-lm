@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import random
+from dataclasses import replace
 from typing import Any
 
 from autograd import Scalar
@@ -107,6 +109,33 @@ class TransformerWeightsMixin:
 
     def top_layer_parameters(self) -> list[Scalar]:
         return top_layer_transformer_parameters(self)
+
+    def resize_vocab(self, vocab_size: int) -> None:
+        if vocab_size < self.config.vocab_size:
+            raise ValueError("vocab_size cannot shrink")
+        if vocab_size == self.config.vocab_size:
+            return
+
+        old_vocab_size = self.config.vocab_size
+        dim = self.config.embedding_dim
+        for token_id in range(old_vocab_size, vocab_size):
+            self.token_embeddings.append(
+                [
+                    Scalar(self._new_vocab_weight(token_id, index, salt=1))
+                    for index in range(dim)
+                ]
+            )
+            self.bout.append(Scalar(0.0))
+        for hidden_dim, row in enumerate(self.wout):
+            for token_id in range(old_vocab_size, vocab_size):
+                row.append(
+                    Scalar(self._new_vocab_weight(token_id, hidden_dim, salt=2))
+                )
+        self.config = replace(self.config, vocab_size=vocab_size)
+
+    def _new_vocab_weight(self, token_id: int, index: int, *, salt: int) -> float:
+        rng = random.Random(self.config.seed + token_id * 1009 + index * 37 + salt)
+        return rng.uniform(-0.05, 0.05)
 
     def _output_weights_scalars(self) -> list[list[Scalar]]:
         if not self.config.tie_output_embeddings:

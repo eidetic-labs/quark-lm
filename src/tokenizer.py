@@ -36,6 +36,15 @@ class CharTokenizer:
             raise ValueError(f"training text cannot contain reserved token {PAD_TOKEN!r}")
         return cls([PAD_TOKEN, *chars])
 
+    def extend(self, text: str) -> "CharTokenizer":
+        chars = sorted(set(text))
+        if PAD_TOKEN in chars:
+            raise ValueError(f"training text cannot contain reserved token {PAD_TOKEN!r}")
+        additions = [char for char in chars if char not in self.stoi]
+        if not additions:
+            return CharTokenizer(list(self.tokens))
+        return CharTokenizer([*self.tokens, *additions])
+
     def encode(self, text: str) -> list[int]:
         ids: list[int] = []
         for char in text:

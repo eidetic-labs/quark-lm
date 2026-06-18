@@ -23,6 +23,19 @@ class TokenizerTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             tokenizer.encode("abcd")
 
+    def test_extend_preserves_existing_ids_and_adds_new_characters(self) -> None:
+        tokenizer = CharTokenizer.train("cab")
+        before_ids = {token: tokenizer.stoi[token] for token in tokenizer.tokens}
+
+        extended = tokenizer.extend("cad!")
+
+        self.assertEqual(
+            {token: extended.stoi[token] for token in tokenizer.tokens},
+            before_ids,
+        )
+        self.assertEqual(extended.decode(extended.encode("bad!")), "bad!")
+        self.assertNotIn("!", tokenizer.stoi)
+
 
 if __name__ == "__main__":
     unittest.main()
