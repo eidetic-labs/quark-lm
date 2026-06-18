@@ -27,7 +27,6 @@ from transformer_math import average_nll
 from transformer_model import (
     TRANSFORMER_ARCHITECTURE,
     TRANSFORMER_CHECKPOINT_FORMAT,
-    TRANSFORMER_TOKENIZER,
     generation_config_from_args,
     optimization_config_from_args,
     transformer_config_from_args,
@@ -35,6 +34,10 @@ from transformer_model import (
 )
 from transformer_optimizer import load_optimizer_state, save_optimizer_state
 from transformer_paths import DEFAULT_PROBES
+from transformer_training_tokenizer import (
+    initialize_transformer_for_training_command,
+    training_tokenizer,
+)
 
 
 def ensure_curriculum(corpus_path: Path, valid_path: Path) -> None:
@@ -61,37 +64,6 @@ def transformer_training_recipe(
         asdict(generation_config_from_args(args)),
         replay_plan_path,
     )
-
-
-def initialize_transformer_for_training_command(
-    args: argparse.Namespace,
-    tokenizer: CharTokenizer,
-    model_cls: Any,
-) -> tuple[Any, dict[str, Any]]:
-    if args.resume_checkpoint is None:
-        config = transformer_config_from_args(args, tokenizer.vocab_size)
-        return model_cls.init_random(config), {"resumed": False}
-    model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
-    if checkpoint_tokenizer is None:
-        raise ValueError("resume checkpoint does not contain a tokenizer")
-    checkpoint_config = transformer_config_from_args(args, checkpoint_tokenizer.vocab_size)
-    if asdict(model.config) != asdict(checkpoint_config):
-        raise ValueError("resume checkpoint config does not match requested transformer config")
-    if not tokenizer.extends(checkpoint_tokenizer):
-        raise ValueError(
-            "resume checkpoint tokenizer is not an append-only prefix of "
-            "the admitted training tokenizer"
-        )
-    if tokenizer.vocab_size > checkpoint_tokenizer.vocab_size:
-        model.resize_vocab(tokenizer.vocab_size)
-    return model, {
-        "resumed": True,
-        "resume_checkpoint": str(args.resume_checkpoint),
-        "tokenizer_extended": tokenizer.vocab_size > checkpoint_tokenizer.vocab_size,
-        "previous_vocab_size": checkpoint_tokenizer.vocab_size,
-        "vocab_size": tokenizer.vocab_size,
-        "added_tokens": tokenizer.tokens[checkpoint_tokenizer.vocab_size :],
-    }
 
 
 def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[str, Any]:
@@ -154,6 +126,7 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
     )
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(args.run / "tokenizer.json")
+    config = transformer_config_from_args(args, tokenizer.vocab_size)
     metrics = {
         "architecture": TRANSFORMER_ARCHITECTURE,
         "checkpoint": str(checkpoint_path),
@@ -170,15 +143,15 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
         "embedding_dim": args.embedding_dim,
         "feedforward_dim": args.feedforward_dim,
         "num_layers": args.num_layers,
-        "attention_heads": args.attention_heads,
-        "use_layer_norm": args.use_layer_norm,
-        "use_pre_layer_norm": args.use_pre_layer_norm,
-        "use_rms_norm": args.use_rms_norm,
-        "layer_norm_epsilon": args.layer_norm_epsilon,
-        "use_gated_mlp": args.use_gated_mlp,
-        "tie_output_embeddings": args.tie_output_embeddings,
-        "use_rotary_positions": args.use_rotary_positions,
-        "use_kv_cache_path": args.use_kv_cache_path,
+        "attention_heads": config.attention_heads,
+        "use_layer_norm": config.use_layer_norm,
+        "use_pre_layer_norm": config.use_pre_layer_norm,
+        "use_rms_norm": config.use_rms_norm,
+        "layer_norm_epsilon": config.layer_norm_epsilon,
+        "use_gated_mlp": config.use_gated_mlp,
+        "tie_output_embeddings": config.tie_output_embeddings,
+        "use_rotary_positions": config.use_rotary_positions,
+        "use_kv_cache_path": config.use_kv_cache_path,
         "use_context_mean": args.use_context_mean,
         "use_context_projection": args.use_context_projection,
         "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
@@ -189,26 +162,16 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
-        "tokenizer": TRANSFORMER_TOKENIZER,
+        "tokenizer": checkpoint_metadata["dataset"]["tokenizer"],
+        "tokenizer_type": checkpoint_metadata["dataset"]["tokenizer_type"],
+        "tokenizer_manifest_hash": checkpoint_metadata["dataset"]["tokenizer_manifest_hash"],
+        "transformer_profile": config.transformer_profile,
     }
     with (args.run / "transformer_metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2, sort_keys=True)
         handle.write("\n")
     print(f"saved {checkpoint_path}")
     return metrics
-
-
-def training_tokenizer(
-    args: argparse.Namespace,
-    train_text: str,
-    model_cls: Any,
-) -> CharTokenizer:
-    if args.resume_checkpoint is None:
-        return CharTokenizer.train(train_text)
-    _model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
-    if checkpoint_tokenizer is None:
-        raise ValueError("resume checkpoint does not contain a tokenizer")
-    return checkpoint_tokenizer.extend(train_text)
 
 
 def eval_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[str, Any]:

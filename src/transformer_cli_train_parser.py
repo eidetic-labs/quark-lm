@@ -9,6 +9,7 @@ from curriculum import DEFAULT_OUTPUT_DIR
 from transformer_cli_shared_options import (
     add_architecture_options,
     add_optimizer_options,
+    add_tokenizer_options,
 )
 from transformer_paths import DEFAULT_RUN_DIR
 
@@ -21,6 +22,7 @@ def add_train_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentPar
     train_parser.add_argument("--steps", type=int, default=80)
     train_parser.add_argument("--learning-rate", type=float, default=0.03)
     add_architecture_options(train_parser)
+    add_tokenizer_options(train_parser)
     train_parser.add_argument("--seed", type=int, default=17)
     train_parser.add_argument("--eval-every", type=int, default=20)
     train_parser.add_argument("--valid-limit", type=int, default=256)

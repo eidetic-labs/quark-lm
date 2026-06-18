@@ -20,7 +20,8 @@ QuarkLM starts from a constrained world:
 - human-authored seed glossary, grammar, stories, self facts, and admitted
   memories;
 - deterministic curriculum generated from ledgered corpus files;
-- a character tokenizer trained only on admitted text;
+- a character tokenizer baseline and guarded append-only subword tokenizer path,
+  both trained only on admitted text;
 - tiny learned components initialized from random weights;
 - corpus-only retrieval memory;
 - a tiny decoder-only transformer initialized from random weights.
@@ -92,7 +93,7 @@ See `sites/DEPLOYMENT.md` for deployment details.
 | Path | Purpose |
 | --- | --- |
 | `corpus/` | Ledgered source files allowed to influence training or evaluation. |
-| `src/closed_world_lm/` | Curriculum, models, responder, retrieval memory, verifier, trainer, and eval surfaces. |
+| `src/` | Curriculum, models, responder, retrieval memory, verifier, trainer, and eval surfaces. |
 | `tests/` | Regression coverage for core mechanics. |
 | `runs/` | Local run evidence and checkpoints; ignored by git. |
 | `sites/docs/` | Docusaurus source for Learn, Build, Operate, and Secure docs. |

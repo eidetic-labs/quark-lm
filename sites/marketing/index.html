@@ -94,8 +94,8 @@
             QuarkLM is a research prototype for language models that learn only from
             their admitted dataset. No pretrained weights. No pretrained tokenizer. No
             external embeddings. Just a tiny world, exact retrieval memory, a
-            corpus-trained tokenizer, guarded weight updates, generated probes, and
-            evidence that follows every promotion.
+            corpus-trained tokenizer path, guarded weight updates, generated probes,
+            and evidence that follows every promotion.
           </p>
           <div class="hero__actions">
             <a class="button button--primary" href="https://docs.quark-lm.eidetic-labs.com">
@@ -200,7 +200,7 @@
           <article class="card">
             <p class="card__num">04</p>
             <h3>Own tokenizer</h3>
-            <p>The current tokenizer learns characters from admitted text; future tokenizers must be corpus-derived too.</p>
+            <p>Character tokenization is the baseline; guarded subword candidates must be append-only and corpus-derived.</p>
           </article>
         </div>
       </section>
@@ -262,8 +262,8 @@
             <p>Keep technical docs and this marketing page aligned with promoted evidence.</p>
           </article>
           <article>
-            <h3>Larger learning batches</h3>
-            <p>Admit more memory while preserving anti-forgetting checks and generated eval coverage.</p>
+            <h3>Tokenizer governance</h3>
+            <p>Compare character and closed-world subword screens with manifests before treating compression as model progress.</p>
           </article>
           <article>
             <h3>Alpha quality gate</h3>

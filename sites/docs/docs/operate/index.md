@@ -6,7 +6,7 @@ slug: /operate/
 
 # Operate
 
-<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -67,6 +67,7 @@ behavior.
 <div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state and proof that generated candidates are not training data until admitted.</p></div>
 <div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval.</p></div>
 <div><h4><code>training_recipe.json</code></h4><p>Reproducible model, tokenizer, data, objective, optimizer, artifact, and gate recipe.</p></div>
+<div><h4><code>tokenizer_manifest.json</code></h4><p>Corpus hash, source files, append-only vocabulary, merge rules, and accepted or rejected tokenizer candidates.</p></div>
 <div><h4><code>constraint_first_promotion.json</code></h4><p>The gate that blocks quality metrics until closed-world constraints pass.</p></div>
 <div><h4><code>corpus_snapshot.json</code></h4><p>Current ledger source hashes and record counts.</p></div>
 <div><h4><code>corpus_diff.json</code></h4><p>Comparison to the previous promoted run.</p></div>
@@ -116,6 +117,7 @@ version; they do not feed the model.
 <div><h4><a href="./release-discipline/">Release discipline</a></h4><p>The full checklist a promoted run must satisfy, and SemVer release-identifier rules.</p></div>
 <div><h4><a href="./experiment-registry/">Experiment registry</a></h4><p>Why every run starts with an explicit intent instead of a loose command.</p></div>
 <div><h4><a href="./corpus-hygiene/">Corpus hygiene</a></h4><p>How data risk is made visible before any metric is interpreted.</p></div>
+<div><h4><a href="./tokenizer-manifests/">Tokenizer manifests</a></h4><p>How corpus-only vocabulary changes are recorded before they influence a run.</p></div>
 <div><h4><a href="./candidate-quarantine/">Candidate quarantine</a></h4><p>The candidate lifecycle and the rule that keeps generated material out of training until admitted.</p></div>
 <div><h4><a href="./closed-world-verifier/">Closed-world verifier</a></h4><p>The deterministic check that decides whether a candidate or plan may influence the next learning step.</p></div>
 <div><h4><a href="./training-recipes/">Training recipes</a></h4><p>Reproducible recipes and the constraint-first promotion report.</p></div>

@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from tokenizer_io import tokenizer_identity
+from transformer_profiles import apply_optimizer_profile, apply_transformer_profile
+
 
 TRANSFORMER_ARCHITECTURE = "tiny-decoder-only-transformer"
 TRANSFORMER_CHECKPOINT_FORMAT = "quarklm-transformer-v2"
@@ -34,6 +37,7 @@ class TransformerConfig:
     use_prompt_position_projection: bool = False
     prompt_position_projection_scale: float = 1.0
     use_prompt_attention_summary: bool = False
+    transformer_profile: str = "default"
 
 
 @dataclass
@@ -114,7 +118,8 @@ def validate_generation_config(config: GenerationConfig) -> None:
 
 
 def transformer_config_from_args(args: Any, vocab_size: int) -> TransformerConfig:
-    return TransformerConfig(
+    profile = getattr(args, "transformer_profile", "default")
+    config = TransformerConfig(
         vocab_size=vocab_size,
         context_size=args.context_size,
         embedding_dim=args.embedding_dim,
@@ -136,11 +141,14 @@ def transformer_config_from_args(args: Any, vocab_size: int) -> TransformerConfi
         use_prompt_position_projection=args.use_prompt_position_projection,
         prompt_position_projection_scale=args.prompt_position_projection_scale,
         use_prompt_attention_summary=args.use_prompt_attention_summary,
+        transformer_profile=profile,
     )
+    return apply_transformer_profile(config, profile)
 
 
 def optimization_config_from_args(args: Any) -> OptimizationConfig:
-    return OptimizationConfig(
+    profile = getattr(args, "transformer_profile", "default")
+    config = OptimizationConfig(
         optimizer=args.optimizer,
         gradient_clip=args.gradient_clip,
         weight_decay=args.weight_decay,
@@ -152,6 +160,7 @@ def optimization_config_from_args(args: Any) -> OptimizationConfig:
         min_learning_rate=args.min_learning_rate,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
     )
+    return apply_optimizer_profile(config, profile)
 
 
 def generation_config_from_args(args: Any) -> GenerationConfig:
@@ -165,9 +174,20 @@ def generation_config_from_args(args: Any) -> GenerationConfig:
     )
 
 
-def closed_world_dataset_metadata(vocab_size: int) -> dict[str, Any]:
+def closed_world_dataset_metadata(
+    vocab_size: int,
+    tokenizer: Any | None = None,
+    tokenizer_manifest_hash: str | None = None,
+) -> dict[str, Any]:
+    tokenizer_type = (
+        tokenizer_identity(tokenizer)
+        if tokenizer is not None
+        else TRANSFORMER_TOKENIZER
+    )
     return {
-        "tokenizer": TRANSFORMER_TOKENIZER,
+        "tokenizer": tokenizer_type,
+        "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
+        "tokenizer_manifest_hash": tokenizer_manifest_hash,
         "vocab_size": vocab_size,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
@@ -188,7 +208,11 @@ def transformer_run_metadata(
         "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
         "optimizer": optimizer.summary(),
         "resume": resume,
-        "dataset": closed_world_dataset_metadata(tokenizer.vocab_size),
+        "dataset": closed_world_dataset_metadata(
+            tokenizer.vocab_size,
+            tokenizer,
+            getattr(args, "tokenizer_manifest_hash", None),
+        ),
     }
 
 

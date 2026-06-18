@@ -127,6 +127,15 @@ schedules, `--attention-heads`, `--use-rms-norm`, `--use-gated-mlp`,
 model, trainer, tokenizer, and checkpoint *structure*, but must not import
 external weights, tokenizers, embeddings, datasets, or training text.
 
+The optimization track adds two explicit screens around that foundation:
+`--transformer-profile modern_small`, which bundles pre-RMSNorm, RoPE,
+multi-head attention, gated feed-forward, and AdamW-style optimizer settings as
+an opt-in profile; and `--tokenizer closed-world-subword`, which writes
+corpus-only tokenizer manifest and report artifacts. Neither screen promotes the
+transformer by itself. They create controlled evidence for comparing baseline
+character tokenization against guarded subword compression and modernized small
+transformer mechanics.
+
 ## Current evidence
 
 | Run | Signal | Value |
@@ -152,6 +161,8 @@ them. Full run-by-run detail is in
 <a href="../transformer-screen-history/"><strong>Read next</strong><span>Transformer screen history</span><small>The version-by-version screen log and every evidence table.</small></a>
 
 <a href="../transformer-responsibilities/"><strong>Read</strong><span>Transformer responsibilities</span><small>How the answer-training surfaces are divided across modules.</small></a>
+
+<a href="../tokenizer/"><strong>Build</strong><span>Tokenizer</span><small>How the closed-world subword path is governed.</small></a>
 
 <a href="../../secure/purity-boundary/"><strong>Concept</strong><span>Purity boundary</span><small>Why pretrained weights, tokenizers, and embeddings are out of bounds.</small></a>
 

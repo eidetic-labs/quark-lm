@@ -54,13 +54,13 @@ Release loop:
 
 | Component | Role |
 | --- | --- |
-| `closed_world_lm.curriculum` | Builds `build/train.txt`, `build/valid.txt`, and manifest data. |
-| `closed_world_lm.respond` | Reliable corpus-only responder used as a grounded rail. |
-| `closed_world_lm.answer_model` | Learned answer classifier trained from random softmax weights. |
-| `closed_world_lm.answer_decoder` | Generative answer decoder trained from random prompt-conditioned weights. |
-| `closed_world_lm.transformer_char_model` | Experimental decoder-only transformer trained from random weights on the corpus tokenizer. |
-| `closed_world_lm.self_improve` | Orchestrates training, evaluation, audits, and run reports. |
-| `closed_world_lm.self_diagnose` | Reads a run report and emits deterministic repair recommendations with `uses_external_model: false`. |
+| `curriculum` | Builds `build/train.txt`, `build/valid.txt`, and manifest data. |
+| `respond` | Reliable corpus-only responder used as a grounded rail. |
+| `answer_model` | Learned answer classifier trained from random softmax weights. |
+| `answer_decoder` | Generative answer decoder trained from random prompt-conditioned weights. |
+| `transformer_char_model` | Experimental decoder-only transformer trained from random weights on the corpus tokenizer. |
+| `self_improve` | Orchestrates training, evaluation, audits, and run reports. |
+| `self_diagnose` | Reads a run report and emits deterministic repair recommendations with `uses_external_model: false`. |
 
 ## Promotion Rule
 

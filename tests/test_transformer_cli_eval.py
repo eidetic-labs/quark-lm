@@ -64,6 +64,18 @@ class TransformerCliEvalTest(unittest.TestCase):
         args = parse_args(
             [
                 "train",
+                "--transformer-profile",
+                "modern_small",
+                "--tokenizer",
+                "closed-world-subword",
+                "--tokenizer-manifest",
+                "tokenizer_manifest.json",
+                "--tokenizer-report",
+                "tokenizer_report.json",
+                "--tokenizer-max-token-chars",
+                "4",
+                "--tokenizer-max-new-tokens",
+                "12",
                 "--use-context-mean",
                 "--use-context-projection",
                 "--use-prompt-prefix-projection",
@@ -86,6 +98,12 @@ class TransformerCliEvalTest(unittest.TestCase):
             ]
         )
 
+        self.assertEqual(args.transformer_profile, "modern_small")
+        self.assertEqual(args.tokenizer, "closed-world-subword")
+        self.assertEqual(args.tokenizer_manifest, "tokenizer_manifest.json")
+        self.assertEqual(args.tokenizer_report, "tokenizer_report.json")
+        self.assertEqual(args.tokenizer_max_token_chars, 4)
+        self.assertEqual(args.tokenizer_max_new_tokens, 12)
         self.assertTrue(args.use_context_mean)
         self.assertTrue(args.use_context_projection)
         self.assertTrue(args.use_prompt_prefix_projection)

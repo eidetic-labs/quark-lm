@@ -68,19 +68,28 @@ is useful evidence but rejected for promotion.
 
 ## Tokenizer
 
-QuarkLM already has its own tokenizer. `closed_world_lm.tokenizer.CharTokenizer`
-learns a character vocabulary from admitted corpus text and rejects characters
-outside that vocabulary. The current transformer uses this tokenizer.
+QuarkLM already has its own tokenizer. `tokenizer.CharTokenizer` learns a
+character vocabulary from admitted corpus text and rejects characters outside
+that vocabulary. It remains the reference baseline because every behavior is
+easy to inspect.
 
-Future tokenizer work can improve compression, for example with a corpus-derived
-subword tokenizer, but it must be trained from admitted text only. A pretrained
-vocabulary would cross the same boundary as pretrained weights.
+QuarkLM also has a guarded subword path:
+`closed_world_subword_tokenizer.ClosedWorldSubwordTokenizer`. It starts from
+admitted characters, proposes append-only merge rules from corpus text, rejects
+full-answer tokens, and writes tokenizer manifests before the vocabulary is used
+as training evidence. This is meant to reduce long-answer drift without
+importing a pretrained vocabulary.
+
+A pretrained vocabulary would cross the same boundary as pretrained weights.
+See [Tokenizer](../build/tokenizer.md) for the contributor-facing mechanics and
+[Tokenizer manifests](../operate/tokenizer-manifests.md) for the operating
+evidence.
 
 ## Transformer
 
-v0.24 adds `closed_world_lm.transformer_char_model`, a tiny decoder-only
-transformer built without PyTorch, JAX, Hugging Face, pretrained checkpoints, or
-pretrained tokenizers. It starts from random weights and trains with a small
+v0.24 added `transformer_char_model`, a tiny decoder-only transformer built
+without PyTorch, JAX, Hugging Face, pretrained checkpoints, or pretrained
+tokenizers. It starts from random weights and trains with a small
 standard-library scalar autodiff engine.
 
 The transformer is not yet the reliable answering path. It is the weight

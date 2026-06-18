@@ -6,7 +6,7 @@ slug: /build/
 
 # Build
 
-<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -103,6 +103,7 @@ finishing.
 <div className="qlm-grid">
 <div><h4><a href="./quickstart/">Quickstart</a></h4><p>Run the prototype end to end, and read what each command produces.</p></div>
 <div><h4><a href="./admission-workflow/">Admission workflow</a></h4><p>Teach a new fact by ledgering it into the closed-world corpus.</p></div>
+<div><h4><a href="./tokenizer/">Tokenizer</a></h4><p>Compare character and closed-world subword tokenization without importing pretrained vocabulary.</p></div>
 <div><h4><a href="./generated-probes/">Generated probes</a></h4><p>Keep evaluation probes generated from admitted text, not hand-written.</p></div>
 <div><h4><a href="./transformer/">Transformer</a></h4><p>Train the from-scratch transformer prototype and read its screens.</p></div>
 <div><h4><a href="./transformer-responsibilities/">Transformer responsibilities</a></h4><p>Understand the transformer surfaces and what each one owns.</p></div>

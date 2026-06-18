@@ -198,7 +198,7 @@
   "currentVersion": "v0.42",
   "currentRun": "runs/self-improve-v0.42/",
   "currentAttempt": "runs/self-improve-v0.42/attempts/attempt-001/",
-  "internalImportPath": "closed_world_lm",
+  "internalImportPath": "src top-level modules",
   "packageSlug": "quark-lm",
   "admittedFacts": 12,
   "directAdmissionProbes": "48/48",
@@ -527,7 +527,7 @@
   "transformerGeneratorFeatures": 4220,
   "transformerGeneratorLabels": 28,
   "transformerLessonTraining": "target-loss transformer plus direct greedy answer training",
-  "tokenizer": "corpus-trained character tokenizer",
+  "tokenizer": "corpus-trained character tokenizer baseline with guarded append-only subword path",
   "purity": {
     "pretrainedWeights": false,
     "pretrainedTokenizer": false,

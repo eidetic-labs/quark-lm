@@ -6,7 +6,7 @@ slug: /secure/
 
 # Secure
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -65,8 +65,9 @@ failure, and is enforced by one mechanism.
 Allowed training data must come from the admitted corpus or from corpus-derived
 lessons generated from ledgered sources. QuarkLM imports no pretrained weights,
 no pretrained tokenizer, no external embeddings, and no unledgered training text.
-A pretrained vocabulary would cross the same line as pretrained weights, so even
-the character tokenizer learns from admitted text only.
+A pretrained vocabulary would cross the same line as pretrained weights. The
+character tokenizer and guarded subword tokenizer path both learn only from
+admitted text, and subword updates must carry tokenizer manifests.
 
 `corpus/ledger.json` is the gate. It names each source and whether that source
 is allowed for curriculum generation or training. Generated material — a lesson,

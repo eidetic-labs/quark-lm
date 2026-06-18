@@ -62,6 +62,7 @@ const sidebars = {
       items: [
         'build/quickstart',
         'build/admission-workflow',
+        'build/tokenizer',
       ],
     },
     {
@@ -98,6 +99,7 @@ const sidebars = {
       items: [
         'operate/experiment-registry',
         'operate/corpus-hygiene',
+        'operate/tokenizer-manifests',
         'operate/candidate-quarantine',
         'operate/training-recipes',
       ],

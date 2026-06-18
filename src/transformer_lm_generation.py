@@ -10,6 +10,7 @@ from typing import Any
 
 from neural_char_ops import make_context
 from tokenizer import CharTokenizer
+from tokenizer_io import tokenizer_from_dict
 from transformer_checkpoint import load_checkpoint_payload
 from transformer_math import (
     generation_distribution,
@@ -192,12 +193,12 @@ class TransformerGenerationIOMixin:
         return payload
 
     @classmethod
-    def from_dict(cls, payload: dict[str, Any]) -> tuple["TinyTransformerLM", CharTokenizer | None]:
+    def from_dict(cls, payload: dict[str, Any]) -> tuple["TinyTransformerLM", Any | None]:
         config = TransformerConfig(**payload["config"])
         model = cls(config, payload["weights"])
         tokenizer = None
         if "tokenizer" in payload:
-            tokenizer = CharTokenizer.from_dict(payload["tokenizer"])
+            tokenizer = tokenizer_from_dict(payload["tokenizer"])
         return model, tokenizer
 
     def save(

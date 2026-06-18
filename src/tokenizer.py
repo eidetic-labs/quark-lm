@@ -9,6 +9,7 @@ from typing import Any
 
 
 PAD_TOKEN = "<pad>"
+CHAR_TOKENIZER_TYPE = "char"
 
 
 @dataclass
@@ -24,6 +25,10 @@ class CharTokenizer:
     @property
     def pad_id(self) -> int:
         return 0
+
+    @property
+    def tokenizer_type(self) -> str:
+        return CHAR_TOKENIZER_TYPE
 
     @property
     def vocab_size(self) -> int:
@@ -66,7 +71,7 @@ class CharTokenizer:
         return "".join(pieces)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"tokens": self.tokens}
+        return {"tokenizer_type": self.tokenizer_type, "tokens": self.tokens}
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "CharTokenizer":

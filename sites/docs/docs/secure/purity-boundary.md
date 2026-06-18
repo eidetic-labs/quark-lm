@@ -5,7 +5,7 @@ description: What QuarkLM may and may not train on.
 
 # Purity Boundary
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -14,7 +14,7 @@ description: What QuarkLM may and may not train on.
 - The four inputs that may never reach QuarkLM's neural weights, and why each is excluded.
 - How `corpus/ledger.json` acts as the single admission gate, with two independent per-source permissions.
 - Why a ledgered source can still be barred from training, and why generated material is not yet trainable.
-- The one distinction that is easy to miss: studying open-source structure is allowed; importing open-source weights, tokenizers, embeddings, or text is not.
+- The one distinction that is easy to miss: studying open-source structure is allowed; importing open-source weights, tokenizers, embeddings, vocabulary, or text is not.
 
 </div>
 
@@ -119,14 +119,19 @@ built. Per `STRUCTURE_AUDIT.md`, QuarkLM may study open-source model, trainer,
 tokenizer, and checkpoint *structure* — config layout, attention and residual
 shapes, tokenizer pipeline stages, evaluation artifact formats — and adopt those
 shapes when each is recorded in docs, tests, and run evidence. It must not import
-external weights, tokenizers, embeddings, datasets, or training text.
+external weights, tokenizers, vocabularies, embeddings, datasets, or training text.
 
-The character tokenizer (`tokenizer.CharTokenizer`) is the working example: its
-pipeline structure can follow open-source references, but its vocabulary is
-trained from admitted corpus text and rejects out-of-vocabulary characters. Any
-future subword tokenizer must be a separate artifact trained from admitted text
-only — a pretrained vocabulary would cross the boundary that pretrained weights
-do.
+The character tokenizer (`tokenizer.CharTokenizer`) is the reference example:
+its pipeline structure can follow open-source references, but its vocabulary is
+trained from admitted corpus text and rejects out-of-vocabulary characters.
+
+The subword tokenizer (`closed_world_subword_tokenizer.ClosedWorldSubwordTokenizer`)
+follows the same rule. It may use known tokenizer ideas such as merge scoring,
+append-only vocabulary growth, and round-trip checks, but every accepted token
+must come from admitted text. Its `tokenizer_manifest.json` records source
+files, corpus hash, accepted and rejected candidates, and explicit
+`pretrained_tokenizer: false` / `external_vocabulary: false` evidence. See
+[Tokenizer manifests](../operate/tokenizer-manifests.md).
 
 :::note
 

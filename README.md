@@ -6,8 +6,8 @@ from an explicitly admitted corpus.
 
 Tagline: Big idea. Tiny package.
 
-The repository slug is `quark-lm`. The Python import path is still
-`closed_world_lm` until a dedicated package migration is promoted.
+The repository slug is `quark-lm`. Python modules currently live directly under
+`src/` and run with `PYTHONPATH=src`.
 
 ## Current Status
 
@@ -32,7 +32,8 @@ QuarkLM currently allows:
 - human-authored seed glossary, grammar, stories, self facts, and admitted
   memories
 - corpus-derived curriculum and probes
-- a character tokenizer trained only on admitted text
+- a character tokenizer baseline and guarded append-only subword tokenizer path,
+  both trained only on admitted text
 - random-initialized learned components
 - corpus-only retrieval memory
 - guarded weight updates accepted or rejected by evidence
@@ -48,7 +49,7 @@ QuarkLM currently forbids:
 The central loop is:
 
 ```text
-new lesson -> corpus -> retrieval memory -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
+new lesson -> corpus -> retrieval memory -> tokenizer candidates -> training candidates -> guarded weight update -> evaluation -> accepted or rejected
 ```
 
 ## Quickstart
@@ -56,10 +57,10 @@ new lesson -> corpus -> retrieval memory -> training candidates -> guarded weigh
 Run commands from the repository root.
 
 ```bash
-PYTHONPATH=src python3 -m closed_world_lm.curriculum --output build
-PYTHONPATH=src python3 -m closed_world_lm.respond --eval --json runs/smoke/respond.json
-PYTHONPATH=src python3 -m closed_world_lm.answer_model train --run runs/answer-smoke
-PYTHONPATH=src python3 -m closed_world_lm.answer_decoder train --run runs/decoder-smoke
+PYTHONPATH=src python3 -m curriculum --output build
+PYTHONPATH=src python3 -m respond --eval --json runs/smoke/respond.json
+PYTHONPATH=src python3 -m answer_model train --run runs/answer-smoke
+PYTHONPATH=src python3 -m answer_decoder train --run runs/decoder-smoke
 ```
 
 For the full command set, transformer screens, and release discipline, use the
@@ -84,7 +85,7 @@ is hosted by GitHub Pages.
 | Path | Purpose |
 | --- | --- |
 | `corpus/` | Ledgered closed-world source data. |
-| `src/closed_world_lm/` | Model, curriculum, responder, training, retrieval, verifier, and eval code. |
+| `src/` | Model, curriculum, responder, training, retrieval, verifier, and eval code. |
 | `tests/` | Focused regression coverage for the prototype. |
 | `runs/` | Versioned local run evidence, ignored by git. |
 | `sites/docs/` | Docusaurus documentation source. |

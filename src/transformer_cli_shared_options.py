@@ -4,8 +4,16 @@ from __future__ import annotations
 
 import argparse
 
+from transformer_profiles import DEFAULT_PROFILE, MODERN_SMALL_PROFILE
+
 
 def add_architecture_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--transformer-profile",
+        choices=[DEFAULT_PROFILE, MODERN_SMALL_PROFILE],
+        default=DEFAULT_PROFILE,
+        help="Named architecture/optimizer profile for controlled transformer screens.",
+    )
     parser.add_argument("--context-size", type=int, default=16)
     parser.add_argument("--embedding-dim", type=int, default=8)
     parser.add_argument("--feedforward-dim", type=int, default=16)
@@ -94,3 +102,16 @@ def add_optimizer_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--decay-steps", type=int, default=0)
     parser.add_argument("--min-learning-rate", type=float, default=0.0)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
+
+
+def add_tokenizer_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--tokenizer",
+        choices=["char", "closed-world-subword"],
+        default="char",
+        help="Corpus-trained tokenizer to use for this run.",
+    )
+    parser.add_argument("--tokenizer-manifest", type=str, default=None)
+    parser.add_argument("--tokenizer-report", type=str, default=None)
+    parser.add_argument("--tokenizer-max-token-chars", type=int, default=4)
+    parser.add_argument("--tokenizer-max-new-tokens", type=int, default=32)

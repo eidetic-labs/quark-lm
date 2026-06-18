@@ -165,7 +165,7 @@ here enters training.
 <div><h4>Data quality and mixtures</h4><p><a href="https://arxiv.org/abs/2107.06499">Deduplicating Training Data Makes Language Models Better</a> and <a href="https://arxiv.org/abs/2305.10429">DoReMi</a> — add corpus hygiene, duplicate checks, source balance, and domain/lesson mixture reporting before increasing corpus size.</p></div>
 <div><h4>Transformer architecture</h4><p><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> — the transformer is the right backbone for contextual token binding, but QuarkLM's implementation must stay from scratch and small enough to audit.</p></div>
 <div><h4>Modern transformer mechanics</h4><p><a href="https://arxiv.org/abs/2104.09864">RoPE</a>, <a href="https://arxiv.org/abs/1910.07467">RMSNorm</a>, and <a href="https://arxiv.org/abs/2002.05202">GLU variants</a> — v0.51's rotary, RMSNorm, and gated-MLP options match mainstream mechanics while preserving from-scratch weights and dependency-free training.</p></div>
-<div><h4>Tokenization</h4><p><a href="https://arxiv.org/abs/1508.07909">Subword Units</a> and <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a> — a corpus-derived subword tokenizer is plausible later. Character tokens remain the safer baseline until evidence shows token length is the bottleneck.</p></div>
+<div><h4>Tokenization</h4><p><a href="https://arxiv.org/abs/1508.07909">Subword Units</a> and <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a> — corpus-derived subword tokenization is now an opt-in governed path. Character tokens remain the baseline; subword evidence must prove compression, round-trip safety, manifest purity, and no full-answer-token leakage before it informs model claims.</p></div>
 <div><h4>Evaluation contamination</h4><p><a href="https://arxiv.org/abs/2406.04244">Benchmark Data Contamination Survey</a> and <a href="https://arxiv.org/abs/2311.06233">Data Contamination Quiz</a> — keep protected held-out prompts out of training, track generated probe lineage, and treat exact-match success as invalid if the prompt itself leaked into curriculum.</p></div>
 </div>
 
@@ -246,8 +246,8 @@ loops become fragile.
 - Self-rewarded training without an independent verifier.
 - Model editing or patching individual associations directly in transformer
   weights.
-- Replacing the character tokenizer with subwords before context length and
-  prompt-binding evidence show that tokenization is the limiting factor.
+- Promoting subword tokenization as model progress before tokenizer manifests,
+  long-answer diagnostics, retention, and branch-diversity evidence support it.
 - Any external-model judge for promotion decisions. External research can guide
   humans, but QuarkLM's own promotion artifacts must stay closed-world.
 - Training on model-generated material that replaced, summarized, or diluted
