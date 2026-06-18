@@ -9,12 +9,15 @@ def fake_torch_importer(
     *,
     cuda: bool = False,
     mps: bool = False,
+    training_runtime: bool = False,
 ) -> Callable[[str], object]:
     fake = types.SimpleNamespace(
         __version__="fake-torch",
         float32="float32",
         float64="float64",
-        tensor=lambda value, dtype=None, device=None: FakeTensor(value),
+        tensor=lambda value, dtype=None, device=None, requires_grad=False: FakeTensor(
+            value
+        ),
         stack=lambda values: FakeTensor([raw_value(value) for value in values]),
         tanh=lambda value: FakeTensor(_map_unary(raw_value(value), math.tanh)),
         softmax=lambda value, dim=0: FakeTensor(_softmax(raw_value(value))),
@@ -23,6 +26,9 @@ def fake_torch_importer(
             mps=types.SimpleNamespace(is_available=lambda: mps),
         ),
     )
+    if training_runtime:
+        fake.autograd = types.SimpleNamespace()
+        fake.optim = types.SimpleNamespace(AdamW=FakeAdamW)
 
     def importer(name: str) -> object:
         if name != "torch":
@@ -87,6 +93,15 @@ class FakeTensor:
 
     def tolist(self):
         return _copy_raw(self.value)
+
+    def backward(self) -> None:
+        return None
+
+
+class FakeAdamW:
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.args = args
+        self.kwargs = kwargs
 
 
 def raw_value(value: object) -> object:

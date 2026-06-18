@@ -14,6 +14,7 @@ from transformer_model import OptimizationConfig
 from transformer_torch_backend import (
     TORCH_TRAINING_IMPLEMENTATION_STATUS,
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
+    TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
     build_torch_training_parity_candidate,
 )
 from transformer_training_parity import (
@@ -40,7 +41,7 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertNotIn("backend_metadata", report["summary"]["failed_checks"])
 
-    def test_candidate_stays_pending_when_training_is_not_implemented(self) -> None:
+    def test_candidate_marks_forward_only_runtime_as_incomplete(self) -> None:
         fixture = _scalar_training_fixture()
 
         candidate = build_torch_training_parity_candidate(
@@ -49,7 +50,32 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         )
         report = build_training_parity_report(fixture=fixture, candidate=candidate)
 
+        self.assertEqual(
+            candidate["implementation_status"],
+            TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
+        )
+        self.assertEqual(candidate["training_readiness"]["status"], "pending")
+        self.assertIn(
+            "autograd",
+            candidate["training_readiness"]["summary"]["failed_checks"],
+        )
+        self.assertEqual(
+            candidate["training_case"]["reason"],
+            "pytorch training runtime is missing required capabilities",
+        )
+        self.assertFalse(report["passed"])
+
+    def test_candidate_stays_pending_when_training_is_not_implemented(self) -> None:
+        fixture = _scalar_training_fixture()
+
+        candidate = build_torch_training_parity_candidate(
+            fixture=fixture,
+            importer=fake_torch_importer(training_runtime=True),
+        )
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
         self.assertTrue(candidate["runtime"]["available"])
+        self.assertEqual(candidate["training_readiness"]["status"], "ready")
         self.assertEqual(
             candidate["implementation_status"],
             TORCH_TRAINING_IMPLEMENTATION_STATUS,

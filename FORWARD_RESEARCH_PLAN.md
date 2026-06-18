@@ -254,18 +254,24 @@ artifact before its weight updates can count as evidence.
 The current training-backend layer adds a PyTorch training candidate artifact
 that reports runtime availability, requested device and dtype, optimizer
 config, and the scalar training case it would need to match. When PyTorch is
-available, the candidate remains `pending` with
+available but lacks required training capabilities, the candidate remains
+`pending` with `training_runtime_incomplete`. When the runtime is
+training-capable, the candidate still remains `pending` with
 `training_not_implemented`; when the runtime or requested dtype is unavailable,
-it records a blocked or pending case instead of fabricating metrics. Real
-PyTorch training, autograd, AdamW parity, gradient clipping, scheduling, and
-checkpoint compatibility remain future work behind this gate.
+it records a blocked or pending case instead of fabricating metrics.
 
-The next bridge records a trainable-parameter manifest for each scalar training
-fixture and PyTorch candidate. The manifest names the scalar optimizer
+The current bridge records a trainable-parameter manifest for each scalar
+training fixture and PyTorch candidate. The manifest names the scalar optimizer
 parameter order, tensor shapes, contiguous optimizer-slot ranges, tied-output
 status, and total trainable count. That keeps future PyTorch autograd work
 accountable to the exact parameter mapping used by the scalar reference before
 any optimizer state can be accepted as parity evidence.
+
+The PyTorch training-readiness gate now checks runtime availability, requested
+dtype support, parameter-manifest validity, autograd tensor construction, and
+AdamW optimizer availability. Real PyTorch training, autograd loss execution,
+AdamW parity, gradient clipping, scheduling, and checkpoint compatibility
+remain future work behind this gate.
 
 ## Current QuarkLM Diagnosis
 

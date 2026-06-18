@@ -7,6 +7,10 @@ from typing import Any
 
 from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
 from transformer_torch_runtime import TorchImporter, torch_runtime_status
+from transformer_torch_training_readiness import (
+    TORCH_TRAINING_READY_STATUS,
+    build_torch_training_readiness,
+)
 from transformer_training_parity_fixture import validate_training_parity_fixture
 
 
@@ -15,6 +19,7 @@ TORCH_TRAINING_PARITY_CANDIDATE_KIND = (
 )
 TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION = 1
 TORCH_TRAINING_IMPLEMENTATION_STATUS = "training_not_implemented"
+TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS = "training_runtime_incomplete"
 
 
 def build_torch_training_parity_candidate(
@@ -32,7 +37,16 @@ def build_torch_training_parity_candidate(
         requested_device=requested_device,
         requested_dtype=requested_dtype,
     )
-    outputs = _candidate_outputs(fixture=fixture, runtime=runtime)
+    readiness = build_torch_training_readiness(
+        fixture=fixture,
+        runtime=runtime,
+        importer=importer,
+    )
+    outputs = _candidate_outputs(
+        fixture=fixture,
+        runtime=runtime,
+        readiness=readiness,
+    )
     return {
         "schema_version": TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
         "kind": TORCH_TRAINING_PARITY_CANDIDATE_KIND,
@@ -55,6 +69,7 @@ def build_torch_training_parity_candidate(
         "tokenizer": dict(fixture["tokenizer"]),
         "optimizer_config": dict(fixture["optimizer_config"]),
         "parameter_manifest": dict(fixture["parameter_manifest"]),
+        "training_readiness": readiness,
         "training_case": outputs["training_case"],
     }
 
@@ -63,6 +78,7 @@ def _candidate_outputs(
     *,
     fixture: dict[str, Any],
     runtime: dict[str, Any],
+    readiness: dict[str, Any],
 ) -> dict[str, Any]:
     if not runtime["available"]:
         return {
@@ -82,6 +98,16 @@ def _candidate_outputs(
                 fixture["training_case"],
                 status="pending",
                 reason="requested pytorch dtype is unavailable",
+            ),
+        }
+    if readiness["status"] != TORCH_TRAINING_READY_STATUS:
+        return {
+            "implementation_status": TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
+            "parity_status": "pending",
+            "training_case": _case_stub(
+                fixture["training_case"],
+                status="pending",
+                reason="pytorch training runtime is missing required capabilities",
             ),
         }
     return {
