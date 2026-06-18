@@ -12,6 +12,7 @@ import argparse
 from typing import Any
 
 from tokenizer import CharTokenizer
+from transformer_answer_sweep import run_transformer_answer_sweep
 from transformer_answer_training import train_transformer_answers_command
 from transformer_cli import run_transformer_cli
 from transformer_incremental_update_command import incremental_update_command
@@ -36,6 +37,7 @@ __all__ = [
     "initialize_transformer_for_training",
     "incremental_update",
     "main",
+    "answer_sweep",
     "train_transformer",
     "train_transformer_answers",
 ]
@@ -64,6 +66,10 @@ def train_transformer_answers(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def answer_sweep(args: argparse.Namespace) -> dict[str, Any]:
+    return run_transformer_answer_sweep(args, train_transformer_answers)
+
+
 def incremental_update(args: argparse.Namespace) -> dict[str, Any]:
     return incremental_update_command(args, TinyTransformerLM)
 
@@ -74,6 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         train_transformer=train_transformer,
         eval_transformer=eval_transformer,
         train_transformer_answers=train_transformer_answers,
+        answer_sweep=answer_sweep,
         incremental_update=incremental_update,
     )
 

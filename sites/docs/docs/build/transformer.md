@@ -142,6 +142,21 @@ without leaving the closed-world manifest path. Each `answer-train` run writes
 `sweep_plan.json` so that comparison axis is explicit before any result is
 interpreted.
 
+For cross-trial comparisons, use `answer-sweep`. It expands declared axes into
+separate `answer-train` trial directories, preserves each trial's normal
+evidence stack, and writes one `sweep_report.json` at the sweep root:
+
+```bash title="Compare tokenizer trials"
+PYTHONPATH=src python3 -m transformer_char_model answer-sweep \
+  --run runs/transformer-answer-tokenizer-sweep \
+  --steps 0 \
+  --sweep-axis tokenizer=char,closed-world-subword
+```
+
+The sweep report is comparison evidence only. It cannot promote the transformer
+while constraint-first promotion still rejects the underlying answer-training
+trials.
+
 ## Current evidence
 
 | Run | Signal | Value |

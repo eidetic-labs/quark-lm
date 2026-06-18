@@ -84,6 +84,12 @@ from the governed tokenizer path, so char and closed-world subword trials are
 comparable without importing a pretrained vocabulary. Together these artifacts
 replace "turning knobs" with a comparable trial record.
 
+`answer-sweep` collects multiple declared `answer-train` trials under one run
+root and writes `sweep_report.json`. The sweep report summarizes the axis values,
+trial directories, tokenizer evidence, and constraint-first status for each
+trial; each trial still keeps its own `sweep_plan.json`, verifier, recipe, and
+promotion report.
+
 ## Constraint-first promotion
 
 `constraint_first_promotion.json` separates closed-world *constraints* from

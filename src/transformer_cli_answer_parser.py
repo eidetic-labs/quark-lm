@@ -26,6 +26,10 @@ def add_answer_train_parser(
         "answer-train",
         help="train the tiny transformer on corpus-derived answer lessons",
     )
+    add_answer_train_arguments(answer_parser)
+
+
+def add_answer_train_arguments(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--train-text", type=Path, default=DEFAULT_TRAIN_TEXT)
     answer_parser.add_argument("--valid", type=Path, default=DEFAULT_OUTPUT_DIR / "valid.txt")
     answer_parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)

@@ -158,6 +158,31 @@ class TransformerCliEvalTest(unittest.TestCase):
         self.assertEqual(args.tokenizer_max_token_chars, 3)
         self.assertEqual(args.tokenizer_max_new_tokens, 9)
 
+    def test_parse_answer_sweep_args_accepts_declared_axes(self) -> None:
+        args = parse_args(
+            [
+                "answer-sweep",
+                "--run",
+                "runs/sweep",
+                "--sweep-axis",
+                "tokenizer=char,closed-world-subword",
+                "--sweep-axis",
+                "embedding_dim=4,8",
+                "--sweep-max-trials",
+                "4",
+                "--sweep-dry-run",
+            ]
+        )
+
+        self.assertEqual(args.command, "answer-sweep")
+        self.assertEqual(args.run, Path("runs/sweep"))
+        self.assertEqual(
+            args.sweep_axis,
+            ["tokenizer=char,closed-world-subword", "embedding_dim=4,8"],
+        )
+        self.assertEqual(args.sweep_max_trials, 4)
+        self.assertTrue(args.sweep_dry_run)
+
     def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
         args = parse_args(
             [

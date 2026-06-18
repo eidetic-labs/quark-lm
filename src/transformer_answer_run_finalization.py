@@ -125,6 +125,7 @@ def finalize_transformer_answer_run(
         "use_prompt_position_projection": args.use_prompt_position_projection,
         "prompt_position_projection_scale": args.prompt_position_projection_scale,
         "use_prompt_attention_summary": args.use_prompt_attention_summary,
+        "transformer_profile": getattr(args, "transformer_profile", "default"),
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,

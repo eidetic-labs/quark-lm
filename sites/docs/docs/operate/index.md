@@ -65,6 +65,7 @@ behavior.
 <div><h4><code>corpus_hygiene.json</code></h4><p>Source mixture, duplicates, train/eval overlap, candidate ratio, and rare-profile coverage.</p></div>
 <div><h4><code>training_plan.json</code></h4><p>Allowed data sources, the closed-world data boundary, scheduled example mixture, replay summary, and planned artifacts.</p></div>
 <div><h4><code>sweep_plan.json</code></h4><p>Controlled tokenizer, architecture, optimizer, and training-budget axes for transformer screens.</p></div>
+<div><h4><code>sweep_report.json</code></h4><p>Cross-trial answer-sweep evidence comparing declared tokenizer, architecture, optimizer, and step-budget axes.</p></div>
 <div><h4><code>replay_mixture_report.json</code></h4><p>New lessons, retained facts, glossary/self facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase evidence.</p></div>
 <div><h4><code>candidate_quarantine.json</code></h4><p>Candidate lifecycle state and proof that generated candidates are not training data until admitted.</p></div>
 <div><h4><code>closed_world_verifier.json</code></h4><p>Deterministic pass/fail evidence for candidate checks and training-plan approval.</p></div>
