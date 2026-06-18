@@ -12,6 +12,7 @@ from transformer_experiment_constants import (
     TRANSFORMER_RECIPE_VERSION,
 )
 from transformer_experiment_modes import is_profile_aware_direct_answer_mode
+from transformer_backend_policy import SCALAR_BACKEND, transformer_backend_metadata
 from transformer_model import TRANSFORMER_ARCHITECTURE, TRANSFORMER_TOKENIZER
 
 
@@ -89,6 +90,15 @@ def transformer_training_recipe(
                 str(args.resume_checkpoint)
                 if args.resume_checkpoint is not None
                 else None
+            ),
+            "backend": transformer_backend_metadata(
+                active_backend=getattr(args, "backend", SCALAR_BACKEND),
+                seed=args.seed,
+                tokenizer_type=getattr(tokenizer, "tokenizer_type", "char"),
+                corpus_hash=getattr(args, "corpus_hash", None),
+                tokenizer_manifest_hash=getattr(args, "tokenizer_manifest_hash", None),
+                device=getattr(args, "backend_device", "cpu"),
+                dtype=getattr(args, "backend_dtype", "float64"),
             ),
             "pretrained_weights": False,
         },

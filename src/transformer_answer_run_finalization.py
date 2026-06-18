@@ -190,11 +190,13 @@ def finalize_transformer_answer_run(
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "external_embeddings": False,
+        "backend": checkpoint_metadata["backend"],
         "tokenizer": checkpoint_metadata["dataset"]["tokenizer"],
         "tokenizer_type": checkpoint_metadata["dataset"]["tokenizer_type"],
         "tokenizer_manifest_hash": checkpoint_metadata["dataset"][
             "tokenizer_manifest_hash"
         ],
+        "corpus_hash": checkpoint_metadata["dataset"]["corpus_hash"],
         "training_data": TRAINING_DATA_DESCRIPTION,
     }
     memory_consolidation_plan = build_memory_consolidation_plan(

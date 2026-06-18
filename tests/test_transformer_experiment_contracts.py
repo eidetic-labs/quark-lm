@@ -14,6 +14,7 @@ from support.commands import (
     transformer_training_recipe_id,
 )
 from support.core import CharTokenizer
+from transformer_backend_policy import transformer_backend_metadata
 
 
 class TransformerExperimentContractsTest(unittest.TestCase):
@@ -92,6 +93,11 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         )
 
         self.assertEqual(recipe["recipe_id"], transformer_training_recipe_id(args))
+        self.assertEqual(recipe["model"]["backend"]["backend"], "scalar_python")
+        self.assertEqual(
+            recipe["model"]["backend"]["planned_performance_backend"],
+            "pytorch",
+        )
         self.assertEqual(recipe["tokenizer"]["vocab_size"], tokenizer.vocab_size)
         self.assertEqual(recipe["optimizer"]["optimizer"], "adamw")
         self.assertEqual(recipe["replay"]["status"], "planned")
@@ -110,6 +116,10 @@ class TransformerExperimentContractsTest(unittest.TestCase):
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
+            "backend": transformer_backend_metadata(
+                seed=17,
+                tokenizer_type="char",
+            ),
             "closed_world_verifier": {"passed": True},
             "training_recipe": {"recipe_id": "transformer-answer:test:v0.78"},
             "sweep_plan": {"kind": "transformer_sweep_plan"},
@@ -134,6 +144,7 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         self.assertIn("constraint-first promotion gate", summary)
         self.assertTrue(evidence_by_name["controlled_sweep_plan"]["passed"])
         self.assertTrue(evidence_by_name["replay_mixture_report"]["passed"])
+        self.assertTrue(evidence_by_name["backend_policy_recorded"]["passed"])
         self.assertFalse(evidence_by_name["constraint_first_promotion"]["passed"])
         self.assertTrue(evidence_by_name["branch_context_gate_recorded"]["passed"])
         self.assertFalse(evidence_by_name["branch_diversity_target"]["passed"])
@@ -172,12 +183,18 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         self.assertFalse(metrics["pretrained_weights"])
         self.assertFalse(metrics["pretrained_tokenizer"])
         self.assertFalse(metrics["external_embeddings"])
+        self.assertEqual(metrics["backend"]["backend"], "scalar_python")
+        self.assertEqual(
+            metrics["backend"]["planned_performance_backend"],
+            "pytorch",
+        )
         self.assertEqual(metrics["sweep_plan"]["kind"], "transformer_sweep_plan")
         self.assertTrue(metrics["replay_mixture_report"]["summary"]["passed"])
         failed_constraints = metrics["constraint_first_promotion"]["failed_constraints"]
         self.assertNotIn("controlled_sweep_plan", failed_constraints)
         self.assertNotIn("replay_mixture_report", failed_constraints)
         self.assertNotIn("no_external_embeddings", failed_constraints)
+        self.assertNotIn("backend_policy_recorded", failed_constraints)
 
 
 def _recipe_args() -> SimpleNamespace:

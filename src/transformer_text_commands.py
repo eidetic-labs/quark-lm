@@ -170,9 +170,12 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
         "final_valid_nll": last_history["valid_nll"],
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
+        "external_embeddings": False,
+        "backend": checkpoint_metadata["backend"],
         "tokenizer": checkpoint_metadata["dataset"]["tokenizer"],
         "tokenizer_type": checkpoint_metadata["dataset"]["tokenizer_type"],
         "tokenizer_manifest_hash": checkpoint_metadata["dataset"]["tokenizer_manifest_hash"],
+        "corpus_hash": checkpoint_metadata["dataset"]["corpus_hash"],
         "transformer_profile": config.transformer_profile,
     }
     with (args.run / "transformer_metrics.json").open("w", encoding="utf-8") as handle:

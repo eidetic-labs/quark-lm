@@ -8,6 +8,10 @@ from constraint_first_report import (
     build_constraint_first_promotion_report,
     promotion_check,
 )
+from transformer_backend_policy import (
+    PYTORCH_BACKEND,
+    validate_transformer_backend_metadata,
+)
 
 
 def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
@@ -25,6 +29,7 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
         if isinstance(direct_final, dict)
         else {}
     )
+    backend_policy = _backend_policy_details(metrics)
     coverage = _coverage_preservation_details(direct_baseline, direct_final)
     constraints = [
         promotion_check(
@@ -78,6 +83,12 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
             "Transformer promotion forbids external embeddings.",
         ),
         promotion_check(
+            "backend_policy_recorded",
+            backend_policy["passed"],
+            "Transformer artifacts must record backend policy and purity metadata.",
+            backend_policy,
+        ),
+        promotion_check(
             "direct_answer_evidence_present",
             direct_answer_present,
             "Reliable-answer promotion requires direct-answer evidence.",
@@ -121,6 +132,29 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
         quality_checks=quality_checks,
         subject_path=metrics.get("metrics_path"),
     )
+
+
+def _backend_policy_details(metrics: dict[str, Any]) -> dict[str, Any]:
+    backend = metrics.get("backend")
+    if not isinstance(backend, dict):
+        return {"passed": False, "error": "backend metadata is missing"}
+    try:
+        validate_transformer_backend_metadata(
+            backend,
+            require_artifact_fields=backend.get("backend") == PYTORCH_BACKEND,
+        )
+    except ValueError as exc:
+        return {
+            "passed": False,
+            "backend": backend.get("backend"),
+            "error": str(exc),
+        }
+    return {
+        "passed": True,
+        "backend": backend.get("backend"),
+        "requires_scalar_parity": backend.get("requires_scalar_parity"),
+        "parity_status": backend.get("parity_status"),
+    }
 
 
 def _coverage_preservation_details(

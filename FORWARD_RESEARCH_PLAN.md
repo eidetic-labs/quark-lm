@@ -1,6 +1,6 @@
 # QuarkLM Forward Research Plan
 
-Last updated: 2026-06-14.
+Last updated: 2026-06-18.
 
 ## Purpose
 
@@ -205,6 +205,23 @@ large for the next phase. It has model code, optimizer code, direct-answer
 objectives, replay planning, snapshots, CLI parsing, checkpoint writing, and
 run reporting in one file. The next implementation should extract recipe,
 replay, evaluation, and artifact boundaries before adding more objective modes.
+
+### Performance Backend Decision
+
+Scalar Python remains QuarkLM's canonical reference implementation because it
+keeps the model math inspectable and dependency-free. PyTorch is the planned
+performance backend for scalable training, batched evaluation, optimized
+attention, and hardware acceleration. PyTorch is allowed as a runtime library;
+it does not change the closed-world boundary unless pretrained weights,
+pretrained tokenizers, external embeddings, copied model code, or unledgered
+data are introduced. NumPy is not a required interim backend and should only be
+added later for a narrow diagnostic need.
+
+QuarkLM implication: the scalar implementation should be optimized for
+correctness, deterministic fixtures, and auditability rather than speed. The
+PyTorch track should start as an experimental backend that must match scalar
+logits, losses, and fixed-prompt generation on tiny parity fixtures before its
+training runs can count as model-quality evidence.
 
 ## Current QuarkLM Diagnosis
 

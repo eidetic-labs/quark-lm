@@ -69,6 +69,13 @@ Public surfaces:
 - No pretrained tokenizer.
 - No external embeddings.
 - No unledgered training text.
+- Runtime libraries are allowed when they do not introduce pretrained weights,
+  pretrained tokenizers, external embeddings, copied model code, or unledgered
+  data.
+- Scalar Python remains the canonical reference implementation until any
+  PyTorch backend passes deterministic parity gates. PyTorch is the planned
+  performance backend for scalable training, batched evaluation, optimized
+  attention, and hardware acceleration; NumPy is not a required interim backend.
 - Any future tokenizer upgrade must be trained only from admitted corpus text;
   pretrained vocabularies are outside the boundary.
 - Every run must record an untrained or prior-checkpoint baseline and trained
@@ -177,9 +184,11 @@ generating answer characters one by one from prompt-conditioned weights.
 
 The tiny transformer learner is the architecture path toward a more
 recognizable language model. It starts from random weights, uses QuarkLM's
-corpus-trained character tokenizer, and trains with a dependency-free scalar
-autodiff engine. It is not yet the reliable response path; it is an auditable
-experimental backend that must mature under the same corpus and eval gates.
+corpus-trained character tokenizer, and currently trains with a
+dependency-free scalar autodiff engine. The scalar path remains the auditable
+reference; the planned PyTorch path is the performance backend once it passes
+parity gates. The transformer is not yet the reliable response path and must
+mature under the same corpus and eval gates.
 
 The self-diagnosis layer is the current bridge toward autonomous improvement.
 It reads QuarkLM's own run reports and recommends the next repair or promotion

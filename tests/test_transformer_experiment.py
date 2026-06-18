@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from support.experiment_modes import PROFILE_REPLAY_MODE_CASES, PROFILE_REPLAY_PLAN_PATH
+from transformer_backend_policy import transformer_backend_metadata
 from transformer_experiment import (
     TRAINING_DATA_DESCRIPTION,
     TRANSFORMER_RECIPE_VERSION,
@@ -155,6 +156,11 @@ class TransformerExperimentTests(unittest.TestCase):
 
         self.assertEqual(recipe["recipe_id"], transformer_training_recipe_id(args))
         self.assertFalse(recipe["uses_external_model"])
+        self.assertEqual(recipe["model"]["backend"]["backend"], "scalar_python")
+        self.assertEqual(
+            recipe["model"]["backend"]["planned_performance_backend"],
+            "pytorch",
+        )
         self.assertEqual(recipe["data"]["training_examples"], TRAINING_DATA_DESCRIPTION)
         self.assertEqual(recipe["replay"]["status"], "planned")
 
@@ -175,6 +181,10 @@ class TransformerExperimentTests(unittest.TestCase):
                 "pretrained_weights": False,
                 "pretrained_tokenizer": False,
                 "external_embeddings": False,
+                "backend": transformer_backend_metadata(
+                    seed=17,
+                    tokenizer_type="char",
+                ),
             }
         )
 
@@ -183,6 +193,7 @@ class TransformerExperimentTests(unittest.TestCase):
         by_name = {item["name"]: item for item in evidence}
         self.assertTrue(by_name["controlled_sweep_plan"]["passed"])
         self.assertTrue(by_name["replay_mixture_report"]["passed"])
+        self.assertTrue(by_name["backend_policy_recorded"]["passed"])
         self.assertFalse(by_name["constraint_first_promotion"]["passed"])
 
 

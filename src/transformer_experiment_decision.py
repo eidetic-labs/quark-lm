@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_backend_policy import (
+    PYTORCH_BACKEND,
+    validate_transformer_backend_metadata,
+)
 from transformer_experiment_constants import TRAINING_DATA_DESCRIPTION
 
 
@@ -11,6 +15,7 @@ def transformer_experiment_decision(
     metrics: dict[str, Any],
 ) -> tuple[str, str, list[dict[str, Any]]]:
     constraint_gate = metrics.get("constraint_first_promotion", {})
+    backend_policy = _backend_policy_evidence(metrics.get("backend"))
     evidence = [
         {"name": "baseline_snapshot_recorded", "passed": bool(metrics.get("baseline"))},
         {"name": "final_snapshot_recorded", "passed": bool(metrics.get("final"))},
@@ -55,6 +60,7 @@ def transformer_experiment_decision(
             "name": "no_external_embeddings",
             "passed": metrics.get("external_embeddings") is False,
         },
+        backend_policy,
     ]
     _append_direct_answer_evidence(evidence, metrics.get("direct_answer"))
     if constraint_gate.get("passed") is True:
@@ -71,6 +77,33 @@ def transformer_experiment_decision(
         ),
         evidence,
     )
+
+
+def _backend_policy_evidence(backend: Any) -> dict[str, Any]:
+    if not isinstance(backend, dict):
+        return {
+            "name": "backend_policy_recorded",
+            "passed": False,
+            "error": "backend metadata is missing",
+        }
+    try:
+        validate_transformer_backend_metadata(
+            backend,
+            require_artifact_fields=backend.get("backend") == PYTORCH_BACKEND,
+        )
+    except ValueError as exc:
+        return {
+            "name": "backend_policy_recorded",
+            "passed": False,
+            "backend": backend.get("backend"),
+            "error": str(exc),
+        }
+    return {
+        "name": "backend_policy_recorded",
+        "passed": True,
+        "backend": backend.get("backend"),
+        "parity_status": backend.get("parity_status"),
+    }
 
 
 def _append_direct_answer_evidence(

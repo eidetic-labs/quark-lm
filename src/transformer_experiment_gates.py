@@ -69,6 +69,13 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
             "no_external_embeddings",
             "Do not import external embeddings or pretrained representation tables.",
         ),
+        _required_gate(
+            "backend_policy_recorded",
+            (
+                "Record scalar-reference or PyTorch-experimental backend metadata "
+                "with purity flags and parity status."
+            ),
+        ),
     ]
     if getattr(args, "direct_answer_steps", 0) > 0:
         gates.extend(_direct_answer_gates())

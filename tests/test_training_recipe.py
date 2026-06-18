@@ -22,6 +22,7 @@ from training_recipe_core import (
     build_training_recipe,
     write_training_recipe,
 )
+from transformer_backend_policy import transformer_backend_metadata
 from transformer_constraints import transformer_constraint_report
 
 
@@ -144,6 +145,10 @@ class TrainingRecipeTest(unittest.TestCase):
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
+            "backend": transformer_backend_metadata(
+                seed=17,
+                tokenizer_type="char",
+            ),
             "direct_answer": {
                 "direct_answer_branch_context_gate": {"passed": True},
                 "baseline": {"branch_target_coverage_by_profile": {"qa": 0.5}},
@@ -172,6 +177,10 @@ class TrainingRecipeTest(unittest.TestCase):
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
+            "backend": transformer_backend_metadata(
+                seed=17,
+                tokenizer_type="char",
+            ),
             "direct_answer": {
                 "direct_answer_branch_context_gate": {"passed": True},
                 "baseline": {"branch_target_coverage_by_profile": {"qa": 1.0}},

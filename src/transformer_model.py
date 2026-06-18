@@ -6,6 +6,10 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from tokenizer_io import tokenizer_identity
+from transformer_backend_policy import (
+    SCALAR_BACKEND,
+    transformer_backend_metadata,
+)
 from transformer_profiles import apply_optimizer_profile, apply_transformer_profile
 
 
@@ -178,6 +182,7 @@ def closed_world_dataset_metadata(
     vocab_size: int,
     tokenizer: Any | None = None,
     tokenizer_manifest_hash: str | None = None,
+    corpus_hash: str | None = None,
 ) -> dict[str, Any]:
     tokenizer_type = (
         tokenizer_identity(tokenizer)
@@ -188,6 +193,7 @@ def closed_world_dataset_metadata(
         "tokenizer": tokenizer_type,
         "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
         "tokenizer_manifest_hash": tokenizer_manifest_hash,
+        "corpus_hash": corpus_hash,
         "vocab_size": vocab_size,
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
@@ -208,10 +214,20 @@ def transformer_run_metadata(
         "config": asdict(transformer_config_from_args(args, tokenizer.vocab_size)),
         "optimizer": optimizer.summary(),
         "resume": resume,
+        "backend": transformer_backend_metadata(
+            active_backend=getattr(args, "backend", SCALAR_BACKEND),
+            seed=args.seed,
+            tokenizer_type=getattr(tokenizer, "tokenizer_type", "char"),
+            corpus_hash=getattr(args, "corpus_hash", None),
+            tokenizer_manifest_hash=getattr(args, "tokenizer_manifest_hash", None),
+            device=getattr(args, "backend_device", "cpu"),
+            dtype=getattr(args, "backend_dtype", "float64"),
+        ),
         "dataset": closed_world_dataset_metadata(
             tokenizer.vocab_size,
             tokenizer,
             getattr(args, "tokenizer_manifest_hash", None),
+            getattr(args, "corpus_hash", None),
         ),
     }
 

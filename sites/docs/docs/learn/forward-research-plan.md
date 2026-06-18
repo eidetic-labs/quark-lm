@@ -5,7 +5,7 @@ description: The research-backed implementation sequence for QuarkLM's next self
 
 # Forward Research Plan
 
-<p className="qlm-meta"><span>6 min read</span><span>For contributors</span><span>Last reviewed 2026-06-14</span></p>
+<p className="qlm-meta"><span>7 min read</span><span>For contributors</span><span>Last reviewed 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -14,6 +14,7 @@ description: The research-backed implementation sequence for QuarkLM's next self
 - Why the v0.68 result moved the next step away from another direct-answer knob and toward an operating system around training.
 - The seven operating-system mechanics, each one an auditable-evidence gate before a metric can move.
 - Where the sequence stands: the operating system is implemented, the direct-answer objective is not promoted, and retrieval memory is a separate non-parametric rail.
+- Why scalar Python remains the audit reference while PyTorch is the planned performance backend.
 - The current decision and what the next repair must clear.
 
 </div>
@@ -98,6 +99,21 @@ training screen cannot move a metric without first leaving auditable evidence.
 <li><strong><a href="../../operate/training-recipes/">Recipe layer</a></strong><p>Make model, tokenizer, curriculum, replay plan, objective, optimizer, snapshot cadence, and promotion gates named and reproducible.</p></li>
 <li><strong>Constraint-first promotion</strong><p>Compare loss, rank, and top-k only after retention, leakage, unknown-policy, target coverage, and diversity pass.</p></li>
 </ol>
+
+## Performance backend decision
+
+Scalar Python remains QuarkLM's canonical reference implementation because it
+keeps the model math inspectable and dependency-free. PyTorch is the planned
+performance backend for scalable training, batched evaluation, optimized
+attention, and hardware acceleration. PyTorch is allowed as a runtime library;
+it does not change the closed-world boundary unless pretrained weights,
+pretrained tokenizers, external embeddings, copied model code, or unledgered
+data are introduced. NumPy is not a required interim backend and should only be
+added later for a narrow diagnostic need.
+
+This is a roadmap decision, not a shipped capability claim. A PyTorch backend
+must begin as experimental and earn trust against deterministic scalar parity
+fixtures before its runs can count as model-quality evidence.
 
 ## Where the sequence stands
 

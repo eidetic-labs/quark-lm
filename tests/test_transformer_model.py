@@ -78,6 +78,10 @@ def _args() -> SimpleNamespace:
         repetition_penalty=1.1,
         trace_top_tokens=4,
         use_kv_cache=True,
+        backend="scalar_python",
+        backend_device="cpu",
+        backend_dtype="float64",
+        corpus_hash="corpus-hash",
     )
 
 
@@ -142,7 +146,12 @@ class TransformerModelSurfaceTests(unittest.TestCase):
         self.assertEqual(metadata["run_kind"], "answer-train")
         self.assertEqual(metadata["config"]["vocab_size"], 31)
         self.assertEqual(metadata["optimizer"]["update_count"], 4)
+        self.assertEqual(metadata["backend"]["backend"], "scalar_python")
+        self.assertEqual(metadata["backend"]["corpus_hash"], "corpus-hash")
+        self.assertEqual(metadata["backend"]["planned_performance_backend"], "pytorch")
+        self.assertFalse(metadata["backend"]["purity"]["pretrained_weights"])
         self.assertEqual(metadata["dataset"]["tokenizer"], TRANSFORMER_TOKENIZER)
+        self.assertEqual(metadata["dataset"]["corpus_hash"], "corpus-hash")
         self.assertFalse(metadata["dataset"]["external_embeddings"])
 
 
