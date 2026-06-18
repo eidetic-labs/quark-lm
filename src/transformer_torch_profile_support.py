@@ -15,8 +15,6 @@ def minimal_forward_unsupported_reason(config: dict[str, Any]) -> str | None:
         "use_prompt_position_projection",
         "use_prompt_attention_summary",
     ]
-    if config.get("num_layers") != 1:
-        return "minimal PyTorch parity supports exactly one transformer layer"
     for flag in unsupported_flags:
         if config.get(flag):
             return f"minimal PyTorch parity does not support {flag}"

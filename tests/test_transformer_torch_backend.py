@@ -23,6 +23,17 @@ from transformer_torch_backend import (
 
 
 class TransformerTorchBackendTests(unittest.TestCase):
+    def assert_torch_fixture_matches(self, fixture: dict) -> dict:
+        candidate = build_torch_backend_parity_candidate(
+            fixture=fixture,
+            importer=fake_torch_importer(),
+        )
+        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
+
+        self.assertEqual(candidate["backend"]["parity_status"], "matched")
+        self.assertTrue(report["passed"])
+        return candidate
+
     def test_runtime_status_reports_unavailable_without_hard_dependency(self) -> None:
         status = torch_runtime_status(importer=_missing_importer)
 
@@ -86,80 +97,42 @@ class TransformerTorchBackendTests(unittest.TestCase):
         self.assertEqual(report["summary"]["failed_checks"], [])
 
     def test_torch_candidate_matches_scalar_fixture_for_layer_norm_profile(self) -> None:
-        fixture = _scalar_fixture(use_layer_norm=True)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
-        )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
-
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
+        candidate = self.assert_torch_fixture_matches(_scalar_fixture(use_layer_norm=True))
         self.assertEqual(candidate["implementation_status"], "minimal_forward")
-        self.assertTrue(report["passed"])
 
     def test_torch_candidate_matches_scalar_fixture_for_pre_layer_norm_profile(self) -> None:
-        fixture = _scalar_fixture(use_pre_layer_norm=True)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
-        )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
-
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
-        self.assertTrue(report["passed"])
+        self.assert_torch_fixture_matches(_scalar_fixture(use_pre_layer_norm=True))
 
     def test_torch_candidate_matches_scalar_fixture_for_pre_rms_norm_profile(self) -> None:
-        fixture = _scalar_fixture(use_pre_layer_norm=True, use_rms_norm=True)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
+        self.assert_torch_fixture_matches(
+            _scalar_fixture(use_pre_layer_norm=True, use_rms_norm=True)
         )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
-
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
-        self.assertTrue(report["passed"])
 
     def test_torch_candidate_matches_scalar_fixture_for_gated_mlp_profile(self) -> None:
-        fixture = _scalar_fixture(use_gated_mlp=True)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
-        )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
-
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
-        self.assertTrue(report["passed"])
+        self.assert_torch_fixture_matches(_scalar_fixture(use_gated_mlp=True))
 
     def test_torch_candidate_matches_scalar_fixture_for_multi_head_profile(self) -> None:
-        fixture = _scalar_fixture(attention_heads=2)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
-        )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
-
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
-        self.assertTrue(report["passed"])
+        self.assert_torch_fixture_matches(_scalar_fixture(attention_heads=2))
 
     def test_torch_candidate_matches_scalar_fixture_for_rotary_profile(self) -> None:
-        fixture = _scalar_fixture(use_rotary_positions=True, attention_heads=2)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
+        self.assert_torch_fixture_matches(
+            _scalar_fixture(use_rotary_positions=True, attention_heads=2)
         )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
 
-        self.assertEqual(candidate["backend"]["parity_status"], "matched")
-        self.assertTrue(report["passed"])
+    def test_torch_candidate_matches_scalar_fixture_for_layer_stack_profile(self) -> None:
+        self.assert_torch_fixture_matches(
+            _scalar_fixture(
+                num_layers=2,
+                attention_heads=2,
+                use_pre_layer_norm=True,
+                use_rms_norm=True,
+                use_gated_mlp=True,
+                use_rotary_positions=True,
+            )
+        )
 
     def test_torch_candidate_reports_unsupported_profile_without_drifting(self) -> None:
-        fixture = _scalar_fixture(num_layers=2)
+        fixture = _scalar_fixture(tie_output_embeddings=True)
 
         candidate = build_torch_backend_parity_candidate(
             fixture=fixture,
@@ -201,6 +174,7 @@ def _scalar_fixture(
     use_rotary_positions: bool = False,
     attention_heads: int = 1,
     num_layers: int = 1,
+    tie_output_embeddings: bool = False,
 ) -> dict:
     tokenizer = CharTokenizer.train("abc ")
     model = TinyTransformerLM.init_random(
@@ -217,6 +191,7 @@ def _scalar_fixture(
             use_rms_norm=use_rms_norm,
             use_gated_mlp=use_gated_mlp,
             use_rotary_positions=use_rotary_positions,
+            tie_output_embeddings=tie_output_embeddings,
         )
     )
     context = make_context(tokenizer.encode("ab"), 4, tokenizer.pad_id)

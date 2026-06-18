@@ -126,13 +126,12 @@ detection plus candidate parity artifacts. It records whether PyTorch is
 installed, which device and dtype would be used, and why candidate cases are
 blocked, pending, or matched.
 
-The current experimental layer adds minimal PyTorch-style forward parity for
-the simplest one-layer profile through that optional runtime surface. It covers
-the default scalar path plus post-layer norm, pre-layer norm, and pre-RMSNorm
-fixtures, with gated MLP, multi-head attention, and rotary-position parity
-added as the next profile mechanics. Deeper layer stacks, real training, and
-optimizer behavior each require separate parity gates before they can count as
-model-quality evidence.
+The current experimental layer adds PyTorch-style forward parity through that
+optional runtime surface. It covers the default scalar path plus post-layer
+norm, pre-layer norm, pre-RMSNorm, gated MLP, multi-head attention,
+rotary-position, and deeper layer-stack fixtures. Tied output embeddings, real
+training, and optimizer behavior each require separate parity gates before they
+can count as model-quality evidence.
 
 ## Where the sequence stands
 

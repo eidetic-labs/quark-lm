@@ -21,8 +21,10 @@ def torch_causal_attention(
     v: Any,
     config: dict[str, Any],
     torch: Any,
+    position: int | None = None,
 ) -> Any:
-    position = config["context_size"] - 1
+    if position is None:
+        position = config["context_size"] - 1
     head_dim = config["embedding_dim"] // config["attention_heads"]
     attended = []
     for head in range(config["attention_heads"]):

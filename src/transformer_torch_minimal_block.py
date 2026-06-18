@@ -25,19 +25,97 @@ def torch_minimal_logits(
             for position, token_id in enumerate(context)
         ]
     )
-    attention_input = _attention_input(x, weights, config, torch, runtime)
-    q = _project_rows(attention_input, weights, "wq", "bq", torch, runtime)
-    k = _project_rows(attention_input, weights, "wk", "bk", torch, runtime)
-    v = _project_rows(attention_input, weights, "wv", "bv", torch, runtime)
+    blocks = _transformer_blocks(weights)
+    for block in blocks[:-1]:
+        x = _forward_full_block(x, block, config, torch, runtime)
+    final_hidden = _forward_final_block(x, blocks[-1], config, torch, runtime)
+    final_hidden = _finalize_hidden(final_hidden, weights, config, torch, runtime)
+    return torch_linear(final_hidden, weights["wout"], weights["bout"], torch, runtime)
+
+
+def _transformer_blocks(weights: dict[str, Any]) -> list[dict[str, Any]]:
+    return [weights] + list(weights.get("extra_layers", []))
+
+
+def _forward_full_block(
+    x: Any,
+    block: dict[str, Any],
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+) -> Any:
+    q, k, v = _attention_projections(x, block, config, torch, runtime)
+    return torch.stack(
+        [
+            _block_output_at_position(
+                x,
+                block,
+                q,
+                k,
+                v,
+                position,
+                config,
+                torch,
+                runtime,
+            )
+            for position in range(config["context_size"])
+        ]
+    )
+
+
+def _forward_final_block(
+    x: Any,
+    block: dict[str, Any],
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+) -> Any:
+    q, k, v = _attention_projections(x, block, config, torch, runtime)
+    return _block_output_at_position(
+        x,
+        block,
+        q,
+        k,
+        v,
+        config["context_size"] - 1,
+        config,
+        torch,
+        runtime,
+    )
+
+
+def _attention_projections(
+    x: Any,
+    block: dict[str, Any],
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+) -> tuple[Any, Any, Any]:
+    attention_input = _attention_input(x, block, config, torch, runtime)
+    q = _project_rows(attention_input, block, "wq", "bq", torch, runtime)
+    k = _project_rows(attention_input, block, "wk", "bk", torch, runtime)
+    v = _project_rows(attention_input, block, "wv", "bv", torch, runtime)
     if config.get("use_rotary_positions"):
         q = torch_apply_rotary(q, config, torch)
         k = torch_apply_rotary(k, config, torch)
-    attended = torch_causal_attention(q, k, v, config, torch)
-    projected = torch_linear(attended, weights["wo"], weights["bo"], torch, runtime)
-    hidden = x[config["context_size"] - 1] + projected
-    final_hidden = _feed_forward(hidden, weights, config, torch, runtime)
-    final_hidden = _finalize_hidden(final_hidden, weights, config, torch, runtime)
-    return torch_linear(final_hidden, weights["wout"], weights["bout"], torch, runtime)
+    return q, k, v
+
+
+def _block_output_at_position(
+    x: Any,
+    block: dict[str, Any],
+    q: Any,
+    k: Any,
+    v: Any,
+    position: int,
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+) -> Any:
+    attended = torch_causal_attention(q, k, v, config, torch, position)
+    projected = torch_linear(attended, block["wo"], block["bo"], torch, runtime)
+    hidden = x[position] + projected
+    return _feed_forward(hidden, block, config, torch, runtime)
 
 
 def _project_rows(
