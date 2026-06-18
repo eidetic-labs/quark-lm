@@ -13,7 +13,7 @@ from tokenizer import CharTokenizer
 from transformer_model import TransformerConfig
 
 
-BENCHMARK_ID = "meaningful-micro-corpus-v1"
+BENCHMARK_ID = "meaningful-micro-corpus-v2"
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,7 @@ class MicroBenchmarkConfig:
     embedding_dim: int = 4
     feedforward_dim: int = 8
     seed: int = 2
-    epochs: int = 80
+    epochs: int = 180
     learning_rate: float = 0.05
 
 
@@ -30,10 +30,14 @@ def meaningful_micro_corpus_examples() -> tuple[list[AnswerExample], list[Answer
     train = [
         AnswerExample("q place mia ball\nA:", " box.", "train:place"),
         AnswerExample("q color mia ball\nA:", " red.", "train:color"),
+        AnswerExample("q place leo cube\nA:", " cup.", "train:place"),
+        AnswerExample("q color leo cube\nA:", " tan.", "train:color"),
     ]
     heldout = [
         AnswerExample("place mia ball\nA:", " box.", "heldout:place"),
         AnswerExample("color mia ball\nA:", " red.", "heldout:color"),
+        AnswerExample("place leo cube\nA:", " cup.", "heldout:place"),
+        AnswerExample("color leo cube\nA:", " tan.", "heldout:color"),
     ]
     return train, heldout
 
@@ -82,6 +86,8 @@ def run_meaningful_micro_benchmark(
                 set(example.prompt for example in train_examples)
                 & set(example.prompt for example in heldout_examples)
             ),
+            "target_lengths": sorted({len(example.target) for example in train_examples}),
+            "max_target_chars": max(len(example.target) for example in train_examples),
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
         },

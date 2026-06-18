@@ -15,11 +15,19 @@ class TransformerMicroBenchmarkTest(unittest.TestCase):
 
         self.assertEqual(report["benchmark_id"], BENCHMARK_ID)
         self.assertTrue(report["passed"])
+        self.assertEqual(report["dataset"]["train_examples"], 4)
+        self.assertEqual(report["dataset"]["heldout_examples"], 4)
         self.assertEqual(report["dataset"]["prompt_overlap"], [])
+        self.assertEqual(report["dataset"]["target_lengths"], [5])
+        self.assertEqual(report["dataset"]["max_target_chars"], 5)
         self.assertEqual(report["train"]["summary"]["exact_rate"], 1.0)
         self.assertEqual(report["train"]["summary"]["candidate_rate"], 1.0)
         self.assertEqual(report["heldout"]["summary"]["exact_rate"], 1.0)
         self.assertEqual(report["heldout"]["summary"]["candidate_rate"], 1.0)
+        self.assertEqual(
+            {record["target"] for record in report["heldout"]["records"]},
+            {" box.", " red.", " cup.", " tan."},
+        )
         self.assertFalse(report["dataset"]["pretrained_weights"])
         self.assertFalse(report["dataset"]["pretrained_tokenizer"])
 
