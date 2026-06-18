@@ -5,7 +5,13 @@ import unittest
 from pathlib import Path
 
 from support.char_model import char_model_fixture
-from support.core import CharTokenizer, TinyTransformerLM, TransformerConfig, context_before
+from support.core import (
+    CharTokenizer,
+    TinyTransformerLM,
+    TransformerConfig,
+    context_before,
+    continuation_nll,
+)
 
 
 class TransformerCharModelCoreTest(unittest.TestCase):
@@ -108,6 +114,37 @@ class TransformerCharModelCoreTest(unittest.TestCase):
         self.assertEqual(len(model.token_embeddings), extended.vocab_size)
         self.assertEqual(len(probs), extended.vocab_size)
         self.assertAlmostEqual(sum(probs), 1.0)
+
+    def test_transformer_learns_prompt_to_answer_continuation(self) -> None:
+        prompt = "q:\na:"
+        target = " ok"
+        tokenizer = CharTokenizer.train(prompt + target)
+        ids = tokenizer.encode(prompt + target)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size,
+            context_size=6,
+            embedding_dim=4,
+            feedforward_dim=8,
+            seed=1,
+        )
+        model = TinyTransformerLM.init_random(config)
+        answer_positions = range(len(prompt), len(ids))
+        before = continuation_nll(model, tokenizer, prompt, target)
+
+        for _ in range(40):
+            for position in answer_positions:
+                context = context_before(
+                    ids,
+                    position,
+                    config.context_size,
+                    tokenizer.pad_id,
+                )
+                model.train_step(context, ids[position], learning_rate=0.05)
+
+        after = continuation_nll(model, tokenizer, prompt, target)
+
+        self.assertGreater(before, after)
+        self.assertEqual(model.generate(tokenizer, prompt, len(target)), target)
 
 
 if __name__ == "__main__":
