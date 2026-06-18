@@ -22,6 +22,11 @@ long-answer token count, but it can also hide memorization if whole answers are
 accepted as tokens. QuarkLM records tokenizer updates with two artifacts:
 `tokenizer_manifest.json` and `tokenizer_report.json`.
 
+The self-improvement answer cycle now writes both artifacts for every attempt.
+They are candidate evidence only: the active tokenizer remains unchanged until a
+separate model-evaluation screen proves the candidate improves behavior without
+regressing retention, unknown policy, leakage, or branch diversity.
+
 ## Manifest
 
 `tokenizer_manifest.json` records the vocabulary proposal.
@@ -45,10 +50,28 @@ accepted as tokens. QuarkLM records tokenizer updates with two artifacts:
 - compression ratio and token-count savings;
 - full-answer-token audit;
 - average context-diversity score;
-- whether long-answer effect has been measured by a model benchmark.
+- tokenizer-level long-answer savings;
+- whether model-level long-answer effect still needs transformer diagnostics.
 
 The report is not a neural promotion artifact. It is a tokenizer artifact that
 can become an input to a transformer screen.
+
+## Guard evidence
+
+Self-improvement reports include `tokenizer_candidate_guard`, a compact
+promotion check that must pass before the answer-cycle result can promote. It
+requires:
+
+- a recorded tokenizer candidate;
+- no silent active-tokenizer promotion;
+- exact round-trip;
+- zero protected full-answer tokens;
+- `pretrained_tokenizer: false`;
+- `external_vocabulary: false`;
+- `admitted_corpus_only: true`.
+
+This guard keeps tokenizer progress visible without letting compression evidence
+be mistaken for learned-model evidence.
 
 ## Promotion rules
 

@@ -166,8 +166,9 @@
           Large language models usually compress broad mixed corpora into weights, then
           specialize that base with retrieval, prompting, fine-tuning, or adapters.
           QuarkLM reverses the order: a new lesson enters the corpus, retrieval memory
-          can serve it immediately, training candidates decide whether weights should
-          learn from it, and evaluation accepts or rejects the guarded update.
+          can serve it immediately, tokenizer candidates test corpus-only compression,
+          training candidates decide whether weights should learn from it, and evaluation
+          accepts or rejects the guarded update.
         </p>
       </section>
 
@@ -213,14 +214,14 @@
           </div>
           <p>
             QuarkLM does not silently mutate. Its loop is explicit: new lesson -> corpus
-            -> retrieval memory -> training candidates -> guarded weight update ->
-            evaluation -> accepted or rejected.
+            -> retrieval memory -> tokenizer candidates -> training candidates ->
+            guarded weight update -> evaluation -> accepted or rejected.
           </p>
         </header>
         <ol class="workflow">
           <li><span>01</span><h3>Corpus</h3><p>New knowledge enters through admitted, ledgered corpus files.</p></li>
           <li><span>02</span><h3>Memory</h3><p>Exact retrieval serves admitted knowledge before weights claim it.</p></li>
-          <li><span>03</span><h3>Candidates</h3><p>Training examples are built from admitted sources and failure reports.</p></li>
+          <li><span>03</span><h3>Candidates</h3><p>Tokenizer and training candidates are built from admitted sources and failure reports.</p></li>
           <li><span>04</span><h3>Update</h3><p>Transformer weights receive guarded consolidation pressure.</p></li>
           <li><span>05</span><h3>Evaluate</h3><p>Coverage, provenance, forgetting, and branch-diversity gates decide acceptance.</p></li>
           <li><span>06</span><h3>Publish</h3><p>Docs and marketing update when they reference current state.</p></li>

@@ -527,7 +527,7 @@
   "transformerGeneratorFeatures": 4220,
   "transformerGeneratorLabels": 28,
   "transformerLessonTraining": "target-loss transformer plus direct greedy answer training",
-  "tokenizer": "corpus-trained character tokenizer baseline with guarded append-only subword path",
+  "tokenizer": "corpus-trained character tokenizer baseline with guarded append-only subword candidates, manifests, reports, and self-improvement tokenizer guard",
   "purity": {
     "pretrainedWeights": false,
     "pretrainedTokenizer": false,

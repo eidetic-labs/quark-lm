@@ -58,6 +58,15 @@ def write_report_artifacts(
             attempt_dir / "candidate_quarantine.json",
             report["candidate_quarantine"],
         )
+    if "tokenizer_candidate" in report:
+        write_json_artifact(
+            attempt_dir / "tokenizer_manifest.json",
+            report["tokenizer_candidate"]["manifest"],
+        )
+        write_json_artifact(
+            attempt_dir / "tokenizer_report.json",
+            report["tokenizer_candidate"]["report"],
+        )
     if "closed_world_verifier" in report:
         write_verifier_report(
             attempt_dir / "closed_world_verifier.json",
@@ -89,6 +98,15 @@ def write_report_artifacts(
         write_candidate_quarantine(
             run_dir / "candidate_quarantine.json",
             report["candidate_quarantine"],
+        )
+    if "tokenizer_candidate" in report:
+        write_json_artifact(
+            run_dir / "tokenizer_manifest.json",
+            report["tokenizer_candidate"]["manifest"],
+        )
+        write_json_artifact(
+            run_dir / "tokenizer_report.json",
+            report["tokenizer_candidate"]["report"],
         )
     if "closed_world_verifier" in report:
         write_verifier_report(

@@ -23,6 +23,9 @@ def build_training_plan(
     replay_plan_path: Path | None = None,
     candidate_quarantine_path: Path | None = None,
     candidate_quarantine_summary: dict[str, Any] | None = None,
+    tokenizer_candidate_summary: dict[str, Any] | None = None,
+    tokenizer_manifest_path: Path | None = None,
+    tokenizer_report_path: Path | None = None,
 ) -> dict[str, Any]:
     candidate_examples = source_mixture(training_examples)["candidate_examples"]
     candidate_status = "candidate_quarantine_missing"
@@ -80,6 +83,24 @@ def build_training_plan(
                 ),
                 "summary": candidate_quarantine_summary,
             },
+        },
+        "tokenizer_candidate": {
+            "status": (
+                "written" if tokenizer_candidate_summary is not None else "not_planned"
+            ),
+            "manifest_path": (
+                str(tokenizer_manifest_path)
+                if tokenizer_manifest_path is not None
+                else None
+            ),
+            "report_path": (
+                str(tokenizer_report_path)
+                if tokenizer_report_path is not None
+                else None
+            ),
+            "summary": tokenizer_candidate_summary,
+            "active_tokenizer_changed": False,
+            "rule": "Tokenizer candidate artifacts are evidence only until guarded model-evaluation gates accept a tokenizer promotion.",
         },
         "replay_plan": {
             "status": "planned" if replay_plan_path is not None else "not_applicable",

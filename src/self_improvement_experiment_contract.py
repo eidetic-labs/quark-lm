@@ -47,6 +47,8 @@ def planned_experiment_artifacts(run_dir: Path, attempt_dir: Path) -> list[str]:
         "training_plan.json",
         "training_recipe.json",
         "candidate_quarantine.json",
+        "tokenizer_manifest.json",
+        "tokenizer_report.json",
         "closed_world_verifier.json",
         "constraint_first_promotion.json",
         "experiment_intent.json",
@@ -72,6 +74,11 @@ def self_improvement_acceptance_gates() -> list[dict[str, Any]]:
         {
             "name": "closed_world_verifier",
             "rule": "Training plan, hygiene, and candidate quarantine checks must pass before training.",
+            "required": True,
+        },
+        {
+            "name": "tokenizer_candidate_guard",
+            "rule": "Tokenizer candidates must be corpus-only, round-trip safe, append-only, and free of full-answer tokens before they can inform training evidence.",
             "required": True,
         },
         {
@@ -122,5 +129,6 @@ def self_improvement_failure_criteria() -> list[str]:
         "Any required probe, leakage, forgetting, or exact-eval audit fails.",
         "Training writes checkpoints without a matching report and intent artifact.",
         "The run uses pretrained weights, pretrained tokenizers, or external embeddings.",
+        "Tokenizer candidate artifacts introduce full-answer tokens or non-corpus vocabulary.",
         "The deterministic closed-world verifier rejects the training plan.",
     ]

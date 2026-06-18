@@ -23,7 +23,32 @@ def self_improvement_training_recipe(
     train_text_path: Path,
     planned_artifacts: list[Path],
     acceptance_gates: list[dict[str, Any]],
+    tokenizer_candidate_summary: dict[str, Any] | None = None,
+    tokenizer_manifest_path: Path | None = None,
+    tokenizer_report_path: Path | None = None,
 ) -> dict[str, Any]:
+    tokenizer = {
+        "type": "tokenizer.CharTokenizer",
+        "source": str(train_text_path),
+        "pretrained_tokenizer": False,
+        "active_tokenizer_changed": False,
+    }
+    if tokenizer_candidate_summary is not None:
+        tokenizer["candidate"] = {
+            "type": tokenizer_candidate_summary.get("tokenizer_type"),
+            "manifest_path": (
+                str(tokenizer_manifest_path)
+                if tokenizer_manifest_path is not None
+                else None
+            ),
+            "report_path": (
+                str(tokenizer_report_path)
+                if tokenizer_report_path is not None
+                else None
+            ),
+            "summary": tokenizer_candidate_summary,
+            "promotion_status": "candidate_only_not_promoted",
+        }
     return build_training_recipe(
         version=experiment_version(args),
         component=SELF_IMPROVEMENT_COMPONENT,
@@ -38,11 +63,7 @@ def self_improvement_training_recipe(
             "initialization": "random or declared QuarkLM checkpoint only",
             "pretrained_weights": False,
         },
-        tokenizer={
-            "type": "tokenizer.CharTokenizer",
-            "source": str(train_text_path),
-            "pretrained_tokenizer": False,
-        },
+        tokenizer=tokenizer,
         data={
             "corpus_dir": str(args.corpus_dir),
             "train_text": str(train_text_path),
@@ -80,5 +101,8 @@ def self_improvement_training_recipe(
                 "seed": args.seed,
             },
         },
-        notes=["Recipe uses admitted curriculum only and no external model."],
+        notes=[
+            "Recipe uses admitted curriculum only and no external model.",
+            "Tokenizer candidates are recorded as evidence before any promotion.",
+        ],
     )

@@ -35,6 +35,7 @@ from self_improvement_experiment import (
     self_improvement_experiment_decision,
     self_improvement_experiment_intent,
 )
+from self_improvement_tokenizer import tokenizer_candidate_guard
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -130,6 +131,7 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         "training_plan": setup.training_plan,
         "training_recipe": setup.training_recipe,
         "candidate_quarantine": setup.candidate_quarantine,
+        "tokenizer_candidate": setup.tokenizer_candidate,
         "closed_world_verifier": setup.closed_world_verifier,
         "corpus_snapshot": setup.snapshot,
         "corpus_diff": corpus_diff_for_report(setup.snapshot, args.compare_report),
@@ -156,6 +158,9 @@ def run_answer_cycle(args: argparse.Namespace) -> dict[str, Any]:
         },
         "experiment_intent": setup.experiment_intent,
     }
+    report["tokenizer_candidate_guard"] = tokenizer_candidate_guard(
+        setup.tokenizer_candidate
+    )
     report["forgetting_audit"] = audit_forgetting(report, args.compare_report)
     report["exact_eval_audit"] = audit_exact_promotion(report)
     report["constraint_first_promotion"] = self_improvement_constraint_report(report)

@@ -31,6 +31,7 @@ from self_improvement_experiment import (
     self_improvement_experiment_intent,
     self_improvement_training_recipe,
 )
+from self_improvement_tokenizer import build_self_improvement_tokenizer_candidate
 from training_recipe_core import attach_recipe_summary, write_training_recipe
 
 
@@ -50,6 +51,7 @@ class AnswerCycleSetup:
     training_plan: dict[str, Any]
     training_recipe: dict[str, Any]
     candidate_quarantine: dict[str, Any]
+    tokenizer_candidate: dict[str, Any]
     closed_world_verifier: dict[str, Any]
     constraint_first_path: Path
 
@@ -78,6 +80,8 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
     training_plan_path = attempt_dir / "training_plan.json"
     training_recipe_path = attempt_dir / "training_recipe.json"
     candidate_quarantine_path = attempt_dir / "candidate_quarantine.json"
+    tokenizer_manifest_path = attempt_dir / "tokenizer_manifest.json"
+    tokenizer_report_path = attempt_dir / "tokenizer_report.json"
     verifier_path = attempt_dir / "closed_world_verifier.json"
     constraint_first_path = attempt_dir / "constraint_first_promotion.json"
     candidate_quarantine = build_candidate_quarantine_manifest(
@@ -93,6 +97,12 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
         DEFAULT_EVALS,
         training_examples,
     )
+    tokenizer_candidate = build_self_improvement_tokenizer_candidate(
+        train_text_path,
+        training_examples,
+        tokenizer_manifest_path,
+        tokenizer_report_path,
+    )
     planned_artifacts = [
         answer_run / "answer_model.json",
         decoder_run / "answer_decoder.json",
@@ -100,6 +110,8 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
         training_plan_path,
         training_recipe_path,
         candidate_quarantine_path,
+        tokenizer_manifest_path,
+        tokenizer_report_path,
         verifier_path,
         constraint_first_path,
         attempt_dir / "self_improvement_report.json",
@@ -111,6 +123,9 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
         train_text_path,
         planned_artifacts,
         experiment_intent["acceptance_gates"],
+        tokenizer_candidate["summary"],
+        tokenizer_manifest_path,
+        tokenizer_report_path,
     )
     write_training_recipe(training_recipe_path, training_recipe)
     training_plan = build_training_plan(
@@ -125,6 +140,9 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
         planned_artifacts=planned_artifacts,
         candidate_quarantine_path=candidate_quarantine_path,
         candidate_quarantine_summary=candidate_summary,
+        tokenizer_candidate_summary=tokenizer_candidate["summary"],
+        tokenizer_manifest_path=tokenizer_manifest_path,
+        tokenizer_report_path=tokenizer_report_path,
     )
     training_plan = attach_recipe_summary(
         training_plan,
@@ -165,7 +183,7 @@ def prepare_answer_cycle_setup(args: argparse.Namespace) -> AnswerCycleSetup:
         training_plan=training_plan,
         training_recipe=training_recipe,
         candidate_quarantine=candidate_quarantine,
+        tokenizer_candidate=tokenizer_candidate,
         closed_world_verifier=closed_world_verifier,
         constraint_first_path=constraint_first_path,
     )
-

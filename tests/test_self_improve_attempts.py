@@ -53,11 +53,20 @@ class SelfImproveAttemptsTest(unittest.TestCase):
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
         self.assertIn("training_recipe", gates)
         self.assertIn("closed_world_verifier", gates)
+        self.assertIn("tokenizer_candidate_guard", gates)
         self.assertIn("constraint_first_promotion", gates)
         self.assertIn("promotion_gate", gates)
         self.assertIn("exact_eval_audit", gates)
         self.assertIn(
             str(attempt_dir / "candidate_quarantine.json"),
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            str(attempt_dir / "tokenizer_manifest.json"),
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            str(attempt_dir / "tokenizer_report.json"),
             intent["planned_artifacts"],
         )
         self.assertIn(

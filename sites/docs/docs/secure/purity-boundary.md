@@ -133,6 +133,12 @@ files, corpus hash, accepted and rejected candidates, and explicit
 `pretrained_tokenizer: false` / `external_vocabulary: false` evidence. See
 [Tokenizer manifests](../operate/tokenizer-manifests.md).
 
+Self-improvement attempts add one more check: `tokenizer_candidate_guard`.
+That guard fails if a candidate silently changes the active tokenizer, fails
+round-trip, imports pretrained or external vocabulary, or creates a protected
+full-answer token. Passing it means the tokenizer candidate is safe evidence,
+not that the neural model has learned more.
+
 :::note
 
 Studying structure is a docs-gated activity, not a training input. The structure

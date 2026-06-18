@@ -145,12 +145,81 @@ def _report(
             sum(candidate.context_diversity for candidate in accepted) / max(len(accepted), 1),
             6,
         ),
-        "long_answer_effect": {
-            "measured": False,
-            "reason": "requires benchmark prompts and model output diagnostics",
-        },
+        "long_answer_effect": _long_answer_effect(
+            text,
+            char_tokenizer,
+            tokenizer,
+            protected_answers,
+        ),
     }
 
 
 def _json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
+def _long_answer_effect(
+    text: str,
+    char_tokenizer: CharTokenizer,
+    tokenizer: ClosedWorldSubwordTokenizer,
+    protected_answers: set[str],
+) -> dict[str, Any]:
+    samples = _long_answer_samples(text, protected_answers)
+    rows = [
+        _long_answer_sample_effect(sample, char_tokenizer, tokenizer)
+        for sample in samples
+    ]
+    char_total = sum(row["char_token_count"] for row in rows)
+    subword_total = sum(row["subword_token_count"] for row in rows)
+    if not rows:
+        return {
+            "measured": False,
+            "reason": "no protected answers or long corpus samples were available",
+            "sample_count": 0,
+            "samples": [],
+        }
+    return {
+        "measured": True,
+        "scope": "tokenizer_level_only",
+        "sample_count": len(rows),
+        "char_token_count": char_total,
+        "subword_token_count": subword_total,
+        "token_count_savings": char_total - subword_total,
+        "compression_ratio": round(subword_total / max(char_total, 1), 6),
+        "samples": rows,
+        "model_effect": {
+            "measured": False,
+            "reason": "requires transformer generation diagnostics",
+        },
+    }
+
+
+def _long_answer_samples(text: str, protected_answers: set[str]) -> list[str]:
+    protected = sorted(
+        {answer for answer in protected_answers if len(answer.strip()) >= 4},
+        key=lambda item: (-len(item), item),
+    )
+    if protected:
+        return protected[:12]
+    corpus_samples = {
+        line.strip()
+        for line in text.splitlines()
+        if len(line.strip()) >= 12 and " " in line.strip()
+    }
+    return sorted(corpus_samples, key=lambda item: (-len(item), item))[:12]
+
+
+def _long_answer_sample_effect(
+    sample: str,
+    char_tokenizer: CharTokenizer,
+    tokenizer: ClosedWorldSubwordTokenizer,
+) -> dict[str, Any]:
+    char_count = len(char_tokenizer.encode(sample))
+    subword_count = len(tokenizer.encode(sample))
+    return {
+        "text": sample,
+        "char_token_count": char_count,
+        "subword_token_count": subword_count,
+        "token_count_savings": char_count - subword_count,
+        "compression_ratio": round(subword_count / max(char_count, 1), 6),
+    }

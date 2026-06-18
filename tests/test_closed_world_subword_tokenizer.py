@@ -93,6 +93,12 @@ class ClosedWorldSubwordTokenizerTest(unittest.TestCase):
         self.assertEqual(manifest["tokenizer_type"], "closed-world-subword")
         self.assertFalse(manifest["purity"]["pretrained_tokenizer"])
         self.assertTrue(report["round_trip_ok"])
+        self.assertTrue(report["long_answer_effect"]["measured"])
+        self.assertEqual(
+            report["long_answer_effect"]["scope"],
+            "tokenizer_level_only",
+        )
+        self.assertFalse(report["long_answer_effect"]["model_effect"]["measured"])
         self.assertEqual(proposal["manifest_hash"], stable_json_hash(proposal["manifest"]))
 
     def test_tokenizer_io_loads_subword_payload(self) -> None:

@@ -18,6 +18,7 @@ from constraint_first_report import (
     promotion_check,
 )
 from self_improve import self_improvement_experiment_intent, write_report_artifacts
+from self_improvement_tokenizer import tokenizer_candidate_record
 from training_recipe_core import build_training_recipe
 
 
@@ -64,6 +65,29 @@ class SelfImproveArtifactsTest(unittest.TestCase):
                 "candidate_quarantine": build_candidate_quarantine_manifest(
                     "self-improvement-answer-cycle",
                     "attempt-001",
+                ),
+                "tokenizer_candidate": tokenizer_candidate_record(
+                    attempt_dir / "tokenizer_manifest.json",
+                    attempt_dir / "tokenizer_report.json",
+                    "abc123",
+                    {
+                        "tokenizer_type": "closed-world-subword",
+                        "corpus_hash": "hash",
+                        "purity": {
+                            "pretrained_tokenizer": False,
+                            "external_vocabulary": False,
+                            "admitted_corpus_only": True,
+                        },
+                        "rejected_candidates": [],
+                    },
+                    {
+                        "round_trip_ok": True,
+                        "accepted_token_count": 1,
+                        "token_count_savings": 2,
+                        "compression_ratio": 0.9,
+                        "branch_diversity_score": 1.0,
+                        "full_answer_tokens": [],
+                    },
                 ),
                 "closed_world_verifier": verifier_report(
                     "self-improvement-answer-cycle",
@@ -116,6 +140,10 @@ class SelfImproveArtifactsTest(unittest.TestCase):
             self.assertTrue((run_dir / "training_recipe.json").exists())
             self.assertTrue((attempt_dir / "candidate_quarantine.json").exists())
             self.assertTrue((run_dir / "candidate_quarantine.json").exists())
+            self.assertTrue((attempt_dir / "tokenizer_manifest.json").exists())
+            self.assertTrue((run_dir / "tokenizer_manifest.json").exists())
+            self.assertTrue((attempt_dir / "tokenizer_report.json").exists())
+            self.assertTrue((run_dir / "tokenizer_report.json").exists())
             self.assertTrue((attempt_dir / "closed_world_verifier.json").exists())
             self.assertTrue((run_dir / "closed_world_verifier.json").exists())
             self.assertTrue((attempt_dir / "constraint_first_promotion.json").exists())

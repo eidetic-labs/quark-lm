@@ -100,6 +100,7 @@ class TrainingRecipeTest(unittest.TestCase):
                 "closed_world_verifier": {"passed": True},
                 "admission_probe_audit": {"passed": True},
                 "glossary_probe_audit": {"passed": True},
+                "tokenizer_candidate_guard": {"passed": True},
                 "prompt_leakage_audit": {
                     "heldout": {"passed": True},
                     "owner_heldout": {"passed": True},
@@ -112,6 +113,25 @@ class TrainingRecipeTest(unittest.TestCase):
         self.assertTrue(report["passed"])
         self.assertEqual(report["status"], "eligible_for_promotion")
         self.assertTrue(report["quality_metrics_considered"])
+
+    def test_self_improvement_constraint_report_blocks_missing_tokenizer_guard(self) -> None:
+        report = self_improvement_constraint_report(
+            {
+                "run_id": "attempt-001",
+                "closed_world_verifier": {"passed": True},
+                "admission_probe_audit": {"passed": True},
+                "glossary_probe_audit": {"passed": True},
+                "prompt_leakage_audit": {
+                    "heldout": {"passed": True},
+                    "owner_heldout": {"passed": True},
+                },
+                "forgetting_audit": {"passed": True},
+                "exact_eval_audit": {"passed": True},
+            }
+        )
+
+        self.assertFalse(report["passed"])
+        self.assertIn("tokenizer_candidate_guard", report["failed_constraints"])
 
     def test_transformer_constraint_report_blocks_on_diversity_before_quality(self) -> None:
         metrics = {

@@ -29,6 +29,10 @@ def self_improvement_decision_evidence(report: dict[str, Any]) -> list[dict[str,
             "passed": report["glossary_probe_audit"]["passed"],
         },
         {
+            "name": "tokenizer_candidate_guard",
+            "passed": report.get("tokenizer_candidate_guard", {}).get("passed") is True,
+        },
+        {
             "name": "heldout_prompt_leakage",
             "passed": report["prompt_leakage_audit"]["heldout"]["passed"],
         },

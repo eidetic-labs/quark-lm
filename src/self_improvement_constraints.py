@@ -29,6 +29,11 @@ def self_improvement_constraint_report(report: dict[str, Any]) -> dict[str, Any]
             "Generated glossary probes must pass.",
         ),
         promotion_check(
+            "tokenizer_candidate_guard",
+            report.get("tokenizer_candidate_guard", {}).get("passed") is True,
+            "Tokenizer candidates must be corpus-only, round-trip safe, and candidate-only.",
+        ),
+        promotion_check(
             "heldout_prompt_leakage",
             prompt_leakage.get("heldout", {}).get("passed") is True,
             "Heldout prompts must not appear in training lessons.",

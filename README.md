@@ -13,7 +13,7 @@ The repository slug is `quark-lm`. Python modules currently live directly under
 
 QuarkLM is not a production assistant. It is an experimental self-improvement
 loop that separates corpus admission, retrieval memory, training candidates,
-guarded weight updates, evaluation, and promotion.
+tokenizer candidates, guarded weight updates, evaluation, and promotion.
 
 Current release-candidate posture:
 

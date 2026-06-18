@@ -68,6 +68,12 @@ PYTHONPATH=src python3 -m transformer_char_model train \
 The run writes `tokenizer_manifest.json` and `tokenizer_report.json` next to the
 checkpoint unless explicit paths are supplied.
 
+The self-improvement answer cycle also writes those artifacts automatically.
+In that path they are candidate evidence, not an active-tokenizer change. The
+cycle records `tokenizer_candidate_guard` and blocks promotion if the proposal
+uses pretrained state, imports outside vocabulary, fails round-trip, or creates
+protected full-answer tokens.
+
 ## Compare tokenizer behavior
 
 `transformer_tokenizer_benchmark` compares the character baseline with the

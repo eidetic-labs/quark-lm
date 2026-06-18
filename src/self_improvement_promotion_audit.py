@@ -43,6 +43,10 @@ def _required_promotion_checks(report: dict[str, Any]) -> list[dict[str, Any]]:
             "passed": report["glossary_probe_audit"]["passed"],
         },
         {
+            "name": "tokenizer_candidate_guard",
+            "passed": report.get("tokenizer_candidate_guard", {}).get("passed") is True,
+        },
+        {
             "name": "heldout_prompt_leakage",
             "passed": prompt_leakage["heldout"]["passed"],
         },
