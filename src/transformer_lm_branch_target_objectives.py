@@ -6,6 +6,13 @@ from autograd import Scalar, zero_grad
 from transformer_math import linear_scalars, softmax_scalars
 
 
+def branch_target_candidate_ids(
+    branch_targets: list[int],
+    predicted: int,
+) -> list[int]:
+    return sorted({*branch_targets, predicted})
+
+
 class TransformerBranchTargetObjectiveMixin:
     def train_step_with_branch_target_softmax(
         self,
@@ -19,9 +26,6 @@ class TransformerBranchTargetObjectiveMixin:
         params = self.parameters() if params is None else params
         zero_grad(params)
         branch_targets = sorted({target for _context, target, _predicted in branches})
-        branch_target_offsets = {
-            target: offset for offset, target in enumerate(branch_targets)
-        }
         loss = Scalar(0.0)
         for context, target, predicted in branches:
             logits = self._forward_scalars(context)
@@ -32,13 +36,18 @@ class TransformerBranchTargetObjectiveMixin:
                 loss = loss + (
                     -(Scalar(1.0) - probs[predicted] + 1e-12).log()
                 ) * negative_weight
-            if target_softmax_weight > 0.0 and len(branch_targets) > 1:
+            target_candidates = branch_target_candidate_ids(branch_targets, predicted)
+            if target_softmax_weight > 0.0 and len(target_candidates) > 1:
+                target_offsets = {
+                    candidate: offset
+                    for offset, candidate in enumerate(target_candidates)
+                }
                 target_logits = [
-                    logits[branch_target] for branch_target in branch_targets
+                    logits[candidate] for candidate in target_candidates
                 ]
                 target_probs = softmax_scalars(target_logits)
                 loss = loss + (
-                    -target_probs[branch_target_offsets[target]].log()
+                    -target_probs[target_offsets[target]].log()
                 ) * target_softmax_weight
         loss = loss / max(len(branches), 1)
         loss.backward()
@@ -68,9 +77,9 @@ class TransformerBranchTargetObjectiveMixin:
                     -(Scalar(1.0) - probs[predicted] + 1e-12).log()
                 ) * negative_weight
             margin_targets = [
-                branch_target
-                for branch_target in branch_targets
-                if branch_target != target
+                candidate
+                for candidate in branch_target_candidate_ids(branch_targets, predicted)
+                if candidate != target
             ]
             if margin_weight > 0.0 and margin_targets:
                 per_target_weight = margin_weight / len(margin_targets)

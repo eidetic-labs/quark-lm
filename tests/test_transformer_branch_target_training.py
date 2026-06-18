@@ -12,9 +12,20 @@ from support.direct_answer import (
     train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
 )
+from transformer_lm_branch_target_objectives import branch_target_candidate_ids
 
 
 class TransformerBranchTargetTrainingTest(unittest.TestCase):
+    def test_branch_target_candidates_include_current_prediction(self) -> None:
+        self.assertEqual(
+            branch_target_candidate_ids([2, 4], predicted=1),
+            [1, 2, 4],
+        )
+        self.assertEqual(
+            branch_target_candidate_ids([2, 4], predicted=2),
+            [2, 4],
+        )
+
     def test_branch_target_softmax_improves_restricted_branch_choice(self) -> None:
         fixture = branch_training_fixture(seed=45)
         fixture.model.bout[fixture.tokenizer.stoi["."]].data = 5.0

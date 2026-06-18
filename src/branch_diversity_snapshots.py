@@ -17,6 +17,9 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
         avg_target_rank = float(target_rank.get("avg", 0.0))
         multi_target_diversities.append(
             {
+                "not_collapsed": 0.0
+                if bool(diversity.get("collapsed", False))
+                else 1.0,
                 "predicted_unique_rate": predicted_unique / target_unique,
                 "target_token_coverage": float(
                     diversity.get("target_token_coverage", 0.0)
@@ -33,6 +36,10 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
     profile_count = max(len(multi_target_diversities), 1)
     avg_predicted_unique_rate = (
         sum(item["predicted_unique_rate"] for item in multi_target_diversities)
+        / profile_count
+    )
+    avg_not_collapsed_rate = (
+        sum(item["not_collapsed"] for item in multi_target_diversities)
         / profile_count
     )
     avg_target_token_coverage = (
@@ -60,6 +67,7 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
         float(summary.get("passed_profiles", 0)),
         -float(summary.get("failed_profiles", 0)),
         float(summary.get("min_target_token_coverage", 0.0)),
+        avg_not_collapsed_rate,
         avg_target_token_coverage,
         avg_target_top3_rate,
         avg_target_top5_rate,

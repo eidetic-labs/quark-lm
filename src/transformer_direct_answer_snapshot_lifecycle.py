@@ -144,6 +144,8 @@ def finalize_direct_answer_snapshots(
         optimizer = optimizer_class.from_dict(best_snapshot.optimizer_payload)
         model.active_optimizer = optimizer
         restored_best_branch_snapshot = True
+        recorder.model = lambda restored_model=model: restored_model
+        recorder.tokenizer = lambda restored_tokenizer=tokenizer: restored_tokenizer
         last_snapshot = recorder.append(
             direct_answer_steps,
             None,

@@ -82,6 +82,8 @@ class TransformerAnswerSnapshotFinalizationTests(unittest.TestCase):
         model_class.from_dict.assert_called_once_with({"model": True})
         optimizer_class.from_dict.assert_called_once_with({"optimizer": True})
         self.assertIs(restored_model.active_optimizer, restored_optimizer)
+        self.assertIs(recorder.model(), restored_model)
+        self.assertIs(recorder.tokenizer(), restored_tokenizer)
         recorder.append.assert_called_once_with(
             5,
             None,
