@@ -27,6 +27,10 @@ from transformer_torch_training_loss_probe import (
     TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION,
     build_torch_training_initial_loss_probe,
 )
+from transformer_torch_training_backward_probe import (
+    TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION,
+    build_torch_training_backward_probe,
+)
 from transformer_torch_training_state import (
     TORCH_TRAINING_STATE_SCHEMA_VERSION,
     build_torch_training_state,
@@ -49,9 +53,11 @@ __all__ = [
     "TORCH_TRAINING_READY_STATUS",
     "TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS",
     "TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION",
+    "TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_STATE_SCHEMA_VERSION",
     "build_torch_backend_parity_candidate",
     "build_torch_training_initial_loss_probe",
+    "build_torch_training_backward_probe",
     "build_torch_training_parity_candidate",
     "build_torch_training_readiness",
     "build_torch_training_state",

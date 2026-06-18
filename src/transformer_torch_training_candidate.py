@@ -7,6 +7,9 @@ from typing import Any
 
 from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
 from transformer_torch_runtime import TorchImporter, torch_runtime_status
+from transformer_torch_training_backward_probe import (
+    build_torch_training_backward_probe,
+)
 from transformer_torch_training_loss_probe import (
     build_torch_training_initial_loss_probe,
 )
@@ -67,6 +70,12 @@ def build_torch_training_parity_candidate(
         runtime=runtime,
         state=state,
     )
+    backward_probe = _backward_probe(
+        fixture=fixture,
+        importer=importer,
+        runtime=runtime,
+        state=state,
+    )
     return {
         "schema_version": TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
         "kind": TORCH_TRAINING_PARITY_CANDIDATE_KIND,
@@ -92,6 +101,7 @@ def build_torch_training_parity_candidate(
         "training_readiness": readiness,
         "training_state": state_summary,
         "initial_loss_probe": loss_probe,
+        "backward_probe": backward_probe,
         "training_case": outputs["training_case"],
     }
 
@@ -201,6 +211,26 @@ def _initial_loss_probe(
             "reason": "pytorch training runtime is not ready",
         }
     return build_torch_training_initial_loss_probe(
+        fixture=fixture,
+        torch=importer("torch"),
+        runtime=runtime,
+        state=state,
+    )
+
+
+def _backward_probe(
+    *,
+    fixture: dict[str, Any],
+    importer: TorchImporter,
+    runtime: dict[str, Any],
+    state: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if state is None:
+        return {
+            "status": "not_run",
+            "reason": "pytorch training runtime is not ready",
+        }
+    return build_torch_training_backward_probe(
         fixture=fixture,
         torch=importer("torch"),
         runtime=runtime,

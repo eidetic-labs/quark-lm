@@ -35,5 +35,12 @@ def torch_to_list(value: Any) -> list[float]:
     return [float(item) for item in value.tolist()]
 
 
+def torch_to_float(value: Any) -> float:
+    if hasattr(value, "detach"):
+        value = value.detach().cpu()
+    raw_value = value.item() if hasattr(value, "item") else value.tolist()
+    return float(raw_value)
+
+
 def _is_tensor_like(value: Any) -> bool:
     return not isinstance(value, (list, int, float)) and hasattr(value, "tolist")

@@ -10,7 +10,10 @@ def fake_torch_importer(
     cuda: bool = False,
     mps: bool = False,
     training_runtime: bool = False,
+    gradient_runtime: bool = False,
 ) -> Callable[[str], object]:
+    FakeTensor.reset_grad_targets(gradient_runtime)
+
     fake = types.SimpleNamespace(
         __version__="fake-torch",
         float32="float32",
@@ -21,6 +24,7 @@ def fake_torch_importer(
         ),
         stack=lambda values: FakeTensor([raw_value(value) for value in values]),
         tanh=lambda value: FakeTensor(_map_unary(raw_value(value), math.tanh)),
+        log=lambda value: FakeTensor(_map_unary(raw_value(value), math.log)),
         softmax=lambda value, dim=0: FakeTensor(_softmax(raw_value(value))),
         cuda=types.SimpleNamespace(is_available=lambda: cuda),
         backends=types.SimpleNamespace(
@@ -40,9 +44,20 @@ def fake_torch_importer(
 
 
 class FakeTensor:
+    _active_grad_targets: list["FakeTensor"] = []
+    _backward_populates_grad = False
+
     def __init__(self, value: object, *, requires_grad: bool = False) -> None:
         self.value = _copy_raw(value)
         self.requires_grad = requires_grad
+        self.grad = None
+        if requires_grad:
+            self._active_grad_targets.append(self)
+
+    @classmethod
+    def reset_grad_targets(cls, backward_populates_grad: bool) -> None:
+        cls._active_grad_targets = []
+        cls._backward_populates_grad = backward_populates_grad
 
     def __iter__(self):
         return (FakeTensor(item) for item in self.value)
@@ -52,6 +67,9 @@ class FakeTensor:
 
     def __getitem__(self, key: int | slice):
         return FakeTensor(self.value[key])
+
+    def __neg__(self):
+        return FakeTensor(_map_unary(raw_value(self), lambda value: -value))
 
     def __add__(self, other: object):
         return FakeTensor(_binary(raw_value(self), raw_value(other), lambda left, right: left + right))
@@ -97,6 +115,10 @@ class FakeTensor:
         return _copy_raw(self.value)
 
     def backward(self) -> None:
+        if not self._backward_populates_grad:
+            return None
+        for target in self._active_grad_targets:
+            target.grad = FakeTensor(_zeros_like(target.value))
         return None
 
 
@@ -134,6 +156,12 @@ def _map_unary(value: object, op: Any):
     if isinstance(value, list):
         return [_map_unary(item, op) for item in value]
     return op(float(value))
+
+
+def _zeros_like(value: object):
+    if isinstance(value, list):
+        return [_zeros_like(item) for item in value]
+    return 0.0
 
 
 def _softmax(values: list[float]) -> list[float]:

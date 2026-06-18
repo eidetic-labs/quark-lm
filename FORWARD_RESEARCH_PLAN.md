@@ -269,9 +269,9 @@ any optimizer state can be accepted as parity evidence.
 
 The PyTorch training-readiness gate now checks runtime availability, requested
 dtype support, parameter-manifest validity, autograd tensor construction, and
-AdamW optimizer availability. Real PyTorch training, autograd loss execution,
-AdamW parity, gradient clipping, scheduling, and checkpoint compatibility
-remain future work behind this gate.
+AdamW optimizer availability. Real PyTorch training, AdamW parity, gradient
+clipping, scheduling, and checkpoint compatibility remain future work behind
+this gate.
 
 The current trainable-state bridge builds PyTorch tensors from the scalar
 fixture's initial weights by replaying the manifest names and shapes. Candidate
@@ -280,7 +280,9 @@ evidence trail can confirm tensor names, shapes, optimizer-slot ranges, and
 `requires_grad` status without making PyTorch a required dependency. The
 current initial-loss probe runs the tiny scalar fixture forward through those
 tensors and records whether initial logits and loss match scalar evidence. The
-next implementation layer is backward execution and scalar optimizer matching.
+current backward probe executes the tensor loss backward pass and reports
+gradient coverage separately from optimizer behavior. The next implementation
+layer is scalar optimizer-step matching.
 
 ## Current QuarkLM Diagnosis
 
