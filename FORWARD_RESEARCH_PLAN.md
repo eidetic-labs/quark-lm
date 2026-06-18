@@ -245,6 +245,12 @@ covered by generation fixtures that compare cache events. Optimized cached
 attention, real training, and optimizer behavior each require separate parity
 gates before they can count as model-quality evidence.
 
+The first training layer adds a scalar training parity fixture and report. It
+captures initial weights, optimizer config, scalar step losses, final logits,
+final loss, optimizer state, and a trained-parameter signature. This is still a
+gate, not PyTorch training: a future PyTorch trainer must match the scalar
+artifact before its weight updates can count as evidence.
+
 ## Current QuarkLM Diagnosis
 
 ### Strengths
