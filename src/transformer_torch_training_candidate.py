@@ -54,6 +54,7 @@ def build_torch_training_parity_candidate(
         "model_config": dict(fixture["model_config"]),
         "tokenizer": dict(fixture["tokenizer"]),
         "optimizer_config": dict(fixture["optimizer_config"]),
+        "parameter_manifest": dict(fixture["parameter_manifest"]),
         "training_case": outputs["training_case"],
     }
 

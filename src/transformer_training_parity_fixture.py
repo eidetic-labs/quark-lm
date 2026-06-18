@@ -12,6 +12,10 @@ from transformer_model import (
     OptimizationConfig,
 )
 from transformer_optimizer import ScalarOptimizer
+from transformer_training_parameter_manifest import (
+    build_training_parameter_manifest,
+    validate_training_parameter_manifest,
+)
 from transformer_training_parity_schema import (
     TRAINING_PARITY_ABSOLUTE_TOLERANCE,
     TRAINING_PARITY_FIXTURE_KIND,
@@ -52,6 +56,10 @@ def build_scalar_training_parity_fixture(
     ]
     final_logits = trained_model._forward_floats(context)
     final_loss = trained_model.nll(context, target)
+    parameter_manifest = build_training_parameter_manifest(
+        weights=initial_payload["weights"],
+        model_config=asdict(model.config),
+    )
     fixture = {
         "schema_version": TRAINING_PARITY_SCHEMA_VERSION,
         "kind": TRAINING_PARITY_FIXTURE_KIND,
@@ -67,6 +75,7 @@ def build_scalar_training_parity_fixture(
         "tokenizer": _tokenizer_summary(tokenizer),
         "initial_weights": initial_payload["weights"],
         "optimizer_config": asdict(optimizer_config),
+        "parameter_manifest": parameter_manifest,
         "tolerance": {
             "absolute": TRAINING_PARITY_ABSOLUTE_TOLERANCE,
             "relative": TRAINING_PARITY_RELATIVE_TOLERANCE,
@@ -105,7 +114,14 @@ def validate_training_parity_fixture(fixture: dict[str, Any]) -> None:
         raise ValueError("initial_weights must be a dict")
     if not isinstance(fixture.get("optimizer_config"), dict):
         raise ValueError("optimizer_config must be a dict")
-    _validate_training_case(fixture.get("training_case"))
+    if not isinstance(fixture.get("parameter_manifest"), dict):
+        raise ValueError("parameter_manifest must be a dict")
+    case = fixture.get("training_case")
+    _validate_training_case(case)
+    validate_training_parameter_manifest(
+        fixture["parameter_manifest"],
+        optimizer_state=case["optimizer_state"],
+    )
 
 
 def _training_step(

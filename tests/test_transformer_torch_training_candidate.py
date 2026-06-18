@@ -56,6 +56,10 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         )
         self.assertEqual(candidate["backend"]["parity_status"], "pending")
         self.assertEqual(candidate["optimizer_config"], fixture["optimizer_config"])
+        self.assertEqual(
+            candidate["parameter_manifest"],
+            fixture["parameter_manifest"],
+        )
         self.assertEqual(candidate["training_case"]["status"], "pending")
         self.assertEqual(
             candidate["training_case"]["reason"],

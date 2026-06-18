@@ -151,6 +151,13 @@ unavailable, it records a blocked or pending case rather than fabricated
 metrics. Real PyTorch training, autograd, AdamW parity, gradient clipping,
 scheduling, and checkpoint compatibility remain future gates.
 
+The next bridge records a trainable-parameter manifest on scalar training
+fixtures and PyTorch candidates. It names the scalar optimizer parameter order,
+tensor shapes, contiguous optimizer-slot ranges, tied-output status, and total
+trainable count. That makes the future PyTorch trainer prove it is updating the
+same parameter set as the scalar reference before optimizer state or weight
+updates can be accepted.
+
 ## Where the sequence stands
 
 The seven mechanics are built. The direct-answer objective they were meant to

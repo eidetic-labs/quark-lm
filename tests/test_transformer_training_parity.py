@@ -33,6 +33,10 @@ class TransformerTrainingParityTests(unittest.TestCase):
         self.assertEqual(case["step_records"][0]["optimizer_summary"]["update_count"], 0)
         self.assertEqual(case["optimizer_state"]["update_count"], 1)
         self.assertEqual(case["optimizer_state"]["pending_accumulation"], 0)
+        self.assertEqual(
+            fixture["parameter_manifest"]["parameter_count"],
+            case["optimizer_state"]["param_count"],
+        )
         self.assertGreater(case["initial_loss"], case["final_loss"])
         self.assertGreater(case["parameter_signature"]["count"], 0)
 
@@ -93,6 +97,7 @@ def _matching_candidate(fixture: dict) -> dict:
             dtype="float32",
             parity_status="matched",
         ),
+        "parameter_manifest": copy.deepcopy(fixture["parameter_manifest"]),
         "training_case": copy.deepcopy(fixture["training_case"]),
     }
 

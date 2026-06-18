@@ -260,6 +260,13 @@ it records a blocked or pending case instead of fabricating metrics. Real
 PyTorch training, autograd, AdamW parity, gradient clipping, scheduling, and
 checkpoint compatibility remain future work behind this gate.
 
+The next bridge records a trainable-parameter manifest for each scalar training
+fixture and PyTorch candidate. The manifest names the scalar optimizer
+parameter order, tensor shapes, contiguous optimizer-slot ranges, tied-output
+status, and total trainable count. That keeps future PyTorch autograd work
+accountable to the exact parameter mapping used by the scalar reference before
+any optimizer state can be accepted as parity evidence.
+
 ## Current QuarkLM Diagnosis
 
 ### Strengths
