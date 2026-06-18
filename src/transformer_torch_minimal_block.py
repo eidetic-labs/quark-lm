@@ -166,17 +166,35 @@ def _causal_attention(
     torch: Any,
 ) -> Any:
     position = config["context_size"] - 1
-    head_dim = config["embedding_dim"]
+    head_dim = config["embedding_dim"] // config["attention_heads"]
+    attended = []
+    for head in range(config["attention_heads"]):
+        attended.extend(_attention_head(q, k, v, position, head, head_dim, torch))
+    return torch.stack(attended)
+
+
+def _attention_head(
+    q: Any,
+    k: Any,
+    v: Any,
+    position: int,
+    head: int,
+    head_dim: int,
+    torch: Any,
+) -> list[Any]:
+    start = head * head_dim
+    end = start + head_dim
     scale = 1.0 / math.sqrt(head_dim)
     scores = torch.stack(
-        [(q[position] * k[past]).sum() * scale for past in range(position + 1)]
-    )
-    weights = torch.softmax(scores, dim=0)
-    return torch.stack(
         [
-            torch.stack(
-                [weights[past] * v[past][dim] for past in range(position + 1)]
-            ).sum()
-            for dim in range(head_dim)
+            (q[position][start:end] * k[past][start:end]).sum() * scale
+            for past in range(position + 1)
         ]
     )
+    weights = torch.softmax(scores, dim=0)
+    return [
+        torch.stack(
+            [weights[past] * v[past][dim] for past in range(position + 1)]
+        ).sum()
+        for dim in range(start, end)
+    ]
