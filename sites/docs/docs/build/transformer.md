@@ -23,6 +23,12 @@ decoder-only transformer introduced in v0.24, built without PyTorch, JAX, Huggin
 Face, pretrained checkpoints, or pretrained tokenizers. It starts from random
 weights and trains with a small standard-library scalar autodiff engine.
 
+The scalar implementation is still the canonical reference. QuarkLM also has an
+optional experimental PyTorch parity surface for tiny backend fixtures, but it
+does not add PyTorch as a dependency and it is not a promoted training backend.
+It can only become performance evidence after deterministic scalar parity gates
+pass for the relevant profile.
+
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The
 transformer is the *weight-consolidation* path — the component meant to gradually
@@ -48,6 +54,7 @@ part is corpus-derived or randomly initialized.
 <div><h4>LM head</h4><p>A next-character language-model head.</p></div>
 <div><h4>Autodiff</h4><p>Dependency-free scalar autodiff.</p></div>
 <div><h4>Initialization</h4><p>Random initialization only.</p></div>
+<div><h4>Backend parity</h4><p>Optional PyTorch candidate artifacts checked against scalar fixtures.</p></div>
 </div>
 
 A pretrained vocabulary would cross the same boundary as pretrained weights —

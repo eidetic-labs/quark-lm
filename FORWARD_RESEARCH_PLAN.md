@@ -223,22 +223,23 @@ PyTorch track should start as an experimental backend that must match scalar
 logits, losses, and fixed-prompt generation on tiny parity fixtures before its
 training runs can count as model-quality evidence.
 
-The first implementation layer for that track should be the dependency-free
-backend policy and parity-fixture contract. Scalar fixtures should record
-backend metadata, model config, tokenizer summary, forward logits, losses, and
-fixed-prompt generation traces. Candidate backends must compare against those
-fixtures before their outputs can be trusted as model-quality evidence. This
-contract does not add PyTorch as a dependency.
+The first implementation layer for that track is the dependency-free backend
+policy and parity-fixture contract. Scalar fixtures record backend metadata,
+model config, tokenizer summary, forward logits, losses, and fixed-prompt
+generation traces. Candidate backends must compare against those fixtures before
+their outputs can be trusted as model-quality evidence. This contract does not
+add PyTorch as a dependency.
 
-The next layer should be an optional PyTorch backend surface: runtime
-availability detection plus candidate parity artifacts. It should record
-whether PyTorch is installed, which device and dtype would be used, and why
-candidate cases are blocked, pending, or matched.
+The second layer is an optional PyTorch backend surface: runtime availability
+detection plus candidate parity artifacts. It records whether PyTorch is
+installed, which device and dtype would be used, and why candidate cases are
+blocked, pending, or matched.
 
-Only after the policy and fixture contract exist should QuarkLM add minimal
-PyTorch forward parity for the simplest one-layer profile. More advanced
-profiles, training, and optimizer behavior each require separate parity gates
-before they can count as model-quality evidence.
+The current experimental layer adds minimal PyTorch-style forward parity for
+the simplest one-layer profile using the optional runtime surface. It covers the
+default scalar path plus post-layer norm, pre-layer norm, and pre-RMSNorm
+fixtures. More advanced profiles, real training, and optimizer behavior each
+require separate parity gates before they can count as model-quality evidence.
 
 ## Current QuarkLM Diagnosis
 

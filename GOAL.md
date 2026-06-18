@@ -17,19 +17,19 @@ provenance, documentation, and this goal framework.
 
 ## Current Goal Phase
 
-Active phase: PyTorch-first backend strategy documentation and formal roadmap
-alignment.
+Active phase: experimental PyTorch backend parity for the scalar transformer
+reference.
 
 - Preserve scalar Python as the auditable reference implementation.
 - Record backend policy, purity metadata, and parity status in transformer
   recipes, metrics, and constraint-first evidence.
-- Define deterministic scalar parity fixture requirements that future PyTorch
-  outputs must match before PyTorch runs can count as model-quality evidence.
-- Keep PyTorch as a planned experimental backend; do not add it as a dependency
-  or promoted capability until the parity contract and runtime boundary are
-  explicit.
-- Treat docs builds and documentation review as the evidence gate for this
-  phase.
+- Extend optional PyTorch candidate artifacts only behind deterministic scalar
+  parity fixtures; PyTorch runs still cannot count as model-quality evidence
+  until profile, optimizer, and training gates pass.
+- Keep PyTorch optional: no dependency requirement, no pretrained assets, no
+  unledgered data, and no promoted capability claim.
+- Treat focused backend parity tests, full Python discovery, docs builds, and
+  code-quality review as the evidence gate for this phase.
 
 ## Current Canonical Evidence
 

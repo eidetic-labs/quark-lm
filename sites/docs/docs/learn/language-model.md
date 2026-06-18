@@ -87,10 +87,14 @@ evidence.
 
 ## Transformer
 
-v0.24 added `transformer_char_model`, a tiny decoder-only transformer built
-without PyTorch, JAX, Hugging Face, pretrained checkpoints, or pretrained
-tokenizers. It starts from random weights and trains with a small
-standard-library scalar autodiff engine.
+v0.24 added `transformer_char_model`, a tiny decoder-only transformer whose
+canonical path is built without PyTorch, JAX, Hugging Face, pretrained
+checkpoints, or pretrained tokenizers. It starts from random weights and trains
+with a small standard-library scalar autodiff engine.
+
+PyTorch is the planned performance backend, but only as an optional runtime
+library. The current PyTorch work is experimental parity evidence against
+scalar fixtures, not a promoted training path.
 
 The transformer is not yet the reliable answering path. It is the weight
 consolidation path: the component that should gradually learn from admitted
