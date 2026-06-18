@@ -25,6 +25,10 @@ class TransformerAnswerRunCompletionTest(unittest.TestCase):
             retrieval_memory={"memory": True},
             retrieval_memory_path="memory.json",
             memory_consolidation_plan_path="memory-plan.json",
+            replay_mixture={"mixture": True},
+            replay_mixture_path="replay-mixture.json",
+            sweep_plan={"sweep": True},
+            sweep_plan_path="sweep-plan.json",
             training_plan_path="training-plan.json",
             training_recipe={"recipe": True},
             training_recipe_path="recipe.json",
@@ -50,7 +54,9 @@ class TransformerAnswerRunCompletionTest(unittest.TestCase):
             return {
                 "selector_metrics": args[20],
                 "generator_metrics": args[21],
-                "training_plan": args[27],
+                "replay_mixture": args[27],
+                "sweep_plan": args[29],
+                "training_plan": args[31],
             }
 
         result = complete_transformer_answer_training_run(
@@ -73,6 +79,8 @@ class TransformerAnswerRunCompletionTest(unittest.TestCase):
         self.assertEqual(calls, ["selector", "generator", "finalize"])
         self.assertEqual(result["selector_metrics"], {"selector": True})
         self.assertEqual(result["generator_metrics"], {"generator": True})
+        self.assertEqual(result["replay_mixture"], {"mixture": True})
+        self.assertEqual(result["sweep_plan"], {"sweep": True})
         self.assertEqual(result["training_plan"], {"plan": True})
 
 

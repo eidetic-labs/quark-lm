@@ -5,7 +5,7 @@ description: How the from-scratch QuarkLM transformer works, and its current sta
 
 # Transformer
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -86,6 +86,8 @@ audited rather than trusted:
 | --- | --- |
 | `experiment_intent.json` / `transformer_answer_metrics.json` | The screen's hypothesis, acceptance gate, and closing decision. |
 | `training_plan.json` / `corpus_hygiene.json` | Source mixture, duplicate and train/eval overlap checks, candidate ratio, allowed sources. |
+| `sweep_plan.json` | The controlled tokenizer, architecture, optimizer, and training-budget axes for the screen. |
+| `replay_mixture_report.json` | New lessons, retained facts, glossary/self facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase evidence. |
 | `candidate_quarantine.json` | Candidate lifecycle state; candidates are not training data until admitted to the ledger. |
 | `closed_world_verifier.json` | Deterministic check that the data boundary, candidate exclusion, quarantine, and protected train/eval overlap pass. |
 | `training_recipe.json` / `constraint_first_promotion.json` | Model, tokenizer, data, objective, optimizer, replay, and gates; blocks any loss, NLL, rank, or exact-quality number until constraints pass first. |
@@ -134,7 +136,8 @@ an opt-in profile; and `--tokenizer closed-world-subword`, which writes
 corpus-only tokenizer manifest and report artifacts. Neither screen promotes the
 transformer by itself. They create controlled evidence for comparing baseline
 character tokenization against guarded subword compression and modernized small
-transformer mechanics.
+transformer mechanics. Each `answer-train` run now writes `sweep_plan.json` so
+that comparison axis is explicit before any result is interpreted.
 
 ## Current evidence
 

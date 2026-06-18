@@ -23,11 +23,23 @@ from corpus_hygiene import (
     write_json_artifact,
 )
 from experiment_registry import write_experiment_intent
+from probes import read_jsonl
 from tokenizer import CharTokenizer
 from training_recipe_core import attach_recipe_summary, write_training_recipe
 from transformer_experiment import (
     TransformerRunArtifacts,
     transformer_experiment_intent,
+    transformer_training_recipe_id,
+)
+from transformer_replay_mixture import (
+    build_transformer_replay_mixture_report,
+    replay_mixture_summary,
+    write_transformer_replay_mixture_report,
+)
+from transformer_sweep_plan import (
+    build_transformer_sweep_plan,
+    sweep_plan_summary,
+    write_transformer_sweep_plan,
 )
 from transformer_text_commands import transformer_training_recipe
 
@@ -43,10 +55,14 @@ class TransformerAnswerGovernanceSetup:
     verifier_path: Path
     constraint_first_path: Path
     memory_consolidation_plan_path: Path
+    replay_mixture_path: Path
+    sweep_plan_path: Path
     candidate_quarantine: dict[str, object]
     training_recipe: dict[str, object]
     corpus_hygiene: dict[str, object]
     training_plan: dict[str, object]
+    replay_mixture: dict[str, object]
+    sweep_plan: dict[str, object]
     closed_world_verifier: dict[str, object]
 
 
@@ -69,12 +85,35 @@ def prepare_transformer_answer_governance(
     write_candidate_quarantine(artifacts.candidate_quarantine, candidate_quarantine)
     candidate_summary = candidate_quarantine_summary(candidate_quarantine)
     planned_artifacts = artifacts.training_plan_artifacts()
+    eval_records = {path.stem: read_jsonl(path) for path in DEFAULT_ANSWER_EVALS}
+    replay_mixture = build_transformer_replay_mixture_report(
+        run_id=args.run.name,
+        train_text_path=args.train_text,
+        examples=examples,
+        training_pool=training_pool,
+        eval_records=eval_records,
+        admissions=read_jsonl(args.corpus_dir / "admissions.jsonl"),
+    )
+    write_transformer_replay_mixture_report(
+        artifacts.replay_mixture_report,
+        replay_mixture,
+    )
+    sweep_plan = build_transformer_sweep_plan(
+        args,
+        tokenizer,
+        recipe_id=transformer_training_recipe_id(args),
+    )
+    write_transformer_sweep_plan(artifacts.sweep_plan, sweep_plan)
     training_recipe = transformer_training_recipe(
         args,
         tokenizer,
         planned_artifacts,
         experiment_intent["acceptance_gates"],
         artifacts.replay_plan,
+        artifacts.replay_mixture_report,
+        replay_mixture_summary(replay_mixture),
+        artifacts.sweep_plan,
+        sweep_plan_summary(sweep_plan),
     )
     write_training_recipe(artifacts.training_recipe, training_recipe)
 
@@ -98,6 +137,10 @@ def prepare_transformer_answer_governance(
         replay_plan_path=artifacts.replay_plan,
         candidate_quarantine_path=artifacts.candidate_quarantine,
         candidate_quarantine_summary=candidate_summary,
+        replay_mixture_summary=replay_mixture_summary(replay_mixture),
+        replay_mixture_path=artifacts.replay_mixture_report,
+        sweep_plan_summary=sweep_plan_summary(sweep_plan),
+        sweep_plan_path=artifacts.sweep_plan,
     )
     training_plan = attach_recipe_summary(
         training_plan,
@@ -134,9 +177,13 @@ def prepare_transformer_answer_governance(
         verifier_path=artifacts.closed_world_verifier,
         constraint_first_path=artifacts.constraint_first_promotion,
         memory_consolidation_plan_path=artifacts.memory_consolidation_plan,
+        replay_mixture_path=artifacts.replay_mixture_report,
+        sweep_plan_path=artifacts.sweep_plan,
         candidate_quarantine=candidate_quarantine,
         training_recipe=training_recipe,
         corpus_hygiene=corpus_hygiene,
         training_plan=training_plan,
+        replay_mixture=replay_mixture,
+        sweep_plan=sweep_plan,
         closed_world_verifier=closed_world_verifier,
     )

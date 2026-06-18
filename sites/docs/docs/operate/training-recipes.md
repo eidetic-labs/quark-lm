@@ -5,7 +5,7 @@ description: Reproducible recipes and constraint-first promotion reports for Qua
 
 # Training Recipes
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
 
 <div className="qlm-lead">
 
@@ -61,7 +61,7 @@ argparse memory.
 <div><h4>data</h4><p>The admitted data sources the run is permitted to draw from.</p></div>
 <div><h4>objective</h4><p>The training objective and its settings.</p></div>
 <div><h4>optimizer</h4><p>Optimizer settings.</p></div>
-<div><h4>replay</h4><p>Replay status and any replay-plan reference.</p></div>
+<div><h4>replay</h4><p>Replay status, replay-plan reference, and replay-mixture report summary.</p></div>
 <div><h4>artifacts</h4><p>The evidence files the run commits to emitting.</p></div>
 <div><h4>gates</h4><p>The required gates the run must clear.</p></div>
 <div><h4>rerun</h4><p>The rerun surface — enough to reproduce the run.</p></div>
@@ -73,6 +73,13 @@ posture enforced everywhere else. A recipe that named an external weight,
 tokenizer, embedding, or dataset would cross the [purity
 boundary](../secure/purity-boundary.md); recipes are reproduction records for
 closed-world runs only.
+
+Transformer recipes also point to two control artifacts. `sweep_plan.json`
+records the tokenizer, transformer profile, context, width, heads, layers,
+optimizer, and step-budget axes for the screen. `replay_mixture_report.json`
+records whether the run exposed new lessons, retained facts, glossary/self
+facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase
+evidence. Together they replace "turning knobs" with a comparable trial record.
 
 ## Constraint-first promotion
 
@@ -97,6 +104,8 @@ For a transformer answer-training run the constraints are:
 <div><h4>baseline_snapshot_recorded / final_snapshot_recorded</h4><p>The run captured comparable before/after evidence.</p></div>
 <div><h4>closed_world_training_data</h4><p>Training drew only from admitted sources.</p></div>
 <div><h4>closed_world_verifier</h4><p>The deterministic <a href="../closed-world-verifier/">verifier</a> approved the plan.</p></div>
+<div><h4>controlled_sweep_plan</h4><p>The run declared its comparison axes before quality metrics were interpreted.</p></div>
+<div><h4>replay_mixture_report</h4><p>The run declared its new, retained, unknown-policy, tokenizer-stress, and heldout/paraphrase evidence mixture.</p></div>
 <div><h4>no_pretrained_weights</h4><p>No imported weights.</p></div>
 <div><h4>no_pretrained_tokenizer</h4><p>No imported tokenizer.</p></div>
 <div><h4>no_external_embeddings</h4><p>No imported embeddings.</p></div>

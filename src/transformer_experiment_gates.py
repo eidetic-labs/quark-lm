@@ -43,6 +43,14 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
             "Training plan, hygiene, and candidate quarantine checks must pass before training.",
         ),
         _required_gate(
+            "controlled_sweep_plan",
+            "Record tokenizer, architecture, optimizer, and training-budget sweep axes.",
+        ),
+        _required_gate(
+            "replay_mixture_report",
+            "Record new lessons, retained facts, unknown policy, tokenizer stress, and heldout/paraphrase mixture evidence.",
+        ),
+        _required_gate(
             "constraint_first_promotion",
             "Loss, NLL, rank, and top-k evidence may influence promotion only after constraints pass.",
         ),

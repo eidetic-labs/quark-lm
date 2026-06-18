@@ -39,6 +39,8 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         gates = {gate["name"] for gate in intent["acceptance_gates"]}
         self.assertIn("training_recipe", gates)
         self.assertIn("closed_world_verifier", gates)
+        self.assertIn("controlled_sweep_plan", gates)
+        self.assertIn("replay_mixture_report", gates)
         self.assertIn("constraint_first_promotion", gates)
         self.assertIn("branch_context_gate_recorded", gates)
         self.assertIn("custom_gate", gates)
@@ -61,6 +63,14 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         )
         self.assertIn(
             "runs/profile-screen/constraint_first_promotion.json",
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            "runs/profile-screen/replay_mixture_report.json",
+            intent["planned_artifacts"],
+        )
+        self.assertIn(
+            "runs/profile-screen/sweep_plan.json",
             intent["planned_artifacts"],
         )
         self.assertEqual(intent["decision"]["status"], "planned")
@@ -98,6 +108,8 @@ class TransformerExperimentContractsTest(unittest.TestCase):
             "external_embeddings": False,
             "closed_world_verifier": {"passed": True},
             "training_recipe": {"recipe_id": "transformer-answer:test:v0.78"},
+            "sweep_plan": {"kind": "transformer_sweep_plan"},
+            "replay_mixture_report": {"summary": {"passed": True}},
             "constraint_first_promotion": {
                 "passed": False,
                 "status": "blocked_before_quality_metrics",
@@ -116,6 +128,8 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         evidence_by_name = {item["name"]: item for item in evidence}
         self.assertEqual(status, "rejected")
         self.assertIn("constraint-first promotion gate", summary)
+        self.assertTrue(evidence_by_name["controlled_sweep_plan"]["passed"])
+        self.assertTrue(evidence_by_name["replay_mixture_report"]["passed"])
         self.assertFalse(evidence_by_name["constraint_first_promotion"]["passed"])
         self.assertTrue(evidence_by_name["branch_context_gate_recorded"]["passed"])
         self.assertFalse(evidence_by_name["branch_diversity_target"]["passed"])
@@ -154,7 +168,11 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         self.assertFalse(metrics["pretrained_weights"])
         self.assertFalse(metrics["pretrained_tokenizer"])
         self.assertFalse(metrics["external_embeddings"])
+        self.assertEqual(metrics["sweep_plan"]["kind"], "transformer_sweep_plan")
+        self.assertTrue(metrics["replay_mixture_report"]["summary"]["passed"])
         failed_constraints = metrics["constraint_first_promotion"]["failed_constraints"]
+        self.assertNotIn("controlled_sweep_plan", failed_constraints)
+        self.assertNotIn("replay_mixture_report", failed_constraints)
         self.assertNotIn("no_external_embeddings", failed_constraints)
 
 

@@ -27,6 +27,18 @@ def transformer_experiment_decision(
             "passed": "training_recipe" in metrics,
         },
         {
+            "name": "controlled_sweep_plan",
+            "passed": metrics.get("sweep_plan", {}).get("kind")
+            == "transformer_sweep_plan",
+        },
+        {
+            "name": "replay_mixture_report",
+            "passed": metrics.get("replay_mixture_report", {})
+            .get("summary", {})
+            .get("passed")
+            is True,
+        },
+        {
             "name": "constraint_first_promotion",
             "passed": constraint_gate.get("passed") is True,
             "status": constraint_gate.get("status"),

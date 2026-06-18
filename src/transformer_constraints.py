@@ -50,6 +50,19 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
             "Training-plan verifier evidence must pass before promotion.",
         ),
         promotion_check(
+            "controlled_sweep_plan",
+            metrics.get("sweep_plan", {}).get("kind") == "transformer_sweep_plan",
+            "Transformer screens must declare controlled sweep axes.",
+            {"sweep_plan_path": metrics.get("sweep_plan_path")},
+        ),
+        promotion_check(
+            "replay_mixture_report",
+            metrics.get("replay_mixture_report", {}).get("summary", {}).get("passed")
+            is True,
+            "Transformer screens must report replay mixture coverage.",
+            {"replay_mixture_report_path": metrics.get("replay_mixture_report_path")},
+        ),
+        promotion_check(
             "no_pretrained_weights",
             metrics.get("pretrained_weights") is False,
             "Transformer promotion forbids pretrained weights.",

@@ -140,6 +140,7 @@ class TrainingRecipeTest(unittest.TestCase):
             "final": {"step": 1},
             "training_data": "answer_model corpus-derived AnswerExample lessons",
             "closed_world_verifier": {"passed": True},
+            **_transformer_control_reports(),
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
@@ -167,6 +168,7 @@ class TrainingRecipeTest(unittest.TestCase):
             "final": {"step": 1},
             "training_data": "answer_model corpus-derived AnswerExample lessons",
             "closed_world_verifier": {"passed": True},
+            **_transformer_control_reports(),
             "pretrained_weights": False,
             "pretrained_tokenizer": False,
             "external_embeddings": False,
@@ -187,6 +189,15 @@ class TrainingRecipeTest(unittest.TestCase):
         self.assertTrue(report["constraints_passed"])
         self.assertTrue(report["quality_metrics_considered"])
         self.assertEqual(report["failed_quality_checks"], ["direct_greedy_exact"])
+
+
+def _transformer_control_reports() -> dict:
+    return {
+        "sweep_plan": {"kind": "transformer_sweep_plan"},
+        "sweep_plan_path": "runs/run-001/sweep_plan.json",
+        "replay_mixture_report": {"summary": {"passed": True}},
+        "replay_mixture_report_path": "runs/run-001/replay_mixture_report.json",
+    }
 
 
 if __name__ == "__main__":

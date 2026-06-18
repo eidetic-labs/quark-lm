@@ -26,6 +26,7 @@ def transformer_experiment_intent(args: Any) -> dict[str, Any]:
         "Direct-answer screens omit branch-context, branch-diversity, or target-coverage evidence.",
         "A screen writes checkpoints without experiment intent and metrics artifacts.",
         "A screen writes checkpoints without a matching training recipe artifact.",
+        "A screen omits controlled sweep axes or replay-mixture evidence.",
         "The deterministic closed-world verifier rejects the training plan.",
         "The constraint-first promotion gate rejects the run before quality metrics are eligible.",
     ]

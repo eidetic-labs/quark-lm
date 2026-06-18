@@ -19,6 +19,8 @@ class TransformerRunArtifacts:
     constraint_first_promotion: Path
     retrieval_memory: Path
     memory_consolidation_plan: Path
+    replay_mixture_report: Path
+    sweep_plan: Path
     metrics: Path
     metrics_history: Path
     lessons: Path
@@ -43,6 +45,8 @@ class TransformerRunArtifacts:
             constraint_first_promotion=run_dir / "constraint_first_promotion.json",
             retrieval_memory=run_dir / "retrieval_memory_report.json",
             memory_consolidation_plan=run_dir / "memory_consolidation_plan.json",
+            replay_mixture_report=run_dir / "replay_mixture_report.json",
+            sweep_plan=run_dir / "sweep_plan.json",
             metrics=run_dir / "transformer_answer_metrics.json",
             metrics_history=run_dir / "transformer_answer_metrics.jsonl",
             lessons=run_dir / "transformer_answer_lessons.jsonl",
@@ -67,6 +71,8 @@ class TransformerRunArtifacts:
             self.constraint_first_promotion,
             self.retrieval_memory,
             self.memory_consolidation_plan,
+            self.replay_mixture_report,
+            self.sweep_plan,
             self.metrics,
         ]
 
@@ -83,6 +89,8 @@ class TransformerRunArtifacts:
             self.constraint_first_promotion,
             self.retrieval_memory,
             self.memory_consolidation_plan,
+            self.replay_mixture_report,
+            self.sweep_plan,
             self.metrics,
             self.metrics_history,
             self.lessons,

@@ -53,6 +53,10 @@ def transformer_training_recipe(
     planned_artifacts: list[Path],
     acceptance_gates: list[dict[str, Any]],
     replay_plan_path: Path | None = None,
+    replay_mixture_report_path: Path | None = None,
+    replay_mixture_summary: dict[str, Any] | None = None,
+    sweep_plan_path: Path | None = None,
+    sweep_plan_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return build_transformer_training_recipe(
         args,
@@ -63,6 +67,10 @@ def transformer_training_recipe(
         asdict(optimization_config_from_args(args)),
         asdict(generation_config_from_args(args)),
         replay_plan_path,
+        replay_mixture_report_path,
+        replay_mixture_summary,
+        sweep_plan_path,
+        sweep_plan_summary,
     )
 
 

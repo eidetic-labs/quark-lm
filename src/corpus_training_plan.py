@@ -26,6 +26,10 @@ def build_training_plan(
     tokenizer_candidate_summary: dict[str, Any] | None = None,
     tokenizer_manifest_path: Path | None = None,
     tokenizer_report_path: Path | None = None,
+    replay_mixture_summary: dict[str, Any] | None = None,
+    replay_mixture_path: Path | None = None,
+    sweep_plan_summary: dict[str, Any] | None = None,
+    sweep_plan_path: Path | None = None,
 ) -> dict[str, Any]:
     candidate_examples = source_mixture(training_examples)["candidate_examples"]
     candidate_status = "candidate_quarantine_missing"
@@ -105,6 +109,18 @@ def build_training_plan(
         "replay_plan": {
             "status": "planned" if replay_plan_path is not None else "not_applicable",
             "path": str(replay_plan_path) if replay_plan_path is not None else None,
+        },
+        "replay_mixture": {
+            "status": "written" if replay_mixture_summary is not None else "not_planned",
+            "path": str(replay_mixture_path) if replay_mixture_path is not None else None,
+            "summary": replay_mixture_summary,
+            "rule": "Replay mixtures must name new lessons, retained facts, unknown-policy probes, tokenizer stress strings, and heldout/paraphrase evidence.",
+        },
+        "controlled_sweep": {
+            "status": "written" if sweep_plan_summary is not None else "not_planned",
+            "path": str(sweep_plan_path) if sweep_plan_path is not None else None,
+            "summary": sweep_plan_summary,
+            "rule": "Transformer screens must record their tokenizer, architecture, optimizer, and training-budget axes before promotion evidence is trusted.",
         },
         "planned_artifacts": [
             str(path) for path in (planned_artifacts or [])

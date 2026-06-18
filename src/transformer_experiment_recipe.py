@@ -33,8 +33,41 @@ def transformer_training_recipe(
     optimizer_config: dict[str, Any],
     generation_config: dict[str, Any],
     replay_plan_path: Path | None = None,
+    replay_mixture_report_path: Path | None = None,
+    replay_mixture_summary: dict[str, Any] | None = None,
+    sweep_plan_path: Path | None = None,
+    sweep_plan_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     direct_enabled = args.direct_answer_steps > 0
+    objective = {
+        "target_loss": {
+            "steps": args.steps,
+            "learning_rate": args.learning_rate,
+            "eval_every": args.eval_every,
+            "target_loss_weight": args.target_loss_weight,
+            "choice_loss_weight": args.choice_loss_weight,
+            "choice_negatives": args.choice_negatives,
+        },
+        "direct_answer": {
+            "enabled": direct_enabled,
+            "steps": args.direct_answer_steps,
+            "mode": args.direct_answer_mode,
+            "learning_rate": args.direct_answer_learning_rate,
+            "branch_position": args.direct_answer_branch_position,
+            "branch_span": args.direct_answer_branch_span,
+            "snapshot_mode": args.direct_answer_snapshot_mode,
+            "require_branch_context_gate": (
+                args.direct_answer_require_branch_context_gate
+            ),
+        },
+        "generation": dict(generation_config),
+    }
+    if sweep_plan_path is not None:
+        objective["controlled_sweep"] = {
+            "status": "planned",
+            "path": str(sweep_plan_path),
+            "summary": sweep_plan_summary,
+        }
     return build_training_recipe(
         version=getattr(args, "experiment_version", TRANSFORMER_RECIPE_VERSION),
         component="transformer-answer-train",
@@ -72,29 +105,7 @@ def transformer_training_recipe(
             "eval_sets": [str(path) for path in DEFAULT_ANSWER_EVALS],
             "training_examples": TRAINING_DATA_DESCRIPTION,
         },
-        objective={
-            "target_loss": {
-                "steps": args.steps,
-                "learning_rate": args.learning_rate,
-                "eval_every": args.eval_every,
-                "target_loss_weight": args.target_loss_weight,
-                "choice_loss_weight": args.choice_loss_weight,
-                "choice_negatives": args.choice_negatives,
-            },
-            "direct_answer": {
-                "enabled": direct_enabled,
-                "steps": args.direct_answer_steps,
-                "mode": args.direct_answer_mode,
-                "learning_rate": args.direct_answer_learning_rate,
-                "branch_position": args.direct_answer_branch_position,
-                "branch_span": args.direct_answer_branch_span,
-                "snapshot_mode": args.direct_answer_snapshot_mode,
-                "require_branch_context_gate": (
-                    args.direct_answer_require_branch_context_gate
-                ),
-            },
-            "generation": dict(generation_config),
-        },
+        objective=objective,
         optimizer=dict(optimizer_config),
         replay={
             "status": "planned" if replay_plan_path is not None else "not_applicable",
@@ -103,6 +114,19 @@ def transformer_training_recipe(
                 direct_enabled
                 and is_profile_aware_direct_answer_mode(args.direct_answer_mode)
             ),
+            "mixture_report": {
+                "status": (
+                    "written"
+                    if replay_mixture_report_path is not None
+                    else "not_planned"
+                ),
+                "path": (
+                    str(replay_mixture_report_path)
+                    if replay_mixture_report_path is not None
+                    else None
+                ),
+                "summary": replay_mixture_summary,
+            },
         },
         artifacts=planned_artifacts,
         gates=acceptance_gates,

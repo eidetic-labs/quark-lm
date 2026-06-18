@@ -61,10 +61,14 @@ class TransformerAnswerRunSetup:
     constraint_first_path: Path
     retrieval_memory_path: Path
     memory_consolidation_plan_path: Path
+    replay_mixture_path: Path
+    sweep_plan_path: Path
     candidate_quarantine: dict[str, Any]
     training_recipe: dict[str, Any]
     corpus_hygiene: dict[str, Any]
     training_plan: dict[str, Any]
+    replay_mixture: dict[str, Any]
+    sweep_plan: dict[str, Any]
     closed_world_verifier: dict[str, Any]
     history_path: Path
     lessons_path: Path
@@ -163,10 +167,14 @@ def prepare_transformer_answer_run(
         constraint_first_path=governance.constraint_first_path,
         retrieval_memory_path=retrieval_memory_path,
         memory_consolidation_plan_path=governance.memory_consolidation_plan_path,
+        replay_mixture_path=governance.replay_mixture_path,
+        sweep_plan_path=governance.sweep_plan_path,
         candidate_quarantine=governance.candidate_quarantine,
         training_recipe=governance.training_recipe,
         corpus_hygiene=governance.corpus_hygiene,
         training_plan=governance.training_plan,
+        replay_mixture=governance.replay_mixture,
+        sweep_plan=governance.sweep_plan,
         closed_world_verifier=governance.closed_world_verifier,
         history_path=history_path,
         lessons_path=lessons_path,
