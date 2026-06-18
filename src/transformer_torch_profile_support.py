@@ -6,9 +6,7 @@ from typing import Any
 
 
 def minimal_forward_unsupported_reason(config: dict[str, Any]) -> str | None:
-    unsupported_flags = [
-        "use_kv_cache_path",
-    ]
+    unsupported_flags: list[str] = []
     for flag in unsupported_flags:
         if config.get(flag):
             return f"minimal PyTorch parity does not support {flag}"

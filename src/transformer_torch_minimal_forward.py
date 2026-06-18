@@ -93,12 +93,27 @@ def _generation_case(
         )
     ids = list(case["prompt_ids"])
     generated: list[int] = []
+    cache_enabled = config.use_kv_cache or fixture["model_config"].get(
+        "use_kv_cache_path",
+        False,
+    )
+    cache_events: list[dict[str, Any]] = []
     for _step in range(case["max_new_chars"]):
         context = _make_context(
             ids,
             fixture["model_config"]["context_size"],
             fixture["tokenizer"]["pad_id"],
         )
+        if cache_enabled:
+            cache_events.append(
+                {
+                    "context_length": len(context),
+                    "source_token_count": len(ids),
+                    "sliding_window": (
+                        len(ids) > fixture["model_config"]["context_size"]
+                    ),
+                }
+            )
         probs = torch_to_list(
             torch.softmax(torch_minimal_logits(context, fixture, torch, runtime), dim=0)
         )
@@ -111,6 +126,11 @@ def _generation_case(
         "status": "computed",
         "text": _decode(generated, fixture["tokenizer"]),
         "token_ids": generated,
+        "cache": {
+            "enabled": cache_enabled,
+            "mode": "rolling-context-kv-aware" if cache_enabled else "disabled",
+            "events": cache_events,
+        },
     }
 
 

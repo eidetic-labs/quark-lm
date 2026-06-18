@@ -127,4 +127,5 @@ def _generation_case(
         "text": result["text"],
         "token_ids": [step["token_id"] for step in result["trace"]],
         "trace": result["trace"],
+        "cache": result["cache"],
     }

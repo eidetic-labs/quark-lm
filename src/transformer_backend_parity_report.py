@@ -131,6 +131,14 @@ def _generation_case_checks(
                 ),
             ]
         )
+        if "cache" in expected:
+            checks.append(
+                _exact_check(
+                    f"generation_cache:{case_id}",
+                    expected["cache"],
+                    candidate.get("cache"),
+                )
+            )
     return checks
 
 

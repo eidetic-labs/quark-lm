@@ -145,19 +145,15 @@ class TransformerTorchBackendTests(unittest.TestCase):
             )
         )
 
-    def test_torch_candidate_reports_unsupported_profile_without_drifting(self) -> None:
-        fixture = _scalar_fixture(use_kv_cache_path=True)
-
-        candidate = build_torch_backend_parity_candidate(
-            fixture=fixture,
-            importer=fake_torch_importer(),
+    def test_torch_candidate_matches_scalar_fixture_for_kv_cache_path(self) -> None:
+        candidate = self.assert_torch_fixture_matches(
+            _scalar_fixture(use_kv_cache_path=True)
         )
-        report = build_backend_parity_report(fixture=fixture, candidate=candidate)
+        cache = candidate["generation_cases"][0]["cache"]
 
-        self.assertEqual(candidate["implementation_status"], "unsupported_profile")
-        self.assertEqual(candidate["backend"]["parity_status"], "pending")
-        self.assertEqual(candidate["forward_cases"][0]["status"], "pending")
-        self.assertFalse(report["passed"])
+        self.assertTrue(cache["enabled"])
+        self.assertEqual(cache["mode"], "rolling-context-kv-aware")
+        self.assertEqual(len(cache["events"]), 2)
 
     def test_torch_candidate_reports_unavailable_dtype_without_crashing(self) -> None:
         fixture = _scalar_fixture()

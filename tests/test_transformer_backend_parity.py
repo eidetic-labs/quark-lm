@@ -55,6 +55,7 @@ class TransformerBackendParityTests(unittest.TestCase):
         self.assertAlmostEqual(forward_case["loss"], model.nll(context, target))
         self.assertEqual(generation_case["prompt_ids"], tokenizer.encode("ab"))
         self.assertEqual(len(generation_case["token_ids"]), 2)
+        self.assertEqual(generation_case["cache"]["mode"], "disabled")
 
     def test_report_passes_for_matching_candidate_backend_outputs(self) -> None:
         fixture = _scalar_fixture()
@@ -74,6 +75,7 @@ class TransformerBackendParityTests(unittest.TestCase):
         candidate = _matching_candidate(fixture)
         candidate["forward_cases"][0]["logits"][0] += 0.01
         candidate["generation_cases"][0]["text"] = "drift"
+        candidate["generation_cases"][0]["cache"]["enabled"] = True
 
         report = build_backend_parity_report(
             fixture=fixture,
@@ -84,6 +86,7 @@ class TransformerBackendParityTests(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertIn("forward_logits:forward-01", failed)
         self.assertIn("generation_text:generation-01", failed)
+        self.assertIn("generation_cache:generation-01", failed)
 
     def test_report_fails_when_pytorch_metadata_lacks_artifact_fields(self) -> None:
         fixture = _scalar_fixture()
@@ -183,6 +186,7 @@ def _matching_candidate(fixture: dict) -> dict:
                 "case_id": case["case_id"],
                 "text": case["text"],
                 "token_ids": copy.deepcopy(case["token_ids"]),
+                "cache": copy.deepcopy(case["cache"]),
             }
             for case in fixture["generation_cases"]
         ],
