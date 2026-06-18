@@ -45,6 +45,9 @@ class CharTokenizer:
             return CharTokenizer(list(self.tokens))
         return CharTokenizer([*self.tokens, *additions])
 
+    def extends(self, base: "CharTokenizer") -> bool:
+        return self.tokens[: base.vocab_size] == base.tokens
+
     def encode(self, text: str) -> list[int]:
         ids: list[int] = []
         for char in text:

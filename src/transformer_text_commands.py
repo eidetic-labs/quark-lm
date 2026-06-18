@@ -74,14 +74,23 @@ def initialize_transformer_for_training_command(
     model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
     if checkpoint_tokenizer is None:
         raise ValueError("resume checkpoint does not contain a tokenizer")
-    if checkpoint_tokenizer.to_dict() != tokenizer.to_dict():
-        raise ValueError("resume checkpoint tokenizer does not match admitted training tokenizer")
-    requested_config = transformer_config_from_args(args, tokenizer.vocab_size)
-    if asdict(model.config) != asdict(requested_config):
+    checkpoint_config = transformer_config_from_args(args, checkpoint_tokenizer.vocab_size)
+    if asdict(model.config) != asdict(checkpoint_config):
         raise ValueError("resume checkpoint config does not match requested transformer config")
+    if not tokenizer.extends(checkpoint_tokenizer):
+        raise ValueError(
+            "resume checkpoint tokenizer is not an append-only prefix of "
+            "the admitted training tokenizer"
+        )
+    if tokenizer.vocab_size > checkpoint_tokenizer.vocab_size:
+        model.resize_vocab(tokenizer.vocab_size)
     return model, {
         "resumed": True,
         "resume_checkpoint": str(args.resume_checkpoint),
+        "tokenizer_extended": tokenizer.vocab_size > checkpoint_tokenizer.vocab_size,
+        "previous_vocab_size": checkpoint_tokenizer.vocab_size,
+        "vocab_size": tokenizer.vocab_size,
+        "added_tokens": tokenizer.tokens[checkpoint_tokenizer.vocab_size :],
     }
 
 
@@ -89,7 +98,7 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
     ensure_curriculum(args.corpus, args.valid)
     train_text = args.corpus.read_text(encoding="utf-8")
     valid_text = args.valid.read_text(encoding="utf-8")
-    tokenizer = CharTokenizer.train(train_text)
+    tokenizer = training_tokenizer(args, train_text, model_cls)
     train_ids = tokenizer.encode(train_text)
     valid_ids = tokenizer.encode(valid_text)
     model, resume_metadata = initialize_transformer_for_training_command(args, tokenizer, model_cls)
@@ -187,6 +196,19 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
         handle.write("\n")
     print(f"saved {checkpoint_path}")
     return metrics
+
+
+def training_tokenizer(
+    args: argparse.Namespace,
+    train_text: str,
+    model_cls: Any,
+) -> CharTokenizer:
+    if args.resume_checkpoint is None:
+        return CharTokenizer.train(train_text)
+    _model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
+    if checkpoint_tokenizer is None:
+        raise ValueError("resume checkpoint does not contain a tokenizer")
+    return checkpoint_tokenizer.extend(train_text)
 
 
 def eval_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[str, Any]:

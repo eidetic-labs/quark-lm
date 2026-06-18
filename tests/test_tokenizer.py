@@ -35,6 +35,13 @@ class TokenizerTest(unittest.TestCase):
         )
         self.assertEqual(extended.decode(extended.encode("bad!")), "bad!")
         self.assertNotIn("!", tokenizer.stoi)
+        self.assertTrue(extended.extends(tokenizer))
+
+    def test_extends_rejects_remapped_existing_vocabulary(self) -> None:
+        tokenizer = CharTokenizer.train("ba")
+        remapped = CharTokenizer.train("ba!")
+
+        self.assertFalse(remapped.extends(tokenizer))
 
 
 if __name__ == "__main__":
