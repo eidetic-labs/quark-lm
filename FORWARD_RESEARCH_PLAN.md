@@ -238,8 +238,9 @@ blocked, pending, or matched.
 The current experimental layer adds minimal PyTorch-style forward parity for
 the simplest one-layer profile using the optional runtime surface. It covers the
 default scalar path plus post-layer norm, pre-layer norm, and pre-RMSNorm
-fixtures. More advanced profiles, real training, and optimizer behavior each
-require separate parity gates before they can count as model-quality evidence.
+fixtures, with gated MLP parity added as the next profile mechanic. More
+advanced profiles, real training, and optimizer behavior each require separate
+parity gates before they can count as model-quality evidence.
 
 ## Current QuarkLM Diagnosis
 

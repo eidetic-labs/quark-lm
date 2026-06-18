@@ -74,9 +74,7 @@ def _feed_forward(
     runtime: dict[str, Any],
 ) -> Any:
     ff_input = _feed_forward_input(hidden, weights, config, torch, runtime)
-    ff_hidden = torch.tanh(
-        torch_linear(ff_input, weights["w1"], weights["b1"], torch, runtime)
-    )
+    ff_hidden = _feed_forward_hidden(ff_input, weights, config, torch, runtime)
     ff_out = torch_linear(ff_hidden, weights["w2"], weights["b2"], torch, runtime)
     residual = hidden if config.get("use_pre_layer_norm") else ff_input
     block_out = residual + ff_out
@@ -88,6 +86,24 @@ def _feed_forward(
             config["layer_norm_epsilon"],
         )
     return block_out
+
+
+def _feed_forward_hidden(
+    ff_input: Any,
+    weights: dict[str, Any],
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+) -> Any:
+    ff_hidden = torch.tanh(
+        torch_linear(ff_input, weights["w1"], weights["b1"], torch, runtime)
+    )
+    if not config.get("use_gated_mlp"):
+        return ff_hidden
+    ff_gate = torch.tanh(
+        torch_linear(ff_input, weights["w_gate"], weights["b_gate"], torch, runtime)
+    )
+    return ff_hidden * ff_gate
 
 
 def _feed_forward_input(
