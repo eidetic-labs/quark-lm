@@ -80,21 +80,25 @@ def build_torch_training_replay_parity_gate(
             "replay_buffer",
             probes.get("accumulation_replay_buffer_comparison", {}),
             TORCH_REPLAY_BUFFER_MATCHED_STATUS,
+            ["buffered_gradient_parity_proven"],
         ),
         _passed_probe_check(
             "replay_update",
             probes.get("accumulation_replay_update_comparison", {}),
             TORCH_REPLAY_UPDATE_MATCHED_STATUS,
+            ["optimizer_update_parity_proven"],
         ),
         _passed_probe_check(
             "replay_final_evaluation",
             probes.get("accumulation_replay_final_evaluation", {}),
             TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS,
+            ["final_logit_parity_proven", "final_loss_parity_proven"],
         ),
         _passed_probe_check(
             "replay_checkpoint",
             probes.get("accumulation_replay_checkpoint_compatibility", {}),
             TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
+            ["checkpoint_parity_proven"],
         ),
     ]
     passed = all(check["passed"] for check in checks)
@@ -175,13 +179,23 @@ def _passed_probe_check(
     name: str,
     probe: dict[str, Any],
     expected_status: str,
+    required_proof_flags: list[str],
 ) -> dict[str, Any]:
     actual_status = probe.get("status")
+    proof_flags = {
+        flag: probe.get(flag) is True
+        for flag in required_proof_flags
+    }
     return {
         "name": name,
-        "passed": bool(probe.get("passed")) and actual_status == expected_status,
+        "passed": (
+            bool(probe.get("passed"))
+            and actual_status == expected_status
+            and all(proof_flags.values())
+        ),
         "expected": expected_status,
         "status": actual_status,
+        "proof_flags": proof_flags,
     }
 
 

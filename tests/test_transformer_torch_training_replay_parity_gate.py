@@ -133,6 +133,40 @@ class TransformerTorchTrainingReplayParityGateTests(unittest.TestCase):
                 self.assertFalse(gate["passed"])
                 self.assertEqual(gate["summary"]["failed_checks"], [failed_check])
 
+    def test_gate_rejects_matched_probe_without_proof_flag(self) -> None:
+        probe_cases = {
+            "accumulation_replay_buffer_comparison": (
+                "buffered_gradient_parity_proven",
+                "replay_buffer",
+            ),
+            "accumulation_replay_update_comparison": (
+                "optimizer_update_parity_proven",
+                "replay_update",
+            ),
+            "accumulation_replay_final_evaluation": (
+                "final_loss_parity_proven",
+                "replay_final_evaluation",
+            ),
+            "accumulation_replay_checkpoint_compatibility": (
+                "checkpoint_parity_proven",
+                "replay_checkpoint",
+            ),
+        }
+        for probe_key, (proof_flag, failed_check) in probe_cases.items():
+            with self.subTest(probe_key=probe_key, proof_flag=proof_flag):
+                probes = _matching_probes()
+                probes[probe_key][proof_flag] = False
+
+                gate = build_torch_training_replay_parity_gate(
+                    runtime=_runtime(),
+                    readiness=_readiness("ready"),
+                    probes=probes,
+                )
+
+                self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PENDING_STATUS)
+                self.assertFalse(gate["passed"])
+                self.assertEqual(gate["summary"]["failed_checks"], [failed_check])
+
     def test_gate_rejects_test_double_runtime(self) -> None:
         gate = build_torch_training_replay_parity_gate(
             runtime=_runtime(runtime_kind=TORCH_RUNTIME_KIND_TEST_DOUBLE),
@@ -195,21 +229,22 @@ def _matching_probes() -> dict:
         "accumulation_replay_buffer_comparison": {
             "passed": True,
             "status": "replay_buffer_signature_matched",
+            "buffered_gradient_parity_proven": True,
         },
         "accumulation_replay_update_comparison": {
             "passed": True,
             "status": "replay_update_signature_matched",
+            "optimizer_update_parity_proven": True,
         },
         "accumulation_replay_final_evaluation": {
             "passed": True,
             "status": "replay_final_evaluation_matched",
+            "final_logit_parity_proven": True,
+            "final_loss_parity_proven": True,
         },
         "accumulation_replay_checkpoint_compatibility": {
             "passed": True,
             "status": "replay_checkpoint_compatible",
+            "checkpoint_parity_proven": True,
         },
     }
-
-
-if __name__ == "__main__":
-    unittest.main()

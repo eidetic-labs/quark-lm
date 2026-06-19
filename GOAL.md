@@ -79,6 +79,8 @@ reference.
   does not mean promoted training.
 - Require aggregate replay checks to be status-aware: `passed: true` is not
   enough unless the probe also reports the expected matched status.
+- Require aggregate replay checks to be proof-flag-aware: each matched replay
+  probe must also expose its explicit parity proof flag.
 - Require replay-control count consistency: planned, executed, backward,
   matched-gradient, mismatched-gradient, and microstep-record counts must agree.
 - Distinguish real PyTorch from test doubles in runtime evidence. Test doubles
