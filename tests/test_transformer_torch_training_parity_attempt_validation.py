@@ -114,7 +114,10 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
 
     def test_validator_rejects_stale_next_requirements_runtime_status(self) -> None:
         attempt = _attempt()
-        attempt["next_requirements"]["runtime_status"] = "training_parity_matched"
+        attempt["next_requirements"]["runtime_status"] = "blocked_dtype_unavailable"
+        attempt["next_requirements"]["next_actions"] = [
+            "request_available_pytorch_dtype"
+        ]
 
         with self.assertRaisesRegex(ValueError, "runtime_status"):
             validate_torch_training_parity_attempt(attempt)

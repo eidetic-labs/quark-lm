@@ -136,7 +136,9 @@ reference.
   requirements artifact must provide standalone validation and a public stage
   catalog so next-action routing can be checked without validating a full
   attempt bundle. Stage/action consistency must be validated so well-shaped
-  artifacts cannot route blockers through the wrong remediation path.
+  artifacts cannot route blockers through the wrong remediation path. Runtime
+  preflight actions must come from one canonical status-to-action map that the
+  standalone validator also checks.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

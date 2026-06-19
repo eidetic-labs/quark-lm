@@ -6,6 +6,7 @@ from typing import Any
 
 from transformer_torch_training_parity_attempt_requirements import (
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
@@ -38,11 +39,6 @@ def validate_torch_training_parity_attempt_requirements(
         requirements["primary_blockers"] or requirements["next_actions"]
     ):
         raise ValueError("next_requirements.complete actions must be empty")
-    _validate_stage_routing(
-        stage=stage,
-        primary_blockers=requirements["primary_blockers"],
-        next_actions=requirements["next_actions"],
-    )
     _require_keys(
         requirements,
         (
@@ -52,6 +48,12 @@ def validate_torch_training_parity_attempt_requirements(
             "training_replay_parity_status",
             "training_report_passed",
         ),
+    )
+    _validate_stage_routing(
+        stage=stage,
+        primary_blockers=requirements["primary_blockers"],
+        next_actions=requirements["next_actions"],
+        runtime_status=requirements["runtime_status"],
     )
     if not isinstance(requirements["parity_attempt_allowed"], bool):
         raise ValueError("next_requirements.parity_attempt_allowed must be a bool")
@@ -64,6 +66,7 @@ def _validate_stage_routing(
     stage: str,
     primary_blockers: list[str],
     next_actions: list[str],
+    runtime_status: Any,
 ) -> None:
     if stage == "complete":
         return
@@ -76,6 +79,12 @@ def _validate_stage_routing(
             raise ValueError("next_requirements.runtime action count is invalid")
         if next_actions[0] not in TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS:
             raise ValueError("next_requirements.runtime action is unsupported")
+        expected_action = TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS.get(
+            runtime_status,
+            "fix_pytorch_runtime_preflight",
+        )
+        if next_actions[0] != expected_action:
+            raise ValueError("next_requirements.runtime action is inconsistent")
         return
     expected_actions = [
         f"{_action_prefix(stage)}:{blocker}" for blocker in primary_blockers

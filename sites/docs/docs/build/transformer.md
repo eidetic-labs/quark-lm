@@ -115,6 +115,8 @@ artifact also has standalone validation and a public stage catalog so
 next-action routing can be checked without validating a full attempt bundle.
 Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
+Runtime preflight actions come from a canonical status-to-action map that the
+standalone validator also checks.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

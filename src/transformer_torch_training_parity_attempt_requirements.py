@@ -24,6 +24,11 @@ TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS = (
     "request_available_pytorch_dtype",
     "fix_pytorch_runtime_preflight",
 )
+TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS = {
+    "blocked_runtime_unavailable": "install_real_pytorch_runtime",
+    "blocked_test_double_runtime": "run_again_with_real_pytorch_runtime",
+    "blocked_dtype_unavailable": "request_available_pytorch_dtype",
+}
 
 
 def build_torch_training_parity_attempt_requirements(
@@ -124,13 +129,12 @@ def _runtime_blockers(runtime_report: dict[str, Any]) -> list[str]:
 
 def _runtime_next_actions(runtime_report: dict[str, Any]) -> list[str]:
     status = runtime_report.get("status")
-    if status == "blocked_runtime_unavailable":
-        return ["install_real_pytorch_runtime"]
-    if status == "blocked_test_double_runtime":
-        return ["run_again_with_real_pytorch_runtime"]
-    if status == "blocked_dtype_unavailable":
-        return ["request_available_pytorch_dtype"]
-    return ["fix_pytorch_runtime_preflight"]
+    return [
+        TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS.get(
+            status,
+            "fix_pytorch_runtime_preflight",
+        )
+    ]
 
 
 def _readiness_status(readiness: dict[str, Any]) -> str:

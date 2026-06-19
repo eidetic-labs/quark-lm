@@ -12,6 +12,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
@@ -65,6 +66,12 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertIn(
             "install_real_pytorch_runtime",
             TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS[
+                "blocked_runtime_unavailable"
+            ],
+            "install_real_pytorch_runtime",
         )
         validate_torch_training_parity_attempt_requirements(requirements)
 
