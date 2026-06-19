@@ -63,7 +63,7 @@ class TransformerTorchTrainingParityAttemptCliTests(unittest.TestCase):
         self.assertFalse(audit["passed"])
         self.assertEqual(audit["status"], "artifact_set_invalid")
         self.assertEqual(audit["error_type"], "ValueError")
-        self.assertIn("artifact_hashes", audit["error"])
+        self.assertIn("attempt.candidate", audit["error"])
 
 
 def _artifacts() -> dict:

@@ -131,22 +131,23 @@ reference.
   corpus, runtime, candidate, replay-gate, and report summary shapes. The
   next-requirements diagnosis must also rebuild from the candidate runtime
   report, candidate, and report. The persisted corpus summary must match the
-  scalar fixture and candidate backend corpus hash. Compact runtime summaries
-  must carry a SHA-256 hash of the embedded runtime report, written summaries
-  must carry SHA-256 payload hashes for sibling artifacts, and written attempt
-  directories must reload through the same validation contract before the writer
-  returns; recorded artifact paths must resolve to the loaded
-  files, and the CLI must audit an existing attempt directory without
-  rebuilding it. Verification must emit a compact pass/fail audit result for
-  loop automation instead of requiring consumers to parse loader exceptions,
+  scalar fixture and candidate backend corpus hash. Compact runtime, candidate,
+  replay-gate, and report summaries must carry SHA-256 hashes of the full
+  evidence payloads they summarize, written summaries must carry SHA-256 payload
+  hashes for sibling artifacts, and written attempt directories must reload
+  through the same validation contract before the writer returns; recorded
+  artifact paths must resolve to the loaded files, and the CLI must audit an
+  existing attempt directory without rebuilding it. Verification must emit a
+  compact pass/fail audit result for loop automation instead of requiring
+  consumers to parse loader exceptions,
   and that compact result must have standalone validation for status, error,
   routing, promotion, and artifact-file-map fields.
   The optional public backend surface must expose the written-attempt file map,
-  hash algorithm, artifact hash builder, runtime-report hash builder, loader,
-  compact summary validator, compact audit-result builder, validator, and
-  status catalog, candidate validator, candidate key catalog,
-  backend-promotion-gate validator, runtime-report validator, status catalog,
-  check catalog, and evidence-scope constant so contributors inspect the
+  hash algorithm, artifact hash builder, runtime-report hash builder, attempt
+  payload hash builder, loader, compact summary validator, compact audit-result
+  builder, validator, and status catalog, candidate validator, candidate key
+  catalog, backend-promotion-gate validator, runtime-report validator, status
+  catalog, check catalog, and evidence-scope constant so contributors inspect the
   persisted audit contract without private module paths. Each
   `next_requirements` summary must be a typed artifact with an explicit kind
   and schema version, and that contract must also be available from the

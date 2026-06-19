@@ -109,10 +109,11 @@ readiness, replay gate, and training-case routing have standalone validation.
 The backend-promotion gate has standalone validation for schema, check catalog,
 blocker derivation, boundary state, and required future gate catalog.
 Standalone summary validation checks compact corpus, runtime, candidate,
-replay-gate, and report summary shapes. Compact runtime summaries now carry a
-SHA-256 hash of the embedded runtime report, written summaries carry SHA-256
-payload hashes for sibling artifacts, and the persisted corpus summary must
-match the scalar fixture and candidate backend corpus hash.
+replay-gate, and report summary shapes. Compact runtime, candidate,
+replay-gate, and report summaries now carry SHA-256 hashes of the full evidence
+payloads they summarize, written summaries carry SHA-256 payload hashes for
+sibling artifacts, and the persisted corpus summary must match the scalar
+fixture and candidate backend corpus hash.
 Written attempt directories are reloaded through the same validation contract
 before the writer returns. The same command can run with
 `--verify-existing` to audit a written attempt directory without
@@ -122,11 +123,12 @@ failure reasons without parsing loader exceptions. The compact result has
 standalone validation for its status, error, routing, promotion, and
 artifact-file-map fields. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface also exposes the written-attempt file
-map, hash algorithm, artifact hash builder, runtime-report hash builder, loader,
-compact summary validator, compact audit-result builder, validator, and status
-catalog plus the backend-promotion-gate validator, candidate validator, and
-candidate key catalog plus the runtime-report validator, status catalog, check
-catalog, and evidence-scope constant so contributors can inspect the same
+map, hash algorithm, artifact hash builder, runtime-report hash builder,
+attempt payload hash builder, loader, compact summary validator, compact
+audit-result builder, validator, and status catalog plus the
+backend-promotion-gate validator, candidate validator, and candidate key catalog
+plus the runtime-report validator, status catalog, check catalog, and
+evidence-scope constant so contributors can inspect the same
 persisted audit contract without reaching through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and that contract is available from the optional public backend

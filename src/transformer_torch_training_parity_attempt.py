@@ -20,11 +20,14 @@ from transformer_torch_training_parity_attempt_artifact_set import (
     validate_torch_training_parity_attempt_artifact_set,
 )
 from transformer_torch_training_candidate import build_torch_training_parity_candidate
-from transformer_torch_training_parity_attempt_hashes import (
-    build_torch_runtime_report_hash,
-)
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
+)
+from transformer_torch_training_parity_attempt_summaries import (
+    build_torch_attempt_candidate_summary,
+    build_torch_attempt_replay_gate_summary,
+    build_torch_attempt_report_summary,
+    build_torch_attempt_runtime_summary,
 )
 from transformer_torch_training_parity_attempt_writer import (
     write_torch_training_parity_attempt,
@@ -157,10 +160,12 @@ def _attempt_summary(
         "promoted_training_backend": False,
         "evidence_scope": "training_parity_attempt_only",
         "corpus": _corpus_summary(corpus_dir, curriculum_manifest, train_text),
-        "runtime": _runtime_summary(runtime_report),
-        "candidate": _candidate_summary(candidate),
-        "training_replay_parity_gate": _gate_summary(gate),
-        "training_parity_report": _report_summary(report),
+        "runtime": build_torch_attempt_runtime_summary(runtime_report),
+        "candidate": build_torch_attempt_candidate_summary(candidate),
+        "training_replay_parity_gate": build_torch_attempt_replay_gate_summary(
+            gate
+        ),
+        "training_parity_report": build_torch_attempt_report_summary(report),
         "training_backend_promotion_gate": build_torch_training_backend_promotion_gate(
             candidate=candidate,
             report=report,
@@ -197,46 +202,6 @@ def _corpus_summary(
         "train_sha256": _text_hash(train_text),
         "train_chars": len(train_text),
         "manifest": dict(manifest),
-    }
-
-
-def _runtime_summary(runtime_report: dict[str, Any]) -> dict[str, Any]:
-    runtime = runtime_report.get("runtime", {})
-    return {
-        "status": runtime_report.get("status"),
-        "passed": runtime_report.get("passed"),
-        "parity_attempt_allowed": runtime_report.get("parity_attempt_allowed"),
-        "runtime_kind": runtime.get("runtime_kind"),
-        "device": runtime.get("device"),
-        "dtype": runtime.get("dtype"),
-        "runtime_report_sha256": build_torch_runtime_report_hash(runtime_report),
-    }
-
-
-def _candidate_summary(candidate: dict[str, Any]) -> dict[str, Any]:
-    backend = candidate.get("backend", {})
-    return {
-        "implementation_status": candidate.get("implementation_status"),
-        "parity_status": backend.get("parity_status"),
-        "training_readiness_status": candidate.get("training_readiness", {}).get(
-            "status"
-        ),
-        "training_case_status": candidate.get("training_case", {}).get("status"),
-    }
-
-
-def _gate_summary(gate: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "status": gate.get("status"),
-        "passed": gate.get("passed"),
-        "failed_checks": gate.get("summary", {}).get("failed_checks", []),
-    }
-
-
-def _report_summary(report: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "passed": report.get("passed"),
-        "failed_checks": report.get("summary", {}).get("failed_checks", []),
     }
 
 

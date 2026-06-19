@@ -32,6 +32,7 @@ from transformer_torch_training_parity_attempt_audit_validation import (
 from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_runtime_report_hash,
+    build_torch_training_attempt_payload_hash,
     build_torch_training_parity_attempt_hashes,
 )
 from transformer_torch_training_parity_attempt_reader import (
@@ -121,6 +122,7 @@ __all__ = [
     "build_torch_training_backward_probe",
     "build_torch_training_initial_loss_probe",
     "build_torch_runtime_report_hash",
+    "build_torch_training_attempt_payload_hash",
     "build_torch_training_parity_attempt_audit",
     "build_torch_training_parity_attempt_hashes",
     "build_torch_training_parity_attempt_requirements",

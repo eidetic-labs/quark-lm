@@ -205,10 +205,11 @@ Working tagline: Big idea. Tiny package.
   required future gate catalog. Standalone summary validation checks compact
   corpus, runtime, candidate, replay-gate, and report summary shapes. The
   next-requirements diagnosis must also rebuild from the candidate runtime
-  report, candidate, and report. Compact runtime summaries now carry a SHA-256
-  hash of the embedded runtime report, written summaries carry SHA-256 payload
-  hashes for sibling artifacts, and the persisted corpus summary must match the
-  scalar fixture and candidate backend corpus hash.
+  report, candidate, and report. Compact runtime, candidate, replay-gate, and
+  report summaries now carry SHA-256 hashes of the full evidence payloads they
+  summarize, written summaries carry SHA-256 payload hashes for sibling
+  artifacts, and the persisted corpus summary must match the scalar fixture and
+  candidate backend corpus hash.
   Written attempt directories are reloaded through the same validation contract
   before the writer returns. Recorded artifact paths must resolve to the loaded
   files, and the CLI can audit an existing attempt directory with
@@ -218,8 +219,9 @@ Working tagline: Big idea. Tiny package.
   loader exceptions. That compact result now has standalone validation for its
   status, error, routing, promotion, and artifact-file-map fields. The optional
   public backend surface exposes the written-attempt file map, hash algorithm,
-  artifact hash builder, runtime-report hash builder, loader, compact summary
-  validator, compact audit-result builder, validator, and status catalog,
+  artifact hash builder, runtime-report hash builder, attempt payload hash
+  builder, loader, compact summary validator, compact audit-result builder,
+  validator, and status catalog,
   backend-promotion-gate validator, candidate validator, candidate key catalog,
   runtime-report validator, runtime-report status catalog, check catalog, and
   evidence-scope constant so contributors can inspect the same persisted audit

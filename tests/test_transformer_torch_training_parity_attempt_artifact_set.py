@@ -23,6 +23,9 @@ from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_training_parity_attempt_hashes,
 )
+from transformer_torch_training_parity_attempt_summaries import (
+    build_torch_attempt_candidate_summary,
+)
 from transformer_torch_training_parity_attempt_reader import (
     load_torch_training_parity_attempt_artifact_set,
 )
@@ -70,6 +73,9 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
     def test_validator_rejects_report_not_rebuilt_from_candidate(self) -> None:
         artifacts = _artifacts()
         artifacts["candidate"]["training_case"]["final_loss"] = 0.125
+        artifacts["attempt"]["candidate"] = build_torch_attempt_candidate_summary(
+            artifacts["candidate"]
+        )
 
         with self.assertRaisesRegex(ValueError, "artifacts.report"):
             validate_torch_training_parity_attempt_artifact_set(artifacts)
@@ -171,7 +177,7 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
             candidate["unvalidated_extra_field"] = "drift"
             _write_json(candidate_path, candidate)
 
-            with self.assertRaisesRegex(ValueError, "artifact_hashes"):
+            with self.assertRaisesRegex(ValueError, "attempt.candidate"):
                 load_torch_training_parity_attempt_artifact_set(Path(temp))
 
     def test_loader_rejects_stale_recorded_artifact_path(self) -> None:
@@ -207,7 +213,7 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
         writer_module.write_json_artifact = corrupting_write
         try:
             with tempfile.TemporaryDirectory() as temp:
-                with self.assertRaisesRegex(ValueError, "artifact_hashes"):
+                with self.assertRaisesRegex(ValueError, "attempt.candidate"):
                     writer_module.write_torch_training_parity_attempt(
                         Path(temp),
                         artifacts,

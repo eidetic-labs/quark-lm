@@ -51,17 +51,24 @@ def _validate_candidate_summary(candidate: dict[str, Any]) -> None:
         "training_case_status",
     ):
         _require_non_empty_string(candidate, "candidate", key)
+    _require_sha256(candidate, "candidate", "candidate_sha256")
 
 
 def _validate_gate_summary(name: str, gate: dict[str, Any]) -> None:
     _require_non_empty_string(gate, name, "status")
     _require_bool(gate, name, "passed")
     _require_string_list(gate, name, "failed_checks")
+    _require_sha256(gate, name, "training_replay_parity_gate_sha256")
 
 
 def _validate_report_summary(report: dict[str, Any]) -> None:
     _require_bool(report, "training_parity_report", "passed")
     _require_string_list(report, "training_parity_report", "failed_checks")
+    _require_sha256(
+        report,
+        "training_parity_report",
+        "training_parity_report_sha256",
+    )
 
 
 def _require_bool(record: dict[str, Any], label: str, key: str) -> None:
