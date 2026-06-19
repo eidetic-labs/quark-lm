@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_runtime import TorchImporter
+from transformer_torch_accumulation_replay_control import (
+    build_torch_accumulation_replay_control_probe,
+)
 from transformer_torch_accumulation_replay_plan import (
     build_torch_accumulation_replay_plan,
 )
@@ -53,6 +56,7 @@ def build_torch_training_probe_artifacts(
         state=state,
         backward_probe=backward_probe,
     )
+    replay_plan = build_torch_accumulation_replay_plan(fixture=fixture)
     return {
         "training_state": _training_state_summary(state),
         "initial_loss_probe": _initial_loss_probe(
@@ -62,8 +66,13 @@ def build_torch_training_probe_artifacts(
             state=state,
         ),
         "backward_probe": backward_probe,
-        "accumulation_replay_plan": build_torch_accumulation_replay_plan(
+        "accumulation_replay_plan": replay_plan,
+        "accumulation_replay_control_probe": _accumulation_replay_control_probe(
             fixture=fixture,
+            importer=importer,
+            readiness=readiness,
+            replay_plan=replay_plan,
+            runtime=runtime,
         ),
         "optimizer_step_probe": optimizer_step_probe,
         "optimizer_step_execution_probe": _optimizer_step_execution_probe(
@@ -140,6 +149,30 @@ def _backward_probe(
         torch=importer("torch"),
         runtime=runtime,
         state=state,
+    )
+
+
+def _accumulation_replay_control_probe(
+    *,
+    fixture: dict[str, Any],
+    importer: TorchImporter,
+    readiness: dict[str, Any],
+    replay_plan: dict[str, Any],
+    runtime: dict[str, Any],
+) -> dict[str, Any]:
+    state = _training_state(
+        fixture=fixture,
+        importer=importer,
+        readiness=readiness,
+        runtime=runtime,
+    )
+    torch = importer("torch") if state is not None else None
+    return build_torch_accumulation_replay_control_probe(
+        fixture=fixture,
+        state=state,
+        torch=torch,
+        runtime=runtime,
+        replay_plan=replay_plan,
     )
 
 

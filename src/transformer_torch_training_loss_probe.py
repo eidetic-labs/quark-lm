@@ -5,9 +5,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from transformer_torch_minimal_block import torch_minimal_logits
 from transformer_torch_tensor_ops import torch_to_list
-from transformer_torch_training_state import torch_training_weights_from_state
+from transformer_torch_training_loss import build_torch_training_logits
 
 
 TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION = 1
@@ -23,15 +22,12 @@ def build_torch_training_initial_loss_probe(
     """Compute initial logits and loss from trainable tensors."""
 
     case = fixture["training_case"]
-    weights = torch_training_weights_from_state(fixture=fixture, state=state)
-    logits = torch_minimal_logits(
-        case["context"],
-        {
-            "weights": weights,
-            "model_config": fixture["model_config"],
-        },
-        torch,
-        runtime,
+    logits = build_torch_training_logits(
+        fixture=fixture,
+        state=state,
+        torch=torch,
+        runtime=runtime,
+        context=case["context"],
     )
     logits_list = torch_to_list(logits)
     probabilities = torch_to_list(torch.softmax(logits, dim=0))

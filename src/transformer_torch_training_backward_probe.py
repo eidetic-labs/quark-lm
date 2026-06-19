@@ -5,9 +5,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from transformer_torch_minimal_block import torch_minimal_logits
 from transformer_torch_tensor_ops import torch_to_float
-from transformer_torch_training_state import torch_training_weights_from_state
+from transformer_torch_training_loss import build_torch_training_loss_tensor
 
 
 TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION = 1
@@ -24,7 +23,14 @@ def build_torch_training_backward_probe(
 
     case = fixture["training_case"]
     _clear_gradients(state)
-    loss = _loss_tensor(fixture=fixture, state=state, torch=torch, runtime=runtime)
+    loss = build_torch_training_loss_tensor(
+        fixture=fixture,
+        state=state,
+        torch=torch,
+        runtime=runtime,
+        context=case["context"],
+        target=case["target"],
+    )
     if not callable(getattr(loss, "backward", None)):
         return _probe_result(
             fixture=fixture,
@@ -39,28 +45,6 @@ def build_torch_training_backward_probe(
         loss_value=torch_to_float(loss),
         gradient_summary=_gradient_summary(state),
     )
-
-
-def _loss_tensor(
-    *,
-    fixture: dict[str, Any],
-    state: dict[str, Any],
-    torch: Any,
-    runtime: dict[str, Any],
-) -> Any:
-    case = fixture["training_case"]
-    weights = torch_training_weights_from_state(fixture=fixture, state=state)
-    logits = torch_minimal_logits(
-        case["context"],
-        {
-            "weights": weights,
-            "model_config": fixture["model_config"],
-        },
-        torch,
-        runtime,
-    )
-    probabilities = torch.softmax(logits, dim=0)
-    return -torch.log(probabilities[case["target"]])
 
 
 def _probe_result(

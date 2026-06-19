@@ -50,6 +50,9 @@ reference.
   must be recorded as pending requirements before training parity can advance.
 - Carry a PyTorch accumulation replay plan in candidate artifacts; the plan is
   a microstep recipe, not evidence that replayed backward passes have run.
+- Keep replay-control evidence scoped: recorded PyTorch microstep backward
+  control does not prove buffered-gradient math, optimizer updates, final
+  logits, or final loss parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

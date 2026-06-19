@@ -313,10 +313,13 @@ accumulation replay plan: a per-microstep recipe for context, target, loss
 scale, clipping, buffer action, reduction, optimizer step, and zero-grad
 placement. The replay plan is not execution evidence; it explicitly marks
 accumulated-gradient parity unproven until those backward passes run and match
-scalar training evidence. This is still not full PyTorch training parity: it
-does not yet prove accumulated-gradient numerical equivalence, final logits,
-final loss, or checkpoint compatibility. The next implementation layer is
-matching those numerical update effects against scalar training evidence.
+scalar training evidence. The current replay-control probe runs the planned
+microstep loss/backward control on a fresh tensor state and records that no
+optimizer updates are applied. That is still not full PyTorch training parity:
+it does not yet prove buffered-gradient numerical equivalence, optimizer
+updates, final logits, final loss, or checkpoint compatibility. The next
+implementation layer is matching those numerical update effects against scalar
+training evidence.
 
 ## Current QuarkLM Diagnosis
 
