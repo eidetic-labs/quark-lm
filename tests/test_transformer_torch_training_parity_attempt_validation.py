@@ -94,6 +94,20 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "next_requirements.stage"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_stale_next_requirements_schema(self) -> None:
+        attempt = _attempt()
+        attempt["next_requirements"]["schema_version"] = 0
+
+        with self.assertRaisesRegex(ValueError, "next_requirements.schema_version"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_next_requirements_kind(self) -> None:
+        attempt = _attempt()
+        attempt["next_requirements"]["kind"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "next_requirements.kind"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_validator_rejects_stale_next_requirements_runtime_status(self) -> None:
         attempt = _attempt()
         attempt["next_requirements"]["runtime_status"] = "training_parity_matched"

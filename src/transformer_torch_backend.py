@@ -139,6 +139,11 @@ from transformer_torch_training_parity_attempt_reader import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     load_torch_training_parity_attempt_artifact_set,
 )
+from transformer_torch_training_parity_attempt_requirements import (
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+    build_torch_training_parity_attempt_requirements,
+)
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_BLOCKED_STATUS,
     TORCH_TRAINING_PENDING_STATUS,
@@ -222,6 +227,8 @@ __all__ = [
     "TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION",
     "TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM",
     "TORCH_TRAINING_PARITY_ATTEMPT_FILES",
+    "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND",
+    "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION",
     "TORCH_TRAINING_REPLAY_PARITY_STATUS",
     "TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION",
     "TORCH_TRAINING_REPLAY_MATCHED_STATUS",
@@ -255,6 +262,7 @@ __all__ = [
     "build_torch_training_parity_candidate",
     "build_torch_training_backend_promotion_gate",
     "build_torch_training_parity_attempt_hashes",
+    "build_torch_training_parity_attempt_requirements",
     "build_torch_training_replay_parity_gate",
     "build_torch_training_readiness",
     "load_torch_training_parity_attempt_artifact_set",

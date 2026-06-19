@@ -7,6 +7,12 @@ from typing import Any
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
+TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND = (
+    "transformer_torch_training_parity_attempt_requirements"
+)
+TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION = 1
+
+
 def build_torch_training_parity_attempt_requirements(
     *,
     runtime_report: dict[str, Any],
@@ -84,6 +90,8 @@ def _requirements(
     gate = candidate.get("training_replay_parity_gate", {})
     readiness = candidate.get("training_readiness", {})
     return {
+        "schema_version": TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+        "kind": TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
         "stage": stage,
         "status": status,
         "primary_blockers": primary_blockers,

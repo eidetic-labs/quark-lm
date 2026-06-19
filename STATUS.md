@@ -203,7 +203,9 @@ Working tagline: Big idea. Tiny package.
   without rebuilding it. The optional public backend surface exposes the
   written-attempt file map, hash algorithm, hash builder, and loader so
   contributors can inspect the same persisted audit contract without reaching
-  through private module paths.
+  through private module paths. Each `next_requirements` summary is now a typed
+  artifact with an explicit kind and schema version, and the public backend
+  surface exposes that contract for loop consumers.
 
 ## Research Grounding
 

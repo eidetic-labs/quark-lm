@@ -403,7 +403,10 @@ also audit an existing attempt directory with `--verify-existing` without
 rebuilding it. Recorded artifact paths must resolve to the loaded files. The
 optional public backend surface exposes the written-attempt file map, hash
 algorithm, hash builder, and loader so contributors can inspect the persisted
-audit contract without reaching through private module paths.
+audit contract without reaching through private module paths. Each
+`next_requirements` summary is now a typed artifact with an explicit kind and
+schema version, and the public backend surface exposes that contract for loop
+consumers.
 
 ## Current QuarkLM Diagnosis
 

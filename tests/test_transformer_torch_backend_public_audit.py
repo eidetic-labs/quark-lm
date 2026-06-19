@@ -11,7 +11,10 @@ sys.path.insert(0, str(ROOT / "src"))
 from transformer_torch_backend import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
     build_torch_training_parity_attempt_hashes,
+    build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
 )
 
@@ -39,6 +42,22 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
             {"fixture", "candidate", "report"},
         )
         self.assertTrue(callable(load_torch_training_parity_attempt_artifact_set))
+
+    def test_training_attempt_requirements_contract_is_public(self) -> None:
+        requirements = build_torch_training_parity_attempt_requirements(
+            runtime_report={"status": "passed", "parity_attempt_allowed": True},
+            candidate={"training_readiness": {"status": "ready"}},
+            report={"passed": True},
+        )
+
+        self.assertEqual(
+            requirements["kind"],
+            TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
+        )
+        self.assertEqual(
+            requirements["schema_version"],
+            TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+        )
 
 
 if __name__ == "__main__":

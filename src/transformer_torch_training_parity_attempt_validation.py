@@ -11,6 +11,10 @@ from transformer_torch_training_attempt_boundary import (
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
+from transformer_torch_training_parity_attempt_requirements import (
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+)
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
@@ -113,6 +117,13 @@ def _validate_next_requirements(
     requirements: dict[str, Any],
     attempt: dict[str, Any],
 ) -> None:
+    if (
+        requirements.get("schema_version")
+        != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION
+    ):
+        raise ValueError("next_requirements.schema_version is inconsistent")
+    if requirements.get("kind") != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND:
+        raise ValueError("next_requirements.kind is inconsistent")
     expected_stage, expected_status = _expected_next_requirement_state(attempt)
     if requirements.get("stage") != expected_stage:
         raise ValueError("next_requirements.stage is inconsistent")
