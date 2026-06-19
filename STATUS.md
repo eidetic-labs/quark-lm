@@ -187,6 +187,9 @@ Working tagline: Big idea. Tiny package.
 - PyTorch training parity attempts now include an explicit backend-promotion
   gate. It is expected to fail today, preserving the boundary between matched
   fixture replay parity and any future promoted/general PyTorch trainer.
+- PyTorch training parity attempt summaries are validated before being trusted
+  or written, including promotion-gate, closed-world boundary, evidence-scope,
+  and artifact-path checks.
 
 ## Research Grounding
 

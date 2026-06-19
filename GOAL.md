@@ -116,6 +116,9 @@ reference.
 - Embed an explicit PyTorch backend-promotion gate in training parity attempts;
   matched replay parity is fixture evidence only and must not silently become a
   promoted/general training backend.
+- Validate PyTorch training parity attempt summaries before trust or write so
+  promotion gate, evidence scope, closed-world boundary, and artifact paths
+  remain machine-checkable.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

@@ -6,7 +6,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-from corpus_artifacts import SCHEMA_VERSION, write_json_artifact
+from corpus_artifacts import SCHEMA_VERSION
 from curriculum import DEFAULT_CORPUS_DIR, PROJECT_DIR, build_curriculum
 from neural_char_ops import context_before
 from tokenizer import CharTokenizer
@@ -20,7 +20,15 @@ from transformer_torch_training_candidate import build_torch_training_parity_can
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
 )
-from transformer_torch_training_promotion_gate import build_torch_training_backend_promotion_gate
+from transformer_torch_training_parity_attempt_validation import (
+    validate_torch_training_parity_attempt,
+)
+from transformer_torch_training_parity_attempt_writer import (
+    write_torch_training_parity_attempt,
+)
+from transformer_torch_training_promotion_gate import (
+    build_torch_training_backend_promotion_gate,
+)
 from transformer_training_parity import (
     build_scalar_training_parity_fixture,
     build_training_parity_report,
@@ -101,35 +109,13 @@ def build_torch_training_parity_attempt(
         candidate=candidate,
         report=report,
     )
+    validate_torch_training_parity_attempt(attempt)
     return {
         "attempt": attempt,
         "fixture": fixture,
         "candidate": candidate,
         "report": report,
     }
-
-
-def write_torch_training_parity_attempt(
-    output_dir: Path,
-    artifacts: dict[str, Any],
-) -> dict[str, Any]:
-    """Write all attempt artifacts and return the path-enriched summary."""
-
-    paths = {
-        "fixture": output_dir / "scalar_training_fixture.json",
-        "candidate": output_dir / "torch_training_candidate.json",
-        "report": output_dir / "training_parity_report.json",
-        "attempt": output_dir / "torch_training_parity_attempt.json",
-    }
-    attempt = {
-        **artifacts["attempt"],
-        "artifacts": {name: str(path) for name, path in paths.items()},
-    }
-    write_json_artifact(paths["fixture"], artifacts["fixture"])
-    write_json_artifact(paths["candidate"], artifacts["candidate"])
-    write_json_artifact(paths["report"], artifacts["report"])
-    write_json_artifact(paths["attempt"], attempt)
-    return attempt
 
 
 def _context_and_target(

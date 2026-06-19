@@ -387,6 +387,9 @@ Training parity attempts now also embed a dedicated backend-promotion gate. The
 gate is intentionally not passed: it records that matched replay parity is
 fixture-level evidence only, while promoted or generalized PyTorch training
 still requires model-quality, profile, and retention gates.
+Attempt summaries are validated before they are trusted or written, so the
+promotion gate, evidence scope, closed-world boundary flags, and artifact paths
+cannot silently drift out of the PyTorch parity evidence chain.
 
 ## Current QuarkLM Diagnosis
 
