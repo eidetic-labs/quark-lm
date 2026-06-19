@@ -188,6 +188,10 @@ Working tagline: Big idea. Tiny package.
   gate. It is expected to fail today, preserving the boundary between matched
   fixture replay parity and any future promoted/general PyTorch trainer. The
   gate reports exact closed-world boundary fields when they fail.
+- PyTorch runtime preflight reports now have standalone validation for schema,
+  status, check catalog, summary counts, closed-world boundary, and eligibility
+  flags. Candidate and parity report checks compose that validator before
+  trusting embedded runtime evidence.
 - PyTorch training parity attempt summaries are validated before being trusted
   or written, including attempt status, next requirements, promotion-gate,
   closed-world boundary, evidence-scope, artifact-path, and artifact-payload
@@ -215,9 +219,10 @@ Working tagline: Big idea. Tiny package.
   public backend surface exposes the written-attempt file map, hash algorithm,
   hash builder, loader, compact summary validator, and compact audit-result
   builder, validator, and status catalog plus the backend-promotion-gate
-  validator, candidate validator, and candidate key catalog so contributors can
-  inspect the same persisted audit contract without reaching through private
-  module paths. Each
+  validator, candidate validator, candidate key catalog, runtime-report
+  validator, runtime-report status catalog, check catalog, and evidence-scope
+  constant so contributors can inspect the same persisted audit contract without
+  reaching through private module paths. Each
   `next_requirements` summary is now a typed artifact with an explicit kind and
   schema version, and the public backend surface exposes that contract for loop
   consumers. The requirements artifact also has

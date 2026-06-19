@@ -13,6 +13,9 @@ from transformer_torch_backend_core_exports import __all__ as CORE_EXPORTS
 from transformer_torch_backend_replay_exports import __all__ as REPLAY_EXPORTS
 from transformer_torch_backend_training_exports import __all__ as TRAINING_EXPORTS
 from transformer_torch_backend import (
+    TORCH_RUNTIME_REPORT_CHECKS,
+    TORCH_RUNTIME_REPORT_EVIDENCE_SCOPE,
+    TORCH_RUNTIME_REPORT_STATUSES,
     TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
     TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
@@ -30,6 +33,7 @@ from transformer_torch_backend import (
     build_torch_training_parity_attempt_audit,
     build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
+    validate_torch_runtime_report,
     validate_torch_training_backend_promotion_gate,
     validate_torch_training_parity_attempt_audit,
     validate_torch_training_parity_attempt_requirements,
@@ -50,6 +54,15 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertEqual(len(grouped_exports), len(set(grouped_exports)))
         for export_name in grouped_exports:
             self.assertTrue(hasattr(transformer_torch_backend, export_name))
+
+    def test_runtime_report_validation_contract_is_public(self) -> None:
+        self.assertTrue(callable(validate_torch_runtime_report))
+        self.assertIn("blocked_runtime_unavailable", TORCH_RUNTIME_REPORT_STATUSES)
+        self.assertEqual(
+            TORCH_RUNTIME_REPORT_CHECKS,
+            ("runtime_available", "runtime_kind", "dtype_available"),
+        )
+        self.assertEqual(TORCH_RUNTIME_REPORT_EVIDENCE_SCOPE, "runtime_preflight_only")
 
     def test_training_attempt_audit_helpers_are_public(self) -> None:
         artifacts = {

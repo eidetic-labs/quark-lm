@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from neural_char_ops import make_context
+from support.torch_runtime_report import runtime, runtime_report
 from tokenizer import CharTokenizer
 from transformer_backend_parity import (
     PARITY_FIXTURE_KIND,
@@ -176,7 +177,7 @@ def _scalar_fixture() -> dict:
 
 
 def _matching_candidate(fixture: dict) -> dict:
-    runtime = {"device": "cpu", "dtype": "float32", "runtime_kind": "test_double"}
+    torch_runtime = runtime(runtime_kind="test_double")
     return {
         "backend": transformer_backend_metadata(
             active_backend=PYTORCH_BACKEND,
@@ -187,8 +188,8 @@ def _matching_candidate(fixture: dict) -> dict:
             dtype="float32",
             parity_status="matched",
         ),
-        "runtime": runtime,
-        "runtime_report": _runtime_report(runtime, training_allowed=False),
+        "runtime": torch_runtime,
+        "runtime_report": runtime_report(torch_runtime, training_allowed=False),
         "forward_cases": [
             {
                 "case_id": case["case_id"],
@@ -206,29 +207,6 @@ def _matching_candidate(fixture: dict) -> dict:
             }
             for case in fixture["generation_cases"]
         ],
-    }
-
-
-def _runtime_report(runtime: dict, *, training_allowed: bool) -> dict:
-    return {
-        "kind": "transformer_torch_runtime_report",
-        "runtime": copy.deepcopy(runtime),
-        "status": (
-            "ready_for_pytorch_parity"
-            if training_allowed
-            else "blocked_test_double_runtime"
-        ),
-        "evidence_scope": "runtime_preflight_only",
-        "parity_attempt_allowed": training_allowed,
-        "training_evidence_allowed": training_allowed,
-        "closed_world_boundary": {
-            "runtime_library_allowed": True,
-            "learned_assets_imported": False,
-            "training_data_imported": False,
-            "pretrained_weights_imported": False,
-            "pretrained_tokenizer_imported": False,
-            "external_embeddings_imported": False,
-        },
     }
 
 

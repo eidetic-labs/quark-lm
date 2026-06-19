@@ -90,7 +90,8 @@ reference.
   as model-quality training evidence.
 - Run `quark-lm-torch-runtime` or the equivalent module preflight before any
   real PyTorch parity attempt; a passing runtime report permits an attempt, not
-  promotion.
+  promotion. Runtime reports must have standalone validation for schema, status,
+  check catalog, summary counts, closed-world boundary, and eligibility flags.
 - Record PyTorch training parity attempts with an admitted-curriculum scalar
   fixture, optional PyTorch candidate, training parity report, and compact
   attempt summary; blocked runtime evidence is archived instead of promoted.
@@ -143,8 +144,9 @@ reference.
   hash algorithm, hash builder, loader, compact summary validator, and compact
   audit-result builder, validator, and status catalog plus the
   candidate validator, candidate key catalog, and backend-promotion-gate
-  validator so contributors inspect the persisted audit contract without
-  private module paths. Each
+  validator, plus the runtime-report validator, status catalog, check catalog,
+  and evidence-scope constant so contributors inspect the persisted audit
+  contract without private module paths. Each
   `next_requirements` summary must be a typed artifact with an explicit kind
   and schema version, and that contract must also be available from the
   optional public backend surface. The

@@ -19,6 +19,12 @@ from transformer_torch_runtime_report import (
     build_torch_runtime_report,
     write_torch_runtime_report,
 )
+from transformer_torch_runtime_report_validation import (
+    TORCH_RUNTIME_REPORT_CHECKS,
+    TORCH_RUNTIME_REPORT_EVIDENCE_SCOPE,
+    TORCH_RUNTIME_REPORT_STATUSES,
+    validate_torch_runtime_report,
+)
 
 
 __all__ = [
@@ -28,9 +34,13 @@ __all__ = [
     "TORCH_RUNTIME_KIND_PYTORCH",
     "TORCH_RUNTIME_KIND_TEST_DOUBLE",
     "TORCH_RUNTIME_KIND_UNAVAILABLE",
+    "TORCH_RUNTIME_REPORT_CHECKS",
+    "TORCH_RUNTIME_REPORT_EVIDENCE_SCOPE",
     "TORCH_RUNTIME_REPORT_KIND",
+    "TORCH_RUNTIME_REPORT_STATUSES",
     "build_torch_backend_parity_candidate",
     "build_torch_runtime_report",
     "torch_runtime_status",
+    "validate_torch_runtime_report",
     "write_torch_runtime_report",
 ]

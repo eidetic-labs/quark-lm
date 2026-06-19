@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_runtime_report import TORCH_RUNTIME_REPORT_KIND
+from transformer_torch_runtime_report_validation import validate_torch_runtime_report
 
 
 def build_torch_runtime_report_check(
@@ -18,6 +19,10 @@ def build_torch_runtime_report_check(
 
     if not isinstance(runtime_report, dict):
         return _failed("runtime report is missing")
+    try:
+        validate_torch_runtime_report(runtime_report)
+    except ValueError as exc:
+        return _failed(str(exc))
     require_parity_attempt_allowed = _require_parity_attempt_allowed(
         require_parity_attempt_allowed=require_parity_attempt_allowed,
         require_training_evidence_allowed=require_training_evidence_allowed,

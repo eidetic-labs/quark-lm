@@ -261,7 +261,10 @@ candidate artifacts embed the same runtime report alongside their forward or
 training evidence. Backend and training parity reports now verify that embedded
 runtime report; training parity additionally requires runtime evidence that
 allows a real PyTorch parity attempt. That runtime preflight does not prove
-model-quality training evidence or promote the PyTorch backend. The
+model-quality training evidence or promote the PyTorch backend. Runtime
+preflight reports have standalone validation for schema, status, check catalog,
+summary counts, closed-world boundary, and eligibility flags before they can
+feed candidate or parity evidence. The
 `quark-lm-torch-training-parity` attempt command now builds an
 admitted-curriculum scalar fixture, optional PyTorch training candidate,
 training parity report, and compact attempt summary. If real PyTorch is absent,
@@ -308,8 +311,9 @@ files. The optional public backend surface exposes the written-attempt file map,
 hash algorithm, hash builder, loader, compact summary validator, and compact
 audit-result builder, validator, and status catalog plus the
 backend-promotion-gate validator, candidate validator, and candidate key catalog
-so contributors can inspect the persisted audit contract without reaching
-through private module paths. Each
+plus the runtime-report validator, status catalog, check catalog, and
+evidence-scope constant so contributors can inspect the persisted audit
+contract without reaching through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and the public backend surface exposes that contract for loop
 consumers. The requirements artifact also has standalone validation and a public

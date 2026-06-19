@@ -46,7 +46,10 @@ PYTHONPATH=src python3 -m transformer_torch_runtime_report \
 
 The command exits nonzero when real PyTorch is unavailable, a test double is
 detected, or the requested dtype cannot be used. A passing report only means the
-runtime can attempt parity evidence; it does not promote PyTorch training.
+runtime can attempt parity evidence; it does not promote PyTorch training. The
+runtime report has standalone validation for schema, status, check catalog,
+summary counts, closed-world boundary, and eligibility flags before it can feed
+candidate or parity evidence.
 
 ```bash title="Record a PyTorch training parity attempt"
 PYTHONPATH=src python3 -m transformer_torch_training_parity_attempt_cli \
@@ -121,8 +124,9 @@ files. The optional public backend surface also exposes the written-attempt file
 map, hash algorithm, hash builder, loader, compact summary validator, and
 compact audit-result builder, validator, and status catalog plus the
 backend-promotion-gate validator, candidate validator, and candidate key catalog
-so contributors can inspect the same persisted audit contract without reaching
-through private module paths. Each
+plus the runtime-report validator, status catalog, check catalog, and
+evidence-scope constant so contributors can inspect the same persisted audit
+contract without reaching through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and that contract is available from the optional public backend
 surface. The requirements artifact also has standalone validation and a public
