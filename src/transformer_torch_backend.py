@@ -23,6 +23,16 @@ from transformer_torch_gradient_accumulation import (
     TORCH_GRADIENT_ACCUMULATION_SCHEMA_VERSION,
     build_torch_gradient_accumulation_report,
 )
+from transformer_torch_gradient_snapshot import (
+    TORCH_GRADIENT_SNAPSHOT_SCHEMA_VERSION,
+    snapshot_torch_gradients,
+)
+from transformer_torch_replay_gradient_comparison import (
+    TORCH_REPLAY_GRADIENT_COMPARISON_SCHEMA_VERSION,
+    TORCH_REPLAY_GRADIENT_MATCHED_STATUS,
+    TORCH_REPLAY_GRADIENT_MISMATCH_STATUS,
+    build_torch_replay_gradient_comparison,
+)
 from transformer_torch_accumulation_readiness import (
     TORCH_ACCUMULATION_PENDING_STATUS,
     TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION,
@@ -105,6 +115,10 @@ __all__ = [
     "TORCH_GRADIENT_CLIP_SCHEMA_VERSION",
     "TORCH_GRADIENT_ACCUMULATION_RECORDED_STATUS",
     "TORCH_GRADIENT_ACCUMULATION_SCHEMA_VERSION",
+    "TORCH_GRADIENT_SNAPSHOT_SCHEMA_VERSION",
+    "TORCH_REPLAY_GRADIENT_COMPARISON_SCHEMA_VERSION",
+    "TORCH_REPLAY_GRADIENT_MATCHED_STATUS",
+    "TORCH_REPLAY_GRADIENT_MISMATCH_STATUS",
     "TORCH_ACCUMULATION_PENDING_STATUS",
     "TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION",
     "TORCH_ACCUMULATION_REPLAY_CONTROL_RECORDED_STATUS",
@@ -136,6 +150,8 @@ __all__ = [
     "build_torch_adamw_expected_update",
     "build_torch_backend_parity_candidate",
     "apply_torch_gradient_value_clip",
+    "snapshot_torch_gradients",
+    "build_torch_replay_gradient_comparison",
     "build_torch_accumulation_readiness",
     "build_torch_accumulation_replay_control_probe",
     "build_torch_accumulation_replay_plan",

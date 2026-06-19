@@ -206,15 +206,19 @@ placement. The replay plan is not execution evidence; it explicitly marks
 accumulated-gradient parity unproven until those backward passes run and match
 scalar training evidence. The current replay-control probe runs the planned
 microstep loss/backward control on a fresh tensor state and records that no
-optimizer updates are applied. That is still not full PyTorch training parity:
-it does not yet prove buffered-gradient numerical equivalence, optimizer
-updates, final logits, final loss, or checkpoint compatibility. The next
-implementation layer is matching those numerical update effects against scalar
-training evidence. Scalar training fixtures now record per-step gradient-buffer
-evidence: raw gradients, clipped gradients, buffer state before and after the
-microstep, and the averaged gradient vector used when an update is applied. That
-gives the PyTorch backend a concrete numerical target for accumulated-gradient
-parity without promoting the PyTorch path yet.
+optimizer updates are applied. The replay-control probe now snapshots clipped
+PyTorch microstep gradients and compares their signatures to scalar
+clipped-gradient evidence. A mismatch is recorded as evidence, not promoted;
+buffered-gradient, optimizer-update, final-logit, and final-loss parity remain
+unproven. That is still not full PyTorch training parity: it does not yet prove
+buffered-gradient numerical equivalence, optimizer updates, final logits, final
+loss, or checkpoint compatibility. The next implementation layer is matching
+those numerical update effects against scalar training evidence. Scalar
+training fixtures now record per-step gradient-buffer evidence: raw gradients,
+clipped gradients, buffer state before and after the microstep, and the
+averaged gradient vector used when an update is applied. That gives the PyTorch
+backend a concrete numerical target for accumulated-gradient parity without
+promoting the PyTorch path yet.
 
 ## Where the sequence stands
 

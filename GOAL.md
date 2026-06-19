@@ -56,6 +56,9 @@ reference.
 - Record scalar gradient-buffer evidence in training parity fixtures so PyTorch
   can compare raw, clipped, buffered, averaged, and applied gradients before
   claiming accumulated-gradient parity.
+- Keep replay-gradient comparison scoped: clipped-gradient signature mismatches
+  block accumulated-gradient parity until PyTorch gradients match scalar
+  evidence.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

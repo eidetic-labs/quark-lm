@@ -35,6 +35,10 @@ class TransformerTorchTrainingCandidateReplayControlTests(unittest.TestCase):
             fixture["training_case"]["steps"],
         )
         self.assertEqual(probe["optimizer_updates_applied"], 0)
+        self.assertEqual(
+            probe["gradient_signature_mismatch_count"],
+            fixture["training_case"]["steps"],
+        )
         self.assertFalse(probe["accumulated_gradient_parity_proven"])
         self.assertFalse(probe["final_update_parity_proven"])
 

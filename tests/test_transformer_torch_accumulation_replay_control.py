@@ -43,8 +43,18 @@ class TransformerTorchAccumulationReplayControlTests(unittest.TestCase):
         self.assertEqual(probe["executed_microstep_count"], 2)
         self.assertEqual(probe["backward_pass_count"], 2)
         self.assertEqual(probe["optimizer_updates_applied"], 0)
+        self.assertEqual(probe["gradient_signature_match_count"], 0)
+        self.assertEqual(probe["gradient_signature_mismatch_count"], 2)
         self.assertFalse(probe["accumulated_gradient_parity_proven"])
         self.assertFalse(probe["final_update_parity_proven"])
+        self.assertEqual(
+            probe["microsteps"][0]["gradient_comparison"]["status"],
+            "replay_gradient_signature_mismatch",
+        )
+        self.assertEqual(
+            probe["microsteps"][0]["gradient_snapshot"]["signature"]["count"],
+            fixture["parameter_manifest"]["parameter_count"],
+        )
         self.assertEqual(
             probe["microsteps"][0]["clip_report"]["status"],
             "gradient_clip_applied",

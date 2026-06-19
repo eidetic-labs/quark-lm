@@ -5,8 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_gradient_clip import apply_torch_gradient_value_clip
+from transformer_torch_gradient_snapshot import snapshot_torch_gradients
 from transformer_torch_optimizer_step_probe import (
     summarize_torch_optimizer_gradients,
+)
+from transformer_torch_replay_gradient_comparison import (
+    build_torch_replay_gradient_comparison,
 )
 from transformer_torch_tensor_ops import torch_to_float
 from transformer_torch_training_loss import build_torch_training_loss_tensor
@@ -54,6 +58,16 @@ def build_torch_accumulation_replay_control_probe(
             1 for record in records if record["backward_called"]
         ),
         "optimizer_updates_applied": 0,
+        "gradient_signature_match_count": sum(
+            1
+            for record in records
+            if record["gradient_comparison"]["passed"]
+        ),
+        "gradient_signature_mismatch_count": sum(
+            1
+            for record in records
+            if not record["gradient_comparison"]["passed"]
+        ),
         "accumulated_gradient_parity_proven": False,
         "final_update_parity_proven": False,
         "microsteps": records,
@@ -79,6 +93,7 @@ def _execute_microstep(
     )
     scaled_loss = loss * microstep["loss_scale"]
     if not callable(getattr(scaled_loss, "backward", None)):
+        gradient_snapshot = snapshot_torch_gradients(state)
         return _microstep_record(
             microstep=microstep,
             status="backward_unavailable",
@@ -86,6 +101,13 @@ def _execute_microstep(
             loss_value=torch_to_float(loss),
             scaled_loss_value=torch_to_float(scaled_loss),
             clip_report=None,
+            gradient_snapshot=gradient_snapshot,
+            gradient_comparison=_gradient_comparison(
+                fixture=fixture,
+                state=state,
+                microstep=microstep,
+                gradient_snapshot=gradient_snapshot,
+            ),
             gradient_summary=summarize_torch_optimizer_gradients(
                 state=state,
                 contract=fixture["optimizer_step_contract"],
@@ -101,6 +123,7 @@ def _execute_microstep(
                 "value"
             ],
         )
+    gradient_snapshot = snapshot_torch_gradients(state)
     return _microstep_record(
         microstep=microstep,
         status="microstep_backward_recorded",
@@ -108,6 +131,13 @@ def _execute_microstep(
         loss_value=torch_to_float(loss),
         scaled_loss_value=torch_to_float(scaled_loss),
         clip_report=clip_report,
+        gradient_snapshot=gradient_snapshot,
+        gradient_comparison=_gradient_comparison(
+            fixture=fixture,
+            state=state,
+            microstep=microstep,
+            gradient_snapshot=gradient_snapshot,
+        ),
         gradient_summary=summarize_torch_optimizer_gradients(
             state=state,
             contract=fixture["optimizer_step_contract"],
@@ -123,6 +153,8 @@ def _microstep_record(
     loss_value: float,
     scaled_loss_value: float,
     clip_report: dict[str, Any] | None,
+    gradient_snapshot: dict[str, Any],
+    gradient_comparison: dict[str, Any],
     gradient_summary: dict[str, Any],
 ) -> dict[str, Any]:
     return {
@@ -134,6 +166,8 @@ def _microstep_record(
         "backward_called": backward_called,
         "clip_after_backward": microstep["clip_after_backward"],
         "clip_report": clip_report,
+        "gradient_snapshot": gradient_snapshot,
+        "gradient_comparison": gradient_comparison,
         "buffer_action": microstep["buffer_action"],
         "optimizer_step_after_microstep": microstep[
             "optimizer_step_after_microstep"
@@ -141,6 +175,24 @@ def _microstep_record(
         "optimizer_step_applied": False,
         "gradient_summary": gradient_summary,
     }
+
+
+def _gradient_comparison(
+    *,
+    fixture: dict[str, Any],
+    state: dict[str, Any],
+    microstep: dict[str, Any],
+    gradient_snapshot: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    snapshot = gradient_snapshot or snapshot_torch_gradients(state)
+    scalar_step_record = fixture["training_case"]["step_records"][
+        microstep["step"] - 1
+    ]
+    return build_torch_replay_gradient_comparison(
+        scalar_step_record=scalar_step_record,
+        torch_gradient_snapshot=snapshot,
+        tolerance=fixture["tolerance"],
+    )
 
 
 def _status(records: list[dict[str, Any]], replay_plan: dict[str, Any]) -> str:
