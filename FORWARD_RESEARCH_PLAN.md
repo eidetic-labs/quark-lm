@@ -400,7 +400,7 @@ report, candidate, and report. Written summaries also carry SHA-256 payload
 hashes for sibling artifacts, and written attempt directories are reloaded
 through the same validation contract before the writer returns. The CLI can
 also audit an existing attempt directory with `--verify-existing` without
-rebuilding it.
+rebuilding it. Recorded artifact paths must resolve to the loaded files.
 
 ## Current QuarkLM Diagnosis
 
