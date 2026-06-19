@@ -177,6 +177,12 @@ Working tagline: Big idea. Tiny package.
 - Optional PyTorch runtime installation is exposed as the `pytorch` package
   extra. It is not part of the default scalar install and does not introduce
   pretrained weights, tokenizers, external embeddings, or unledgered data.
+- Local real-runtime evidence now clears the PyTorch training replay parity
+  attempt on CPU with `float64`: runtime readiness, initial loss, replay
+  gradients, replay buffers, optimizer update, final evaluation, checkpoint
+  compatibility, and the training parity report all match scalar evidence.
+  This is parity evidence only; PyTorch is still not a promoted training
+  backend.
 
 ## Research Grounding
 

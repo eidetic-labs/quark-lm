@@ -31,7 +31,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--steps", type=int, default=2)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=2)
     parser.add_argument("--requested-device", default="cpu")
-    parser.add_argument("--requested-dtype", default="float32")
+    parser.add_argument("--requested-dtype", default="float64")
     return parser.parse_args(argv)
 
 

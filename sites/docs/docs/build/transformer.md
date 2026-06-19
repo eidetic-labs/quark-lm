@@ -40,6 +40,7 @@ Then use the runtime preflight before attempting that evidence:
 ```bash title="Check optional PyTorch runtime evidence"
 PYTHONPATH=src python3 -m transformer_torch_runtime_report \
   --requested-device auto \
+  --requested-dtype float64 \
   --output build/torch_runtime_report.json
 ```
 
@@ -49,7 +50,9 @@ runtime can attempt parity evidence; it does not promote PyTorch training.
 
 ```bash title="Record a PyTorch training parity attempt"
 PYTHONPATH=src python3 -m transformer_torch_training_parity_attempt_cli \
-  --output-dir build/torch_training_parity_attempt
+  --requested-device cpu \
+  --requested-dtype float64 \
+  --output-dir build/torch_training_parity_attempt_float64
 ```
 
 This command builds a scalar training fixture from the admitted curriculum,
@@ -66,6 +69,9 @@ and stores a compact attempt summary. The artifact set is:
 If real PyTorch is not installed, the command still writes the artifacts and
 records `blocked_runtime_unavailable`. That blocked result is useful evidence;
 it is not a model-quality failure and it does not change the scalar reference.
+When a real PyTorch runtime is available, use `float64` for scalar parity
+attempts; `float32` is useful later for performance experiments, but it can
+introduce small numerical drift before the parity gate.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

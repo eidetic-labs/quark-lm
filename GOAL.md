@@ -107,6 +107,9 @@ reference.
   unledgered data, and no promoted capability claim.
 - Provide PyTorch only through an explicit optional package extra; the default
   scalar install remains dependency-free and canonical.
+- Use `float64` as the default PyTorch training parity attempt dtype because
+  scalar Python fixtures use double-precision floats; lower-precision runs are
+  explicit performance experiments, not the default parity gate.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

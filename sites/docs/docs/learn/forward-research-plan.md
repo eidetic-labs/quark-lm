@@ -264,7 +264,9 @@ training parity report, and compact attempt summary. If real PyTorch is absent,
 the artifact records `blocked_runtime_unavailable` instead of making a training
 claim. Attempt summaries now also classify the next unsatisfied requirement, so
 the loop can distinguish runtime preflight, training readiness, replay parity,
-and final report failures.
+and final report failures. The training parity attempt defaults to `float64`
+because scalar Python fixtures use double-precision floats; `float32` remains an
+explicit lower-precision performance experiment after parity is understood.
 
 ## Where the sequence stands
 

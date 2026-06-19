@@ -40,7 +40,7 @@ def build_torch_training_parity_attempt(
     steps: int = 2,
     gradient_accumulation_steps: int = 2,
     requested_device: str = "cpu",
-    requested_dtype: str = "float32",
+    requested_dtype: str = "float64",
     importer: TorchImporter | None = None,
 ) -> dict[str, Any]:
     """Build scalar fixture, PyTorch candidate, report, and attempt summary."""
