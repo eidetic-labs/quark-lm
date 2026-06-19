@@ -44,7 +44,10 @@ reference.
   must not be treated as replayed backward-pass parity across microsteps.
 - Preserve scalar accumulation semantics: QuarkLM applies AdamW to the mean of
   clipped microstep gradients, so PyTorch parity needs a clipped-gradient buffer
-  when gradient clipping is active.
+  when gradient clipping is active across accumulated microsteps.
+- Keep PyTorch accumulation readiness machine-checkable: missing replayed
+  backward passes, loss scaling, mean reduction, and clipped-gradient buffers
+  must be recorded as pending requirements before training parity can advance.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

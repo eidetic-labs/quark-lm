@@ -304,9 +304,12 @@ gradient-accumulation report records the scalar pending/applied microstep
 cadence, current gradient-sample signature, and reduction rule: scalar QuarkLM
 applies AdamW to the mean of clipped microstep gradients. That means generic
 PyTorch loss scaling is sufficient only when microstep clipping is inactive;
-with clipping enabled, parity needs a clipped-gradient buffer before the
-optimizer update. The report explicitly marks accumulated-gradient parity
-unproven whenever the contract requires replayed backward passes across
+with clipping across accumulated microsteps, parity needs a clipped-gradient
+buffer before the optimizer update. The report now includes PyTorch
+accumulation-readiness requirements so replayed backward passes, loss scaling,
+mean reduction, and clipped-gradient buffering are machine-checkable pending
+items instead of implicit notes. It explicitly marks accumulated-gradient
+parity unproven whenever the contract requires replayed backward passes across
 microsteps. This is still not full PyTorch training parity: it does not yet
 prove accumulated-gradient numerical equivalence, final logits, final loss, or
 checkpoint compatibility. The next implementation layer is matching those

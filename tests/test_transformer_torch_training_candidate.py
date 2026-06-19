@@ -140,6 +140,12 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
                 "accumulated_gradient_parity_proven"
             ]
         )
+        self.assertIn(
+            "clipped_gradient_buffer",
+            candidate["optimizer_step_execution_probe"]["gradient_accumulation"][
+                "pytorch_accumulation_readiness"
+            ]["missing_requirements"],
+        )
         self.assertEqual(
             candidate["optimizer_step_execution_probe"]["parameter_mutation"][
                 "status"

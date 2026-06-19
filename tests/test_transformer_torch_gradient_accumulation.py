@@ -40,6 +40,14 @@ class TransformerTorchGradientAccumulationTests(unittest.TestCase):
         self.assertFalse(
             report["pytorch_equivalence"]["native_loss_scaling_sufficient"]
         )
+        self.assertEqual(
+            report["pytorch_accumulation_readiness"]["status"],
+            "accumulation_runtime_pending",
+        )
+        self.assertIn(
+            "clipped_gradient_buffer",
+            report["pytorch_accumulation_readiness"]["missing_requirements"],
+        )
         self.assertTrue(report["uses_single_gradient_sample"])
         self.assertTrue(report["requires_replayed_backward_passes"])
         self.assertFalse(report["accumulated_gradient_parity_proven"])

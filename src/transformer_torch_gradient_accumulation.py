@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_accumulation_readiness import (
+    build_torch_accumulation_readiness,
+)
+
 
 TORCH_GRADIENT_ACCUMULATION_SCHEMA_VERSION = 1
 TORCH_GRADIENT_ACCUMULATION_RECORDED_STATUS = "gradient_accumulation_recorded"
@@ -33,6 +37,9 @@ def build_torch_gradient_accumulation_report(
             "requires_microstep_clipping"
         ],
         "pytorch_equivalence": accumulation["pytorch_equivalence"],
+        "pytorch_accumulation_readiness": build_torch_accumulation_readiness(
+            contract=contract,
+        ),
         "expected_step_count": len(records),
         "expected_update_count": expected_update_count,
         "pending_step_count": pending_step_count,

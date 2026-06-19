@@ -69,6 +69,27 @@ class TransformerGradientAccumulationContractTests(unittest.TestCase):
             0.25,
         )
 
+    def test_contract_does_not_require_buffer_for_single_clipped_step(self) -> None:
+        contract = build_gradient_accumulation_contract(
+            optimizer_config={
+                "gradient_accumulation_steps": 1,
+                "gradient_clip": 5.0,
+            },
+        )
+
+        validate_gradient_accumulation_contract(
+            contract,
+            steps=1,
+            gradient_clip=5.0,
+        )
+        self.assertTrue(contract["requires_microstep_clipping"])
+        self.assertFalse(
+            contract["pytorch_equivalence"]["requires_clipped_gradient_buffer"]
+        )
+        self.assertTrue(
+            contract["pytorch_equivalence"]["native_loss_scaling_sufficient"]
+        )
+
     def test_validation_rejects_step_mismatch(self) -> None:
         contract = build_gradient_accumulation_contract(
             optimizer_config={

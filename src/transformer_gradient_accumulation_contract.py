@@ -20,6 +20,7 @@ def build_gradient_accumulation_contract(
         raise ValueError("gradient_accumulation_steps must be positive")
     clip_value = float(optimizer_config["gradient_clip"])
     requires_microstep_clipping = clip_value > 0.0
+    requires_clipped_buffer = requires_microstep_clipping and steps > 1
     return {
         "schema_version": GRADIENT_ACCUMULATION_CONTRACT_SCHEMA_VERSION,
         "kind": GRADIENT_ACCUMULATION_CONTRACT_KIND,
@@ -30,8 +31,8 @@ def build_gradient_accumulation_contract(
         "divisor": "pending_accumulation",
         "requires_microstep_clipping": requires_microstep_clipping,
         "pytorch_equivalence": {
-            "requires_clipped_gradient_buffer": requires_microstep_clipping,
-            "native_loss_scaling_sufficient": not requires_microstep_clipping,
+            "requires_clipped_gradient_buffer": requires_clipped_buffer,
+            "native_loss_scaling_sufficient": not requires_clipped_buffer,
             "loss_scale_if_no_microstep_clipping": 1.0 / steps,
         },
     }
@@ -56,10 +57,11 @@ def validate_gradient_accumulation_contract(
     if contract.get("gradient_source") != "clipped_microstep_gradients":
         raise ValueError("gradient accumulation contract gradient_source mismatch")
     expected_clipping = gradient_clip > 0.0
+    expected_buffer = expected_clipping and steps > 1
     if contract.get("requires_microstep_clipping") != expected_clipping:
         raise ValueError("gradient accumulation contract clipping mismatch")
     equivalence = contract.get("pytorch_equivalence", {})
-    if equivalence.get("requires_clipped_gradient_buffer") != expected_clipping:
+    if equivalence.get("requires_clipped_gradient_buffer") != expected_buffer:
         raise ValueError("gradient accumulation contract buffer mismatch")
-    if equivalence.get("native_loss_scaling_sufficient") != (not expected_clipping):
+    if equivalence.get("native_loss_scaling_sufficient") != (not expected_buffer):
         raise ValueError("gradient accumulation contract loss-scaling mismatch")
