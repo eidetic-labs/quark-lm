@@ -220,8 +220,11 @@ the buffer comparison passes, it applies the replayed accumulated gradient
 through AdamW on a fresh tensor state and compares the post-update trainable
 signature to scalar evidence. A match proves optimizer-update parity only; final
 logits, final loss, and checkpoint compatibility remain separate gates. The
-next implementation layer is matching those final numerical effects against
-scalar training evidence without promoting the PyTorch path yet.
+replay final-evaluation probe is gated behind optimizer-update parity: after a
+matched replay update, it computes final logits and final loss from a fresh
+replay-updated tensor state and compares them to scalar evidence. A match proves
+final-evaluation parity only; checkpoint compatibility and promoted PyTorch
+training remain separate gates.
 
 ## Where the sequence stands
 

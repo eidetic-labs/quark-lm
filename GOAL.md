@@ -64,6 +64,9 @@ reference.
 - Gate replayed AdamW update comparison behind buffer parity; matched trainable
   parameter signatures prove only optimizer-update parity, not final logits or
   final loss.
+- Gate final replay evaluation behind optimizer-update parity; matched final
+  logits and loss prove evaluation parity only, with checkpoint parity still
+  separate.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

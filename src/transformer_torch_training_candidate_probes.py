@@ -5,23 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_runtime import TorchImporter
-from transformer_torch_accumulation_replay_control import (
-    build_torch_accumulation_replay_control_probe,
-)
-from transformer_torch_accumulation_replay_plan import (
-    build_torch_accumulation_replay_plan,
-)
 from transformer_torch_optimizer_step_probe import (
     build_torch_optimizer_step_probe,
 )
 from transformer_torch_optimizer_step_execution import (
     build_torch_optimizer_step_execution_probe,
-)
-from transformer_torch_replay_buffer_comparison import (
-    build_torch_replay_buffer_comparison,
-)
-from transformer_torch_replay_update_comparison import (
-    build_torch_replay_update_comparison,
 )
 from transformer_torch_training_backward_probe import (
     build_torch_training_backward_probe,
@@ -30,6 +18,9 @@ from transformer_torch_training_loss_probe import (
     build_torch_training_initial_loss_probe,
 )
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
+from transformer_torch_training_replay_probes import (
+    build_torch_training_replay_probes,
+)
 from transformer_torch_training_state import (
     build_torch_training_state,
     summarize_torch_training_state,
@@ -62,18 +53,6 @@ def build_torch_training_probe_artifacts(
         state=state,
         backward_probe=backward_probe,
     )
-    replay_plan = build_torch_accumulation_replay_plan(fixture=fixture)
-    replay_control_probe = _accumulation_replay_control_probe(
-        fixture=fixture,
-        importer=importer,
-        readiness=readiness,
-        replay_plan=replay_plan,
-        runtime=runtime,
-    )
-    buffer_comparison = build_torch_replay_buffer_comparison(
-        fixture=fixture,
-        replay_control_probe=replay_control_probe,
-    )
     return {
         "training_state": _training_state_summary(state),
         "initial_loss_probe": _initial_loss_probe(
@@ -83,15 +62,10 @@ def build_torch_training_probe_artifacts(
             state=state,
         ),
         "backward_probe": backward_probe,
-        "accumulation_replay_plan": replay_plan,
-        "accumulation_replay_control_probe": replay_control_probe,
-        "accumulation_replay_buffer_comparison": buffer_comparison,
-        "accumulation_replay_update_comparison": _replay_update_comparison(
+        **build_torch_training_replay_probes(
             fixture=fixture,
             importer=importer,
             readiness=readiness,
-            replay_control_probe=replay_control_probe,
-            buffer_comparison=buffer_comparison,
             runtime=runtime,
         ),
         "optimizer_step_probe": optimizer_step_probe,
@@ -172,30 +146,6 @@ def _backward_probe(
     )
 
 
-def _accumulation_replay_control_probe(
-    *,
-    fixture: dict[str, Any],
-    importer: TorchImporter,
-    readiness: dict[str, Any],
-    replay_plan: dict[str, Any],
-    runtime: dict[str, Any],
-) -> dict[str, Any]:
-    state = _training_state(
-        fixture=fixture,
-        importer=importer,
-        readiness=readiness,
-        runtime=runtime,
-    )
-    torch = importer("torch") if state is not None else None
-    return build_torch_accumulation_replay_control_probe(
-        fixture=fixture,
-        state=state,
-        torch=torch,
-        runtime=runtime,
-        replay_plan=replay_plan,
-    )
-
-
 def _optimizer_step_execution_probe(
     *,
     fixture: dict[str, Any],
@@ -209,30 +159,4 @@ def _optimizer_step_execution_probe(
         state=state,
         optimizer_step_probe=optimizer_step_probe,
         torch=torch,
-    )
-
-
-def _replay_update_comparison(
-    *,
-    fixture: dict[str, Any],
-    importer: TorchImporter,
-    readiness: dict[str, Any],
-    replay_control_probe: dict[str, Any],
-    buffer_comparison: dict[str, Any],
-    runtime: dict[str, Any],
-) -> dict[str, Any]:
-    state = _training_state(
-        fixture=fixture,
-        importer=importer,
-        readiness=readiness,
-        runtime=runtime,
-    )
-    torch = importer("torch") if state is not None else None
-    return build_torch_replay_update_comparison(
-        fixture=fixture,
-        state=state,
-        torch=torch,
-        runtime=runtime,
-        replay_control_probe=replay_control_probe,
-        buffer_comparison=buffer_comparison,
     )
