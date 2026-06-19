@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+import sys
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from transformer_torch_backend import (
+    TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+    TORCH_TRAINING_PARITY_ATTEMPT_FILES,
+    build_torch_training_parity_attempt_hashes,
+    load_torch_training_parity_attempt_artifact_set,
+)
+
+
+class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
+    def test_training_attempt_audit_helpers_are_public(self) -> None:
+        artifacts = {
+            "fixture": {"kind": "fixture"},
+            "candidate": {"kind": "candidate"},
+            "report": {"kind": "report"},
+        }
+
+        hashes = build_torch_training_parity_attempt_hashes(artifacts)
+
+        self.assertEqual(
+            TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+            "sha256-json-v1",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_FILES["attempt"],
+            "torch_training_parity_attempt.json",
+        )
+        self.assertEqual(
+            set(hashes),
+            {"fixture", "candidate", "report"},
+        )
+        self.assertTrue(callable(load_torch_training_parity_attempt_artifact_set))
+
+
+if __name__ == "__main__":
+    unittest.main()

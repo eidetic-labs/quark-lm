@@ -127,7 +127,10 @@ reference.
   must carry SHA-256 payload hashes for sibling artifacts, and written attempt
   directories must reload through the same validation contract before the writer
   returns; recorded artifact paths must resolve to the loaded files, and the CLI
-  must audit an existing attempt directory without rebuilding it.
+  must audit an existing attempt directory without rebuilding it. The optional
+  public backend surface must expose the written-attempt file map, hash
+  algorithm, hash builder, and loader so contributors inspect the persisted
+  audit contract without private module paths.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

@@ -200,7 +200,10 @@ Working tagline: Big idea. Tiny package.
   directories are reloaded through the same validation contract before the
   writer returns. Recorded artifact paths must resolve to the loaded files, and
   the CLI can audit an existing attempt directory with `--verify-existing`
-  without rebuilding it.
+  without rebuilding it. The optional public backend surface exposes the
+  written-attempt file map, hash algorithm, hash builder, and loader so
+  contributors can inspect the same persisted audit contract without reaching
+  through private module paths.
 
 ## Research Grounding
 

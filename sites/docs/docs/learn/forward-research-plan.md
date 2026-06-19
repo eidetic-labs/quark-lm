@@ -292,7 +292,10 @@ report, candidate, and report. Written summaries also carry SHA-256 payload
 hashes for sibling artifacts, and written attempt directories are reloaded
 through the same validation contract before the writer returns. The CLI can
 also audit an existing attempt directory with `--verify-existing` without
-rebuilding it. Recorded artifact paths must resolve to the loaded files.
+rebuilding it. Recorded artifact paths must resolve to the loaded files. The
+optional public backend surface exposes the written-attempt file map, hash
+algorithm, hash builder, and loader so contributors can inspect the persisted
+audit contract without reaching through private module paths.
 
 ## Where the sequence stands
 
