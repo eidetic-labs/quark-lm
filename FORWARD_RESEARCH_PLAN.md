@@ -350,7 +350,9 @@ Runtime evidence also records whether the imported module is real PyTorch, a
 test double, or unavailable. Test doubles can keep unit wiring deterministic,
 but they cannot satisfy the aggregate replay parity gate or produce
 model-quality training evidence. The `quark-lm-torch-runtime` preflight writes
-that runtime evidence before any real PyTorch parity attempt.
+that runtime evidence before any real PyTorch parity attempt, and PyTorch
+candidate artifacts embed the same runtime report alongside their forward or
+training evidence.
 
 ## Current QuarkLM Diagnosis
 

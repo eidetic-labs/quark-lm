@@ -81,6 +81,8 @@ reference.
 - Run `quark-lm-torch-runtime` or the equivalent module preflight before any
   real PyTorch parity attempt; a passing runtime report permits an attempt, not
   promotion.
+- Keep PyTorch candidate artifacts self-contained by embedding the runtime
+  report alongside forward or training evidence.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

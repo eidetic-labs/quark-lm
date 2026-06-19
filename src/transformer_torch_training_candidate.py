@@ -7,7 +7,8 @@ from importlib import import_module
 from typing import Any
 
 from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
-from transformer_torch_runtime import TorchImporter, torch_runtime_status
+from transformer_torch_runtime import TorchImporter
+from transformer_torch_runtime_report import build_torch_runtime_report
 from transformer_torch_training_candidate_probes import (
     build_torch_training_probe_artifacts,
 )
@@ -41,11 +42,12 @@ def build_torch_training_parity_candidate(
     """Build a PyTorch training candidate artifact without claiming parity."""
 
     validate_training_parity_fixture(fixture)
-    runtime = torch_runtime_status(
+    runtime_report = build_torch_runtime_report(
         importer=importer,
         requested_device=requested_device,
         requested_dtype=requested_dtype,
     )
+    runtime = runtime_report["runtime"]
     readiness = build_torch_training_readiness(
         fixture=fixture,
         runtime=runtime,
@@ -86,6 +88,7 @@ def build_torch_training_parity_candidate(
             parity_status=outputs["parity_status"],
         ),
         "runtime": runtime,
+        "runtime_report": runtime_report,
         "model_config": dict(fixture["model_config"]),
         "tokenizer": dict(fixture["tokenizer"]),
         "optimizer_config": dict(fixture["optimizer_config"]),

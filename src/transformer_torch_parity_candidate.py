@@ -8,7 +8,8 @@ from typing import Any
 from transformer_backend_parity_validation import validate_backend_parity_fixture
 from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
 from transformer_torch_minimal_forward import torch_minimal_parity_outputs
-from transformer_torch_runtime import TorchImporter, torch_runtime_status
+from transformer_torch_runtime import TorchImporter
+from transformer_torch_runtime_report import build_torch_runtime_report
 
 
 TORCH_PARITY_CANDIDATE_KIND = "transformer_torch_backend_parity_candidate"
@@ -26,11 +27,12 @@ def build_torch_backend_parity_candidate(
     """Build a PyTorch candidate artifact without requiring PyTorch to be installed."""
 
     validate_backend_parity_fixture(fixture)
-    runtime = torch_runtime_status(
+    runtime_report = build_torch_runtime_report(
         importer=importer,
         requested_device=requested_device,
         requested_dtype=requested_dtype,
     )
+    runtime = runtime_report["runtime"]
     outputs = _candidate_outputs(
         fixture=fixture,
         importer=importer,
@@ -54,6 +56,7 @@ def build_torch_backend_parity_candidate(
             parity_status=outputs["parity_status"],
         ),
         "runtime": runtime,
+        "runtime_report": runtime_report,
         "model_config": dict(fixture["model_config"]),
         "tokenizer": dict(fixture["tokenizer"]),
         "forward_cases": outputs["forward_cases"],
