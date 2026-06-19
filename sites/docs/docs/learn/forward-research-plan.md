@@ -219,12 +219,15 @@ manifest order. The replay-update comparison is gated behind buffer parity: if
 the buffer comparison passes, it applies the replayed accumulated gradient
 through AdamW on a fresh tensor state and compares the post-update trainable
 signature to scalar evidence. A match proves optimizer-update parity only; final
-logits, final loss, and checkpoint compatibility remain separate gates. The
-replay final-evaluation probe is gated behind optimizer-update parity: after a
+logits and final loss remain separate gates. The replay final-evaluation probe
+is gated behind optimizer-update parity: after a
 matched replay update, it computes final logits and final loss from a fresh
 replay-updated tensor state and compares them to scalar evidence. A match proves
-final-evaluation parity only; checkpoint compatibility and promoted PyTorch
-training remain separate gates.
+final-evaluation parity only. The replay checkpoint-compatibility probe is
+gated behind final evaluation: it converts the replay-updated tensor state into
+the existing QuarkLM checkpoint payload, validates and reloads it, then compares
+the reloaded final logits and loss to scalar evidence. A match proves checkpoint
+compatibility only; promoted PyTorch training remains a separate gate.
 
 ## Where the sequence stands
 

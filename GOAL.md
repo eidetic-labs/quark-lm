@@ -65,8 +65,10 @@ reference.
   parameter signatures prove only optimizer-update parity, not final logits or
   final loss.
 - Gate final replay evaluation behind optimizer-update parity; matched final
-  logits and loss prove evaluation parity only, with checkpoint parity still
-  separate.
+  logits and loss prove evaluation parity only.
+- Gate checkpoint compatibility behind final replay evaluation; matched
+  round-trip checkpoints prove checkpoint parity only, not promoted PyTorch
+  training.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

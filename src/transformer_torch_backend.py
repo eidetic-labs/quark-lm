@@ -54,6 +54,13 @@ from transformer_torch_replay_final_evaluation import (
     TORCH_REPLAY_FINAL_EVAL_NOT_RUN_STATUS,
     build_torch_replay_final_evaluation,
 )
+from transformer_torch_replay_checkpoint_compatibility import (
+    TORCH_REPLAY_CHECKPOINT_SCHEMA_VERSION,
+    TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
+    TORCH_REPLAY_CHECKPOINT_MISMATCH_STATUS,
+    TORCH_REPLAY_CHECKPOINT_NOT_RUN_STATUS,
+    build_torch_replay_checkpoint_compatibility,
+)
 from transformer_torch_accumulation_readiness import (
     TORCH_ACCUMULATION_PENDING_STATUS,
     TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION,
@@ -152,6 +159,10 @@ __all__ = [
     "TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS",
     "TORCH_REPLAY_FINAL_EVAL_MISMATCH_STATUS",
     "TORCH_REPLAY_FINAL_EVAL_NOT_RUN_STATUS",
+    "TORCH_REPLAY_CHECKPOINT_SCHEMA_VERSION",
+    "TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS",
+    "TORCH_REPLAY_CHECKPOINT_MISMATCH_STATUS",
+    "TORCH_REPLAY_CHECKPOINT_NOT_RUN_STATUS",
     "TORCH_ACCUMULATION_PENDING_STATUS",
     "TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION",
     "TORCH_ACCUMULATION_REPLAY_CONTROL_RECORDED_STATUS",
@@ -188,6 +199,7 @@ __all__ = [
     "build_torch_replay_buffer_comparison",
     "build_torch_replay_update_comparison",
     "build_torch_replay_final_evaluation",
+    "build_torch_replay_checkpoint_compatibility",
     "build_torch_accumulation_readiness",
     "build_torch_accumulation_replay_control_probe",
     "build_torch_accumulation_replay_plan",

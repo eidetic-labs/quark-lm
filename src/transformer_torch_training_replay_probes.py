@@ -16,6 +16,9 @@ from transformer_torch_replay_buffer_comparison import (
 from transformer_torch_replay_final_evaluation import (
     build_torch_replay_final_evaluation,
 )
+from transformer_torch_replay_checkpoint_compatibility import (
+    build_torch_replay_checkpoint_compatibility,
+)
 from transformer_torch_replay_update_comparison import (
     build_torch_replay_update_comparison,
 )
@@ -53,18 +56,28 @@ def build_torch_training_replay_probes(
         buffer_comparison=buffer,
         runtime=runtime,
     )
+    final_evaluation = _final_evaluation(
+        fixture=fixture,
+        importer=importer,
+        readiness=readiness,
+        replay_control_probe=control,
+        buffer_comparison=buffer,
+        update_comparison=update,
+        runtime=runtime,
+    )
     return {
         "accumulation_replay_plan": replay_plan,
         "accumulation_replay_control_probe": control,
         "accumulation_replay_buffer_comparison": buffer,
         "accumulation_replay_update_comparison": update,
-        "accumulation_replay_final_evaluation": _final_evaluation(
+        "accumulation_replay_final_evaluation": final_evaluation,
+        "accumulation_replay_checkpoint_compatibility": _checkpoint_compatibility(
             fixture=fixture,
             importer=importer,
             readiness=readiness,
             replay_control_probe=control,
             buffer_comparison=buffer,
-            update_comparison=update,
+            final_evaluation=final_evaluation,
             runtime=runtime,
         ),
     }
@@ -142,6 +155,33 @@ def _final_evaluation(
         replay_control_probe=replay_control_probe,
         buffer_comparison=buffer_comparison,
         update_comparison=update_comparison,
+    )
+
+
+def _checkpoint_compatibility(
+    *,
+    fixture: dict[str, Any],
+    importer: TorchImporter,
+    readiness: dict[str, Any],
+    replay_control_probe: dict[str, Any],
+    buffer_comparison: dict[str, Any],
+    final_evaluation: dict[str, Any],
+    runtime: dict[str, Any],
+) -> dict[str, Any]:
+    state = _training_state(
+        fixture=fixture,
+        importer=importer,
+        readiness=readiness,
+        runtime=runtime,
+    )
+    return build_torch_replay_checkpoint_compatibility(
+        fixture=fixture,
+        state=state,
+        torch=importer("torch") if state is not None else None,
+        runtime=runtime,
+        replay_control_probe=replay_control_probe,
+        buffer_comparison=buffer_comparison,
+        final_evaluation=final_evaluation,
     )
 
 

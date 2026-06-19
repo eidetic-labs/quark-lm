@@ -64,6 +64,10 @@ class TransformerTorchTrainingCandidateReplayControlTests(unittest.TestCase):
         self.assertFalse(final_eval["final_logit_parity_proven"])
         self.assertFalse(final_eval["final_loss_parity_proven"])
 
+        checkpoint = candidate["accumulation_replay_checkpoint_compatibility"]
+        self.assertEqual(checkpoint["status"], "replay_checkpoint_not_run")
+        self.assertFalse(checkpoint["checkpoint_parity_proven"])
+
 
 def _scalar_training_fixture() -> dict:
     tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
