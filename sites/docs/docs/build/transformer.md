@@ -137,7 +137,8 @@ version, and that contract is available from the optional public backend
 surface. The requirements artifact also has standalone validation and a public
 stage catalog so next-action routing can be checked without validating a full
 attempt bundle. The classifier evaluates runtime preflight, training readiness,
-and replay parity before it can classify a passed report as complete.
+and replay parity before it can classify a passed report as complete. The
+top-level attempt `passed` flag follows the same prerequisite chain.
 Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
 Runtime preflight actions come from a canonical status-to-action map that the

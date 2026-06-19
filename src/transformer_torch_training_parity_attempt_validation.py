@@ -74,7 +74,7 @@ def _validate_boundary(boundary: dict[str, Any]) -> None:
 
 
 def _validate_attempt_status(attempt: dict[str, Any]) -> None:
-    expected_passed = attempt["training_parity_report"].get("passed")
+    expected_passed = _expected_attempt_passed(attempt)
     if attempt.get("passed") is not expected_passed:
         raise ValueError("training parity attempt passed flag is inconsistent")
     expected_status = _expected_attempt_status(attempt)
@@ -99,6 +99,14 @@ def _expected_attempt_status(attempt: dict[str, Any]) -> str:
             "status",
             "training_parity_pending",
         )
+    )
+
+
+def _expected_attempt_passed(attempt: dict[str, Any]) -> bool:
+    return (
+        attempt["runtime"].get("parity_attempt_allowed") is True
+        and attempt["training_replay_parity_gate"].get("passed") is True
+        and attempt["training_parity_report"].get("passed") is True
     )
 
 

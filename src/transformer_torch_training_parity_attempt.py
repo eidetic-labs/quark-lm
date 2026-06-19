@@ -156,7 +156,7 @@ def _attempt_summary(
         "kind": TORCH_TRAINING_PARITY_ATTEMPT_KIND,
         "fixture_id": fixture["fixture_id"],
         "status": _attempt_status(runtime_report, gate, report),
-        "passed": bool(report.get("passed")),
+        "passed": _attempt_passed(runtime_report, gate, report),
         "promoted_training_backend": False,
         "evidence_scope": "training_parity_attempt_only",
         "corpus": _corpus_summary(corpus_dir, curriculum_manifest, train_text),
@@ -192,6 +192,18 @@ def _attempt_status(
     if report.get("passed") is True:
         return "training_parity_matched"
     return str(gate.get("status", "training_parity_pending"))
+
+
+def _attempt_passed(
+    runtime_report: dict[str, Any],
+    gate: dict[str, Any],
+    report: dict[str, Any],
+) -> bool:
+    return (
+        runtime_report.get("parity_attempt_allowed") is True
+        and gate.get("passed") is True
+        and report.get("passed") is True
+    )
 
 
 def _corpus_summary(
