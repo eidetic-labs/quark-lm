@@ -59,6 +59,8 @@ reference.
 - Keep replay-gradient comparison scoped: clipped-gradient signature mismatches
   block accumulated-gradient parity until PyTorch gradients match scalar
   evidence.
+- Compare replayed gradient buffers against scalar buffer evidence; buffer
+  mismatches keep optimizer-update, final-logit, and final-loss parity blocked.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

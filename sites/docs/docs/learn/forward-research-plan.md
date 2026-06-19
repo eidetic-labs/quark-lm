@@ -210,15 +210,18 @@ optimizer updates are applied. The replay-control probe now snapshots clipped
 PyTorch microstep gradients and compares their signatures to scalar
 clipped-gradient evidence. A mismatch is recorded as evidence, not promoted;
 buffered-gradient, optimizer-update, final-logit, and final-loss parity remain
-unproven. That is still not full PyTorch training parity: it does not yet prove
-buffered-gradient numerical equivalence, optimizer updates, final logits, final
-loss, or checkpoint compatibility. The next implementation layer is matching
-those numerical update effects against scalar training evidence. Scalar
-training fixtures now record per-step gradient-buffer evidence: raw gradients,
-clipped gradients, buffer state before and after the microstep, and the
-averaged gradient vector used when an update is applied. That gives the PyTorch
-backend a concrete numerical target for accumulated-gradient parity without
-promoting the PyTorch path yet.
+unproven. The replay-buffer comparison now folds replayed clipped gradients
+through the scalar accumulation cadence and compares buffer-before,
+buffer-after-add, and accumulated-gradient signatures to scalar evidence.
+Buffer mismatches are recorded as blocking evidence, not promoted. That is
+still not full PyTorch training parity: it does not yet prove optimizer
+updates, final logits, final loss, or checkpoint compatibility. The next
+implementation layer is matching those numerical update effects against scalar
+training evidence. Scalar training fixtures now record per-step gradient-buffer
+evidence: raw gradients, clipped gradients, buffer state before and after the
+microstep, and the averaged gradient vector used when an update is applied. That
+gives the PyTorch backend a concrete numerical target for accumulated-gradient
+parity without promoting the PyTorch path yet.
 
 ## Where the sequence stands
 

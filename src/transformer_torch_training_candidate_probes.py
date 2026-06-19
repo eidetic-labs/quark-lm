@@ -17,6 +17,9 @@ from transformer_torch_optimizer_step_probe import (
 from transformer_torch_optimizer_step_execution import (
     build_torch_optimizer_step_execution_probe,
 )
+from transformer_torch_replay_buffer_comparison import (
+    build_torch_replay_buffer_comparison,
+)
 from transformer_torch_training_backward_probe import (
     build_torch_training_backward_probe,
 )
@@ -57,6 +60,13 @@ def build_torch_training_probe_artifacts(
         backward_probe=backward_probe,
     )
     replay_plan = build_torch_accumulation_replay_plan(fixture=fixture)
+    replay_control_probe = _accumulation_replay_control_probe(
+        fixture=fixture,
+        importer=importer,
+        readiness=readiness,
+        replay_plan=replay_plan,
+        runtime=runtime,
+    )
     return {
         "training_state": _training_state_summary(state),
         "initial_loss_probe": _initial_loss_probe(
@@ -67,12 +77,12 @@ def build_torch_training_probe_artifacts(
         ),
         "backward_probe": backward_probe,
         "accumulation_replay_plan": replay_plan,
-        "accumulation_replay_control_probe": _accumulation_replay_control_probe(
-            fixture=fixture,
-            importer=importer,
-            readiness=readiness,
-            replay_plan=replay_plan,
-            runtime=runtime,
+        "accumulation_replay_control_probe": replay_control_probe,
+        "accumulation_replay_buffer_comparison": (
+            build_torch_replay_buffer_comparison(
+                fixture=fixture,
+                replay_control_probe=replay_control_probe,
+            )
         ),
         "optimizer_step_probe": optimizer_step_probe,
         "optimizer_step_execution_probe": _optimizer_step_execution_probe(

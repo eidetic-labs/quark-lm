@@ -33,6 +33,13 @@ from transformer_torch_replay_gradient_comparison import (
     TORCH_REPLAY_GRADIENT_MISMATCH_STATUS,
     build_torch_replay_gradient_comparison,
 )
+from transformer_torch_replay_buffer_comparison import (
+    TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION,
+    TORCH_REPLAY_BUFFER_MATCHED_STATUS,
+    TORCH_REPLAY_BUFFER_MISMATCH_STATUS,
+    TORCH_REPLAY_BUFFER_NOT_RUN_STATUS,
+    build_torch_replay_buffer_comparison,
+)
 from transformer_torch_accumulation_readiness import (
     TORCH_ACCUMULATION_PENDING_STATUS,
     TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION,
@@ -119,6 +126,10 @@ __all__ = [
     "TORCH_REPLAY_GRADIENT_COMPARISON_SCHEMA_VERSION",
     "TORCH_REPLAY_GRADIENT_MATCHED_STATUS",
     "TORCH_REPLAY_GRADIENT_MISMATCH_STATUS",
+    "TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION",
+    "TORCH_REPLAY_BUFFER_MATCHED_STATUS",
+    "TORCH_REPLAY_BUFFER_MISMATCH_STATUS",
+    "TORCH_REPLAY_BUFFER_NOT_RUN_STATUS",
     "TORCH_ACCUMULATION_PENDING_STATUS",
     "TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION",
     "TORCH_ACCUMULATION_REPLAY_CONTROL_RECORDED_STATUS",
@@ -152,6 +163,7 @@ __all__ = [
     "apply_torch_gradient_value_clip",
     "snapshot_torch_gradients",
     "build_torch_replay_gradient_comparison",
+    "build_torch_replay_buffer_comparison",
     "build_torch_accumulation_readiness",
     "build_torch_accumulation_replay_control_probe",
     "build_torch_accumulation_replay_plan",
