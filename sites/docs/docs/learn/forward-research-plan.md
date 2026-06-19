@@ -267,6 +267,10 @@ the loop can distinguish runtime preflight, training readiness, replay parity,
 and final report failures. The training parity attempt defaults to `float64`
 because scalar Python fixtures use double-precision floats; `float32` remains an
 explicit lower-precision performance experiment after parity is understood.
+Optional real-runtime PyTorch parity is covered by a skip-safe integration test:
+default scalar environments skip without PyTorch, while environments with
+PyTorch installed must match scalar training replay evidence before the backend
+can be considered for any promotion gate.
 
 ## Where the sequence stands
 

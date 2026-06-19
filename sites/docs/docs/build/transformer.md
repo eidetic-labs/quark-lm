@@ -73,6 +73,16 @@ When a real PyTorch runtime is available, use `float64` for scalar parity
 attempts; `float32` is useful later for performance experiments, but it can
 introduce small numerical drift before the parity gate.
 
+The optional real-runtime parity test is skip-safe under the default scalar
+environment and passes only when PyTorch is installed and the replay evidence
+matches scalar training:
+
+```bash title="Run optional real PyTorch training parity test"
+PYTHONPATH=src python3 -m unittest discover \
+  -s tests \
+  -p 'test_transformer_torch_real_runtime_parity.py'
+```
+
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The
 transformer is the *weight-consolidation* path — the component meant to gradually

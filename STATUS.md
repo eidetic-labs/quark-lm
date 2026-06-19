@@ -181,8 +181,9 @@ Working tagline: Big idea. Tiny package.
   attempt on CPU with `float64`: runtime readiness, initial loss, replay
   gradients, replay buffers, optimizer update, final evaluation, checkpoint
   compatibility, and the training parity report all match scalar evidence.
-  This is parity evidence only; PyTorch is still not a promoted training
-  backend.
+  A skip-safe optional integration test now records this proof when PyTorch is
+  installed and skips under the default scalar environment. This is parity
+  evidence only; PyTorch is still not a promoted training backend.
 
 ## Research Grounding
 

@@ -110,6 +110,9 @@ reference.
 - Use `float64` as the default PyTorch training parity attempt dtype because
   scalar Python fixtures use double-precision floats; lower-precision runs are
   explicit performance experiments, not the default parity gate.
+- Keep optional real-runtime PyTorch parity covered by skip-safe tests: default
+  scalar environments skip cleanly, while installed PyTorch environments must
+  match scalar training replay evidence before any backend promotion claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 
