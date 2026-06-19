@@ -8,6 +8,7 @@ from typing import Any
 from answer_examples import AnswerExample
 from tokenizer import CharTokenizer
 from tokenizer_artifacts import propose_closed_world_subword_tokenizer
+from tokenizer_artifact_validation import validate_tokenizer_artifacts
 
 
 BENCHMARK_ID = "tokenizer-comparison-v1"
@@ -46,6 +47,11 @@ def run_tokenizer_comparison_benchmark(
         protected_answers=protected_answers,
         max_token_chars=config.max_token_chars,
         max_new_tokens=config.max_new_tokens,
+    )
+    validate_tokenizer_artifacts(
+        proposal["manifest"],
+        proposal["report"],
+        manifest_hash=proposal["manifest_hash"],
     )
     subword_tokenizer = proposal["tokenizer"]
     records = [

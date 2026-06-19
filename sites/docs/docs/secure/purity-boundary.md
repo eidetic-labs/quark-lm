@@ -134,7 +134,9 @@ files, corpus hash, accepted and rejected candidates, and explicit
 [Tokenizer manifests](../operate/tokenizer-manifests.md).
 Manifest/report validation also checks the stable manifest hash, round-trip
 status, full-answer-token audit, and report math before self-improvement writes
-or promotes tokenizer candidate evidence.
+tokenizer candidate evidence, transformer subword screens write tokenizer
+artifacts, tokenizer benchmarks report comparisons, or candidate promotion
+checks trust tokenizer evidence.
 
 Self-improvement attempts add one more check: `tokenizer_candidate_guard`.
 That guard fails if a candidate silently changes the active tokenizer, fails

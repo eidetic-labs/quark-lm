@@ -12,6 +12,7 @@ from tokenizer_artifacts import (
     propose_closed_world_subword_tokenizer,
     write_tokenizer_artifacts,
 )
+from tokenizer_artifact_validation import validate_tokenizer_artifacts
 from tokenizer_protocol import TokenizerProtocol
 from transformer_model import transformer_config_from_args
 from transformer_vocab_expansion_audit import audit_vocab_expansion_parity
@@ -117,6 +118,11 @@ def _subword_training_tokenizer(
         max_token_chars=args.tokenizer_max_token_chars,
         max_new_tokens=args.tokenizer_max_new_tokens,
         base_tokenizer=base_tokenizer,
+    )
+    validate_tokenizer_artifacts(
+        proposal["manifest"],
+        proposal["report"],
+        manifest_hash=proposal["manifest_hash"],
     )
     manifest_path = _artifact_path(
         args.tokenizer_manifest,

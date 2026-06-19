@@ -477,7 +477,8 @@ remediation action is tied to the failed runtime check that justifies it.
   admitted-corpus-only proof. Tokenizer manifest/report artifacts now have
   standalone validation for schema version, corpus hash shape, purity flags,
   round-trip status, full-answer-token rejection, report math, and stable
-  manifest hash before self-improvement candidates can write or promote them.
+  manifest hash before self-improvement candidates, transformer subword screens,
+  or tokenizer benchmarks can trust them.
 
 ## Implementation Blueprint
 

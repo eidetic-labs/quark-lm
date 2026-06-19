@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from support.commands import parse_args, train_transformer_answers
+from tokenizer_artifact_validation import validate_tokenizer_artifacts
 
 
 class TransformerAnswerTokenizerTest(unittest.TestCase):
@@ -62,6 +63,11 @@ class TransformerAnswerTokenizerTest(unittest.TestCase):
         self.assertEqual(metrics["tokenizer_type"], "closed-world-subword")
         self.assertEqual(manifest["tokenizer_type"], "closed-world-subword")
         self.assertEqual(report["tokenizer_type"], "closed-world-subword")
+        validate_tokenizer_artifacts(
+            manifest,
+            report,
+            manifest_hash=metrics["tokenizer_manifest_hash"],
+        )
         self.assertEqual(
             metrics["tokenizer_manifest_hash"],
             metrics["sweep_plan"]["current_trial"]["tokenizer_manifest_hash"],

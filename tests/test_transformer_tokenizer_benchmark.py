@@ -12,6 +12,7 @@ from transformer_tokenizer_benchmark import (
     BENCHMARK_ID,
     run_tokenizer_comparison_benchmark,
 )
+from tokenizer_artifact_validation import validate_tokenizer_artifacts
 
 
 class TransformerTokenizerBenchmarkTest(unittest.TestCase):
@@ -22,6 +23,11 @@ class TransformerTokenizerBenchmarkTest(unittest.TestCase):
         self.assertTrue(report["passed"])
         self.assertEqual(report["report"]["full_answer_tokens"], [])
         self.assertTrue(report["report"]["round_trip_ok"])
+        validate_tokenizer_artifacts(
+            report["manifest"],
+            report["report"],
+            manifest_hash=report["tokenizer_manifest_hash"],
+        )
         self.assertGreater(report["report"]["token_count_savings"], 0)
         long_records = [
             record
