@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_gradient_accumulation_contract import (
+    build_gradient_accumulation_contract,
+    validate_gradient_accumulation_contract,
+)
+
 
 OPTIMIZER_STEP_CONTRACT_SCHEMA_VERSION = 1
 OPTIMIZER_STEP_CONTRACT_KIND = "transformer_optimizer_step_contract"
@@ -36,6 +41,9 @@ def build_optimizer_step_contract(
         "gradient_accumulation_steps": optimizer_config[
             "gradient_accumulation_steps"
         ],
+        "gradient_accumulation": build_gradient_accumulation_contract(
+            optimizer_config=optimizer_config,
+        ),
         "base_learning_rate": training_case["learning_rate"],
         "schedule": {
             "warmup_steps": optimizer_config["warmup_steps"],
@@ -67,6 +75,11 @@ def validate_optimizer_step_contract(
     records = contract.get("expected_step_records")
     if not isinstance(records, list) or len(records) != training_case["steps"]:
         raise ValueError("optimizer step contract records do not match step count")
+    validate_gradient_accumulation_contract(
+        contract.get("gradient_accumulation", {}),
+        steps=contract["gradient_accumulation_steps"],
+        gradient_clip=contract["gradient_clip"]["value"],
+    )
     for expected, actual in zip(records, training_case["step_records"]):
         _validate_step_record(expected, actual)
     final_state = training_case["optimizer_state"]

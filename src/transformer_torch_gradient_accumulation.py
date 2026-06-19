@@ -17,6 +17,7 @@ def build_torch_gradient_accumulation_report(
     """Summarize accumulation cadence without claiming gradient replay parity."""
 
     records = contract["expected_step_records"]
+    accumulation = contract["gradient_accumulation"]
     expected_update_count = sum(1 for record in records if record["update_applied"])
     pending_step_count = sum(1 for record in records if not record["update_applied"])
     requires_replay = _requires_replayed_backward_passes(contract)
@@ -26,6 +27,12 @@ def build_torch_gradient_accumulation_report(
         "gradient_source": contract["gradient_source"],
         "gradient_scope": "current_tensor_grad_sample",
         "accumulation_steps": contract["gradient_accumulation_steps"],
+        "reduction": accumulation["reduction"],
+        "microstep_gradient_source": accumulation["gradient_source"],
+        "requires_microstep_clipping": accumulation[
+            "requires_microstep_clipping"
+        ],
+        "pytorch_equivalence": accumulation["pytorch_equivalence"],
         "expected_step_count": len(records),
         "expected_update_count": expected_update_count,
         "pending_step_count": pending_step_count,

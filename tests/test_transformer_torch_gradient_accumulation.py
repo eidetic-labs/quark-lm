@@ -13,6 +13,7 @@ from transformer_torch_backend import (
     TORCH_GRADIENT_ACCUMULATION_RECORDED_STATUS,
     build_torch_gradient_accumulation_report,
 )
+from transformer_training_parity import build_gradient_accumulation_contract
 
 
 class TransformerTorchGradientAccumulationTests(unittest.TestCase):
@@ -30,6 +31,15 @@ class TransformerTorchGradientAccumulationTests(unittest.TestCase):
         self.assertEqual(report["expected_step_count"], 2)
         self.assertEqual(report["pending_step_count"], 1)
         self.assertEqual(report["expected_update_count"], 1)
+        self.assertEqual(report["reduction"], "mean")
+        self.assertEqual(
+            report["microstep_gradient_source"],
+            "clipped_microstep_gradients",
+        )
+        self.assertTrue(report["requires_microstep_clipping"])
+        self.assertFalse(
+            report["pytorch_equivalence"]["native_loss_scaling_sufficient"]
+        )
         self.assertTrue(report["uses_single_gradient_sample"])
         self.assertTrue(report["requires_replayed_backward_passes"])
         self.assertFalse(report["accumulated_gradient_parity_proven"])
@@ -102,6 +112,12 @@ def _contract(*, accumulation_steps: int, step_count: int) -> dict:
     return {
         "gradient_source": "tensor.grad",
         "gradient_accumulation_steps": accumulation_steps,
+        "gradient_accumulation": build_gradient_accumulation_contract(
+            optimizer_config={
+                "gradient_accumulation_steps": accumulation_steps,
+                "gradient_clip": 5.0,
+            },
+        ),
         "expected_step_records": records,
         "expected_final_optimizer_state": {
             "update_count": update_count,

@@ -42,6 +42,9 @@ reference.
   accumulated-gradient, final-logit, or final-loss parity.
 - Record accumulated-gradient scope separately: current `tensor.grad` evidence
   must not be treated as replayed backward-pass parity across microsteps.
+- Preserve scalar accumulation semantics: QuarkLM applies AdamW to the mean of
+  clipped microstep gradients, so PyTorch parity needs a clipped-gradient buffer
+  when gradient clipping is active.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

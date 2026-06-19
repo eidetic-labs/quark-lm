@@ -192,12 +192,16 @@ current clipped gradients, assuming zero prior moments, and compares actual
 post-step mutation against that expected update. A match here proves only local
 current-gradient update math under those assumptions. The accompanying
 gradient-accumulation report records the scalar pending/applied microstep
-cadence and current gradient-sample signature, and explicitly marks
-accumulated-gradient parity unproven whenever the contract requires replayed
-backward passes across microsteps. This is still not full PyTorch training
-parity: it does not yet prove accumulated-gradient numerical equivalence, final
-logits, final loss, or checkpoint compatibility. The next implementation layer
-is matching those numerical update effects against scalar training evidence.
+cadence, current gradient-sample signature, and reduction rule: scalar QuarkLM
+applies AdamW to the mean of clipped microstep gradients. That means generic
+PyTorch loss scaling is sufficient only when microstep clipping is inactive;
+with clipping enabled, parity needs a clipped-gradient buffer before the
+optimizer update. The report explicitly marks accumulated-gradient parity
+unproven whenever the contract requires replayed backward passes across
+microsteps. This is still not full PyTorch training parity: it does not yet
+prove accumulated-gradient numerical equivalence, final logits, final loss, or
+checkpoint compatibility. The next implementation layer is matching those
+numerical update effects against scalar training evidence.
 
 ## Where the sequence stands
 

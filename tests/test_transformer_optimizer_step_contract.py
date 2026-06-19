@@ -30,6 +30,17 @@ class TransformerOptimizerStepContractTests(unittest.TestCase):
         self.assertEqual(contract["parameter_count"], fixture["parameter_manifest"]["parameter_count"])
         self.assertEqual(contract["gradient_clip"]["value"], 5.0)
         self.assertEqual(contract["gradient_accumulation_steps"], 2)
+        self.assertEqual(contract["gradient_accumulation"]["steps"], 2)
+        self.assertEqual(contract["gradient_accumulation"]["reduction"], "mean")
+        self.assertEqual(
+            contract["gradient_accumulation"]["gradient_source"],
+            "clipped_microstep_gradients",
+        )
+        self.assertTrue(
+            contract["gradient_accumulation"][
+                "requires_microstep_clipping"
+            ]
+        )
         self.assertFalse(contract["expected_step_records"][0]["update_applied"])
         self.assertTrue(contract["expected_step_records"][1]["update_applied"])
         self.assertAlmostEqual(
