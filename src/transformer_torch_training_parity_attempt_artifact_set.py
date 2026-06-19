@@ -15,6 +15,9 @@ from transformer_torch_training_parity_attempt_requirements import (
 from transformer_torch_training_parity_attempt_validation import (
     validate_torch_training_parity_attempt,
 )
+from transformer_torch_training_candidate_validation import (
+    validate_torch_training_parity_candidate,
+)
 from transformer_torch_training_promotion_gate import (
     build_torch_training_backend_promotion_gate,
 )
@@ -63,6 +66,7 @@ def validate_torch_training_parity_attempt_artifact_set(
         payloads["attempt"].get("training_parity_report"),
         _report_summary(payloads["report"]),
     )
+    validate_torch_training_parity_candidate(payloads["candidate"])
     _validate_report_payload(payloads)
     _validate_promotion_gate_payload(payloads)
     _validate_next_requirements_payload(payloads)

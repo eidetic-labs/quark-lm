@@ -122,13 +122,15 @@ reference.
   closed-world boundary, artifact paths, and artifact payload consistency remain
   machine-checkable, including a report rebuilt from the paired fixture and
   candidate payloads and a promotion gate rebuilt from the candidate, report,
-  and closed-world boundary. The backend-promotion gate must also have
-  standalone validation for schema, check catalog, blocker derivation, boundary
-  state, and required future gate catalog. Standalone summary validation must
-  check compact corpus, runtime, candidate, replay-gate, and report summary
-  shapes. The next-requirements diagnosis must also rebuild from the candidate
-  runtime report, candidate, and report. The persisted corpus summary must
-  match the scalar fixture and candidate backend corpus hash. Written
+  and closed-world boundary. Candidate top-level status, backend metadata,
+  runtime report, readiness, replay gate, and training-case routing must have
+  standalone validation. The backend-promotion gate must also have standalone
+  validation for schema, check catalog, blocker derivation, boundary state, and
+  required future gate catalog. Standalone summary validation must check compact
+  corpus, runtime, candidate, replay-gate, and report summary shapes. The
+  next-requirements diagnosis must also rebuild from the candidate runtime
+  report, candidate, and report. The persisted corpus summary must match the
+  scalar fixture and candidate backend corpus hash. Written
   summaries must carry SHA-256 payload hashes for sibling artifacts, and
   written attempt directories must reload through the same validation contract
   before the writer returns; recorded artifact paths must resolve to the loaded
@@ -140,8 +142,9 @@ reference.
   The optional public backend surface must expose the written-attempt file map,
   hash algorithm, hash builder, loader, compact summary validator, and compact
   audit-result builder, validator, and status catalog plus the
-  backend-promotion-gate validator so contributors inspect the persisted audit
-  contract without private module paths. Each
+  candidate validator, candidate key catalog, and backend-promotion-gate
+  validator so contributors inspect the persisted audit contract without
+  private module paths. Each
   `next_requirements` summary must be a typed artifact with an explicit kind
   and schema version, and that contract must also be available from the
   optional public backend surface. The

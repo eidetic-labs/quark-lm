@@ -101,8 +101,10 @@ training parity report must match a report rebuilt from the paired fixture and
 candidate, and the stored backend-promotion gate must match a gate rebuilt from
 the candidate, report, and closed-world boundary. The next-requirements
 diagnosis must also rebuild from the candidate runtime report, candidate, and
-report. The backend-promotion gate has standalone validation for schema, check
-catalog, blocker derivation, boundary state, and required future gate catalog.
+report. Candidate top-level status, backend metadata, runtime report,
+readiness, replay gate, and training-case routing have standalone validation.
+The backend-promotion gate has standalone validation for schema, check catalog,
+blocker derivation, boundary state, and required future gate catalog.
 Standalone summary validation checks compact corpus, runtime, candidate,
 replay-gate, and report summary shapes. Written summaries also carry SHA-256
 payload hashes for sibling artifacts, and the persisted corpus summary must
@@ -118,8 +120,9 @@ artifact-file-map fields. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface also exposes the written-attempt file
 map, hash algorithm, hash builder, loader, compact summary validator, and
 compact audit-result builder, validator, and status catalog plus the
-backend-promotion-gate validator so contributors can inspect the same persisted
-audit contract without reaching through private module paths. Each
+backend-promotion-gate validator, candidate validator, and candidate key catalog
+so contributors can inspect the same persisted audit contract without reaching
+through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and that contract is available from the optional public backend
 surface. The requirements artifact also has standalone validation and a public

@@ -194,7 +194,9 @@ Working tagline: Big idea. Tiny package.
   consistency checks. The stored training parity report must match a report
   rebuilt from the paired fixture and candidate payloads, and the stored
   backend-promotion gate must match a gate rebuilt from the candidate, report,
-  and closed-world boundary. The backend-promotion gate now has standalone
+  and closed-world boundary. Candidate top-level status, backend metadata,
+  runtime report, readiness, replay gate, and training-case routing now have
+  standalone validation. The backend-promotion gate now has standalone
   validation for schema, check catalog, blocker derivation, boundary state, and
   required future gate catalog. Standalone summary validation checks compact
   corpus, runtime, candidate, replay-gate, and report summary shapes. The
@@ -213,8 +215,9 @@ Working tagline: Big idea. Tiny package.
   public backend surface exposes the written-attempt file map, hash algorithm,
   hash builder, loader, compact summary validator, and compact audit-result
   builder, validator, and status catalog plus the backend-promotion-gate
-  validator so contributors can inspect the same persisted audit contract
-  without reaching through private module paths. Each
+  validator, candidate validator, and candidate key catalog so contributors can
+  inspect the same persisted audit contract without reaching through private
+  module paths. Each
   `next_requirements` summary is now a typed artifact with an explicit kind and
   schema version, and the public backend surface exposes that contract for loop
   consumers. The requirements artifact also has
