@@ -122,7 +122,7 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         )
         self.assertEqual(
             execution["adamw_update_signature_comparison"]["status"],
-            "parameter_signature_mismatch",
+            "parameter_signature_matched",
         )
 
     def test_execution_reports_unavailable_optimizer(self) -> None:

@@ -4,6 +4,8 @@ import math
 import types
 from typing import Any, Callable
 
+from support.fake_adamw import apply_fake_adamw_gradient
+
 
 def fake_torch_importer(
     *,
@@ -131,10 +133,14 @@ class FakeAdamW:
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.args = args
         self.kwargs = kwargs
+        betas = kwargs.get("betas", (0.9, 0.999))
         self.param_groups = [
             {
                 "params": list(args[0]) if args else [],
                 "lr": kwargs.get("lr", 0.0),
+                "betas": betas,
+                "eps": kwargs.get("eps", 1e-8),
+                "weight_decay": kwargs.get("weight_decay", 0.0),
             }
         ]
         self.step_calls = 0
@@ -144,13 +150,19 @@ class FakeAdamW:
         self.step_calls += 1
         for group in self.param_groups:
             learning_rate = float(group["lr"])
+            beta1, beta2 = group["betas"]
             for parameter in group["params"]:
                 grad = getattr(parameter, "grad", None)
                 if isinstance(grad, FakeTensor):
-                    parameter.value = _apply_gradient(
+                    parameter.value = apply_fake_adamw_gradient(
                         parameter.value,
                         raw_value(grad),
                         learning_rate,
+                        float(beta1),
+                        float(beta2),
+                        float(group["eps"]),
+                        float(group["weight_decay"]),
+                        self.step_calls,
                     )
 
     def zero_grad(self) -> None:
@@ -183,19 +195,6 @@ def _clip(value: object, clip_value: float):
     if isinstance(value, list):
         return [_clip(item, clip_value) for item in value]
     return max(min(float(value), clip_value), -clip_value)
-
-
-def _apply_gradient(value: object, grad: object, learning_rate: float):
-    if isinstance(value, list) and isinstance(grad, list):
-        return [
-            _apply_gradient(value_item, grad_item, learning_rate)
-            for value_item, grad_item in zip(value, grad)
-        ]
-    if isinstance(value, list):
-        return [_apply_gradient(item, grad, learning_rate) for item in value]
-    if isinstance(grad, list):
-        return [_apply_gradient(value, item, learning_rate) for item in grad]
-    return float(value) - learning_rate * float(grad)
 
 
 def _binary(left: object, right: object, op: Any):
