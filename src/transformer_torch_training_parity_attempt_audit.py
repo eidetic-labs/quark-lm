@@ -6,14 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from corpus_artifacts import SCHEMA_VERSION
+from transformer_torch_training_parity_attempt_audit_validation import (
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
+    validate_torch_training_parity_attempt_audit,
+)
 from transformer_torch_training_parity_attempt_reader import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     load_torch_training_parity_attempt_artifact_set,
-)
-
-
-TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND = (
-    "transformer_torch_training_parity_attempt_audit"
 )
 
 
@@ -23,8 +22,8 @@ def build_torch_training_parity_attempt_audit(output_dir: Path) -> dict[str, Any
     try:
         artifacts = load_torch_training_parity_attempt_artifact_set(output_dir)
     except (OSError, ValueError) as exc:
-        return _invalid_audit(output_dir, exc)
-    return _valid_audit(output_dir, artifacts["attempt"])
+        return _validated(_invalid_audit(output_dir, exc))
+    return _validated(_valid_audit(output_dir, artifacts["attempt"]))
 
 
 def _base_audit(output_dir: Path) -> dict[str, Any]:
@@ -66,3 +65,8 @@ def _invalid_audit(output_dir: Path, exc: Exception) -> dict[str, Any]:
         "error_type": type(exc).__name__,
         "error": str(exc),
     }
+
+
+def _validated(audit: dict[str, Any]) -> dict[str, Any]:
+    validate_torch_training_parity_attempt_audit(audit)
+    return audit

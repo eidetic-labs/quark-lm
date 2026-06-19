@@ -298,11 +298,13 @@ the same validation contract before the writer returns.
 The CLI can also audit an existing attempt directory with `--verify-existing`
 without rebuilding it. Verification emits a compact audit result for both valid
 and invalid written attempts, giving loop automation pass/fail status and
-failure reasons without parsing loader exceptions. Recorded artifact paths must
-resolve to the loaded files. The optional public backend surface exposes the
-written-attempt file map, hash algorithm, hash builder, loader, compact summary
-validator, and compact audit-result builder so contributors can inspect the
-persisted audit contract without reaching through private module paths. Each
+failure reasons without parsing loader exceptions. The compact result has
+standalone validation for its status, error, routing, promotion, and
+artifact-file-map fields. Recorded artifact paths must resolve to the loaded
+files. The optional public backend surface exposes the written-attempt file map,
+hash algorithm, hash builder, loader, compact summary validator, and compact
+audit-result builder, validator, and status catalog so contributors can inspect
+the persisted audit contract without reaching through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and the public backend surface exposes that contract for loop
 consumers. The requirements artifact also has standalone validation and a public

@@ -21,6 +21,10 @@ from transformer_torch_training_parity_attempt_audit import (
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
     build_torch_training_parity_attempt_audit,
 )
+from transformer_torch_training_parity_attempt_audit_validation import (
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
+    validate_torch_training_parity_attempt_audit,
+)
 from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_training_parity_attempt_hashes,
@@ -84,6 +88,7 @@ __all__ = [
     "TORCH_TRAINING_BLOCKED_STATUS",
     "TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND",
+    "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES",
     "TORCH_TRAINING_PARITY_ATTEMPT_FILES",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND",
@@ -117,6 +122,7 @@ __all__ = [
     "summarize_torch_training_state",
     "torch_training_weights_from_state",
     "validate_torch_training_parity_attempt_requirements",
+    "validate_torch_training_parity_attempt_audit",
     "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_state_summary",
 ]

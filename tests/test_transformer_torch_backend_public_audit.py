@@ -17,6 +17,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
@@ -28,6 +29,7 @@ from transformer_torch_backend import (
     build_torch_training_parity_attempt_audit,
     build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
+    validate_torch_training_parity_attempt_audit,
     validate_torch_training_parity_attempt_requirements,
     validate_torch_training_parity_attempt_summaries,
 )
@@ -69,9 +71,14 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         )
         self.assertTrue(callable(load_torch_training_parity_attempt_artifact_set))
         self.assertTrue(callable(build_torch_training_parity_attempt_audit))
+        self.assertTrue(callable(validate_torch_training_parity_attempt_audit))
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
             "transformer_torch_training_parity_attempt_audit",
+        )
+        self.assertIn(
+            "artifact_set_invalid",
+            TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
         )
 
     def test_training_attempt_requirements_contract_is_public(self) -> None:
