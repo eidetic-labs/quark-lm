@@ -96,7 +96,8 @@ candidate, and the stored backend-promotion gate must match a gate rebuilt from
 the candidate, report, and closed-world boundary. The next-requirements
 diagnosis must also rebuild from the candidate runtime report, candidate, and
 report. Written summaries also carry SHA-256 payload hashes for sibling
-artifacts.
+artifacts, and written attempt directories can be reloaded through the same
+validation contract.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

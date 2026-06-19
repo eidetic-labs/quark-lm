@@ -131,6 +131,9 @@ from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION,
     build_torch_training_backend_promotion_gate,
 )
+from transformer_torch_training_parity_attempt_reader import (
+    load_torch_training_parity_attempt_artifact_set,
+)
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_BLOCKED_STATUS,
     TORCH_TRAINING_PENDING_STATUS,
@@ -246,6 +249,7 @@ __all__ = [
     "build_torch_training_backend_promotion_gate",
     "build_torch_training_replay_parity_gate",
     "build_torch_training_readiness",
+    "load_torch_training_parity_attempt_artifact_set",
     "build_torch_runtime_report",
     "build_torch_training_state",
     "summarize_torch_training_state",

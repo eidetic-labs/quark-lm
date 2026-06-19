@@ -196,7 +196,8 @@ Working tagline: Big idea. Tiny package.
   backend-promotion gate must match a gate rebuilt from the candidate, report,
   and closed-world boundary. The next-requirements diagnosis must also rebuild
   from the candidate runtime report, candidate, and report. Written summaries
-  now carry SHA-256 payload hashes for sibling artifacts.
+  now carry SHA-256 payload hashes for sibling artifacts, and written attempt
+  directories can be reloaded through the same validation contract.
 
 ## Research Grounding
 

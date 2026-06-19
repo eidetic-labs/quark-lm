@@ -22,6 +22,9 @@ from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_training_parity_attempt_hashes,
 )
+from transformer_torch_training_parity_attempt_reader import (
+    load_torch_training_parity_attempt_artifact_set,
+)
 
 
 class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
@@ -132,6 +135,30 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
             require_artifact_hashes=True,
         )
 
+    def test_loader_validates_written_artifact_set(self) -> None:
+        artifacts = _artifacts()
+        with tempfile.TemporaryDirectory() as temp:
+            write_torch_training_parity_attempt(Path(temp), artifacts)
+
+            loaded = load_torch_training_parity_attempt_artifact_set(Path(temp))
+
+        self.assertEqual(
+            loaded["attempt"]["fixture_id"],
+            artifacts["attempt"]["fixture_id"],
+        )
+
+    def test_loader_rejects_disk_payload_drift(self) -> None:
+        artifacts = _artifacts()
+        with tempfile.TemporaryDirectory() as temp:
+            written = write_torch_training_parity_attempt(Path(temp), artifacts)
+            candidate_path = Path(written["artifacts"]["candidate"])
+            candidate = _read_json(candidate_path)
+            candidate["unvalidated_extra_field"] = "drift"
+            _write_json(candidate_path, candidate)
+
+            with self.assertRaisesRegex(ValueError, "artifact_hashes"):
+                load_torch_training_parity_attempt_artifact_set(Path(temp))
+
     def test_writer_rejects_mixed_artifact_set(self) -> None:
         artifacts = _artifacts()
         other_artifacts = _artifacts(fixture_id="other-training-parity-attempt")
@@ -167,3 +194,7 @@ def _missing_importer(name: str) -> object:
 
 def _read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _write_json(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
