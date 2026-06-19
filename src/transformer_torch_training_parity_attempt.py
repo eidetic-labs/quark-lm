@@ -16,12 +16,12 @@ from transformer_torch_runtime import TorchImporter
 from transformer_torch_training_attempt_boundary import (
     build_torch_training_attempt_boundary,
 )
+from transformer_torch_training_parity_attempt_artifact_set import (
+    validate_torch_training_parity_attempt_artifact_set,
+)
 from transformer_torch_training_candidate import build_torch_training_parity_candidate
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
-)
-from transformer_torch_training_parity_attempt_validation import (
-    validate_torch_training_parity_attempt,
 )
 from transformer_torch_training_parity_attempt_writer import (
     write_torch_training_parity_attempt,
@@ -109,13 +109,14 @@ def build_torch_training_parity_attempt(
         candidate=candidate,
         report=report,
     )
-    validate_torch_training_parity_attempt(attempt)
-    return {
+    artifacts = {
         "attempt": attempt,
         "fixture": fixture,
         "candidate": candidate,
         "report": report,
     }
+    validate_torch_training_parity_attempt_artifact_set(artifacts)
+    return artifacts
 
 
 def _context_and_target(

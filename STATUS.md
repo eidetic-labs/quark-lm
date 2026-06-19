@@ -190,7 +190,8 @@ Working tagline: Big idea. Tiny package.
   gate reports exact closed-world boundary fields when they fail.
 - PyTorch training parity attempt summaries are validated before being trusted
   or written, including attempt status, next requirements, promotion-gate,
-  closed-world boundary, evidence-scope, and artifact-path checks.
+  closed-world boundary, evidence-scope, artifact-path, and artifact-payload
+  consistency checks.
 
 ## Research Grounding
 

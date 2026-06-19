@@ -119,7 +119,8 @@ reference.
   boundary fields when the boundary fails.
 - Validate PyTorch training parity attempt summaries before trust or write so
   attempt status, next requirements, promotion gate, evidence scope,
-  closed-world boundary, and artifact paths remain machine-checkable.
+  closed-world boundary, artifact paths, and artifact payload consistency remain
+  machine-checkable.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

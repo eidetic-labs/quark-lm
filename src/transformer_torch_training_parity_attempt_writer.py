@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 from corpus_artifacts import write_json_artifact
-from transformer_torch_training_parity_attempt_validation import (
-    validate_torch_training_parity_attempt,
+from transformer_torch_training_parity_attempt_artifact_set import (
+    validate_torch_training_parity_attempt_artifact_set,
 )
 
 
@@ -27,7 +27,11 @@ def write_torch_training_parity_attempt(
         **artifacts["attempt"],
         "artifacts": {name: str(path) for name, path in paths.items()},
     }
-    validate_torch_training_parity_attempt(attempt, require_artifacts=True)
+    payloads = {**artifacts, "attempt": attempt}
+    validate_torch_training_parity_attempt_artifact_set(
+        payloads,
+        require_artifact_paths=True,
+    )
     write_json_artifact(paths["fixture"], artifacts["fixture"])
     write_json_artifact(paths["candidate"], artifacts["candidate"])
     write_json_artifact(paths["report"], artifacts["report"])
