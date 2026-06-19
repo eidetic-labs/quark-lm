@@ -96,6 +96,19 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         self.assertLessEqual(candidate["initial_loss_probe"]["loss_abs_diff"], 1e-9)
         self.assertEqual(candidate["backward_probe"]["status"], "gradients_available")
         self.assertEqual(
+            candidate["accumulation_replay_plan"]["status"],
+            "accumulation_replay_pending",
+        )
+        self.assertEqual(
+            candidate["accumulation_replay_plan"]["microstep_count"],
+            fixture["training_case"]["steps"],
+        )
+        self.assertFalse(
+            candidate["accumulation_replay_plan"]["execution_status"][
+                "replayed_backward_passes"
+            ]
+        )
+        self.assertEqual(
             candidate["optimizer_step_contract"],
             fixture["optimizer_step_contract"],
         )

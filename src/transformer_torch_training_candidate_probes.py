@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_runtime import TorchImporter
+from transformer_torch_accumulation_replay_plan import (
+    build_torch_accumulation_replay_plan,
+)
 from transformer_torch_optimizer_step_probe import (
     build_torch_optimizer_step_probe,
 )
@@ -59,6 +62,9 @@ def build_torch_training_probe_artifacts(
             state=state,
         ),
         "backward_probe": backward_probe,
+        "accumulation_replay_plan": build_torch_accumulation_replay_plan(
+            fixture=fixture,
+        ),
         "optimizer_step_probe": optimizer_step_probe,
         "optimizer_step_execution_probe": _optimizer_step_execution_probe(
             fixture=fixture,

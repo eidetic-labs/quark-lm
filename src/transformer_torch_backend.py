@@ -29,6 +29,11 @@ from transformer_torch_accumulation_readiness import (
     TORCH_ACCUMULATION_READY_STATUS,
     build_torch_accumulation_readiness,
 )
+from transformer_torch_accumulation_replay_plan import (
+    TORCH_ACCUMULATION_REPLAY_PENDING_STATUS,
+    TORCH_ACCUMULATION_REPLAY_PLAN_SCHEMA_VERSION,
+    build_torch_accumulation_replay_plan,
+)
 from transformer_torch_runtime import torch_runtime_status
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_PROBE_SCHEMA_VERSION,
@@ -97,6 +102,8 @@ __all__ = [
     "TORCH_GRADIENT_ACCUMULATION_SCHEMA_VERSION",
     "TORCH_ACCUMULATION_PENDING_STATUS",
     "TORCH_ACCUMULATION_READINESS_SCHEMA_VERSION",
+    "TORCH_ACCUMULATION_REPLAY_PENDING_STATUS",
+    "TORCH_ACCUMULATION_REPLAY_PLAN_SCHEMA_VERSION",
     "TORCH_ACCUMULATION_READY_STATUS",
     "TORCH_OPTIMIZER_STEP_PROBE_SCHEMA_VERSION",
     "TORCH_OPTIMIZER_STEP_READY_STATUS",
@@ -123,6 +130,7 @@ __all__ = [
     "build_torch_backend_parity_candidate",
     "apply_torch_gradient_value_clip",
     "build_torch_accumulation_readiness",
+    "build_torch_accumulation_replay_plan",
     "build_torch_gradient_accumulation_report",
     "build_torch_optimizer_step_probe",
     "build_torch_optimizer_step_execution_probe",

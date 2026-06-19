@@ -48,6 +48,8 @@ reference.
 - Keep PyTorch accumulation readiness machine-checkable: missing replayed
   backward passes, loss scaling, mean reduction, and clipped-gradient buffers
   must be recorded as pending requirements before training parity can advance.
+- Carry a PyTorch accumulation replay plan in candidate artifacts; the plan is
+  a microstep recipe, not evidence that replayed backward passes have run.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

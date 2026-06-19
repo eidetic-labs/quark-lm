@@ -199,12 +199,15 @@ with clipping across accumulated microsteps, parity needs a clipped-gradient
 buffer before the optimizer update. The report now includes PyTorch
 accumulation-readiness requirements so replayed backward passes, loss scaling,
 mean reduction, and clipped-gradient buffering are machine-checkable pending
-items instead of implicit notes. It explicitly marks accumulated-gradient
-parity unproven whenever the contract requires replayed backward passes across
-microsteps. This is still not full PyTorch training parity: it does not yet
-prove accumulated-gradient numerical equivalence, final logits, final loss, or
-checkpoint compatibility. The next implementation layer is matching those
-numerical update effects against scalar training evidence.
+items instead of implicit notes. Candidate artifacts also carry a PyTorch
+accumulation replay plan: a per-microstep recipe for context, target, loss
+scale, clipping, buffer action, reduction, optimizer step, and zero-grad
+placement. The replay plan is not execution evidence; it explicitly marks
+accumulated-gradient parity unproven until those backward passes run and match
+scalar training evidence. This is still not full PyTorch training parity: it
+does not yet prove accumulated-gradient numerical equivalence, final logits,
+final loss, or checkpoint compatibility. The next implementation layer is
+matching those numerical update effects against scalar training evidence.
 
 ## Where the sequence stands
 
