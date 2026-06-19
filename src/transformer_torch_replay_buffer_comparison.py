@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any
+
+from transformer_torch_replay_signature import (
+    build_value_signature,
+    compare_value_signatures,
+    value_signature_abs_diff,
+)
+from transformer_torch_replay_step_alignment import (
+    build_torch_replay_step_alignment,
+)
 
 
 TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION = 1
@@ -22,12 +30,23 @@ def build_torch_replay_buffer_comparison(
     if replay_control_probe.get("status") != "accumulation_replay_control_recorded":
         return _not_run("replay control did not complete")
 
+    scalar_step_records = fixture["training_case"]["step_records"]
+    step_alignment = build_torch_replay_step_alignment(
+        replay_control_probe=replay_control_probe,
+        scalar_step_records=scalar_step_records,
+    )
+    if not step_alignment["passed"]:
+        return _not_run(
+            "replay steps do not align with scalar training evidence",
+            step_alignment=step_alignment,
+        )
+
     parameter_count = fixture["parameter_manifest"]["parameter_count"]
     buffer = [0.0 for _index in range(parameter_count)]
     records = []
     for microstep, scalar_record in zip(
         replay_control_probe["microsteps"],
-        fixture["training_case"]["step_records"],
+        scalar_step_records,
     ):
         record = _comparison_record(
             buffer_before=buffer,
@@ -61,6 +80,7 @@ def build_torch_replay_buffer_comparison(
         "buffered_gradient_parity_proven": passed,
         "optimizer_update_parity_proven": False,
         "final_loss_parity_proven": False,
+        "step_alignment": step_alignment,
         "reason": (
             "replayed gradient buffers match scalar evidence"
             if passed
@@ -87,12 +107,12 @@ def _comparison_record(
     comparisons = {
         "buffer_before": _signature_comparison(
             expected=evidence["buffer_before"]["signature"],
-            actual=_signature(buffer_before),
+            actual=build_value_signature(buffer_before),
             tolerance=tolerance,
         ),
         "buffer_after_add": _signature_comparison(
             expected=evidence["buffer_after_add"]["signature"],
-            actual=_signature(buffer_after_add),
+            actual=build_value_signature(buffer_after_add),
             tolerance=tolerance,
         ),
         "accumulated_gradient": _accumulated_comparison(
@@ -149,15 +169,15 @@ def _accumulated_comparison(
             "expected_available": False,
             "actual_available": bool(actual_values),
             "expected_signature": expected["signature"],
-            "actual_signature": _signature(actual_values),
-            "signature_abs_diff": _signature_abs_diff(
+            "actual_signature": build_value_signature(actual_values),
+            "signature_abs_diff": value_signature_abs_diff(
                 expected=expected["signature"],
-                actual=_signature(actual_values),
+                actual=build_value_signature(actual_values),
             ),
         }
     comparison = _signature_comparison(
         expected=expected["signature"],
-        actual=_signature(actual_values),
+        actual=build_value_signature(actual_values),
         tolerance=tolerance,
     )
     return {
@@ -173,59 +193,11 @@ def _signature_comparison(
     actual: dict[str, float | int],
     tolerance: dict[str, float],
 ) -> dict[str, Any]:
-    passed = _signatures_match(
+    return compare_value_signatures(
         expected=expected,
         actual=actual,
         tolerance=tolerance,
     )
-    return {
-        "status": "matched" if passed else "mismatch",
-        "passed": passed,
-        "expected_signature": expected,
-        "actual_signature": actual,
-        "signature_abs_diff": _signature_abs_diff(expected=expected, actual=actual),
-    }
-
-
-def _signatures_match(
-    *,
-    expected: dict[str, float | int],
-    actual: dict[str, float | int],
-    tolerance: dict[str, float],
-) -> bool:
-    if expected["count"] != actual["count"]:
-        return False
-    return all(
-        math.isclose(
-            float(expected[key]),
-            float(actual[key]),
-            abs_tol=tolerance["absolute"],
-            rel_tol=tolerance["relative"],
-        )
-        for key in ("sum", "abs_sum", "square_sum")
-    )
-
-
-def _signature_abs_diff(
-    *,
-    expected: dict[str, float | int],
-    actual: dict[str, float | int],
-) -> dict[str, float | int]:
-    return {
-        "count": int(actual["count"]) - int(expected["count"]),
-        "sum": abs(float(actual["sum"]) - float(expected["sum"])),
-        "abs_sum": abs(float(actual["abs_sum"]) - float(expected["abs_sum"])),
-        "square_sum": abs(float(actual["square_sum"]) - float(expected["square_sum"])),
-    }
-
-
-def _signature(values: list[float]) -> dict[str, float | int]:
-    return {
-        "count": len(values),
-        "sum": sum(values),
-        "abs_sum": sum(abs(value) for value in values),
-        "square_sum": sum(value * value for value in values),
-    }
 
 
 def _public_record(record: dict[str, Any]) -> dict[str, Any]:
@@ -237,8 +209,12 @@ def _public_record(record: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _not_run(reason: str) -> dict[str, Any]:
-    return {
+def _not_run(
+    reason: str,
+    *,
+    step_alignment: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    report = {
         "schema_version": TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION,
         "status": TORCH_REPLAY_BUFFER_NOT_RUN_STATUS,
         "passed": False,
@@ -247,3 +223,6 @@ def _not_run(reason: str) -> dict[str, Any]:
         "optimizer_update_parity_proven": False,
         "final_loss_parity_proven": False,
     }
+    if step_alignment is not None:
+        report["step_alignment"] = step_alignment
+    return report

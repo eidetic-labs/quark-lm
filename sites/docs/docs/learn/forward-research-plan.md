@@ -212,16 +212,18 @@ PyTorch microstep gradients and compares their signatures to scalar
 clipped-gradient evidence. A mismatch is recorded as evidence, not promoted;
 buffered-gradient, optimizer-update, final-logit, and final-loss parity remain
 unproven. The replay-buffer comparison now folds replayed clipped gradients
-through the scalar accumulation cadence and compares buffer-before,
+through the scalar accumulation cadence only after replay microsteps exactly
+align with scalar step records. It then compares buffer-before,
 buffer-after-add, and accumulated-gradient signatures to scalar evidence.
-Buffer mismatches are recorded as blocking evidence, not promoted. Scalar
-training fixtures now also record a final trainable-parameter signature in
-manifest order. The replay-update comparison is gated behind buffer parity: if
-the buffer comparison passes, it applies the replayed accumulated gradient
-through AdamW on a fresh tensor state and compares the post-update trainable
-signature to scalar evidence. A match proves optimizer-update parity only; final
-logits and final loss remain separate gates. The replay final-evaluation probe
-is gated behind optimizer-update parity: after a
+Missing or misordered replay steps and buffer mismatches are recorded as
+blocking evidence, not promoted. Scalar training fixtures now also record a
+final trainable-parameter signature in manifest order. The replay-update
+comparison is gated behind buffer parity: if the buffer comparison passes, it
+applies the replayed accumulated gradient through AdamW on a fresh tensor state
+and compares the post-update trainable signature to scalar evidence. A match
+proves optimizer-update parity only; final logits and final loss remain
+separate gates. The replay final-evaluation probe is gated behind
+optimizer-update parity: after a
 matched replay update, it computes final logits and final loss from a fresh
 replay-updated tensor state and compares them to scalar evidence. A match proves
 final-evaluation parity only. The replay checkpoint-compatibility probe is

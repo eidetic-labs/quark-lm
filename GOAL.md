@@ -61,6 +61,8 @@ reference.
   evidence.
 - Compare replayed gradient buffers against scalar buffer evidence; buffer
   mismatches keep optimizer-update, final-logit, and final-loss parity blocked.
+- Require replay-step alignment before buffer parity: every replayed microstep
+  must match the scalar step order before gradient buffers can count.
 - Gate replayed AdamW update comparison behind buffer parity; matched trainable
   parameter signatures prove only optimizer-update parity, not final logits or
   final loss.

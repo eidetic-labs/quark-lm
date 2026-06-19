@@ -29,6 +29,7 @@ class TransformerTorchReplayBufferComparisonTests(unittest.TestCase):
         self.assertEqual(comparison["matched_step_count"], 2)
         self.assertEqual(comparison["mismatched_step_count"], 0)
         self.assertEqual(comparison["update_step_count"], 1)
+        self.assertTrue(comparison["step_alignment"]["passed"])
         self.assertTrue(comparison["buffered_gradient_parity_proven"])
         self.assertFalse(comparison["optimizer_update_parity_proven"])
         self.assertFalse(comparison["final_loss_parity_proven"])
@@ -67,6 +68,31 @@ class TransformerTorchReplayBufferComparisonTests(unittest.TestCase):
         self.assertFalse(comparison["passed"])
         self.assertFalse(comparison["buffered_gradient_parity_proven"])
 
+    def test_comparison_rejects_incomplete_replay_steps(self) -> None:
+        comparison = build_torch_replay_buffer_comparison(
+            fixture=_fixture(),
+            replay_control_probe=_control_probe([[1.0, -1.0]]),
+        )
+
+        self.assertEqual(comparison["status"], TORCH_REPLAY_BUFFER_NOT_RUN_STATUS)
+        self.assertFalse(comparison["passed"])
+        self.assertFalse(comparison["step_alignment"]["passed"])
+        self.assertEqual(comparison["step_alignment"]["replay_steps"], [1])
+        self.assertEqual(comparison["step_alignment"]["scalar_steps"], [1, 2])
+
+    def test_comparison_rejects_misordered_replay_steps(self) -> None:
+        comparison = build_torch_replay_buffer_comparison(
+            fixture=_fixture(),
+            replay_control_probe=_control_probe(
+                [[3.0, 1.0], [1.0, -1.0]],
+                steps=[2, 1],
+            ),
+        )
+
+        self.assertEqual(comparison["status"], TORCH_REPLAY_BUFFER_NOT_RUN_STATUS)
+        self.assertFalse(comparison["passed"])
+        self.assertFalse(comparison["step_alignment"]["passed"])
+
 
 def _fixture() -> dict:
     return {
@@ -97,16 +123,21 @@ def _fixture() -> dict:
     }
 
 
-def _control_probe(gradients: list[list[float]]) -> dict:
+def _control_probe(
+    gradients: list[list[float]],
+    *,
+    steps: list[int] | None = None,
+) -> dict:
+    steps = steps or list(range(1, len(gradients) + 1))
     return {
         "status": "accumulation_replay_control_recorded",
         "case_id": "training-01",
         "microsteps": [
             {
-                "step": index + 1,
+                "step": step,
                 "gradient_snapshot": _snapshot(values),
             }
-            for index, values in enumerate(gradients)
+            for step, values in zip(steps, gradients)
         ],
     }
 
