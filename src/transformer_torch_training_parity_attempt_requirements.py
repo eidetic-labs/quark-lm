@@ -18,48 +18,12 @@ TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES = (
     "training_parity_report",
     "complete",
 )
-
-
-def validate_torch_training_parity_attempt_requirements(
-    requirements: dict[str, Any],
-) -> None:
-    """Validate the standalone next-requirements artifact shape."""
-
-    if not isinstance(requirements, dict):
-        raise ValueError("next_requirements must be a dict")
-    if (
-        requirements.get("schema_version")
-        != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION
-    ):
-        raise ValueError("next_requirements.schema_version is inconsistent")
-    if requirements.get("kind") != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND:
-        raise ValueError("next_requirements.kind is inconsistent")
-    stage = _required_string(requirements, "stage")
-    status = _required_string(requirements, "status")
-    if stage not in TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES:
-        raise ValueError("next_requirements.stage is unsupported")
-    if status not in _allowed_statuses(stage):
-        raise ValueError("next_requirements.status is unsupported")
-    _require_string_list(requirements, "primary_blockers")
-    _require_string_list(requirements, "next_actions")
-    if stage == "complete" and (
-        requirements["primary_blockers"] or requirements["next_actions"]
-    ):
-        raise ValueError("next_requirements.complete actions must be empty")
-    _require_keys(
-        requirements,
-        (
-            "runtime_status",
-            "parity_attempt_allowed",
-            "training_readiness_status",
-            "training_replay_parity_status",
-            "training_report_passed",
-        ),
-    )
-    if not isinstance(requirements["parity_attempt_allowed"], bool):
-        raise ValueError("next_requirements.parity_attempt_allowed must be a bool")
-    if not isinstance(requirements["training_report_passed"], bool):
-        raise ValueError("next_requirements.training_report_passed must be a bool")
+TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS = (
+    "install_real_pytorch_runtime",
+    "run_again_with_real_pytorch_runtime",
+    "request_available_pytorch_dtype",
+    "fix_pytorch_runtime_preflight",
+)
 
 
 def build_torch_training_parity_attempt_requirements(
@@ -182,34 +146,3 @@ def _summary_failures(payload: dict[str, Any]) -> list[str]:
 
 def _prefixed(prefix: str, values: list[str]) -> list[str]:
     return [f"{prefix}:{value}" for value in values]
-
-
-def _allowed_statuses(stage: str) -> tuple[str, ...]:
-    if stage == "complete":
-        return ("satisfied",)
-    if stage == "runtime_preflight":
-        return ("blocked",)
-    if stage == "training_readiness":
-        return ("blocked", "pending")
-    return ("pending",)
-
-
-def _required_string(record: dict[str, Any], key: str) -> str:
-    value = record.get(key)
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"next_requirements.{key} must be a non-empty string")
-    return value
-
-
-def _require_string_list(record: dict[str, Any], key: str) -> None:
-    value = record.get(key)
-    if not isinstance(value, list):
-        raise ValueError(f"next_requirements.{key} must be a list")
-    if any(not isinstance(item, str) or not item.strip() for item in value):
-        raise ValueError(f"next_requirements.{key} must contain strings")
-
-
-def _require_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:
-    for key in keys:
-        if key not in record:
-            raise ValueError(f"next_requirements.{key} is missing")

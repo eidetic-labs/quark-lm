@@ -11,7 +11,7 @@ from transformer_torch_training_attempt_boundary import (
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
-from transformer_torch_training_parity_attempt_requirements import (
+from transformer_torch_training_parity_attempt_requirement_validation import (
     validate_torch_training_parity_attempt_requirements,
 )
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS

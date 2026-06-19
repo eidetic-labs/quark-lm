@@ -113,6 +113,8 @@ summary is a typed artifact with an explicit kind and schema version, and that
 contract is available from the optional public backend surface. The requirements
 artifact also has standalone validation and a public stage catalog so
 next-action routing can be checked without validating a full attempt bundle.
+Stage/action consistency is validated too, so a well-shaped artifact cannot
+route a replay blocker through a readiness or runtime action by mistake.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

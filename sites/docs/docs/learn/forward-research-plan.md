@@ -300,7 +300,9 @@ audit contract without reaching through private module paths. Each
 version, and the public backend surface exposes that contract for loop
 consumers. The requirements artifact also has standalone validation and a public
 stage catalog so next-action routing can be checked without validating a full
-attempt bundle.
+attempt bundle. Stage/action consistency is validated too, so a well-shaped
+artifact cannot route a replay blocker through a readiness or runtime action by
+mistake.
 
 ## Where the sequence stands
 

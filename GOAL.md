@@ -135,7 +135,8 @@ reference.
   contract must also be available from the optional public backend surface. The
   requirements artifact must provide standalone validation and a public stage
   catalog so next-action routing can be checked without validating a full
-  attempt bundle.
+  attempt bundle. Stage/action consistency must be validated so well-shaped
+  artifacts cannot route blockers through the wrong remediation path.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 
