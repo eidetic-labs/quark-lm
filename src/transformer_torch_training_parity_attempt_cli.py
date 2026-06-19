@@ -12,8 +12,8 @@ from transformer_torch_training_parity_attempt import (
     build_torch_training_parity_attempt,
     write_torch_training_parity_attempt,
 )
-from transformer_torch_training_parity_attempt_reader import (
-    load_torch_training_parity_attempt_artifact_set,
+from transformer_torch_training_parity_attempt_audit import (
+    build_torch_training_parity_attempt_audit,
 )
 
 
@@ -46,9 +46,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.verify_existing:
-        artifacts = load_torch_training_parity_attempt_artifact_set(args.output_dir)
-        print(json.dumps(artifacts["attempt"], indent=2, sort_keys=True))
-        return 0
+        audit = build_torch_training_parity_attempt_audit(args.output_dir)
+        print(json.dumps(audit, indent=2, sort_keys=True))
+        return 0 if audit["passed"] else 1
     artifacts = build_torch_training_parity_attempt(
         corpus_dir=args.corpus_dir,
         fixture_id=args.fixture_id,

@@ -132,9 +132,11 @@ reference.
   written attempt directories must reload through the same validation contract
   before the writer returns; recorded artifact paths must resolve to the loaded
   files, and the CLI must audit an existing attempt directory without
-  rebuilding it. The optional public backend surface must expose the
-  written-attempt file map, hash algorithm, hash builder, loader, and compact
-  summary validator so contributors inspect the persisted audit contract
+  rebuilding it. Verification must emit a compact pass/fail audit result for
+  loop automation instead of requiring consumers to parse loader exceptions.
+  The optional public backend surface must expose the written-attempt file map,
+  hash algorithm, hash builder, loader, compact summary validator, and compact
+  audit-result builder so contributors inspect the persisted audit contract
   without private module paths. Each `next_requirements` summary must be a
   typed artifact with an explicit kind and schema version, and that contract
   must also be available from the optional public backend surface. The

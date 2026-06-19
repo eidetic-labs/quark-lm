@@ -204,14 +204,17 @@ Working tagline: Big idea. Tiny package.
   Written attempt directories are reloaded through the same validation contract
   before the writer returns. Recorded artifact paths must resolve to the loaded
   files, and the CLI can audit an existing attempt directory with
-  `--verify-existing` without rebuilding it. The optional public backend
-  surface exposes the written-attempt file map, hash algorithm, hash builder,
-  loader, and compact summary validator so contributors can inspect the same
-  persisted audit contract without reaching through private module paths. Each
-  `next_requirements` summary is now a typed artifact with an explicit kind and
-  schema version, and the public backend surface exposes that contract for loop
-  consumers. The requirements artifact also has standalone validation and a
-  public stage catalog so next-action
+  `--verify-existing` without rebuilding it. Verification now emits a compact
+  audit result for both valid and invalid written attempts, allowing loop
+  automation to consume pass/fail status and failure reasons without parsing
+  loader exceptions. The optional public backend surface exposes the
+  written-attempt file map, hash algorithm, hash builder, loader, compact
+  summary validator, and compact audit-result builder so contributors can
+  inspect the same persisted audit contract without reaching through private
+  module paths. Each `next_requirements` summary is now a typed artifact with
+  an explicit kind and schema version, and the public backend surface exposes
+  that contract for loop consumers. The requirements artifact also has
+  standalone validation and a public stage catalog so next-action
   routing can be checked without validating a full attempt bundle. Stage/action
   consistency is now validated too, so a well-shaped artifact cannot route a
   replay blocker through a readiness or runtime action by mistake. Runtime

@@ -35,11 +35,14 @@ class TransformerTorchTrainingParityAttemptCliTests(unittest.TestCase):
             with redirect_stdout(output):
                 exit_code = main(["--output-dir", temp, "--verify-existing"])
 
-        attempt = json.loads(output.getvalue())
+        audit = json.loads(output.getvalue())
         self.assertEqual(exit_code, 0)
-        self.assertEqual(attempt["fixture_id"], artifacts["attempt"]["fixture_id"])
+        self.assertTrue(audit["passed"])
+        self.assertEqual(audit["status"], "artifact_set_valid")
+        self.assertEqual(audit["fixture_id"], artifacts["attempt"]["fixture_id"])
+        self.assertEqual(audit["attempt_status"], artifacts["attempt"]["status"])
 
-    def test_verify_existing_rejects_tampered_written_attempt(self) -> None:
+    def test_verify_existing_reports_tampered_written_attempt(self) -> None:
         artifacts = _artifacts()
         with tempfile.TemporaryDirectory() as temp:
             written = write_torch_training_parity_attempt(Path(temp), artifacts)
@@ -51,8 +54,16 @@ class TransformerTorchTrainingParityAttemptCliTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with self.assertRaisesRegex(ValueError, "artifact_hashes"):
-                main(["--output-dir", temp, "--verify-existing"])
+            output = StringIO()
+            with redirect_stdout(output):
+                exit_code = main(["--output-dir", temp, "--verify-existing"])
+
+        audit = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 1)
+        self.assertFalse(audit["passed"])
+        self.assertEqual(audit["status"], "artifact_set_invalid")
+        self.assertEqual(audit["error_type"], "ValueError")
+        self.assertIn("artifact_hashes", audit["error"])
 
 
 def _artifacts() -> dict:

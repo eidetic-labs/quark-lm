@@ -109,15 +109,18 @@ corpus summary must match the scalar fixture and candidate backend corpus hash.
 Written attempt directories are reloaded through the same validation contract
 before the writer returns. The same command can run with
 `--verify-existing` to audit a written attempt directory without
-rebuilding it. Recorded artifact paths must resolve to the loaded files. The
-optional public backend surface also exposes the written-attempt file map, hash
-algorithm, hash builder, loader, and compact summary validator so contributors
-can inspect the same persisted audit contract without reaching through private
-module paths. Each `next_requirements` summary is a typed artifact with an
-explicit kind and schema version, and that contract is available from the
-optional public backend surface. The requirements artifact also has standalone
-validation and a public stage catalog so next-action routing can be checked
-without validating a full attempt bundle.
+rebuilding it. Verification emits a compact audit result for both valid and
+invalid written attempts, so loop automation can consume pass/fail status and
+failure reasons without parsing loader exceptions. Recorded artifact paths must
+resolve to the loaded files. The optional public backend surface also exposes
+the written-attempt file map, hash algorithm, hash builder, loader, compact
+summary validator, and compact audit-result builder so contributors can inspect
+the same persisted audit contract without reaching through private module
+paths. Each `next_requirements` summary is a typed artifact with an explicit
+kind and schema version, and that contract is available from the optional public
+backend surface. The requirements artifact also has standalone validation and a
+public stage catalog so next-action routing can be checked without validating a
+full attempt bundle.
 Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
 Runtime preflight actions come from a canonical status-to-action map that the
