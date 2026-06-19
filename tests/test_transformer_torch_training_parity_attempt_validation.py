@@ -35,6 +35,20 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must not promote"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_stale_attempt_passed_flag(self) -> None:
+        attempt = _attempt()
+        attempt["passed"] = True
+
+        with self.assertRaisesRegex(ValueError, "passed flag"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_attempt_status(self) -> None:
+        attempt = _attempt()
+        attempt["status"] = "training_parity_matched"
+
+        with self.assertRaisesRegex(ValueError, "status is inconsistent"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_validator_rejects_dirty_closed_world_boundary(self) -> None:
         attempt = _attempt()
         attempt["closed_world_boundary"]["pretrained_tokenizer_imported"] = True
@@ -65,6 +79,20 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         ]
 
         with self.assertRaisesRegex(ValueError, "boundary failures"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_next_requirements_stage(self) -> None:
+        attempt = _attempt()
+        attempt["next_requirements"]["stage"] = "complete"
+
+        with self.assertRaisesRegex(ValueError, "next_requirements.stage"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_next_requirements_runtime_status(self) -> None:
+        attempt = _attempt()
+        attempt["next_requirements"]["runtime_status"] = "training_parity_matched"
+
+        with self.assertRaisesRegex(ValueError, "runtime_status"):
             validate_torch_training_parity_attempt(attempt)
 
     def test_writer_validation_requires_artifact_paths(self) -> None:

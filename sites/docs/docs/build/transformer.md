@@ -88,8 +88,9 @@ expected to fail today: it records that matched replay parity is fixture-level
 evidence, while a promoted or generalized PyTorch trainer still needs separate
 model-quality, profile, and retention gates. When the closed-world boundary is
 dirty, the gate names the exact failed boundary fields.
-The attempt builder validates the summary before writing it, including the
-promotion gate, closed-world boundary flags, evidence scope, and artifact paths.
+The attempt builder validates the summary before writing it, including attempt
+status, next requirements, promotion gate, closed-world boundary flags, evidence
+scope, and artifact paths.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

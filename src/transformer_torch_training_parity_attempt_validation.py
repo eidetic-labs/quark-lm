@@ -11,6 +11,7 @@ from transformer_torch_training_attempt_boundary import (
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
+from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
 TORCH_TRAINING_PARITY_ATTEMPT_KIND = "transformer_torch_training_parity_attempt"
@@ -50,6 +51,8 @@ def validate_torch_training_parity_attempt(
     boundary = attempt["closed_world_boundary"]
     _validate_boundary(boundary)
     _validate_promotion_gate(attempt["training_backend_promotion_gate"], boundary)
+    _validate_attempt_status(attempt)
+    _validate_next_requirements(attempt["next_requirements"], attempt)
     if require_artifacts:
         _validate_artifacts(attempt.get("artifacts"))
 
@@ -88,6 +91,76 @@ def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
         for key, expected_value in expected.items()
         if boundary.get(key) is not expected_value
     ]
+
+
+def _validate_attempt_status(attempt: dict[str, Any]) -> None:
+    expected_passed = attempt["training_parity_report"].get("passed")
+    if attempt.get("passed") is not expected_passed:
+        raise ValueError("training parity attempt passed flag is inconsistent")
+    expected_status = _expected_attempt_status(attempt)
+    if attempt.get("status") != expected_status:
+        raise ValueError("training parity attempt status is inconsistent")
+
+
+def _expected_attempt_status(attempt: dict[str, Any]) -> str:
+    if attempt["training_parity_report"].get("passed") is True:
+        return "training_parity_matched"
+    if attempt["runtime"].get("parity_attempt_allowed") is not True:
+        return str(attempt["runtime"].get("status", "blocked_pytorch_runtime"))
+    return str(
+        attempt["training_replay_parity_gate"].get(
+            "status",
+            "training_parity_pending",
+        )
+    )
+
+
+def _validate_next_requirements(
+    requirements: dict[str, Any],
+    attempt: dict[str, Any],
+) -> None:
+    expected_stage, expected_status = _expected_next_requirement_state(attempt)
+    if requirements.get("stage") != expected_stage:
+        raise ValueError("next_requirements.stage is inconsistent")
+    if requirements.get("status") != expected_status:
+        raise ValueError("next_requirements.status is inconsistent")
+    for key, expected in _expected_next_requirement_refs(attempt).items():
+        if requirements.get(key) != expected:
+            raise ValueError(f"next_requirements.{key} is inconsistent")
+    if not isinstance(requirements.get("primary_blockers"), list):
+        raise ValueError("next_requirements.primary_blockers must be a list")
+    if not isinstance(requirements.get("next_actions"), list):
+        raise ValueError("next_requirements.next_actions must be a list")
+
+
+def _expected_next_requirement_state(attempt: dict[str, Any]) -> tuple[str, str]:
+    if attempt["training_parity_report"].get("passed") is True:
+        return "complete", "satisfied"
+    if attempt["runtime"].get("parity_attempt_allowed") is not True:
+        return "runtime_preflight", "blocked"
+    readiness_status = attempt["candidate"].get("training_readiness_status")
+    if readiness_status != TORCH_TRAINING_READY_STATUS:
+        return (
+            "training_readiness",
+            "blocked" if readiness_status == "blocked" else "pending",
+        )
+    if attempt["training_replay_parity_gate"].get("passed") is not True:
+        return "training_replay_parity", "pending"
+    return "training_parity_report", "pending"
+
+
+def _expected_next_requirement_refs(attempt: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "runtime_status": attempt["runtime"].get("status"),
+        "parity_attempt_allowed": attempt["runtime"].get("parity_attempt_allowed"),
+        "training_readiness_status": attempt["candidate"].get(
+            "training_readiness_status"
+        ),
+        "training_replay_parity_status": attempt["training_replay_parity_gate"].get(
+            "status"
+        ),
+        "training_report_passed": attempt["training_parity_report"].get("passed"),
+    }
 
 
 def _validate_artifacts(artifacts: Any) -> None:

@@ -213,6 +213,9 @@ def _candidate_summary(candidate: dict[str, Any]) -> dict[str, Any]:
     return {
         "implementation_status": candidate.get("implementation_status"),
         "parity_status": backend.get("parity_status"),
+        "training_readiness_status": candidate.get("training_readiness", {}).get(
+            "status"
+        ),
         "training_case_status": candidate.get("training_case", {}).get("status"),
     }
 

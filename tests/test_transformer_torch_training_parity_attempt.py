@@ -43,6 +43,10 @@ class TransformerTorchTrainingParityAttemptTests(unittest.TestCase):
             attempt["candidate"]["implementation_status"],
             "runtime_unavailable",
         )
+        self.assertEqual(
+            attempt["candidate"]["training_readiness_status"],
+            "blocked",
+        )
         self.assertEqual(attempt["runtime"]["dtype"], "float64")
         self.assertEqual(
             attempt["next_requirements"]["stage"],

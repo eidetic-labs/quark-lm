@@ -281,8 +281,9 @@ fixture-level evidence only, while promoted or generalized PyTorch training
 still requires model-quality, profile, and retention gates. The gate also names
 any exact closed-world boundary fields that fail.
 Attempt summaries are validated before they are trusted or written, so the
-promotion gate, evidence scope, closed-world boundary flags, and artifact paths
-cannot silently drift out of the PyTorch parity evidence chain.
+attempt status, next-requirements diagnosis, promotion gate, evidence scope,
+closed-world boundary flags, and artifact paths cannot silently drift out of the
+PyTorch parity evidence chain.
 
 ## Where the sequence stands
 

@@ -189,8 +189,8 @@ Working tagline: Big idea. Tiny package.
   fixture replay parity and any future promoted/general PyTorch trainer. The
   gate reports exact closed-world boundary fields when they fail.
 - PyTorch training parity attempt summaries are validated before being trusted
-  or written, including promotion-gate, closed-world boundary, evidence-scope,
-  and artifact-path checks.
+  or written, including attempt status, next requirements, promotion-gate,
+  closed-world boundary, evidence-scope, and artifact-path checks.
 
 ## Research Grounding
 
