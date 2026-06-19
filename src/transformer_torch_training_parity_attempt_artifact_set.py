@@ -42,6 +42,7 @@ def validate_torch_training_parity_attempt_artifact_set(
         require_artifacts=require_artifact_paths,
     )
     _validate_fixture_ids(payloads)
+    _validate_corpus_summary(payloads)
     _validate_summary(
         "runtime",
         payloads["attempt"].get("runtime"),
@@ -88,6 +89,18 @@ def _validate_fixture_ids(payloads: dict[str, dict[str, Any]]) -> None:
     for key in ("fixture", "candidate", "report"):
         if payloads[key].get("fixture_id") != fixture_id:
             raise ValueError(f"artifacts.{key}.fixture_id is inconsistent")
+
+
+def _validate_corpus_summary(payloads: dict[str, dict[str, Any]]) -> None:
+    corpus = payloads["attempt"].get("corpus", {})
+    if not isinstance(corpus.get("train_sha256"), str) or not corpus["train_sha256"]:
+        raise ValueError("attempt.corpus.train_sha256 is invalid")
+    expected_hash = payloads["fixture"].get("reference_backend", {}).get("corpus_hash")
+    if corpus["train_sha256"] != expected_hash:
+        raise ValueError("attempt.corpus.train_sha256 is inconsistent")
+    candidate_hash = payloads["candidate"].get("backend", {}).get("corpus_hash")
+    if candidate_hash != expected_hash:
+        raise ValueError("artifacts.candidate.backend.corpus_hash is inconsistent")
 
 
 def _validate_summary(name: str, actual: Any, expected: dict[str, Any]) -> None:

@@ -39,6 +39,20 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "candidate.fixture_id"):
             validate_torch_training_parity_attempt_artifact_set(artifacts)
 
+    def test_validator_rejects_stale_attempt_corpus_hash(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["corpus"]["train_sha256"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "corpus.train_sha256"):
+            validate_torch_training_parity_attempt_artifact_set(artifacts)
+
+    def test_validator_rejects_stale_candidate_corpus_hash(self) -> None:
+        artifacts = _artifacts()
+        artifacts["candidate"]["backend"]["corpus_hash"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "candidate.backend.corpus_hash"):
+            validate_torch_training_parity_attempt_artifact_set(artifacts)
+
     def test_validator_rejects_stale_candidate_summary(self) -> None:
         artifacts = _artifacts()
         artifacts["candidate"]["implementation_status"] = "training_replay_pending"

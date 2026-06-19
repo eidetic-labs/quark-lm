@@ -123,11 +123,13 @@ reference.
   machine-checkable, including a report rebuilt from the paired fixture and
   candidate payloads and a promotion gate rebuilt from the candidate, report,
   and closed-world boundary. The next-requirements diagnosis must also rebuild
-  from the candidate runtime report, candidate, and report. Written summaries
-  must carry SHA-256 payload hashes for sibling artifacts, and written attempt
-  directories must reload through the same validation contract before the writer
-  returns; recorded artifact paths must resolve to the loaded files, and the CLI
-  must audit an existing attempt directory without rebuilding it. The optional
+  from the candidate runtime report, candidate, and report. The persisted
+  corpus summary must match the scalar fixture and candidate backend corpus
+  hash. Written summaries must carry SHA-256 payload hashes for sibling
+  artifacts, and written attempt directories must reload through the same
+  validation contract before the writer returns; recorded artifact paths must
+  resolve to the loaded files, and the CLI must audit an existing attempt
+  directory without rebuilding it. The optional
   public backend surface must expose the written-attempt file map, hash
   algorithm, hash builder, and loader so contributors inspect the persisted
   audit contract without private module paths. Each `next_requirements` summary

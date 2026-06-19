@@ -196,12 +196,14 @@ Working tagline: Big idea. Tiny package.
   backend-promotion gate must match a gate rebuilt from the candidate, report,
   and closed-world boundary. The next-requirements diagnosis must also rebuild
   from the candidate runtime report, candidate, and report. Written summaries
-  now carry SHA-256 payload hashes for sibling artifacts, and written attempt
-  directories are reloaded through the same validation contract before the
-  writer returns. Recorded artifact paths must resolve to the loaded files, and
-  the CLI can audit an existing attempt directory with `--verify-existing`
-  without rebuilding it. The optional public backend surface exposes the
-  written-attempt file map, hash algorithm, hash builder, and loader so
+  now carry SHA-256 payload hashes for sibling artifacts, and the persisted
+  corpus summary must match the scalar fixture and candidate backend corpus
+  hash. Written attempt directories are reloaded through the same validation
+  contract before the writer returns. Recorded artifact paths must resolve to
+  the loaded files, and the CLI can audit an existing attempt directory with
+  `--verify-existing` without rebuilding it. The optional public backend
+  surface exposes the written-attempt file map, hash algorithm, hash builder,
+  and loader so
   contributors can inspect the same persisted audit contract without reaching
   through private module paths. Each `next_requirements` summary is now a typed
   artifact with an explicit kind and schema version, and the public backend
