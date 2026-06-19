@@ -19,6 +19,7 @@ from transformer_torch_training_parity_attempt_audit import (
     build_torch_training_parity_attempt_audit,
 )
 from transformer_torch_training_parity_attempt_audit_validation import (
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
     validate_torch_training_parity_attempt_audit,
 )
 
@@ -44,6 +45,20 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
         self.assertEqual(
             audit["next_actions"],
             written["next_requirements"]["next_actions"],
+        )
+        self.assertEqual(audit["artifact_hashes"], written["artifact_hashes"])
+        self.assertEqual(
+            audit["evidence_hashes"],
+            {
+                "runtime_report": written["runtime"]["runtime_report_sha256"],
+                "candidate": written["candidate"]["candidate_sha256"],
+                "training_replay_parity_gate": written[
+                    "training_replay_parity_gate"
+                ]["training_replay_parity_gate_sha256"],
+                "training_parity_report": written["training_parity_report"][
+                    "training_parity_report_sha256"
+                ],
+            },
         )
         self.assertFalse(audit["promoted_training_backend"])
         validate_torch_training_parity_attempt_audit(audit)
@@ -108,6 +123,31 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "audit.artifact_files"):
             validate_torch_training_parity_attempt_audit(audit)
 
+    def test_validator_rejects_missing_artifact_hash(self) -> None:
+        audit = _valid_audit()
+        audit["artifact_hashes"].pop("candidate")
+
+        with self.assertRaisesRegex(ValueError, "artifact_hashes"):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_malformed_evidence_hash(self) -> None:
+        audit = _valid_audit()
+        audit["evidence_hashes"]["runtime_report"] = "not-a-hash"
+
+        with self.assertRaisesRegex(ValueError, "evidence_hashes.runtime_report"):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_exposes_evidence_hash_key_catalog(self) -> None:
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
+            (
+                "runtime_report",
+                "candidate",
+                "training_replay_parity_gate",
+                "training_parity_report",
+            ),
+        )
+
 
 def _artifacts() -> dict:
     return build_torch_training_parity_attempt(
@@ -151,6 +191,17 @@ def _valid_audit() -> dict:
         "training_backend_promotion_status": "not_promoted",
         "promoted_training_backend": False,
         "artifact_hash_algorithm": "sha256-json-v1",
+        "artifact_hashes": {
+            "fixture": "a" * 64,
+            "candidate": "b" * 64,
+            "report": "c" * 64,
+        },
+        "evidence_hashes": {
+            "runtime_report": "d" * 64,
+            "candidate": "e" * 64,
+            "training_replay_parity_gate": "f" * 64,
+            "training_parity_report": "0" * 64,
+        },
     }
 
 

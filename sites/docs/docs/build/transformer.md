@@ -120,12 +120,14 @@ before the writer returns. The same command can run with
 rebuilding it. Verification emits a compact audit result for both valid and
 invalid written attempts, so loop automation can consume pass/fail status and
 failure reasons without parsing loader exceptions. The compact result has
-standalone validation for its status, error, routing, promotion, and
-artifact-file-map fields. Recorded artifact paths must resolve to the loaded
-files. The optional public backend surface also exposes the written-attempt file
-map, hash algorithm, artifact hash builder, runtime-report hash builder,
-attempt payload hash builder, loader, compact summary validator, compact
-audit-result builder, validator, and status catalog plus the
+standalone validation for its status, error, routing, promotion,
+artifact-file-map, artifact-hash, and evidence-hash fields. Valid audits expose
+the written sibling artifact hashes and compact evidence hashes in one manifest.
+Recorded artifact paths must resolve to the loaded files. The optional public
+backend surface also exposes the written-attempt file map, hash algorithm,
+artifact hash builder, runtime-report hash builder, attempt payload hash
+builder, loader, compact summary validator, compact audit-result builder,
+validator, status catalog, and evidence-hash key catalog plus the
 backend-promotion-gate validator, candidate validator, and candidate key catalog
 plus the runtime-report validator, status catalog, check catalog, and
 evidence-scope constant so contributors can inspect the same

@@ -139,16 +139,17 @@ reference.
   artifact paths must resolve to the loaded files, and the CLI must audit an
   existing attempt directory without rebuilding it. Verification must emit a
   compact pass/fail audit result for loop automation instead of requiring
-  consumers to parse loader exceptions,
-  and that compact result must have standalone validation for status, error,
-  routing, promotion, and artifact-file-map fields.
+  consumers to parse loader exceptions, and that compact result must have
+  standalone validation for status, error, routing, promotion, artifact-file-map,
+  artifact-hash, and evidence-hash fields.
   The optional public backend surface must expose the written-attempt file map,
   hash algorithm, artifact hash builder, runtime-report hash builder, attempt
   payload hash builder, loader, compact summary validator, compact audit-result
-  builder, validator, and status catalog, candidate validator, candidate key
-  catalog, backend-promotion-gate validator, runtime-report validator, status
-  catalog, check catalog, and evidence-scope constant so contributors inspect the
-  persisted audit contract without private module paths. Each
+  builder, validator, status catalog, and evidence-hash key catalog, candidate
+  validator, candidate key catalog, backend-promotion-gate validator,
+  runtime-report validator, status catalog, check catalog, and evidence-scope
+  constant so contributors inspect the persisted audit contract without private
+  module paths. Each
   `next_requirements` summary must be a typed artifact with an explicit kind
   and schema version, and that contract must also be available from the
   optional public backend surface. The

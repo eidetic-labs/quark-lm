@@ -54,6 +54,8 @@ def _valid_audit(output_dir: Path, attempt: dict[str, Any]) -> dict[str, Any]:
         "training_backend_promotion_status": promotion_gate["status"],
         "promoted_training_backend": attempt["promoted_training_backend"],
         "artifact_hash_algorithm": attempt["artifact_hash_algorithm"],
+        "artifact_hashes": dict(attempt["artifact_hashes"]),
+        "evidence_hashes": _evidence_hashes(attempt),
     }
 
 
@@ -64,6 +66,19 @@ def _invalid_audit(output_dir: Path, exc: Exception) -> dict[str, Any]:
         "passed": False,
         "error_type": type(exc).__name__,
         "error": str(exc),
+    }
+
+
+def _evidence_hashes(attempt: dict[str, Any]) -> dict[str, str]:
+    return {
+        "runtime_report": attempt["runtime"]["runtime_report_sha256"],
+        "candidate": attempt["candidate"]["candidate_sha256"],
+        "training_replay_parity_gate": attempt["training_replay_parity_gate"][
+            "training_replay_parity_gate_sha256"
+        ],
+        "training_parity_report": attempt["training_parity_report"][
+            "training_parity_report_sha256"
+        ],
     }
 
 

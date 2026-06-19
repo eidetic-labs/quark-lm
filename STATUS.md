@@ -217,11 +217,13 @@ Working tagline: Big idea. Tiny package.
   audit result for both valid and invalid written attempts, allowing loop
   automation to consume pass/fail status and failure reasons without parsing
   loader exceptions. That compact result now has standalone validation for its
-  status, error, routing, promotion, and artifact-file-map fields. The optional
+  status, error, routing, promotion, artifact-file-map, artifact-hash, and
+  evidence-hash fields. Valid audits now expose the written sibling artifact
+  hashes and compact evidence hashes in one manifest. The optional
   public backend surface exposes the written-attempt file map, hash algorithm,
   artifact hash builder, runtime-report hash builder, attempt payload hash
   builder, loader, compact summary validator, compact audit-result builder,
-  validator, and status catalog,
+  validator, status catalog, and evidence-hash key catalog,
   backend-promotion-gate validator, candidate validator, candidate key catalog,
   runtime-report validator, runtime-report status catalog, check catalog, and
   evidence-scope constant so contributors can inspect the same persisted audit

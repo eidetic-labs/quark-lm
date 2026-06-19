@@ -20,6 +20,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
@@ -98,6 +99,10 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
             "transformer_torch_training_parity_attempt_audit",
+        )
+        self.assertIn(
+            "runtime_report",
+            TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
         )
         self.assertIn(
             "artifact_set_invalid",

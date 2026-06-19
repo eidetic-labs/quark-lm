@@ -26,6 +26,7 @@ from transformer_torch_training_parity_attempt_audit import (
     build_torch_training_parity_attempt_audit,
 )
 from transformer_torch_training_parity_attempt_audit_validation import (
+    TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
     validate_torch_training_parity_attempt_audit,
 )
@@ -96,6 +97,7 @@ __all__ = [
     "TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_BLOCKED_STATUS",
     "TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION",
+    "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES",
     "TORCH_TRAINING_PARITY_ATTEMPT_FILES",

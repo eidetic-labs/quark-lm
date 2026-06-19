@@ -6,6 +6,7 @@ from typing import Any
 
 from corpus_artifacts import SCHEMA_VERSION
 from transformer_torch_training_parity_attempt_hashes import (
+    HASHED_TORCH_TRAINING_ATTEMPT_ARTIFACTS,
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
 )
 from transformer_torch_training_parity_attempt_reader import (
@@ -19,6 +20,12 @@ TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND = (
 TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES = (
     "artifact_set_valid",
     "artifact_set_invalid",
+)
+TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS = (
+    "runtime_report",
+    "candidate",
+    "training_replay_parity_gate",
+    "training_parity_report",
 )
 
 
@@ -64,6 +71,16 @@ def _validate_valid_audit(audit: dict[str, Any]) -> None:
         raise ValueError("audit.promoted_training_backend must be false")
     if audit.get("artifact_hash_algorithm") != TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM:
         raise ValueError("audit.artifact_hash_algorithm is inconsistent")
+    _validate_hash_map(
+        audit,
+        "artifact_hashes",
+        HASHED_TORCH_TRAINING_ATTEMPT_ARTIFACTS,
+    )
+    _validate_hash_map(
+        audit,
+        "evidence_hashes",
+        TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
+    )
     _require_string_list(audit, "next_actions")
     if "error" in audit or "error_type" in audit:
         raise ValueError("audit.valid_result must not include errors")
@@ -74,6 +91,27 @@ def _validate_invalid_audit(audit: dict[str, Any]) -> None:
         raise ValueError("audit.passed is inconsistent")
     _require_non_empty_string(audit, "error_type")
     _require_non_empty_string(audit, "error")
+
+
+def _validate_hash_map(
+    audit: dict[str, Any],
+    key: str,
+    expected_keys: tuple[str, ...],
+) -> None:
+    value = audit.get(key)
+    if not isinstance(value, dict):
+        raise ValueError(f"audit.{key} must be a dict")
+    if set(value) != set(expected_keys):
+        raise ValueError(f"audit.{key} keys are inconsistent")
+    for name, digest in value.items():
+        if not _is_sha256(digest):
+            raise ValueError(f"audit.{key}.{name} is invalid")
+
+
+def _is_sha256(value: Any) -> bool:
+    if not isinstance(value, str) or len(value) != 64:
+        return False
+    return all(char in "0123456789abcdef" for char in value)
 
 
 def _require_bool(record: dict[str, Any], key: str) -> None:
