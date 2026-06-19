@@ -64,6 +64,11 @@ def build_training_parity_report(
                 fixture["parameter_manifest"],
                 candidate.get("parameter_manifest"),
             ),
+            _exact_check(
+                "training_optimizer_step_contract",
+                fixture["optimizer_step_contract"],
+                candidate.get("optimizer_step_contract"),
+            ),
             _signature_check(
                 expected["parameter_signature"],
                 actual.get("parameter_signature"),

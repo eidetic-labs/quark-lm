@@ -6,6 +6,12 @@ from transformer_training_parity_fixture import (
     build_scalar_training_parity_fixture,
     validate_training_parity_fixture,
 )
+from transformer_optimizer_step_contract import (
+    OPTIMIZER_STEP_CONTRACT_KIND,
+    OPTIMIZER_STEP_CONTRACT_SCHEMA_VERSION,
+    build_optimizer_step_contract,
+    validate_optimizer_step_contract,
+)
 from transformer_training_parameter_manifest import (
     TRAINING_PARAMETER_MANIFEST_SCHEMA_VERSION,
     TRAINING_PARAMETER_ORDER,
@@ -26,9 +32,13 @@ __all__ = [
     "TRAINING_PARITY_SCHEMA_VERSION",
     "TRAINING_PARAMETER_MANIFEST_SCHEMA_VERSION",
     "TRAINING_PARAMETER_ORDER",
+    "OPTIMIZER_STEP_CONTRACT_KIND",
+    "OPTIMIZER_STEP_CONTRACT_SCHEMA_VERSION",
+    "build_optimizer_step_contract",
     "build_scalar_training_parity_fixture",
     "build_training_parameter_manifest",
     "build_training_parity_report",
+    "validate_optimizer_step_contract",
     "validate_training_parameter_manifest",
     "validate_training_parity_fixture",
 ]

@@ -12,6 +12,10 @@ from transformer_model import (
     OptimizationConfig,
 )
 from transformer_optimizer import ScalarOptimizer
+from transformer_optimizer_step_contract import (
+    build_optimizer_step_contract,
+    validate_optimizer_step_contract,
+)
 from transformer_training_parameter_manifest import (
     build_training_parameter_manifest,
     validate_training_parameter_manifest,
@@ -60,6 +64,27 @@ def build_scalar_training_parity_fixture(
         weights=initial_payload["weights"],
         model_config=asdict(model.config),
     )
+    training_case = {
+        "case_id": "training-01",
+        "context": list(context),
+        "target": target,
+        "learning_rate": learning_rate,
+        "steps": steps,
+        "initial_loss": initial_loss,
+        "initial_logits": initial_logits,
+        "step_records": step_records,
+        "final_loss": final_loss,
+        "final_logits": final_logits,
+        "optimizer_state": optimizer.to_dict(),
+        "parameter_signature": _parameter_signature(
+            trained_model.to_dict()["weights"]
+        ),
+    }
+    optimizer_step_contract = build_optimizer_step_contract(
+        optimizer_config=asdict(optimizer_config),
+        parameter_manifest=parameter_manifest,
+        training_case=training_case,
+    )
     fixture = {
         "schema_version": TRAINING_PARITY_SCHEMA_VERSION,
         "kind": TRAINING_PARITY_FIXTURE_KIND,
@@ -76,26 +101,12 @@ def build_scalar_training_parity_fixture(
         "initial_weights": initial_payload["weights"],
         "optimizer_config": asdict(optimizer_config),
         "parameter_manifest": parameter_manifest,
+        "optimizer_step_contract": optimizer_step_contract,
         "tolerance": {
             "absolute": TRAINING_PARITY_ABSOLUTE_TOLERANCE,
             "relative": TRAINING_PARITY_RELATIVE_TOLERANCE,
         },
-        "training_case": {
-            "case_id": "training-01",
-            "context": list(context),
-            "target": target,
-            "learning_rate": learning_rate,
-            "steps": steps,
-            "initial_loss": initial_loss,
-            "initial_logits": initial_logits,
-            "step_records": step_records,
-            "final_loss": final_loss,
-            "final_logits": final_logits,
-            "optimizer_state": optimizer.to_dict(),
-            "parameter_signature": _parameter_signature(
-                trained_model.to_dict()["weights"]
-            ),
-        },
+        "training_case": training_case,
     }
     validate_training_parity_fixture(fixture)
     return fixture
@@ -116,11 +127,17 @@ def validate_training_parity_fixture(fixture: dict[str, Any]) -> None:
         raise ValueError("optimizer_config must be a dict")
     if not isinstance(fixture.get("parameter_manifest"), dict):
         raise ValueError("parameter_manifest must be a dict")
+    if not isinstance(fixture.get("optimizer_step_contract"), dict):
+        raise ValueError("optimizer_step_contract must be a dict")
     case = fixture.get("training_case")
     _validate_training_case(case)
     validate_training_parameter_manifest(
         fixture["parameter_manifest"],
         optimizer_state=case["optimizer_state"],
+    )
+    validate_optimizer_step_contract(
+        fixture["optimizer_step_contract"],
+        training_case=case,
     )
 
 

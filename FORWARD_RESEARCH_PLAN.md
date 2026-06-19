@@ -281,8 +281,11 @@ evidence trail can confirm tensor names, shapes, optimizer-slot ranges, and
 current initial-loss probe runs the tiny scalar fixture forward through those
 tensors and records whether initial logits and loss match scalar evidence. The
 current backward probe executes the tensor loss backward pass and reports
-gradient coverage separately from optimizer behavior. The next implementation
-layer is scalar optimizer-step matching.
+gradient coverage separately from optimizer behavior. The current optimizer-step
+contract records the scalar schedule, per-parameter gradient clipping,
+accumulation cadence, expected update steps, and final optimizer-state summary.
+The next implementation layer is executing that contract with PyTorch optimizer
+behavior and matching scalar step records.
 
 ## Current QuarkLM Diagnosis
 

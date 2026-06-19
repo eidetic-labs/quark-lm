@@ -2,24 +2,18 @@
 
 from __future__ import annotations
 
+import copy
 from importlib import import_module
 from typing import Any
 
 from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
 from transformer_torch_runtime import TorchImporter, torch_runtime_status
-from transformer_torch_training_backward_probe import (
-    build_torch_training_backward_probe,
-)
-from transformer_torch_training_loss_probe import (
-    build_torch_training_initial_loss_probe,
+from transformer_torch_training_candidate_probes import (
+    build_torch_training_probe_artifacts,
 )
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_READY_STATUS,
     build_torch_training_readiness,
-)
-from transformer_torch_training_state import (
-    build_torch_training_state,
-    summarize_torch_training_state,
 )
 from transformer_training_parity_fixture import validate_training_parity_fixture
 
@@ -57,24 +51,11 @@ def build_torch_training_parity_candidate(
         runtime=runtime,
         readiness=readiness,
     )
-    state = _training_state(
+    probes = build_torch_training_probe_artifacts(
         fixture=fixture,
         importer=importer,
         readiness=readiness,
         runtime=runtime,
-    )
-    state_summary = _training_state_summary(state)
-    loss_probe = _initial_loss_probe(
-        fixture=fixture,
-        importer=importer,
-        runtime=runtime,
-        state=state,
-    )
-    backward_probe = _backward_probe(
-        fixture=fixture,
-        importer=importer,
-        runtime=runtime,
-        state=state,
     )
     return {
         "schema_version": TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
@@ -98,10 +79,11 @@ def build_torch_training_parity_candidate(
         "tokenizer": dict(fixture["tokenizer"]),
         "optimizer_config": dict(fixture["optimizer_config"]),
         "parameter_manifest": dict(fixture["parameter_manifest"]),
+        "optimizer_step_contract": copy.deepcopy(
+            fixture["optimizer_step_contract"]
+        ),
         "training_readiness": readiness,
-        "training_state": state_summary,
-        "initial_loss_probe": loss_probe,
-        "backward_probe": backward_probe,
+        **probes,
         "training_case": outputs["training_case"],
     }
 
@@ -168,71 +150,3 @@ def _case_stub(
         "learning_rate": case["learning_rate"],
         "steps": case["steps"],
     }
-
-
-def _training_state(
-    *,
-    fixture: dict[str, Any],
-    importer: TorchImporter,
-    readiness: dict[str, Any],
-    runtime: dict[str, Any],
-) -> dict[str, Any] | None:
-    if readiness["status"] != TORCH_TRAINING_READY_STATUS:
-        return None
-    return build_torch_training_state(
-        fixture=fixture,
-        torch=importer("torch"),
-        runtime=runtime,
-    )
-
-
-def _training_state_summary(state: dict[str, Any] | None) -> dict[str, Any]:
-    if state is None:
-        return {
-            "status": "not_built",
-            "reason": "pytorch training runtime is not ready",
-        }
-    return {
-        "status": "built",
-        **summarize_torch_training_state(state),
-    }
-
-
-def _initial_loss_probe(
-    *,
-    fixture: dict[str, Any],
-    importer: TorchImporter,
-    runtime: dict[str, Any],
-    state: dict[str, Any] | None,
-) -> dict[str, Any]:
-    if state is None:
-        return {
-            "status": "not_run",
-            "reason": "pytorch training runtime is not ready",
-        }
-    return build_torch_training_initial_loss_probe(
-        fixture=fixture,
-        torch=importer("torch"),
-        runtime=runtime,
-        state=state,
-    )
-
-
-def _backward_probe(
-    *,
-    fixture: dict[str, Any],
-    importer: TorchImporter,
-    runtime: dict[str, Any],
-    state: dict[str, Any] | None,
-) -> dict[str, Any]:
-    if state is None:
-        return {
-            "status": "not_run",
-            "reason": "pytorch training runtime is not ready",
-        }
-    return build_torch_training_backward_probe(
-        fixture=fixture,
-        torch=importer("torch"),
-        runtime=runtime,
-        state=state,
-    )
