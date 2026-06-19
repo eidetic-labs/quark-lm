@@ -218,8 +218,9 @@ Public surfaces:
   should only be added later for a narrow diagnostic need.
 - Any future tokenizer upgrade must be trained only from admitted corpus text;
   pretrained vocabularies are outside the boundary, and tokenizer
-  manifest/report artifacts must pass standalone validation before candidate
-  evidence is trusted.
+  manifest/report artifacts must pass standalone validation before writing and
+  again inside the tokenizer candidate guard before candidate evidence is
+  trusted.
 - Every run must record an untrained or prior-checkpoint baseline and trained
   metrics.
 - Every reliability claim needs an evaluation artifact.

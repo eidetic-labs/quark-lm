@@ -125,6 +125,7 @@ def tokenizer_candidate_guard(candidate: dict[str, Any]) -> dict[str, Any]:
             candidate.get("promotion_status") == "candidate_only_not_promoted",
             "Self-improvement cannot silently promote a tokenizer candidate.",
         ),
+        _tokenizer_artifact_validation_check(candidate),
         _guard_check(
             "round_trip",
             summary.get("round_trip_ok") is True,
@@ -166,3 +167,25 @@ def _guard_check(name: str, passed: bool, rule: str) -> dict[str, Any]:
         "status": "passed" if passed else "failed",
         "rule": rule,
     }
+
+
+def _tokenizer_artifact_validation_check(candidate: dict[str, Any]) -> dict[str, Any]:
+    try:
+        validate_tokenizer_artifacts(
+            candidate.get("manifest"),
+            candidate.get("report"),
+            manifest_hash=candidate.get("manifest_hash"),
+        )
+    except ValueError as exc:
+        check = _guard_check(
+            "validated_artifacts",
+            False,
+            "Tokenizer candidate manifest/report artifacts must validate before promotion checks can trust them.",
+        )
+        check["error"] = str(exc)
+        return check
+    return _guard_check(
+        "validated_artifacts",
+        True,
+        "Tokenizer candidate manifest/report artifacts validated before promotion checks used their summaries.",
+    )

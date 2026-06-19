@@ -57,9 +57,10 @@ The report is not a neural promotion artifact. It is a tokenizer artifact that
 can become an input to a transformer screen.
 
 Before self-improvement writes a tokenizer candidate, the manifest/report pair
-must pass standalone validation. The validator checks schema version, stable
-manifest hash, corpus hash shape, purity flags, exact round-trip, report math,
-and protected full-answer-token rejection.
+must pass standalone validation. The tokenizer candidate guard rechecks the
+embedded pair before promotion checks trust the summary. The validator checks
+schema version, stable manifest hash, corpus hash shape, purity flags, exact
+round-trip, report math, and protected full-answer-token rejection.
 
 ## Guard evidence
 

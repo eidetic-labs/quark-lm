@@ -97,10 +97,10 @@ subword screens can be compared without hidden tokenizer drift.
 
 The self-improvement answer cycle also writes those artifacts automatically.
 In that path they are candidate evidence, not an active-tokenizer change. The
-cycle validates the manifest/report pair before writing it, then records
-`tokenizer_candidate_guard` and blocks promotion if the proposal uses pretrained
-state, imports outside vocabulary, fails round-trip, or creates protected
-full-answer tokens.
+cycle validates the manifest/report pair before writing it, then
+`tokenizer_candidate_guard` rechecks the embedded pair and blocks promotion if
+the proposal uses pretrained state, imports outside vocabulary, fails
+round-trip, or creates protected full-answer tokens.
 
 ## Compare tokenizer behavior
 
