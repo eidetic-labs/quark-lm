@@ -72,6 +72,11 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
             execution["parameter_mutation"]["status"],
             "parameter_mutation_not_observed",
         )
+        self.assertEqual(
+            execution["parameter_signature_comparison"]["status"],
+            "parameter_signature_mismatch",
+        )
+        self.assertFalse(execution["parameter_signature_comparison"]["passed"])
         json.dumps(execution)
 
     def test_execution_clips_oversized_gradients_before_step(self) -> None:
@@ -98,6 +103,10 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         self.assertGreater(
             execution["parameter_mutation"]["changed_scalar_count"],
             0,
+        )
+        self.assertEqual(
+            execution["parameter_signature_comparison"]["status"],
+            "parameter_signature_mismatch",
         )
 
     def test_execution_reports_unavailable_optimizer(self) -> None:

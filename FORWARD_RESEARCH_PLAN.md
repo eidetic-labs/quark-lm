@@ -293,12 +293,14 @@ before/after gradient extrema and changed-scalar counts, snapshots
 trainable-parameter signatures around the optimizer call, instantiates PyTorch
 AdamW when available, replays the scalar contract's accumulation cadence,
 learning-rate schedule, and update/zero-grad calls, and records whether the
-step-control trace matches the scalar step records. This is still not full
-PyTorch training parity: observed tensor mutation does not yet prove
-accumulated-gradient numerical equivalence, scalar-equivalent AdamW updates,
-final logits, final loss, or checkpoint compatibility. The next implementation
-layer is matching those numerical update effects against scalar training
-evidence.
+step-control trace matches the scalar step records. The probe also compares the
+candidate post-step parameter signature against the scalar fixture's final
+parameter signature and reports match or mismatch under the fixture tolerance.
+This is still not full PyTorch training parity: observed tensor mutation or a
+signature mismatch report does not yet prove accumulated-gradient numerical
+equivalence, scalar-equivalent AdamW updates, final logits, final loss, or
+checkpoint compatibility. The next implementation layer is matching those
+numerical update effects against scalar training evidence.
 
 ## Current QuarkLM Diagnosis
 

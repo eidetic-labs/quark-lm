@@ -131,6 +131,12 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
             "parameter_mutation_not_observed",
         )
         self.assertEqual(
+            candidate["optimizer_step_execution_probe"][
+                "parameter_signature_comparison"
+            ]["status"],
+            "parameter_signature_mismatch",
+        )
+        self.assertEqual(
             candidate["implementation_status"],
             TORCH_TRAINING_IMPLEMENTATION_STATUS,
         )

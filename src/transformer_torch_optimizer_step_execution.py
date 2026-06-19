@@ -12,6 +12,9 @@ from transformer_torch_parameter_mutation import (
     build_torch_parameter_mutation_report,
     snapshot_torch_parameters,
 )
+from transformer_torch_parameter_signature_comparison import (
+    build_torch_parameter_signature_comparison,
+)
 
 
 TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION = 1
@@ -74,6 +77,11 @@ def build_torch_optimizer_step_execution_probe(
         before=parameters_before,
         after=snapshot_torch_parameters(state),
     )
+    signature_comparison = build_torch_parameter_signature_comparison(
+        expected_signature=fixture["training_case"]["parameter_signature"],
+        actual_signature=parameter_mutation["after_signature"],
+        tolerance=fixture["tolerance"],
+    )
     final_state = _final_optimizer_state(
         contract=contract,
         step_records=step_records,
@@ -97,6 +105,7 @@ def build_torch_optimizer_step_execution_probe(
         ),
         "gradient_clip": gradient_clip,
         "parameter_mutation": parameter_mutation,
+        "parameter_signature_comparison": signature_comparison,
     }
 
 

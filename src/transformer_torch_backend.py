@@ -32,6 +32,12 @@ from transformer_torch_parameter_mutation import (
     build_torch_parameter_mutation_report,
     snapshot_torch_parameters,
 )
+from transformer_torch_parameter_signature_comparison import (
+    TORCH_PARAMETER_SIGNATURE_COMPARISON_SCHEMA_VERSION,
+    TORCH_PARAMETER_SIGNATURE_MATCHED_STATUS,
+    TORCH_PARAMETER_SIGNATURE_MISMATCH_STATUS,
+    build_torch_parameter_signature_comparison,
+)
 from transformer_torch_training_candidate import (
     TORCH_TRAINING_IMPLEMENTATION_STATUS,
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
@@ -76,6 +82,9 @@ __all__ = [
     "TORCH_PARAMETER_MUTATION_NOT_OBSERVED_STATUS",
     "TORCH_PARAMETER_MUTATION_OBSERVED_STATUS",
     "TORCH_PARAMETER_MUTATION_SCHEMA_VERSION",
+    "TORCH_PARAMETER_SIGNATURE_COMPARISON_SCHEMA_VERSION",
+    "TORCH_PARAMETER_SIGNATURE_MATCHED_STATUS",
+    "TORCH_PARAMETER_SIGNATURE_MISMATCH_STATUS",
     "TORCH_TRAINING_IMPLEMENTATION_STATUS",
     "TORCH_TRAINING_BLOCKED_STATUS",
     "TORCH_TRAINING_PENDING_STATUS",
@@ -93,6 +102,7 @@ __all__ = [
     "build_torch_optimizer_step_execution_probe",
     "build_torch_training_initial_loss_probe",
     "build_torch_parameter_mutation_report",
+    "build_torch_parameter_signature_comparison",
     "build_torch_training_backward_probe",
     "build_torch_training_parity_candidate",
     "build_torch_training_readiness",
