@@ -26,6 +26,9 @@ reference.
 - Extend optional PyTorch candidate artifacts only behind deterministic scalar
   parity fixtures; PyTorch runs still cannot count as model-quality evidence
   until profile, optimizer, and training gates pass.
+- Keep optimizer-step control evidence separate from numerical update evidence:
+  matched cadence, schedule, and update calls do not prove final loss or weight
+  parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

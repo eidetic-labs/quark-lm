@@ -64,6 +64,10 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         self.assertEqual(candidate["backward_probe"]["status"], "not_run")
         self.assertEqual(candidate["optimizer_step_probe"]["status"], "not_run")
         self.assertEqual(
+            candidate["optimizer_step_execution_probe"]["status"],
+            "not_run",
+        )
+        self.assertEqual(
             candidate["training_case"]["reason"],
             "pytorch training runtime is missing required capabilities",
         )
@@ -104,6 +108,15 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
                 "gradient_parameter_count"
             ],
             fixture["parameter_manifest"]["parameter_count"],
+        )
+        self.assertEqual(
+            candidate["optimizer_step_execution_probe"]["status"],
+            "step_control_matched",
+        )
+        self.assertTrue(
+            candidate["optimizer_step_execution_probe"][
+                "step_records_match_contract"
+            ]
         )
         self.assertEqual(
             candidate["implementation_status"],

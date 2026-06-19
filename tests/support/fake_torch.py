@@ -126,6 +126,24 @@ class FakeAdamW:
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.args = args
         self.kwargs = kwargs
+        self.param_groups = [
+            {
+                "params": list(args[0]) if args else [],
+                "lr": kwargs.get("lr", 0.0),
+            }
+        ]
+        self.step_calls = 0
+        self.zero_grad_calls = 0
+
+    def step(self) -> None:
+        self.step_calls += 1
+
+    def zero_grad(self) -> None:
+        self.zero_grad_calls += 1
+        for group in self.param_groups:
+            for parameter in group["params"]:
+                if hasattr(parameter, "grad"):
+                    parameter.grad = None
 
 
 def raw_value(value: object) -> object:

@@ -8,6 +8,9 @@ from transformer_torch_runtime import TorchImporter
 from transformer_torch_optimizer_step_probe import (
     build_torch_optimizer_step_probe,
 )
+from transformer_torch_optimizer_step_execution import (
+    build_torch_optimizer_step_execution_probe,
+)
 from transformer_torch_training_backward_probe import (
     build_torch_training_backward_probe,
 )
@@ -42,6 +45,11 @@ def build_torch_training_probe_artifacts(
         runtime=runtime,
         state=state,
     )
+    optimizer_step_probe = build_torch_optimizer_step_probe(
+        fixture=fixture,
+        state=state,
+        backward_probe=backward_probe,
+    )
     return {
         "training_state": _training_state_summary(state),
         "initial_loss_probe": _initial_loss_probe(
@@ -51,10 +59,12 @@ def build_torch_training_probe_artifacts(
             state=state,
         ),
         "backward_probe": backward_probe,
-        "optimizer_step_probe": build_torch_optimizer_step_probe(
+        "optimizer_step_probe": optimizer_step_probe,
+        "optimizer_step_execution_probe": _optimizer_step_execution_probe(
             fixture=fixture,
+            importer=importer,
             state=state,
-            backward_probe=backward_probe,
+            optimizer_step_probe=optimizer_step_probe,
         ),
     }
 
@@ -124,4 +134,20 @@ def _backward_probe(
         torch=importer("torch"),
         runtime=runtime,
         state=state,
+    )
+
+
+def _optimizer_step_execution_probe(
+    *,
+    fixture: dict[str, Any],
+    importer: TorchImporter,
+    state: dict[str, Any] | None,
+    optimizer_step_probe: dict[str, Any],
+) -> dict[str, Any]:
+    torch = importer("torch") if state is not None else None
+    return build_torch_optimizer_step_execution_probe(
+        fixture=fixture,
+        state=state,
+        optimizer_step_probe=optimizer_step_probe,
+        torch=torch,
     )
