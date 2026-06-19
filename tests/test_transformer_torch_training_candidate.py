@@ -125,6 +125,22 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
             "gradient_clip_applied",
         )
         self.assertEqual(
+            candidate["optimizer_step_execution_probe"]["gradient_accumulation"][
+                "status"
+            ],
+            "gradient_accumulation_recorded",
+        )
+        self.assertTrue(
+            candidate["optimizer_step_execution_probe"]["gradient_accumulation"][
+                "requires_replayed_backward_passes"
+            ]
+        )
+        self.assertFalse(
+            candidate["optimizer_step_execution_probe"]["gradient_accumulation"][
+                "accumulated_gradient_parity_proven"
+            ]
+        )
+        self.assertEqual(
             candidate["optimizer_step_execution_probe"]["parameter_mutation"][
                 "status"
             ],

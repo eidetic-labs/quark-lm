@@ -69,6 +69,24 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
             fixture["optimizer_config"]["gradient_clip"],
         )
         self.assertEqual(
+            execution["gradient_accumulation"]["status"],
+            "gradient_accumulation_recorded",
+        )
+        self.assertEqual(
+            execution["gradient_accumulation"]["expected_step_count"],
+            len(expected["expected_step_records"]),
+        )
+        self.assertTrue(
+            execution["gradient_accumulation"][
+                "requires_replayed_backward_passes"
+            ]
+        )
+        self.assertFalse(
+            execution["gradient_accumulation"][
+                "accumulated_gradient_parity_proven"
+            ]
+        )
+        self.assertEqual(
             execution["parameter_mutation"]["status"],
             "parameter_mutation_not_observed",
         )

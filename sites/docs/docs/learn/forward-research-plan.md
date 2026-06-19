@@ -190,11 +190,14 @@ parameter signature and reports match or mismatch under the fixture tolerance.
 It now also builds the scalar-expected AdamW post-update signature from the
 current clipped gradients, assuming zero prior moments, and compares actual
 post-step mutation against that expected update. A match here proves only local
-current-gradient update math under those assumptions. This is still not full
-PyTorch training parity: it does not yet prove accumulated-gradient numerical
-equivalence, final logits, final loss, or checkpoint compatibility. The next
-implementation layer is matching those numerical update effects against scalar
-training evidence.
+current-gradient update math under those assumptions. The accompanying
+gradient-accumulation report records the scalar pending/applied microstep
+cadence and current gradient-sample signature, and explicitly marks
+accumulated-gradient parity unproven whenever the contract requires replayed
+backward passes across microsteps. This is still not full PyTorch training
+parity: it does not yet prove accumulated-gradient numerical equivalence, final
+logits, final loss, or checkpoint compatibility. The next implementation layer
+is matching those numerical update effects against scalar training evidence.
 
 ## Where the sequence stands
 

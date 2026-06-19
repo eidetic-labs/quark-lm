@@ -40,6 +40,8 @@ reference.
   current clipped gradients before claiming optimizer math parity.
 - Treat matched current-gradient AdamW comparisons as local update evidence, not
   accumulated-gradient, final-logit, or final-loss parity.
+- Record accumulated-gradient scope separately: current `tensor.grad` evidence
+  must not be treated as replayed backward-pass parity across microsteps.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

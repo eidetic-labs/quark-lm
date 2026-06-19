@@ -9,6 +9,9 @@ from transformer_torch_adamw_expected_update import (
     build_torch_adamw_expected_update,
 )
 from transformer_torch_gradient_clip import apply_torch_gradient_value_clip
+from transformer_torch_gradient_accumulation import (
+    build_torch_gradient_accumulation_report,
+)
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_READY_STATUS,
 )
@@ -72,6 +75,10 @@ def build_torch_optimizer_step_execution_probe(
             "reason": gradient_clip["reason"],
             "gradient_clip": gradient_clip,
         }
+    gradient_accumulation = build_torch_gradient_accumulation_report(
+        state=state,
+        contract=contract,
+    )
     parameters_before = snapshot_torch_parameters(state)
     expected_adamw_update = build_torch_adamw_expected_update(
         state=state,
@@ -94,6 +101,9 @@ def build_torch_optimizer_step_execution_probe(
         tolerance=fixture["tolerance"],
     )
     final_state = _final_optimizer_state(contract=contract, step_records=step_records)
+    applied_update_count = sum(
+        record["optimizer_step_called"] for record in step_records
+    )
     return {
         "schema_version": TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION,
         "status": _status(contract, step_records, final_state),
@@ -105,10 +115,9 @@ def build_torch_optimizer_step_execution_probe(
         "final_state_matches_contract": final_state
         == contract["expected_final_optimizer_state"],
         "parameter_count": contract["parameter_count"],
-        "applied_update_count": sum(
-            1 for record in step_records if record["optimizer_step_called"]
-        ),
+        "applied_update_count": applied_update_count,
         "gradient_clip": gradient_clip,
+        "gradient_accumulation": gradient_accumulation,
         "parameter_mutation": parameter_mutation,
         "expected_adamw_update": expected_adamw_update,
         "parameter_signature_comparison": signature_comparison,
