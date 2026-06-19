@@ -18,6 +18,7 @@ quark-lm-self-improve = "self_improve:main"
 quark-lm-self-diagnose = "self_diagnose:main"
 quark-lm-transformer = "transformer_char_model:main"
 quark-lm-torch-runtime = "transformer_torch_runtime_report:main"
+quark-lm-torch-training-parity = "transformer_torch_training_parity_attempt_cli:main"
 closed-world-curriculum = "curriculum:main"
 closed-world-train = "train:main"
 closed-world-evaluate = "evaluate:main"
@@ -31,6 +32,7 @@ closed-world-self-improve = "self_improve:main"
 closed-world-self-diagnose = "self_diagnose:main"
 closed-world-transformer = "transformer_char_model:main"
 closed-world-torch-runtime = "transformer_torch_runtime_report:main"
+closed-world-torch-training-parity = "transformer_torch_training_parity_attempt_cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

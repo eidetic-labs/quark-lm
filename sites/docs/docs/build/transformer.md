@@ -5,7 +5,7 @@ description: How the from-scratch QuarkLM transformer works, and its current sta
 
 # Transformer
 
-<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-18</span></p>
+<p className="qlm-meta"><span>5 min read</span><span>For contributors</span><span>Updated 2026-06-19</span></p>
 
 <div className="qlm-lead">
 
@@ -14,6 +14,7 @@ description: How the from-scratch QuarkLM transformer works, and its current sta
 - What `transformer_char_model` is, and what it is built without.
 - Why it is the weight-consolidation path, not the reliable answering path.
 - The single gate that keeps it unpromoted: `branch_diversity_target`.
+- How optional PyTorch parity attempts are recorded without promoting PyTorch.
 - How to read the evidence — why `memory-served` and `weight-consolidated` are kept apart.
 
 </div>
@@ -39,6 +40,26 @@ PYTHONPATH=src python3 -m transformer_torch_runtime_report \
 The command exits nonzero when real PyTorch is unavailable, a test double is
 detected, or the requested dtype cannot be used. A passing report only means the
 runtime can attempt parity evidence; it does not promote PyTorch training.
+
+```bash title="Record a PyTorch training parity attempt"
+PYTHONPATH=src python3 -m transformer_torch_training_parity_attempt_cli \
+  --output-dir build/torch_training_parity_attempt
+```
+
+This command builds a scalar training fixture from the admitted curriculum,
+constructs the optional PyTorch candidate, writes the training parity report,
+and stores a compact attempt summary. The artifact set is:
+
+| Artifact | Records |
+| --- | --- |
+| `scalar_training_fixture.json` | The scalar reference loss, logits, optimizer state, parameter manifest, and corpus-only tokenizer summary. |
+| `torch_training_candidate.json` | The optional PyTorch candidate, runtime report, replay probes, and aggregate replay gate. |
+| `training_parity_report.json` | The candidate-versus-scalar report, including runtime and replay-gate checks. |
+| `torch_training_parity_attempt.json` | The concise decision summary, artifact paths, closed-world boundary flags, and failed checks. |
+
+If real PyTorch is not installed, the command still writes the artifacts and
+records `blocked_runtime_unavailable`. That blocked result is useful evidence;
+it is not a model-quality failure and it does not change the scalar reference.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

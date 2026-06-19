@@ -364,7 +364,12 @@ candidate artifacts embed the same runtime report alongside their forward or
 training evidence. Backend and training parity reports now verify that embedded
 runtime report; training parity additionally requires runtime evidence that
 allows a real PyTorch parity attempt. That runtime preflight does not prove
-model-quality training evidence or promote the PyTorch backend.
+model-quality training evidence or promote the PyTorch backend. The
+`quark-lm-torch-training-parity` attempt command now builds an
+admitted-curriculum scalar fixture, optional PyTorch training candidate,
+training parity report, and compact attempt summary. If real PyTorch is absent,
+the artifact records `blocked_runtime_unavailable` instead of making a training
+claim.
 
 ## Current QuarkLM Diagnosis
 

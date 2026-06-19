@@ -5,7 +5,7 @@
 promoted responder evidence remains v0.42
 **RC posture:** Research Prototype RC is near; Language Model RC is blocked by
 transformer branch routing.
-**Last updated:** 2026-06-15
+**Last updated:** 2026-06-19
 **Buildable:** yes, with Python standard library only
 
 QuarkLM explores bounded epistemic growth: a model starts from random weights
@@ -167,6 +167,11 @@ Working tagline: Big idea. Tiny package.
   for transformer repair screens.
 - Source probes for known, unknown, held-out, paraphrase, ownership, self,
   learning, admission, admission-paraphrase, and glossary answers.
+- Optional PyTorch training parity attempt artifacts via
+  `quark-lm-torch-training-parity`. The command builds an admitted-curriculum
+  scalar fixture, optional PyTorch candidate, training parity report, and
+  compact attempt summary; absent PyTorch records blocked runtime evidence
+  instead of a promoted backend claim.
 
 ## Research Grounding
 

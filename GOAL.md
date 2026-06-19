@@ -91,6 +91,9 @@ reference.
 - Run `quark-lm-torch-runtime` or the equivalent module preflight before any
   real PyTorch parity attempt; a passing runtime report permits an attempt, not
   promotion.
+- Record PyTorch training parity attempts with an admitted-curriculum scalar
+  fixture, optional PyTorch candidate, training parity report, and compact
+  attempt summary; blocked runtime evidence is archived instead of promoted.
 - Keep PyTorch candidate artifacts self-contained by embedding the runtime
   report alongside forward or training evidence.
 - Require parity reports to verify embedded runtime reports; training parity
