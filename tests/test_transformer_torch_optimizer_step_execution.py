@@ -68,6 +68,10 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
             execution["gradient_clip"]["max_abs_after"],
             fixture["optimizer_config"]["gradient_clip"],
         )
+        self.assertEqual(
+            execution["parameter_mutation"]["status"],
+            "parameter_mutation_not_observed",
+        )
         json.dumps(execution)
 
     def test_execution_clips_oversized_gradients_before_step(self) -> None:
@@ -87,6 +91,14 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         self.assertEqual(clip["max_abs_before"], 9.0)
         self.assertEqual(clip["max_abs_after"], 5.0)
         self.assertGreater(clip["changed_scalar_count"], 0)
+        self.assertEqual(
+            execution["parameter_mutation"]["status"],
+            "parameter_mutation_observed",
+        )
+        self.assertGreater(
+            execution["parameter_mutation"]["changed_scalar_count"],
+            0,
+        )
 
     def test_execution_reports_unavailable_optimizer(self) -> None:
         fixture, state, optimizer_probe, torch = _ready_optimizer_inputs()

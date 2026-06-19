@@ -25,6 +25,13 @@ from transformer_torch_optimizer_step_execution import (
     TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION,
     build_torch_optimizer_step_execution_probe,
 )
+from transformer_torch_parameter_mutation import (
+    TORCH_PARAMETER_MUTATION_NOT_OBSERVED_STATUS,
+    TORCH_PARAMETER_MUTATION_OBSERVED_STATUS,
+    TORCH_PARAMETER_MUTATION_SCHEMA_VERSION,
+    build_torch_parameter_mutation_report,
+    snapshot_torch_parameters,
+)
 from transformer_torch_training_candidate import (
     TORCH_TRAINING_IMPLEMENTATION_STATUS,
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
@@ -66,6 +73,9 @@ __all__ = [
     "TORCH_OPTIMIZER_STEP_READY_STATUS",
     "TORCH_OPTIMIZER_STEP_CONTROL_MATCHED_STATUS",
     "TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION",
+    "TORCH_PARAMETER_MUTATION_NOT_OBSERVED_STATUS",
+    "TORCH_PARAMETER_MUTATION_OBSERVED_STATUS",
+    "TORCH_PARAMETER_MUTATION_SCHEMA_VERSION",
     "TORCH_TRAINING_IMPLEMENTATION_STATUS",
     "TORCH_TRAINING_BLOCKED_STATUS",
     "TORCH_TRAINING_PENDING_STATUS",
@@ -82,12 +92,14 @@ __all__ = [
     "build_torch_optimizer_step_probe",
     "build_torch_optimizer_step_execution_probe",
     "build_torch_training_initial_loss_probe",
+    "build_torch_parameter_mutation_report",
     "build_torch_training_backward_probe",
     "build_torch_training_parity_candidate",
     "build_torch_training_readiness",
     "build_torch_training_state",
     "summarize_torch_training_state",
     "summarize_torch_optimizer_gradients",
+    "snapshot_torch_parameters",
     "torch_training_weights_from_state",
     "torch_runtime_status",
     "validate_torch_training_state_summary",

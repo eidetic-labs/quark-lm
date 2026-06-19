@@ -125,6 +125,12 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
             "gradient_clip_applied",
         )
         self.assertEqual(
+            candidate["optimizer_step_execution_probe"]["parameter_mutation"][
+                "status"
+            ],
+            "parameter_mutation_not_observed",
+        )
+        self.assertEqual(
             candidate["implementation_status"],
             TORCH_TRAINING_IMPLEMENTATION_STATUS,
         )

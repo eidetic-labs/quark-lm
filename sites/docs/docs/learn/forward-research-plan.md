@@ -180,14 +180,16 @@ available `tensor.grad` values back to the trainable-parameter manifest, checks
 gradient shapes and contiguous optimizer-slot coverage, and reports readiness
 without applying an optimizer update. The current optimizer-step execution probe
 then applies PyTorch value clipping to available `tensor.grad` values, records
-before/after gradient extrema and changed-scalar counts, instantiates PyTorch
+before/after gradient extrema and changed-scalar counts, snapshots
+trainable-parameter signatures around the optimizer call, instantiates PyTorch
 AdamW when available, replays the scalar contract's accumulation cadence,
 learning-rate schedule, and update/zero-grad calls, and records whether the
 step-control trace matches the scalar step records. This is still not full
-PyTorch training parity: it does not yet prove accumulated-gradient numerical
-equivalence, AdamW numerical updates, final logits, final loss, or checkpoint
-compatibility. The next implementation layer is matching those numerical update
-effects against scalar training evidence.
+PyTorch training parity: observed tensor mutation does not yet prove
+accumulated-gradient numerical equivalence, scalar-equivalent AdamW updates,
+final logits, final loss, or checkpoint compatibility. The next implementation
+layer is matching those numerical update effects against scalar training
+evidence.
 
 ## Where the sequence stands
 

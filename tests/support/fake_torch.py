@@ -142,6 +142,16 @@ class FakeAdamW:
 
     def step(self) -> None:
         self.step_calls += 1
+        for group in self.param_groups:
+            learning_rate = float(group["lr"])
+            for parameter in group["params"]:
+                grad = getattr(parameter, "grad", None)
+                if isinstance(grad, FakeTensor):
+                    parameter.value = _apply_gradient(
+                        parameter.value,
+                        raw_value(grad),
+                        learning_rate,
+                    )
 
     def zero_grad(self) -> None:
         self.zero_grad_calls += 1
@@ -173,6 +183,19 @@ def _clip(value: object, clip_value: float):
     if isinstance(value, list):
         return [_clip(item, clip_value) for item in value]
     return max(min(float(value), clip_value), -clip_value)
+
+
+def _apply_gradient(value: object, grad: object, learning_rate: float):
+    if isinstance(value, list) and isinstance(grad, list):
+        return [
+            _apply_gradient(value_item, grad_item, learning_rate)
+            for value_item, grad_item in zip(value, grad)
+        ]
+    if isinstance(value, list):
+        return [_apply_gradient(item, grad, learning_rate) for item in value]
+    if isinstance(grad, list):
+        return [_apply_gradient(value, item, learning_rate) for item in grad]
+    return float(value) - learning_rate * float(grad)
 
 
 def _binary(left: object, right: object, op: Any):

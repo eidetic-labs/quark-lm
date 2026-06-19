@@ -8,6 +8,10 @@ from transformer_torch_gradient_clip import apply_torch_gradient_value_clip
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_READY_STATUS,
 )
+from transformer_torch_parameter_mutation import (
+    build_torch_parameter_mutation_report,
+    snapshot_torch_parameters,
+)
 
 
 TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION = 1
@@ -61,9 +65,14 @@ def build_torch_optimizer_step_execution_probe(
             "reason": gradient_clip["reason"],
             "gradient_clip": gradient_clip,
         }
+    parameters_before = snapshot_torch_parameters(state)
     step_records = _execute_step_records(
         optimizer=optimizer,
         contract=contract,
+    )
+    parameter_mutation = build_torch_parameter_mutation_report(
+        before=parameters_before,
+        after=snapshot_torch_parameters(state),
     )
     final_state = _final_optimizer_state(
         contract=contract,
@@ -87,6 +96,7 @@ def build_torch_optimizer_step_execution_probe(
             1 for record in step_records if record["optimizer_step_called"]
         ),
         "gradient_clip": gradient_clip,
+        "parameter_mutation": parameter_mutation,
     }
 
 

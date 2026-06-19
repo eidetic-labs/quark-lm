@@ -32,6 +32,8 @@ reference.
 - Keep gradient-clipping evidence scoped: clipping current `tensor.grad` values
   does not prove accumulated-gradient parity, AdamW numerical updates, or final
   loss parity.
+- Keep parameter-mutation evidence scoped: observed trainable-tensor changes do
+  not prove scalar-equivalent AdamW math, final logits, or final loss parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
