@@ -289,8 +289,8 @@ candidate payloads, and the stored backend-promotion gate must match a gate
 rebuilt from the candidate, report, and closed-world boundary. The
 next-requirements diagnosis must also rebuild from the candidate runtime
 report, candidate, and report. Written summaries also carry SHA-256 payload
-hashes for sibling artifacts, and written attempt directories can be reloaded
-through the same validation contract.
+hashes for sibling artifacts, and written attempt directories are reloaded
+through the same validation contract before the writer returns.
 
 ## Where the sequence stands
 

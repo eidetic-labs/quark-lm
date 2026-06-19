@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import transformer_torch_training_parity_attempt_writer as writer_module
 from transformer_torch_training_parity_attempt import (
     build_torch_training_parity_attempt,
     write_torch_training_parity_attempt,
@@ -167,6 +168,26 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaisesRegex(ValueError, "candidate.fixture_id"):
                 write_torch_training_parity_attempt(Path(temp), artifacts)
+
+    def test_writer_reloads_and_rejects_corrupt_written_payload(self) -> None:
+        artifacts = _artifacts()
+        original_write = writer_module.write_json_artifact
+
+        def corrupting_write(path: Path, payload: dict) -> None:
+            if path.name == "torch_training_candidate.json":
+                payload = {**payload, "unvalidated_extra_field": "drift"}
+            original_write(path, payload)
+
+        writer_module.write_json_artifact = corrupting_write
+        try:
+            with tempfile.TemporaryDirectory() as temp:
+                with self.assertRaisesRegex(ValueError, "artifact_hashes"):
+                    writer_module.write_torch_training_parity_attempt(
+                        Path(temp),
+                        artifacts,
+                    )
+        finally:
+            writer_module.write_json_artifact = original_write
 
 
 def _artifacts(

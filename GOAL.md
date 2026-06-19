@@ -125,7 +125,8 @@ reference.
   and closed-world boundary. The next-requirements diagnosis must also rebuild
   from the candidate runtime report, candidate, and report. Written summaries
   must carry SHA-256 payload hashes for sibling artifacts, and written attempt
-  directories must reload through the same validation contract.
+  directories must reload through the same validation contract before the writer
+  returns.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

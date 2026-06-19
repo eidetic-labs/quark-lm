@@ -13,6 +13,9 @@ from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_training_parity_attempt_hashes,
 )
+from transformer_torch_training_parity_attempt_reader import (
+    load_torch_training_parity_attempt_artifact_set,
+)
 
 
 def write_torch_training_parity_attempt(
@@ -43,4 +46,4 @@ def write_torch_training_parity_attempt(
     write_json_artifact(paths["candidate"], artifacts["candidate"])
     write_json_artifact(paths["report"], artifacts["report"])
     write_json_artifact(paths["attempt"], attempt)
-    return attempt
+    return load_torch_training_parity_attempt_artifact_set(output_dir)["attempt"]
