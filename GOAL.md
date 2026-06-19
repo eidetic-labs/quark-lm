@@ -140,6 +140,9 @@ Current evidence summary:
 - v0.115 transformer posture: `10/11` constraints pass, but
   `branch_diversity_target` still blocks neural promotion; retrieval memory is
   exact but does not count as weight learning.
+- Current PyTorch backend posture: tiny CPU `float64` real-runtime training
+  replay parity matches scalar evidence, but PyTorch remains optional,
+  unpromoted, and not a general training backend.
 - Next model direction: profile-balanced routing repair with
   representation-separation acceptance checks.
 

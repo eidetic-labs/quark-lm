@@ -135,8 +135,8 @@ rotary-position, deeper layer-stack, and tied output embedding fixtures.
 Context-summary and prompt-projection variants are also covered by focused
 fixtures with nonzero projection weights. KV-cache metadata equivalence is
 covered by generation fixtures that compare cache events. Optimized cached
-attention, real training, and optimizer behavior each require separate parity
-gates before they can count as model-quality evidence.
+attention and any promoted or generalized PyTorch trainer still require
+separate gates before they can count as model-quality evidence.
 
 The first training layer adds a scalar training parity fixture and report. It
 captures initial weights, optimizer config, scalar step losses, final logits,
@@ -150,7 +150,9 @@ requested device and dtype, optimizer config, and the scalar training case the
 future trainer must match. If PyTorch is available but lacks required training
 capabilities, the candidate is `pending` with `training_runtime_incomplete`.
 If the runtime is training-capable, the candidate remains `pending` with
-`training_replay_parity_pending` until every replay parity gate matches. If the
+`training_replay_parity_pending` until every replay parity gate matches; after
+those replay gates match on the tiny fixture, it records
+`training_replay_parity_matched` without promoting a general trainer. If the
 runtime or requested dtype is unavailable, it records a blocked or pending case
 rather than fabricated metrics.
 
@@ -163,9 +165,11 @@ updates can be accepted.
 
 The PyTorch training-readiness gate now checks runtime availability, requested
 dtype support, parameter-manifest validity, autograd tensor construction, and
-AdamW optimizer availability. Real PyTorch training, AdamW numerical parity,
-accumulated-gradient parity, checkpoint compatibility, and final-loss parity
-remain future gates.
+AdamW optimizer availability. The current tiny CPU `float64` replay attempt now
+matches scalar evidence for readiness, AdamW update replay,
+accumulated-gradient buffers, final evaluation, checkpoint compatibility, and
+the training parity report. That is fixture-level parity evidence only; a
+promoted or generalized PyTorch trainer remains a separate future gate.
 
 The current trainable-state bridge builds PyTorch tensors from the scalar
 fixture's initial weights by replaying the manifest names and shapes. Candidate
