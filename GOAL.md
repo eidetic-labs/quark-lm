@@ -120,7 +120,8 @@ reference.
 - Validate PyTorch training parity attempt summaries before trust or write so
   attempt status, next requirements, promotion gate, evidence scope,
   closed-world boundary, artifact paths, and artifact payload consistency remain
-  machine-checkable.
+  machine-checkable, including a report rebuilt from the paired fixture and
+  candidate payloads.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

@@ -283,7 +283,9 @@ any exact closed-world boundary fields that fail.
 Attempt summaries are validated before they are trusted or written, so the
 attempt status, next-requirements diagnosis, promotion gate, evidence scope,
 closed-world boundary flags, artifact paths, and artifact payloads cannot
-silently drift out of the PyTorch parity evidence chain.
+silently drift out of the PyTorch parity evidence chain. The stored training
+parity report must also match a report rebuilt from the paired fixture and
+candidate payloads.
 
 ## Where the sequence stands
 

@@ -191,7 +191,8 @@ Working tagline: Big idea. Tiny package.
 - PyTorch training parity attempt summaries are validated before being trusted
   or written, including attempt status, next requirements, promotion-gate,
   closed-world boundary, evidence-scope, artifact-path, and artifact-payload
-  consistency checks.
+  consistency checks. The stored training parity report must match a report
+  rebuilt from the paired fixture and candidate payloads.
 
 ## Research Grounding
 

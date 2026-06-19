@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_training_parity_report import build_training_parity_report
 from transformer_torch_training_parity_attempt_validation import (
     validate_torch_training_parity_attempt,
 )
@@ -50,6 +51,7 @@ def validate_torch_training_parity_attempt_artifact_set(
         payloads["attempt"].get("training_parity_report"),
         _report_summary(payloads["report"]),
     )
+    _validate_report_payload(payloads)
 
 
 def _required_payloads(artifacts: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -74,6 +76,15 @@ def _validate_fixture_ids(payloads: dict[str, dict[str, Any]]) -> None:
 def _validate_summary(name: str, actual: Any, expected: dict[str, Any]) -> None:
     if actual != expected:
         raise ValueError(f"attempt.{name} summary is inconsistent")
+
+
+def _validate_report_payload(payloads: dict[str, dict[str, Any]]) -> None:
+    expected = build_training_parity_report(
+        fixture=payloads["fixture"],
+        candidate=payloads["candidate"],
+    )
+    if payloads["report"] != expected:
+        raise ValueError("artifacts.report payload is inconsistent")
 
 
 def _runtime_summary(candidate: dict[str, Any]) -> dict[str, Any]:
