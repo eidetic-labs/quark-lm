@@ -53,6 +53,44 @@ class TransformerTorchTrainingReplayParityGateTests(unittest.TestCase):
         self.assertEqual(gate["parity_status"], "pending")
         self.assertEqual(gate["summary"]["failed_checks"], ["replay_buffer"])
 
+    def test_gate_rejects_passed_probe_with_mismatched_status(self) -> None:
+        probe_cases = [
+            (
+                "accumulation_replay_buffer_comparison",
+                "replay_buffer_signature_mismatch",
+                "replay_buffer",
+            ),
+            (
+                "accumulation_replay_update_comparison",
+                "replay_update_signature_mismatch",
+                "replay_update",
+            ),
+            (
+                "accumulation_replay_final_evaluation",
+                "replay_final_evaluation_mismatch",
+                "replay_final_evaluation",
+            ),
+            (
+                "accumulation_replay_checkpoint_compatibility",
+                "replay_checkpoint_mismatch",
+                "replay_checkpoint",
+            ),
+        ]
+        for probe_key, status, failed_check in probe_cases:
+            with self.subTest(probe_key=probe_key):
+                probes = _matching_probes()
+                probes[probe_key] = {"passed": True, "status": status}
+
+                gate = build_torch_training_replay_parity_gate(
+                    runtime=_runtime(),
+                    readiness=_readiness("ready"),
+                    probes=probes,
+                )
+
+                self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PENDING_STATUS)
+                self.assertFalse(gate["passed"])
+                self.assertEqual(gate["summary"]["failed_checks"], [failed_check])
+
     def test_gate_rejects_test_double_runtime(self) -> None:
         gate = build_torch_training_replay_parity_gate(
             runtime=_runtime(runtime_kind=TORCH_RUNTIME_KIND_TEST_DOUBLE),

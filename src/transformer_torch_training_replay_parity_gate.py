@@ -4,6 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_replay_buffer_comparison import (
+    TORCH_REPLAY_BUFFER_MATCHED_STATUS,
+)
+from transformer_torch_replay_checkpoint_compatibility import (
+    TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
+)
+from transformer_torch_replay_final_evaluation import (
+    TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS,
+)
+from transformer_torch_replay_update_comparison import (
+    TORCH_REPLAY_UPDATE_MATCHED_STATUS,
+)
 from transformer_torch_runtime import TORCH_RUNTIME_KIND_PYTORCH
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
@@ -67,18 +79,22 @@ def build_torch_training_replay_parity_gate(
         _passed_probe_check(
             "replay_buffer",
             probes.get("accumulation_replay_buffer_comparison", {}),
+            TORCH_REPLAY_BUFFER_MATCHED_STATUS,
         ),
         _passed_probe_check(
             "replay_update",
             probes.get("accumulation_replay_update_comparison", {}),
+            TORCH_REPLAY_UPDATE_MATCHED_STATUS,
         ),
         _passed_probe_check(
             "replay_final_evaluation",
             probes.get("accumulation_replay_final_evaluation", {}),
+            TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS,
         ),
         _passed_probe_check(
             "replay_checkpoint",
             probes.get("accumulation_replay_checkpoint_compatibility", {}),
+            TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
         ),
     ]
     passed = all(check["passed"] for check in checks)
@@ -134,11 +150,17 @@ def _count_check(name: str, probe: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _passed_probe_check(name: str, probe: dict[str, Any]) -> dict[str, Any]:
+def _passed_probe_check(
+    name: str,
+    probe: dict[str, Any],
+    expected_status: str,
+) -> dict[str, Any]:
+    actual_status = probe.get("status")
     return {
         "name": name,
-        "passed": bool(probe.get("passed")),
-        "status": probe.get("status"),
+        "passed": bool(probe.get("passed")) and actual_status == expected_status,
+        "expected": expected_status,
+        "status": actual_status,
     }
 
 

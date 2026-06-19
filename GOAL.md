@@ -77,6 +77,8 @@ reference.
   compatibility must all match before the candidate can move from pending to
   matched; training parity reports must include this gate, and matched still
   does not mean promoted training.
+- Require aggregate replay checks to be status-aware: `passed: true` is not
+  enough unless the probe also reports the expected matched status.
 - Distinguish real PyTorch from test doubles in runtime evidence. Test doubles
   may validate wiring, but they cannot satisfy aggregate replay parity or count
   as model-quality training evidence.
