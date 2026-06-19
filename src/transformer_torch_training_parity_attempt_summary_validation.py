@@ -40,6 +40,7 @@ def _validate_runtime_summary(runtime: dict[str, Any]) -> None:
     _require_bool(runtime, "runtime", "parity_attempt_allowed")
     for key in ("runtime_kind", "device", "dtype"):
         _require_non_empty_string(runtime, "runtime", key)
+    _require_sha256(runtime, "runtime", "runtime_report_sha256")
 
 
 def _validate_candidate_summary(candidate: dict[str, Any]) -> None:
@@ -71,6 +72,14 @@ def _require_bool(record: dict[str, Any], label: str, key: str) -> None:
 def _require_non_empty_string(record: dict[str, Any], label: str, key: str) -> None:
     value = record.get(key)
     if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label}.{key} is invalid")
+
+
+def _require_sha256(record: dict[str, Any], label: str, key: str) -> None:
+    value = record.get(key)
+    if not isinstance(value, str) or len(value) != 64:
+        raise ValueError(f"{label}.{key} is invalid")
+    if any(char not in "0123456789abcdef" for char in value):
         raise ValueError(f"{label}.{key} is invalid")
 
 

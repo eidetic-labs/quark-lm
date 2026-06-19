@@ -296,8 +296,9 @@ backend-promotion gate has standalone validation for schema, check catalog,
 blocker derivation, boundary state, and required future gate catalog.
 Standalone summary validation checks compact corpus, runtime, candidate,
 replay-gate, and report summary shapes. The next-requirements diagnosis must
-also rebuild from the candidate runtime report, candidate, and report. Written
-summaries also carry SHA-256 payload hashes for sibling artifacts, and the
+also rebuild from the candidate runtime report, candidate, and report. Compact
+runtime summaries now carry a SHA-256 hash of the embedded runtime report,
+written summaries carry SHA-256 payload hashes for sibling artifacts, and the
 persisted corpus summary must match the scalar fixture and candidate backend
 corpus hash. Written attempt directories are reloaded through the same
 validation contract before the writer returns.
@@ -308,12 +309,12 @@ failure reasons without parsing loader exceptions. The compact result has
 standalone validation for its status, error, routing, promotion, and
 artifact-file-map fields. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface exposes the written-attempt file map,
-hash algorithm, hash builder, loader, compact summary validator, and compact
-audit-result builder, validator, and status catalog plus the
-backend-promotion-gate validator, candidate validator, and candidate key catalog
-plus the runtime-report validator, status catalog, check catalog, and
-evidence-scope constant so contributors can inspect the persisted audit
-contract without reaching through private module paths. Each
+hash algorithm, artifact hash builder, runtime-report hash builder, loader,
+compact summary validator, compact audit-result builder, validator, and status
+catalog plus the backend-promotion-gate validator, candidate validator, and
+candidate key catalog plus the runtime-report validator, status catalog, check
+catalog, and evidence-scope constant so contributors can inspect the persisted
+audit contract without reaching through private module paths. Each
 `next_requirements` summary is a typed artifact with an explicit kind and schema
 version, and the public backend surface exposes that contract for loop
 consumers. The requirements artifact also has standalone validation and a public

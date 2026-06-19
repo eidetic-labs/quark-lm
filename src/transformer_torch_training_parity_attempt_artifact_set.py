@@ -7,6 +7,7 @@ from typing import Any
 from transformer_training_parity_report import build_training_parity_report
 from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+    build_torch_runtime_report_hash,
     build_torch_training_parity_attempt_hashes,
 )
 from transformer_torch_training_parity_attempt_requirements import (
@@ -169,6 +170,7 @@ def _runtime_summary(candidate: dict[str, Any]) -> dict[str, Any]:
         "runtime_kind": runtime.get("runtime_kind"),
         "device": runtime.get("device"),
         "dtype": runtime.get("dtype"),
+        "runtime_report_sha256": build_torch_runtime_report_hash(runtime_report),
     }
 
 

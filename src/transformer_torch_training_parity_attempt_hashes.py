@@ -22,6 +22,14 @@ def build_torch_training_parity_attempt_hashes(
     }
 
 
+def build_torch_runtime_report_hash(runtime_report: dict[str, Any]) -> str:
+    """Return the canonical payload hash for embedded runtime preflight evidence."""
+
+    if not isinstance(runtime_report, dict):
+        raise ValueError("runtime_report must be a dict")
+    return _payload_hash(runtime_report)
+
+
 def _required_payload(artifacts: dict[str, Any], name: str) -> dict[str, Any]:
     value = artifacts.get(name)
     if not isinstance(value, dict):

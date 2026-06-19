@@ -20,6 +20,9 @@ from transformer_torch_training_parity_attempt_artifact_set import (
     validate_torch_training_parity_attempt_artifact_set,
 )
 from transformer_torch_training_candidate import build_torch_training_parity_candidate
+from transformer_torch_training_parity_attempt_hashes import (
+    build_torch_runtime_report_hash,
+)
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
 )
@@ -206,6 +209,7 @@ def _runtime_summary(runtime_report: dict[str, Any]) -> dict[str, Any]:
         "runtime_kind": runtime.get("runtime_kind"),
         "device": runtime.get("device"),
         "dtype": runtime.get("dtype"),
+        "runtime_report_sha256": build_torch_runtime_report_hash(runtime_report),
     }
 
 
