@@ -42,6 +42,13 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "pretrained_tokenizer_imported"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_external_training_text_source(self) -> None:
+        attempt = _attempt()
+        attempt["closed_world_boundary"]["training_text_source"] = "external_corpus"
+
+        with self.assertRaisesRegex(ValueError, "training_text_source"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_writer_validation_requires_artifact_paths(self) -> None:
         attempt = _attempt()
 

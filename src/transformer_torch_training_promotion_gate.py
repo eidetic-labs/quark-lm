@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_training_attempt_boundary import (
+    build_torch_training_attempt_boundary,
+)
+
 
 TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION = 1
 TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS = "training_backend_not_promoted"
@@ -77,14 +81,11 @@ def _parity_evidence_matched(
 
 
 def _boundary_passed(boundary: dict[str, Any]) -> bool:
-    forbidden = (
-        "learned_assets_imported",
-        "training_data_imported",
-        "pretrained_weights_imported",
-        "pretrained_tokenizer_imported",
-        "external_embeddings_imported",
+    expected = build_torch_training_attempt_boundary()
+    return all(
+        boundary.get(key) is expected_value
+        for key, expected_value in expected.items()
     )
-    return all(boundary.get(key) is False for key in forbidden)
 
 
 def _check(name: str, passed: bool, reason: str) -> dict[str, Any]:

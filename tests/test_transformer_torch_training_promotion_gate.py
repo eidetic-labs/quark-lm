@@ -64,6 +64,32 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         self.assertFalse(gate["closed_world_boundary_passed"])
         self.assertIn("closed_world_boundary", gate["blockers"])
 
+    def test_closed_world_boundary_requires_runtime_library_allowance(self) -> None:
+        boundary = _boundary()
+        boundary["runtime_library_allowed"] = False
+
+        gate = build_torch_training_backend_promotion_gate(
+            candidate=_candidate(parity_status="matched", replay_passed=True),
+            report={"passed": True},
+            closed_world_boundary=boundary,
+        )
+
+        self.assertFalse(gate["closed_world_boundary_passed"])
+        self.assertIn("closed_world_boundary", gate["blockers"])
+
+    def test_closed_world_boundary_requires_admitted_curriculum_source(self) -> None:
+        boundary = _boundary()
+        boundary["training_text_source"] = "external_corpus"
+
+        gate = build_torch_training_backend_promotion_gate(
+            candidate=_candidate(parity_status="matched", replay_passed=True),
+            report={"passed": True},
+            closed_world_boundary=boundary,
+        )
+
+        self.assertFalse(gate["closed_world_boundary_passed"])
+        self.assertIn("closed_world_boundary", gate["blockers"])
+
 
 def _candidate(*, parity_status: str, replay_passed: bool) -> dict:
     return {
