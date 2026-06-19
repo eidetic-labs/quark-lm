@@ -49,6 +49,24 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "training_text_source"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_stale_promotion_gate_boundary_status(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"][
+            "closed_world_boundary_passed"
+        ] = False
+
+        with self.assertRaisesRegex(ValueError, "boundary status"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_promotion_gate_boundary_failures(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"]["closed_world_boundary_failures"] = [
+            "training_text_source"
+        ]
+
+        with self.assertRaisesRegex(ValueError, "boundary failures"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_writer_validation_requires_artifact_paths(self) -> None:
         attempt = _attempt()
 

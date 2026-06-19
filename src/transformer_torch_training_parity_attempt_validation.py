@@ -47,8 +47,9 @@ def validate_torch_training_parity_attempt(
             "closed_world_boundary",
         ),
     )
-    _validate_boundary(attempt["closed_world_boundary"])
-    _validate_promotion_gate(attempt["training_backend_promotion_gate"])
+    boundary = attempt["closed_world_boundary"]
+    _validate_boundary(boundary)
+    _validate_promotion_gate(attempt["training_backend_promotion_gate"], boundary)
     if require_artifacts:
         _validate_artifacts(attempt.get("artifacts"))
 
@@ -60,7 +61,7 @@ def _validate_boundary(boundary: dict[str, Any]) -> None:
             raise ValueError(f"closed_world_boundary.{key} is invalid")
 
 
-def _validate_promotion_gate(gate: dict[str, Any]) -> None:
+def _validate_promotion_gate(gate: dict[str, Any], boundary: dict[str, Any]) -> None:
     if gate.get("status") != TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS:
         raise ValueError("training backend promotion gate status is invalid")
     if gate.get("passed") is not False:
@@ -73,6 +74,20 @@ def _validate_promotion_gate(gate: dict[str, Any]) -> None:
         raise ValueError("training backend promotion gate evidence_scope is invalid")
     if not isinstance(gate.get("required_future_gates"), list):
         raise ValueError("training backend promotion gate future gates missing")
+    boundary_failures = _boundary_failures(boundary)
+    if gate.get("closed_world_boundary_passed") is not (not boundary_failures):
+        raise ValueError("training backend promotion gate boundary status is invalid")
+    if gate.get("closed_world_boundary_failures") != boundary_failures:
+        raise ValueError("training backend promotion gate boundary failures are invalid")
+
+
+def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
+    expected = build_torch_training_attempt_boundary()
+    return [
+        key
+        for key, expected_value in expected.items()
+        if boundary.get(key) is not expected_value
+    ]
 
 
 def _validate_artifacts(artifacts: Any) -> None:
