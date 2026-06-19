@@ -38,6 +38,14 @@ class TransformerTorchTrainingParityAttemptTests(unittest.TestCase):
             attempt["candidate"]["implementation_status"],
             "runtime_unavailable",
         )
+        self.assertEqual(
+            attempt["next_requirements"]["stage"],
+            "runtime_preflight",
+        )
+        self.assertEqual(
+            attempt["next_requirements"]["next_actions"],
+            ["install_real_pytorch_runtime"],
+        )
         self.assertIn(
             "runtime_available",
             artifacts["candidate"]["training_readiness"]["summary"][
@@ -57,9 +65,28 @@ class TransformerTorchTrainingParityAttemptTests(unittest.TestCase):
         self.assertEqual(attempt["status"], "blocked_test_double_runtime")
         self.assertFalse(attempt["runtime"]["parity_attempt_allowed"])
         self.assertEqual(attempt["runtime"]["runtime_kind"], "test_double")
+        self.assertEqual(
+            attempt["next_requirements"]["next_actions"],
+            ["run_again_with_real_pytorch_runtime"],
+        )
         self.assertIn(
             "runtime_kind",
             attempt["training_replay_parity_gate"]["failed_checks"],
+        )
+
+    def test_attempt_requirements_identify_replay_parity_as_next_gate(self) -> None:
+        artifacts = _attempt(importer=_real_like_training_importer())
+        attempt = artifacts["attempt"]
+
+        self.assertEqual(attempt["runtime"]["runtime_kind"], "pytorch")
+        self.assertTrue(attempt["runtime"]["parity_attempt_allowed"])
+        self.assertEqual(
+            attempt["next_requirements"]["stage"],
+            "training_replay_parity",
+        )
+        self.assertIn(
+            "resolve_replay_gate:replay_buffer",
+            attempt["next_requirements"]["next_actions"],
         )
 
     def test_writer_outputs_attempt_artifact_set(self) -> None:
@@ -101,3 +128,18 @@ def _attempt(*, importer) -> dict:
 
 def _missing_importer(name: str) -> object:
     raise ModuleNotFoundError(name)
+
+
+def _real_like_training_importer():
+    fake = fake_torch_importer(
+        training_runtime=True,
+        gradient_runtime=True,
+    )("torch")
+    fake.__version__ = "2.0.0"
+
+    def importer(name: str) -> object:
+        if name != "torch":
+            raise ModuleNotFoundError(name)
+        return fake
+
+    return importer

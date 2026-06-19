@@ -94,6 +94,9 @@ reference.
 - Record PyTorch training parity attempts with an admitted-curriculum scalar
   fixture, optional PyTorch candidate, training parity report, and compact
   attempt summary; blocked runtime evidence is archived instead of promoted.
+- Classify each PyTorch training parity attempt's next unsatisfied requirement
+  so the loop can distinguish runtime preflight, training readiness, replay
+  parity, and final report failures.
 - Keep PyTorch candidate artifacts self-contained by embedding the runtime
   report alongside forward or training evidence.
 - Require parity reports to verify embedded runtime reports; training parity

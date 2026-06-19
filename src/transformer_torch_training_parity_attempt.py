@@ -14,6 +14,9 @@ from transformer_model import OptimizationConfig, TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_runtime import TorchImporter
 from transformer_torch_training_candidate import build_torch_training_parity_candidate
+from transformer_torch_training_parity_attempt_requirements import (
+    build_torch_training_parity_attempt_requirements,
+)
 from transformer_training_parity import (
     build_scalar_training_parity_fixture,
     build_training_parity_report,
@@ -163,6 +166,11 @@ def _attempt_summary(
         "candidate": _candidate_summary(candidate),
         "training_replay_parity_gate": _gate_summary(gate),
         "training_parity_report": _report_summary(report),
+        "next_requirements": build_torch_training_parity_attempt_requirements(
+            runtime_report=runtime_report,
+            candidate=candidate,
+            report=report,
+        ),
         "closed_world_boundary": {
             "runtime_library_allowed": True,
             "training_text_source": "admitted_curriculum",

@@ -171,7 +171,9 @@ Working tagline: Big idea. Tiny package.
   `quark-lm-torch-training-parity`. The command builds an admitted-curriculum
   scalar fixture, optional PyTorch candidate, training parity report, and
   compact attempt summary; absent PyTorch records blocked runtime evidence
-  instead of a promoted backend claim.
+  instead of a promoted backend claim. The summary names the next unsatisfied
+  requirement so the loop can separate runtime, readiness, replay, and report
+  failures.
 
 ## Research Grounding
 

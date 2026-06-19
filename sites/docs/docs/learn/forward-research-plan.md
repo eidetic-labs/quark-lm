@@ -260,7 +260,9 @@ model-quality training evidence or promote the PyTorch backend. The
 admitted-curriculum scalar fixture, optional PyTorch training candidate,
 training parity report, and compact attempt summary. If real PyTorch is absent,
 the artifact records `blocked_runtime_unavailable` instead of making a training
-claim.
+claim. Attempt summaries now also classify the next unsatisfied requirement, so
+the loop can distinguish runtime preflight, training readiness, replay parity,
+and final report failures.
 
 ## Where the sequence stands
 
