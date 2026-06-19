@@ -20,6 +20,10 @@ from transformer_training_parameter_manifest import (
     build_training_parameter_manifest,
     validate_training_parameter_manifest,
 )
+from transformer_training_parameter_signature import (
+    build_manifest_parameter_signature,
+    build_weight_tree_signature,
+)
 from transformer_training_parity_schema import (
     TRAINING_PARITY_ABSOLUTE_TOLERANCE,
     TRAINING_PARITY_FIXTURE_KIND,
@@ -49,6 +53,11 @@ def build_scalar_training_parity_fixture(
     if learning_rate <= 0.0:
         raise ValueError("learning_rate must be positive")
     initial_payload = copy.deepcopy(model.to_dict())
+    model_config = asdict(model.config)
+    parameter_manifest = build_training_parameter_manifest(
+        weights=initial_payload["weights"],
+        model_config=model_config,
+    )
     trained_model, _tokenizer = type(model).from_dict(initial_payload)
     optimizer = ScalarOptimizer(optimizer_config)
     trained_model.active_optimizer = optimizer
@@ -60,10 +69,7 @@ def build_scalar_training_parity_fixture(
     ]
     final_logits = trained_model._forward_floats(context)
     final_loss = trained_model.nll(context, target)
-    parameter_manifest = build_training_parameter_manifest(
-        weights=initial_payload["weights"],
-        model_config=asdict(model.config),
-    )
+    trained_weights = trained_model.to_dict()["weights"]
     training_case = {
         "case_id": "training-01",
         "context": list(context),
@@ -76,8 +82,10 @@ def build_scalar_training_parity_fixture(
         "final_loss": final_loss,
         "final_logits": final_logits,
         "optimizer_state": optimizer.to_dict(),
-        "parameter_signature": _parameter_signature(
-            trained_model.to_dict()["weights"]
+        "parameter_signature": build_weight_tree_signature(trained_weights),
+        "trainable_parameter_signature": build_manifest_parameter_signature(
+            weights=trained_weights,
+            manifest=parameter_manifest,
         ),
     }
     optimizer_step_contract = build_optimizer_step_contract(
@@ -96,7 +104,7 @@ def build_scalar_training_parity_fixture(
             tokenizer_type=getattr(tokenizer, "tokenizer_type", "char"),
             corpus_hash=corpus_hash,
         ),
-        "model_config": asdict(model.config),
+        "model_config": model_config,
         "tokenizer": _tokenizer_summary(tokenizer),
         "initial_weights": initial_payload["weights"],
         "optimizer_config": asdict(optimizer_config),
@@ -169,27 +177,6 @@ def _tokenizer_summary(tokenizer: Any) -> dict[str, Any]:
     }
 
 
-def _parameter_signature(weights: dict[str, Any]) -> dict[str, float | int]:
-    values = list(_numbers(weights))
-    return {
-        "count": len(values),
-        "sum": sum(values),
-        "abs_sum": sum(abs(value) for value in values),
-        "square_sum": sum(value * value for value in values),
-    }
-
-
-def _numbers(value: Any):
-    if isinstance(value, dict):
-        for item in value.values():
-            yield from _numbers(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from _numbers(item)
-    elif isinstance(value, int | float):
-        yield float(value)
-
-
 def _validate_training_case(case: Any) -> None:
     if not isinstance(case, dict):
         raise ValueError("training_case must be a dict")
@@ -206,6 +193,7 @@ def _validate_training_case(case: Any) -> None:
         "final_logits",
         "optimizer_state",
         "parameter_signature",
+        "trainable_parameter_signature",
     }
     for key in required:
         if key not in case:

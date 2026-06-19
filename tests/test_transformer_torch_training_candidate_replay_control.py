@@ -54,6 +54,11 @@ class TransformerTorchTrainingCandidateReplayControlTests(unittest.TestCase):
         self.assertFalse(buffer_comparison["buffered_gradient_parity_proven"])
         self.assertFalse(buffer_comparison["optimizer_update_parity_proven"])
 
+        update_comparison = candidate["accumulation_replay_update_comparison"]
+        self.assertEqual(update_comparison["status"], "replay_update_comparison_not_run")
+        self.assertFalse(update_comparison["optimizer_update_parity_proven"])
+        self.assertIn("buffer", update_comparison["reason"])
+
 
 def _scalar_training_fixture() -> dict:
     tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)

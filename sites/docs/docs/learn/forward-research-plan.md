@@ -213,15 +213,15 @@ buffered-gradient, optimizer-update, final-logit, and final-loss parity remain
 unproven. The replay-buffer comparison now folds replayed clipped gradients
 through the scalar accumulation cadence and compares buffer-before,
 buffer-after-add, and accumulated-gradient signatures to scalar evidence.
-Buffer mismatches are recorded as blocking evidence, not promoted. That is
-still not full PyTorch training parity: it does not yet prove optimizer
-updates, final logits, final loss, or checkpoint compatibility. The next
-implementation layer is matching those numerical update effects against scalar
-training evidence. Scalar training fixtures now record per-step gradient-buffer
-evidence: raw gradients, clipped gradients, buffer state before and after the
-microstep, and the averaged gradient vector used when an update is applied. That
-gives the PyTorch backend a concrete numerical target for accumulated-gradient
-parity without promoting the PyTorch path yet.
+Buffer mismatches are recorded as blocking evidence, not promoted. Scalar
+training fixtures now also record a final trainable-parameter signature in
+manifest order. The replay-update comparison is gated behind buffer parity: if
+the buffer comparison passes, it applies the replayed accumulated gradient
+through AdamW on a fresh tensor state and compares the post-update trainable
+signature to scalar evidence. A match proves optimizer-update parity only; final
+logits, final loss, and checkpoint compatibility remain separate gates. The
+next implementation layer is matching those final numerical effects against
+scalar training evidence without promoting the PyTorch path yet.
 
 ## Where the sequence stands
 

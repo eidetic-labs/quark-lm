@@ -65,6 +65,14 @@ class TransformerTrainingParityTests(unittest.TestCase):
         )
         self.assertGreater(case["initial_loss"], case["final_loss"])
         self.assertGreater(case["parameter_signature"]["count"], 0)
+        self.assertEqual(
+            case["trainable_parameter_signature"]["count"],
+            fixture["parameter_manifest"]["parameter_count"],
+        )
+        self.assertLess(
+            case["trainable_parameter_signature"]["count"],
+            case["parameter_signature"]["count"],
+        )
 
     def test_training_report_passes_for_matching_candidate(self) -> None:
         fixture = _scalar_training_fixture()

@@ -61,6 +61,9 @@ reference.
   evidence.
 - Compare replayed gradient buffers against scalar buffer evidence; buffer
   mismatches keep optimizer-update, final-logit, and final-loss parity blocked.
+- Gate replayed AdamW update comparison behind buffer parity; matched trainable
+  parameter signatures prove only optimizer-update parity, not final logits or
+  final loss.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
