@@ -27,6 +27,11 @@ class TransformerTorchTrainingParityAttemptTests(unittest.TestCase):
         self.assertEqual(attempt["status"], "blocked_runtime_unavailable")
         self.assertFalse(attempt["passed"])
         self.assertFalse(attempt["promoted_training_backend"])
+        self.assertFalse(attempt["training_backend_promotion_gate"]["passed"])
+        self.assertEqual(
+            attempt["training_backend_promotion_gate"]["evidence_scope"],
+            "fixture_replay_parity_only",
+        )
         self.assertEqual(
             attempt["closed_world_boundary"]["training_text_source"],
             "admitted_curriculum",
@@ -81,6 +86,11 @@ class TransformerTorchTrainingParityAttemptTests(unittest.TestCase):
 
         self.assertEqual(attempt["runtime"]["runtime_kind"], "pytorch")
         self.assertTrue(attempt["runtime"]["parity_attempt_allowed"])
+        self.assertFalse(attempt["training_backend_promotion_gate"]["passed"])
+        self.assertIn(
+            "training_parity_report",
+            attempt["training_backend_promotion_gate"]["blockers"],
+        )
         self.assertEqual(
             attempt["next_requirements"]["stage"],
             "training_replay_parity",

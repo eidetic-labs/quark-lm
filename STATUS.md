@@ -184,6 +184,9 @@ Working tagline: Big idea. Tiny package.
   A skip-safe optional integration test now records this proof when PyTorch is
   installed and skips under the default scalar environment. This is parity
   evidence only; PyTorch is still not a promoted training backend.
+- PyTorch training parity attempts now include an explicit backend-promotion
+  gate. It is expected to fail today, preserving the boundary between matched
+  fixture replay parity and any future promoted/general PyTorch trainer.
 
 ## Research Grounding
 

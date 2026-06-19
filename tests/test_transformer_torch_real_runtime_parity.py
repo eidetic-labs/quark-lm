@@ -36,6 +36,14 @@ class TransformerTorchRealRuntimeParityTests(unittest.TestCase):
         self.assertEqual(attempt["runtime"]["dtype"], "float64")
         self.assertTrue(attempt["training_replay_parity_gate"]["passed"])
         self.assertEqual(attempt["training_parity_report"]["failed_checks"], [])
+        self.assertFalse(attempt["training_backend_promotion_gate"]["passed"])
+        self.assertTrue(
+            attempt["training_backend_promotion_gate"]["parity_evidence_matched"]
+        )
+        self.assertEqual(
+            attempt["training_backend_promotion_gate"]["blockers"],
+            ["fixture_scope_only", "model_quality_gate"],
+        )
         self.assertEqual(attempt["next_requirements"]["stage"], "complete")
         self.assertEqual(candidate["backend"]["parity_status"], "matched")
         self.assertFalse(

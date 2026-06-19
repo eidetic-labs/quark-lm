@@ -275,6 +275,10 @@ Optional real-runtime PyTorch parity is covered by a skip-safe integration test:
 default scalar environments skip without PyTorch, while environments with
 PyTorch installed must match scalar training replay evidence before the backend
 can be considered for any promotion gate.
+Training parity attempts also embed a dedicated backend-promotion gate. The gate
+is intentionally not passed: it records that matched replay parity is
+fixture-level evidence only, while promoted or generalized PyTorch training
+still requires model-quality, profile, and retention gates.
 
 ## Where the sequence stands
 

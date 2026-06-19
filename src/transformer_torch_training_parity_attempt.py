@@ -13,10 +13,14 @@ from tokenizer import CharTokenizer
 from transformer_model import OptimizationConfig, TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_runtime import TorchImporter
+from transformer_torch_training_attempt_boundary import (
+    build_torch_training_attempt_boundary,
+)
 from transformer_torch_training_candidate import build_torch_training_parity_candidate
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
 )
+from transformer_torch_training_promotion_gate import build_torch_training_backend_promotion_gate
 from transformer_training_parity import (
     build_scalar_training_parity_fixture,
     build_training_parity_report,
@@ -153,6 +157,7 @@ def _attempt_summary(
 ) -> dict[str, Any]:
     runtime_report = candidate.get("runtime_report", {})
     gate = candidate.get("training_replay_parity_gate", {})
+    closed_world_boundary = build_torch_training_attempt_boundary()
     return {
         "schema_version": SCHEMA_VERSION,
         "kind": TORCH_TRAINING_PARITY_ATTEMPT_KIND,
@@ -166,20 +171,17 @@ def _attempt_summary(
         "candidate": _candidate_summary(candidate),
         "training_replay_parity_gate": _gate_summary(gate),
         "training_parity_report": _report_summary(report),
+        "training_backend_promotion_gate": build_torch_training_backend_promotion_gate(
+            candidate=candidate,
+            report=report,
+            closed_world_boundary=closed_world_boundary,
+        ),
         "next_requirements": build_torch_training_parity_attempt_requirements(
             runtime_report=runtime_report,
             candidate=candidate,
             report=report,
         ),
-        "closed_world_boundary": {
-            "runtime_library_allowed": True,
-            "training_text_source": "admitted_curriculum",
-            "learned_assets_imported": False,
-            "training_data_imported": False,
-            "pretrained_weights_imported": False,
-            "pretrained_tokenizer_imported": False,
-            "external_embeddings_imported": False,
-        },
+        "closed_world_boundary": closed_world_boundary,
     }
 
 

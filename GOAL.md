@@ -113,6 +113,9 @@ reference.
 - Keep optional real-runtime PyTorch parity covered by skip-safe tests: default
   scalar environments skip cleanly, while installed PyTorch environments must
   match scalar training replay evidence before any backend promotion claim.
+- Embed an explicit PyTorch backend-promotion gate in training parity attempts;
+  matched replay parity is fixture evidence only and must not silently become a
+  promoted/general training backend.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

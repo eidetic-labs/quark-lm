@@ -64,7 +64,7 @@ and stores a compact attempt summary. The artifact set is:
 | `scalar_training_fixture.json` | The scalar reference loss, logits, optimizer state, parameter manifest, and corpus-only tokenizer summary. |
 | `torch_training_candidate.json` | The optional PyTorch candidate, runtime report, replay probes, and aggregate replay gate. |
 | `training_parity_report.json` | The candidate-versus-scalar report, including runtime and replay-gate checks. |
-| `torch_training_parity_attempt.json` | The concise decision summary, artifact paths, closed-world boundary flags, failed checks, and next unsatisfied requirement. |
+| `torch_training_parity_attempt.json` | The concise decision summary, artifact paths, closed-world boundary flags, failed checks, backend-promotion gate, and next unsatisfied requirement. |
 
 If real PyTorch is not installed, the command still writes the artifacts and
 records `blocked_runtime_unavailable`. That blocked result is useful evidence;
@@ -82,6 +82,11 @@ PYTHONPATH=src python3 -m unittest discover \
   -s tests \
   -p 'test_transformer_torch_real_runtime_parity.py'
 ```
+
+The attempt summary also carries `training_backend_promotion_gate`. That gate is
+expected to fail today: it records that matched replay parity is fixture-level
+evidence, while a promoted or generalized PyTorch trainer still needs separate
+model-quality, profile, and retention gates.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The
