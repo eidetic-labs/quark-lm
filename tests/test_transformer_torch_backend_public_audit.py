@@ -8,6 +8,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import transformer_torch_backend
+from transformer_torch_backend_core_exports import __all__ as CORE_EXPORTS
+from transformer_torch_backend_replay_exports import __all__ as REPLAY_EXPORTS
+from transformer_torch_backend_training_exports import __all__ as TRAINING_EXPORTS
 from transformer_torch_backend import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
@@ -25,6 +29,18 @@ from transformer_torch_backend import (
 
 
 class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
+    def test_public_backend_exports_are_grouped_without_duplicates(self) -> None:
+        grouped_exports = [
+            *CORE_EXPORTS,
+            *REPLAY_EXPORTS,
+            *TRAINING_EXPORTS,
+        ]
+
+        self.assertEqual(transformer_torch_backend.__all__, grouped_exports)
+        self.assertEqual(len(grouped_exports), len(set(grouped_exports)))
+        for export_name in grouped_exports:
+            self.assertTrue(hasattr(transformer_torch_backend, export_name))
+
     def test_training_attempt_audit_helpers_are_public(self) -> None:
         artifacts = {
             "fixture": {"kind": "fixture"},
