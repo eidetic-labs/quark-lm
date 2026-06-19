@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_training_parity_report import build_training_parity_report
+from transformer_torch_training_parity_attempt_requirements import (
+    build_torch_training_parity_attempt_requirements,
+)
 from transformer_torch_training_parity_attempt_validation import (
     validate_torch_training_parity_attempt,
 )
@@ -56,6 +59,7 @@ def validate_torch_training_parity_attempt_artifact_set(
     )
     _validate_report_payload(payloads)
     _validate_promotion_gate_payload(payloads)
+    _validate_next_requirements_payload(payloads)
 
 
 def _required_payloads(artifacts: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -99,6 +103,16 @@ def _validate_promotion_gate_payload(payloads: dict[str, dict[str, Any]]) -> Non
     )
     if payloads["attempt"]["training_backend_promotion_gate"] != expected:
         raise ValueError("attempt.training_backend_promotion_gate is inconsistent")
+
+
+def _validate_next_requirements_payload(payloads: dict[str, dict[str, Any]]) -> None:
+    expected = build_torch_training_parity_attempt_requirements(
+        runtime_report=payloads["candidate"].get("runtime_report", {}),
+        candidate=payloads["candidate"],
+        report=payloads["report"],
+    )
+    if payloads["attempt"]["next_requirements"] != expected:
+        raise ValueError("attempt.next_requirements is inconsistent")
 
 
 def _runtime_summary(candidate: dict[str, Any]) -> dict[str, Any]:

@@ -286,7 +286,9 @@ closed-world boundary flags, artifact paths, and artifact payloads cannot
 silently drift out of the PyTorch parity evidence chain. The stored training
 parity report must also match a report rebuilt from the paired fixture and
 candidate payloads, and the stored backend-promotion gate must match a gate
-rebuilt from the candidate, report, and closed-world boundary.
+rebuilt from the candidate, report, and closed-world boundary. The
+next-requirements diagnosis must also rebuild from the candidate runtime
+report, candidate, and report.
 
 ## Where the sequence stands
 

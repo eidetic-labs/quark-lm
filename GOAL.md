@@ -122,7 +122,8 @@ reference.
   closed-world boundary, artifact paths, and artifact payload consistency remain
   machine-checkable, including a report rebuilt from the paired fixture and
   candidate payloads and a promotion gate rebuilt from the candidate, report,
-  and closed-world boundary.
+  and closed-world boundary. The next-requirements diagnosis must also rebuild
+  from the candidate runtime report, candidate, and report.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

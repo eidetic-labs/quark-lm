@@ -93,7 +93,9 @@ status, next requirements, promotion gate, closed-world boundary flags, evidence
 scope, artifact paths, and the fixture/candidate/report payload set. The stored
 training parity report must match a report rebuilt from the paired fixture and
 candidate, and the stored backend-promotion gate must match a gate rebuilt from
-the candidate, report, and closed-world boundary.
+the candidate, report, and closed-world boundary. The next-requirements
+diagnosis must also rebuild from the candidate runtime report, candidate, and
+report.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

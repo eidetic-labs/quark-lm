@@ -194,7 +194,8 @@ Working tagline: Big idea. Tiny package.
   consistency checks. The stored training parity report must match a report
   rebuilt from the paired fixture and candidate payloads, and the stored
   backend-promotion gate must match a gate rebuilt from the candidate, report,
-  and closed-world boundary.
+  and closed-world boundary. The next-requirements diagnosis must also rebuild
+  from the candidate runtime report, candidate, and report.
 
 ## Research Grounding
 
