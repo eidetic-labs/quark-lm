@@ -240,7 +240,8 @@ training-looking fields cannot bypass replay evidence.
 Runtime evidence also records whether the imported module is real PyTorch, a
 test double, or unavailable. Test doubles can keep unit wiring deterministic,
 but they cannot satisfy the aggregate replay parity gate or produce
-model-quality training evidence.
+model-quality training evidence. The `quark-lm-torch-runtime` preflight writes
+that runtime evidence before any real PyTorch parity attempt.
 
 ## Where the sequence stands
 

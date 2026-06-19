@@ -78,6 +78,9 @@ reference.
 - Distinguish real PyTorch from test doubles in runtime evidence. Test doubles
   may validate wiring, but they cannot satisfy aggregate replay parity or count
   as model-quality training evidence.
+- Run `quark-lm-torch-runtime` or the equivalent module preflight before any
+  real PyTorch parity attempt; a passing runtime report permits an attempt, not
+  promotion.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

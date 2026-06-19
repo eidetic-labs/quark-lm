@@ -83,6 +83,11 @@ from transformer_torch_runtime import (
     TORCH_RUNTIME_KIND_UNAVAILABLE,
     torch_runtime_status,
 )
+from transformer_torch_runtime_report import (
+    TORCH_RUNTIME_REPORT_KIND,
+    build_torch_runtime_report,
+    write_torch_runtime_report,
+)
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_PROBE_SCHEMA_VERSION,
     TORCH_OPTIMIZER_STEP_READY_STATUS,
@@ -152,6 +157,7 @@ __all__ = [
     "TORCH_RUNTIME_KIND_PYTORCH",
     "TORCH_RUNTIME_KIND_TEST_DOUBLE",
     "TORCH_RUNTIME_KIND_UNAVAILABLE",
+    "TORCH_RUNTIME_REPORT_KIND",
     "TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS",
     "TORCH_ADAMW_EXPECTED_UPDATE_SCHEMA_VERSION",
     "TORCH_GRADIENT_CLIP_APPLIED_STATUS",
@@ -232,6 +238,7 @@ __all__ = [
     "build_torch_training_parity_candidate",
     "build_torch_training_replay_parity_gate",
     "build_torch_training_readiness",
+    "build_torch_runtime_report",
     "build_torch_training_state",
     "summarize_torch_training_state",
     "summarize_torch_optimizer_gradients",
@@ -239,4 +246,5 @@ __all__ = [
     "torch_training_weights_from_state",
     "torch_runtime_status",
     "validate_torch_training_state_summary",
+    "write_torch_runtime_report",
 ]

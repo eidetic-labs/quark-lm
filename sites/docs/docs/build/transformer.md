@@ -27,7 +27,18 @@ The scalar implementation is still the canonical reference. QuarkLM also has an
 optional experimental PyTorch parity surface for tiny backend fixtures, but it
 does not add PyTorch as a dependency and it is not a promoted training backend.
 It can only become performance evidence after deterministic scalar parity gates
-pass for the relevant profile.
+pass for the relevant profile. Use the runtime preflight before attempting that
+evidence:
+
+```bash title="Check optional PyTorch runtime evidence"
+PYTHONPATH=src python3 -m transformer_torch_runtime_report \
+  --requested-device auto \
+  --output build/torch_runtime_report.json
+```
+
+The command exits nonzero when real PyTorch is unavailable, a test double is
+detected, or the requested dtype cannot be used. A passing report only means the
+runtime can attempt parity evidence; it does not promote PyTorch training.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The
