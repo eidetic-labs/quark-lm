@@ -284,8 +284,11 @@ current backward probe executes the tensor loss backward pass and reports
 gradient coverage separately from optimizer behavior. The current optimizer-step
 contract records the scalar schedule, per-parameter gradient clipping,
 accumulation cadence, expected update steps, and final optimizer-state summary.
-The next implementation layer is executing that contract with PyTorch optimizer
-behavior and matching scalar step records.
+The current optimizer-step readiness probe validates that contract, maps
+available `tensor.grad` values back to the trainable-parameter manifest, checks
+gradient shapes and contiguous optimizer-slot coverage, and reports readiness
+without applying an optimizer update. The next implementation layer is applying
+that contract with PyTorch optimizer behavior and matching scalar step records.
 
 ## Current QuarkLM Diagnosis
 

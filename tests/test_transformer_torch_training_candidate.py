@@ -97,7 +97,13 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         )
         self.assertEqual(
             candidate["optimizer_step_probe"]["status"],
-            "pending_optimizer_implementation",
+            "ready_for_optimizer_execution",
+        )
+        self.assertEqual(
+            candidate["optimizer_step_probe"]["gradient_summary"][
+                "gradient_parameter_count"
+            ],
+            fixture["parameter_manifest"]["parameter_count"],
         )
         self.assertEqual(
             candidate["implementation_status"],

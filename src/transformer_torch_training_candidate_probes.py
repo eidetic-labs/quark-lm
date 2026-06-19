@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_runtime import TorchImporter
+from transformer_torch_optimizer_step_probe import (
+    build_torch_optimizer_step_probe,
+)
 from transformer_torch_training_backward_probe import (
     build_torch_training_backward_probe,
 )
@@ -48,8 +51,9 @@ def build_torch_training_probe_artifacts(
             state=state,
         ),
         "backward_probe": backward_probe,
-        "optimizer_step_probe": _optimizer_step_probe(
+        "optimizer_step_probe": build_torch_optimizer_step_probe(
             fixture=fixture,
+            state=state,
             backward_probe=backward_probe,
         ),
     }
@@ -121,25 +125,3 @@ def _backward_probe(
         runtime=runtime,
         state=state,
     )
-
-
-def _optimizer_step_probe(
-    *,
-    fixture: dict[str, Any],
-    backward_probe: dict[str, Any],
-) -> dict[str, Any]:
-    if backward_probe.get("status") != "gradients_available":
-        return {
-            "status": "not_run",
-            "reason": "pytorch gradients are not available",
-        }
-    contract = fixture["optimizer_step_contract"]
-    return {
-        "status": "pending_optimizer_implementation",
-        "reason": "pytorch optimizer step parity is not implemented yet",
-        "optimizer": contract["optimizer"],
-        "expected_update_count": contract["expected_final_optimizer_state"][
-            "update_count"
-        ],
-        "expected_step_count": len(contract["expected_step_records"]),
-    }
