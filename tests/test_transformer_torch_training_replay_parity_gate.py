@@ -53,6 +53,48 @@ class TransformerTorchTrainingReplayParityGateTests(unittest.TestCase):
         self.assertEqual(gate["parity_status"], "pending")
         self.assertEqual(gate["summary"]["failed_checks"], ["replay_buffer"])
 
+    def test_gate_rejects_inconsistent_replay_control_counts(self) -> None:
+        probe_cases = [
+            ("executed_microstep_count", 1),
+            ("backward_pass_count", 1),
+            ("gradient_signature_match_count", 1),
+            ("gradient_signature_mismatch_count", 1),
+        ]
+        for field, value in probe_cases:
+            with self.subTest(field=field):
+                probes = _matching_probes()
+                probes["accumulation_replay_control_probe"][field] = value
+
+                gate = build_torch_training_replay_parity_gate(
+                    runtime=_runtime(),
+                    readiness=_readiness("ready"),
+                    probes=probes,
+                )
+
+                self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PENDING_STATUS)
+                self.assertFalse(gate["passed"])
+                self.assertEqual(
+                    gate["summary"]["failed_checks"],
+                    ["replay_gradient_signatures"],
+                )
+
+    def test_gate_rejects_replay_control_without_microstep_records(self) -> None:
+        probes = _matching_probes()
+        probes["accumulation_replay_control_probe"]["microsteps"] = []
+
+        gate = build_torch_training_replay_parity_gate(
+            runtime=_runtime(),
+            readiness=_readiness("ready"),
+            probes=probes,
+        )
+
+        self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PENDING_STATUS)
+        self.assertFalse(gate["passed"])
+        self.assertEqual(
+            gate["summary"]["failed_checks"],
+            ["replay_gradient_signatures"],
+        )
+
     def test_gate_rejects_passed_probe_with_mismatched_status(self) -> None:
         probe_cases = [
             (
@@ -146,6 +188,9 @@ def _matching_probes() -> dict:
             "gradient_signature_match_count": 2,
             "gradient_signature_mismatch_count": 0,
             "planned_microstep_count": 2,
+            "executed_microstep_count": 2,
+            "backward_pass_count": 2,
+            "microsteps": [{"step": 1}, {"step": 2}],
         },
         "accumulation_replay_buffer_comparison": {
             "passed": True,

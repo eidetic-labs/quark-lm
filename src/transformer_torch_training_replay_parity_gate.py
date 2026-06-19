@@ -133,13 +133,19 @@ def _status_check(name: str, actual: Any, expected: str) -> dict[str, Any]:
 
 
 def _count_check(name: str, probe: dict[str, Any]) -> dict[str, Any]:
-    match_count = int(probe.get("gradient_signature_match_count", 0))
-    mismatch_count = int(probe.get("gradient_signature_mismatch_count", 0))
-    planned_count = int(probe.get("planned_microstep_count", 0))
+    match_count = _int_field(probe, "gradient_signature_match_count")
+    mismatch_count = _int_field(probe, "gradient_signature_mismatch_count")
+    planned_count = _int_field(probe, "planned_microstep_count")
+    executed_count = _int_field(probe, "executed_microstep_count")
+    backward_count = _int_field(probe, "backward_pass_count")
+    microstep_count = _microstep_count(probe)
     passed = (
         planned_count > 0
+        and executed_count == planned_count
+        and backward_count == planned_count
         and match_count == planned_count
         and mismatch_count == 0
+        and microstep_count == planned_count
     )
     return {
         "name": name,
@@ -147,7 +153,22 @@ def _count_check(name: str, probe: dict[str, Any]) -> dict[str, Any]:
         "match_count": match_count,
         "mismatch_count": mismatch_count,
         "planned_count": planned_count,
+        "executed_count": executed_count,
+        "backward_count": backward_count,
+        "microstep_count": microstep_count,
     }
+
+
+def _int_field(probe: dict[str, Any], name: str) -> int:
+    try:
+        return int(probe.get(name, 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _microstep_count(probe: dict[str, Any]) -> int:
+    microsteps = probe.get("microsteps", [])
+    return len(microsteps) if isinstance(microsteps, list) else 0
 
 
 def _passed_probe_check(
