@@ -110,7 +110,9 @@ backend surface also exposes the written-attempt file map, hash algorithm, hash
 builder, and loader so contributors can inspect the same persisted audit
 contract without reaching through private module paths. Each `next_requirements`
 summary is a typed artifact with an explicit kind and schema version, and that
-contract is available from the optional public backend surface.
+contract is available from the optional public backend surface. The requirements
+artifact also has standalone validation and a public stage catalog so
+next-action routing can be checked without validating a full attempt bundle.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

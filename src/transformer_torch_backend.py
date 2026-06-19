@@ -140,9 +140,11 @@ from transformer_torch_training_parity_attempt_reader import (
     load_torch_training_parity_attempt_artifact_set,
 )
 from transformer_torch_training_parity_attempt_requirements import (
+    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
     build_torch_training_parity_attempt_requirements,
+    validate_torch_training_parity_attempt_requirements,
 )
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_BLOCKED_STATUS,
@@ -227,6 +229,7 @@ __all__ = [
     "TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION",
     "TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM",
     "TORCH_TRAINING_PARITY_ATTEMPT_FILES",
+    "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION",
     "TORCH_TRAINING_REPLAY_PARITY_STATUS",
@@ -273,6 +276,7 @@ __all__ = [
     "snapshot_torch_parameters",
     "torch_training_weights_from_state",
     "torch_runtime_status",
+    "validate_torch_training_parity_attempt_requirements",
     "validate_torch_training_state_summary",
     "write_torch_runtime_report",
 ]

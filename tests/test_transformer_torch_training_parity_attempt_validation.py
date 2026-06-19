@@ -89,7 +89,7 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
 
     def test_validator_rejects_stale_next_requirements_stage(self) -> None:
         attempt = _attempt()
-        attempt["next_requirements"]["stage"] = "complete"
+        attempt["next_requirements"]["stage"] = "training_readiness"
 
         with self.assertRaisesRegex(ValueError, "next_requirements.stage"):
             validate_torch_training_parity_attempt(attempt)

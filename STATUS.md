@@ -205,7 +205,9 @@ Working tagline: Big idea. Tiny package.
   contributors can inspect the same persisted audit contract without reaching
   through private module paths. Each `next_requirements` summary is now a typed
   artifact with an explicit kind and schema version, and the public backend
-  surface exposes that contract for loop consumers.
+  surface exposes that contract for loop consumers. The requirements artifact
+  also has standalone validation and a public stage catalog so next-action
+  routing can be checked without validating a full attempt bundle.
 
 ## Research Grounding
 

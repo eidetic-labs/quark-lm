@@ -12,8 +12,7 @@ from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
 from transformer_torch_training_parity_attempt_requirements import (
-    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
-    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+    validate_torch_training_parity_attempt_requirements,
 )
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
@@ -117,13 +116,7 @@ def _validate_next_requirements(
     requirements: dict[str, Any],
     attempt: dict[str, Any],
 ) -> None:
-    if (
-        requirements.get("schema_version")
-        != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION
-    ):
-        raise ValueError("next_requirements.schema_version is inconsistent")
-    if requirements.get("kind") != TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND:
-        raise ValueError("next_requirements.kind is inconsistent")
+    validate_torch_training_parity_attempt_requirements(requirements)
     expected_stage, expected_status = _expected_next_requirement_state(attempt)
     if requirements.get("stage") != expected_stage:
         raise ValueError("next_requirements.stage is inconsistent")
@@ -132,10 +125,6 @@ def _validate_next_requirements(
     for key, expected in _expected_next_requirement_refs(attempt).items():
         if requirements.get(key) != expected:
             raise ValueError(f"next_requirements.{key} is inconsistent")
-    if not isinstance(requirements.get("primary_blockers"), list):
-        raise ValueError("next_requirements.primary_blockers must be a list")
-    if not isinstance(requirements.get("next_actions"), list):
-        raise ValueError("next_requirements.next_actions must be a list")
 
 
 def _expected_next_requirement_state(attempt: dict[str, Any]) -> tuple[str, str]:

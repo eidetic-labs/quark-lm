@@ -132,7 +132,10 @@ reference.
   algorithm, hash builder, and loader so contributors inspect the persisted
   audit contract without private module paths. Each `next_requirements` summary
   must be a typed artifact with an explicit kind and schema version, and that
-  contract must also be available from the optional public backend surface.
+  contract must also be available from the optional public backend surface. The
+  requirements artifact must provide standalone validation and a public stage
+  catalog so next-action routing can be checked without validating a full
+  attempt bundle.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 
