@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_training_parity_report import build_training_parity_report
+from transformer_torch_training_parity_attempt_hashes import (
+    TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+    build_torch_training_parity_attempt_hashes,
+)
 from transformer_torch_training_parity_attempt_requirements import (
     build_torch_training_parity_attempt_requirements,
 )
@@ -28,6 +32,7 @@ def validate_torch_training_parity_attempt_artifact_set(
     artifacts: dict[str, Any],
     *,
     require_artifact_paths: bool = False,
+    require_artifact_hashes: bool = False,
 ) -> None:
     """Validate that a training parity attempt artifact set is coherent."""
 
@@ -60,6 +65,10 @@ def validate_torch_training_parity_attempt_artifact_set(
     _validate_report_payload(payloads)
     _validate_promotion_gate_payload(payloads)
     _validate_next_requirements_payload(payloads)
+    _validate_artifact_hashes(
+        payloads,
+        require_artifact_hashes=require_artifact_hashes,
+    )
 
 
 def _required_payloads(artifacts: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -113,6 +122,24 @@ def _validate_next_requirements_payload(payloads: dict[str, dict[str, Any]]) -> 
     )
     if payloads["attempt"]["next_requirements"] != expected:
         raise ValueError("attempt.next_requirements is inconsistent")
+
+
+def _validate_artifact_hashes(
+    payloads: dict[str, dict[str, Any]],
+    *,
+    require_artifact_hashes: bool,
+) -> None:
+    attempt = payloads["attempt"]
+    has_hashes = (
+        "artifact_hash_algorithm" in attempt or "artifact_hashes" in attempt
+    )
+    if not require_artifact_hashes and not has_hashes:
+        return
+    if attempt.get("artifact_hash_algorithm") != TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM:
+        raise ValueError("attempt.artifact_hash_algorithm is inconsistent")
+    expected = build_torch_training_parity_attempt_hashes(payloads)
+    if attempt.get("artifact_hashes") != expected:
+        raise ValueError("attempt.artifact_hashes is inconsistent")
 
 
 def _runtime_summary(candidate: dict[str, Any]) -> dict[str, Any]:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_torch_training_attempt_boundary import (
-    build_torch_training_attempt_boundary,
+    torch_training_attempt_boundary_failures,
 )
 
 
@@ -83,12 +83,7 @@ def _parity_evidence_matched(
 
 
 def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
-    expected = build_torch_training_attempt_boundary()
-    return [
-        key
-        for key, expected_value in expected.items()
-        if boundary.get(key) is not expected_value
-    ]
+    return torch_training_attempt_boundary_failures(boundary)
 
 
 def _check(name: str, passed: bool, reason: str) -> dict[str, Any]:

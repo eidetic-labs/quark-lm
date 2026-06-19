@@ -9,6 +9,10 @@ from corpus_artifacts import write_json_artifact
 from transformer_torch_training_parity_attempt_artifact_set import (
     validate_torch_training_parity_attempt_artifact_set,
 )
+from transformer_torch_training_parity_attempt_hashes import (
+    TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+    build_torch_training_parity_attempt_hashes,
+)
 
 
 def write_torch_training_parity_attempt(
@@ -26,11 +30,14 @@ def write_torch_training_parity_attempt(
     attempt = {
         **artifacts["attempt"],
         "artifacts": {name: str(path) for name, path in paths.items()},
+        "artifact_hash_algorithm": TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
+        "artifact_hashes": build_torch_training_parity_attempt_hashes(artifacts),
     }
     payloads = {**artifacts, "attempt": attempt}
     validate_torch_training_parity_attempt_artifact_set(
         payloads,
         require_artifact_paths=True,
+        require_artifact_hashes=True,
     )
     write_json_artifact(paths["fixture"], artifacts["fixture"])
     write_json_artifact(paths["candidate"], artifacts["candidate"])

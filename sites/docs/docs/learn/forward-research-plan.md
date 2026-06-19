@@ -288,7 +288,8 @@ parity report must also match a report rebuilt from the paired fixture and
 candidate payloads, and the stored backend-promotion gate must match a gate
 rebuilt from the candidate, report, and closed-world boundary. The
 next-requirements diagnosis must also rebuild from the candidate runtime
-report, candidate, and report.
+report, candidate, and report. Written summaries also carry SHA-256 payload
+hashes for sibling artifacts.
 
 ## Where the sequence stands
 

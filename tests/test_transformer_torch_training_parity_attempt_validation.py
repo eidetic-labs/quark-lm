@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -20,6 +21,11 @@ from transformer_torch_training_parity_attempt_validation import (
 class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
     def test_valid_attempt_summary_passes(self) -> None:
         validate_torch_training_parity_attempt(_attempt())
+
+    def test_valid_json_round_tripped_attempt_summary_passes(self) -> None:
+        attempt = json.loads(json.dumps(_attempt()))
+
+        validate_torch_training_parity_attempt(attempt)
 
     def test_validator_rejects_missing_promotion_gate(self) -> None:
         attempt = _attempt()

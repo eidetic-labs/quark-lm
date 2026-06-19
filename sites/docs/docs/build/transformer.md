@@ -95,7 +95,8 @@ training parity report must match a report rebuilt from the paired fixture and
 candidate, and the stored backend-promotion gate must match a gate rebuilt from
 the candidate, report, and closed-world boundary. The next-requirements
 diagnosis must also rebuild from the candidate runtime report, candidate, and
-report.
+report. Written summaries also carry SHA-256 payload hashes for sibling
+artifacts.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

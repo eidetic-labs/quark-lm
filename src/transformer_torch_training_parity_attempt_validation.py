@@ -6,7 +6,7 @@ from typing import Any
 
 from corpus_artifacts import SCHEMA_VERSION
 from transformer_torch_training_attempt_boundary import (
-    build_torch_training_attempt_boundary,
+    torch_training_attempt_boundary_failures,
 )
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
@@ -58,10 +58,9 @@ def validate_torch_training_parity_attempt(
 
 
 def _validate_boundary(boundary: dict[str, Any]) -> None:
-    expected = build_torch_training_attempt_boundary()
-    for key, expected_value in expected.items():
-        if boundary.get(key) is not expected_value:
-            raise ValueError(f"closed_world_boundary.{key} is invalid")
+    failures = torch_training_attempt_boundary_failures(boundary)
+    if failures:
+        raise ValueError(f"closed_world_boundary.{failures[0]} is invalid")
 
 
 def _validate_promotion_gate(gate: dict[str, Any], boundary: dict[str, Any]) -> None:
@@ -85,12 +84,7 @@ def _validate_promotion_gate(gate: dict[str, Any], boundary: dict[str, Any]) -> 
 
 
 def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
-    expected = build_torch_training_attempt_boundary()
-    return [
-        key
-        for key, expected_value in expected.items()
-        if boundary.get(key) is not expected_value
-    ]
+    return torch_training_attempt_boundary_failures(boundary)
 
 
 def _validate_attempt_status(attempt: dict[str, Any]) -> None:
