@@ -352,7 +352,9 @@ but they cannot satisfy the aggregate replay parity gate or produce
 model-quality training evidence. The `quark-lm-torch-runtime` preflight writes
 that runtime evidence before any real PyTorch parity attempt, and PyTorch
 candidate artifacts embed the same runtime report alongside their forward or
-training evidence.
+training evidence. Backend and training parity reports now verify that embedded
+runtime report; training parity additionally requires runtime evidence that is
+allowed to count for real PyTorch training attempts.
 
 ## Current QuarkLM Diagnosis
 

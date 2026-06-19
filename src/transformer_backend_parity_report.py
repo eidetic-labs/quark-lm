@@ -11,6 +11,7 @@ from transformer_backend_policy import (
     PYTORCH_BACKEND,
     validate_transformer_backend_metadata,
 )
+from transformer_torch_runtime_report_check import build_torch_runtime_report_check
 
 
 def build_backend_parity_report(
@@ -22,6 +23,14 @@ def build_backend_parity_report(
 
     validate_backend_parity_fixture(fixture)
     checks = [_backend_metadata_check(candidate.get("backend"))]
+    if _candidate_backend_name(candidate) == PYTORCH_BACKEND:
+        checks.append(
+            build_torch_runtime_report_check(
+                runtime_report=candidate.get("runtime_report"),
+                runtime=candidate.get("runtime"),
+                require_training_evidence_allowed=False,
+            )
+        )
     checks.extend(
         _forward_case_checks(
             fixture["forward_cases"],

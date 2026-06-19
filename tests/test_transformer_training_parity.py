@@ -112,6 +112,16 @@ class TransformerTrainingParityTests(unittest.TestCase):
             ["replay_buffer"],
         )
 
+    def test_training_report_requires_training_runtime_evidence(self) -> None:
+        fixture = _scalar_training_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate["runtime_report"]["training_evidence_allowed"] = False
+
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
+        self.assertFalse(report["passed"])
+        self.assertIn("runtime_report", report["summary"]["failed_checks"])
+
     def test_training_report_fails_when_candidate_training_drifts(self) -> None:
         fixture = _scalar_training_fixture()
         candidate = _matching_candidate(fixture)
@@ -149,6 +159,7 @@ def _scalar_training_fixture() -> dict:
 
 
 def _matching_candidate(fixture: dict) -> dict:
+    runtime = {"device": "cpu", "dtype": "float32", "runtime_kind": "pytorch"}
     return {
         "backend": transformer_backend_metadata(
             active_backend=PYTORCH_BACKEND,
@@ -159,12 +170,31 @@ def _matching_candidate(fixture: dict) -> dict:
             dtype="float32",
             parity_status="matched",
         ),
+        "runtime": runtime,
+        "runtime_report": _runtime_report(runtime),
         "parameter_manifest": copy.deepcopy(fixture["parameter_manifest"]),
         "optimizer_step_contract": copy.deepcopy(
             fixture["optimizer_step_contract"]
         ),
         "training_case": copy.deepcopy(fixture["training_case"]),
         "training_replay_parity_gate": _matched_replay_gate(),
+    }
+
+
+def _runtime_report(runtime: dict) -> dict:
+    return {
+        "kind": "transformer_torch_runtime_report",
+        "runtime": copy.deepcopy(runtime),
+        "status": "ready_for_pytorch_parity",
+        "training_evidence_allowed": True,
+        "closed_world_boundary": {
+            "runtime_library_allowed": True,
+            "learned_assets_imported": False,
+            "training_data_imported": False,
+            "pretrained_weights_imported": False,
+            "pretrained_tokenizer_imported": False,
+            "external_embeddings_imported": False,
+        },
     }
 
 

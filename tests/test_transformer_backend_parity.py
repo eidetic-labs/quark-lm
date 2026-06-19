@@ -105,6 +105,19 @@ class TransformerBackendParityTests(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertEqual(report["summary"]["failed_checks"], ["backend_metadata"])
 
+    def test_report_requires_consistent_pytorch_runtime_report(self) -> None:
+        fixture = _scalar_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate["runtime_report"]["runtime"] = {"device": "drift"}
+
+        report = build_backend_parity_report(
+            fixture=fixture,
+            candidate=candidate,
+        )
+
+        self.assertFalse(report["passed"])
+        self.assertIn("runtime_report", report["summary"]["failed_checks"])
+
     def test_fixture_validation_requires_scalar_reference_backend(self) -> None:
         fixture = _scalar_fixture()
         fixture["reference_backend"] = transformer_backend_metadata(
@@ -163,6 +176,7 @@ def _scalar_fixture() -> dict:
 
 
 def _matching_candidate(fixture: dict) -> dict:
+    runtime = {"device": "cpu", "dtype": "float32", "runtime_kind": "test_double"}
     return {
         "backend": transformer_backend_metadata(
             active_backend=PYTORCH_BACKEND,
@@ -173,6 +187,8 @@ def _matching_candidate(fixture: dict) -> dict:
             dtype="float32",
             parity_status="matched",
         ),
+        "runtime": runtime,
+        "runtime_report": _runtime_report(runtime, training_allowed=False),
         "forward_cases": [
             {
                 "case_id": case["case_id"],
@@ -190,6 +206,27 @@ def _matching_candidate(fixture: dict) -> dict:
             }
             for case in fixture["generation_cases"]
         ],
+    }
+
+
+def _runtime_report(runtime: dict, *, training_allowed: bool) -> dict:
+    return {
+        "kind": "transformer_torch_runtime_report",
+        "runtime": copy.deepcopy(runtime),
+        "status": (
+            "ready_for_pytorch_parity"
+            if training_allowed
+            else "blocked_test_double_runtime"
+        ),
+        "training_evidence_allowed": training_allowed,
+        "closed_world_boundary": {
+            "runtime_library_allowed": True,
+            "learned_assets_imported": False,
+            "training_data_imported": False,
+            "pretrained_weights_imported": False,
+            "pretrained_tokenizer_imported": False,
+            "external_embeddings_imported": False,
+        },
     }
 
 

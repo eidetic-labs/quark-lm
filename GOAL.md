@@ -83,6 +83,8 @@ reference.
   promotion.
 - Keep PyTorch candidate artifacts self-contained by embedding the runtime
   report alongside forward or training evidence.
+- Require parity reports to verify embedded runtime reports; training parity
+  must also require runtime evidence allowed for real PyTorch training attempts.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
