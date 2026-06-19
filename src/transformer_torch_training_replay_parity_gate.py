@@ -4,19 +4,33 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_accumulation_replay_control import (
+    TORCH_ACCUMULATION_REPLAY_CONTROL_SCHEMA_VERSION,
+)
 from transformer_torch_replay_buffer_comparison import (
+    TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION,
     TORCH_REPLAY_BUFFER_MATCHED_STATUS,
 )
 from transformer_torch_replay_checkpoint_compatibility import (
+    TORCH_REPLAY_CHECKPOINT_SCHEMA_VERSION,
     TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
 )
 from transformer_torch_replay_final_evaluation import (
+    TORCH_REPLAY_FINAL_EVAL_SCHEMA_VERSION,
     TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS,
 )
 from transformer_torch_replay_update_comparison import (
+    TORCH_REPLAY_UPDATE_COMPARISON_SCHEMA_VERSION,
     TORCH_REPLAY_UPDATE_MATCHED_STATUS,
 )
 from transformer_torch_runtime import TORCH_RUNTIME_KIND_PYTORCH
+from transformer_torch_training_replay_gate_checks import (
+    build_bool_check,
+    build_replay_control_count_check,
+    build_replay_probe_check,
+    build_status_check,
+    probe_status,
+)
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
@@ -35,69 +49,74 @@ def build_torch_training_replay_parity_gate(
     """Summarize whether replay evidence can count as training parity."""
 
     checks = [
-        _bool_check("runtime_available", runtime.get("available")),
-        _status_check(
+        build_bool_check("runtime_available", runtime.get("available")),
+        build_status_check(
             "runtime_kind",
             runtime.get("runtime_kind"),
             TORCH_RUNTIME_KIND_PYTORCH,
         ),
-        _bool_check("dtype_available", runtime.get("dtype_available")),
-        _status_check(
+        build_bool_check("dtype_available", runtime.get("dtype_available")),
+        build_status_check(
             "training_readiness",
             readiness.get("status"),
             TORCH_TRAINING_READY_STATUS,
         ),
-        _status_check(
+        build_status_check(
             "initial_loss",
-            _probe_status(probes, "initial_loss_probe"),
+            probe_status(probes, "initial_loss_probe"),
             "matched",
         ),
-        _status_check(
+        build_status_check(
             "backward",
-            _probe_status(probes, "backward_probe"),
+            probe_status(probes, "backward_probe"),
             "gradients_available",
         ),
-        _status_check(
+        build_status_check(
             "optimizer_step_readiness",
-            _probe_status(probes, "optimizer_step_probe"),
+            probe_status(probes, "optimizer_step_probe"),
             "ready_for_optimizer_execution",
         ),
-        _status_check(
+        build_status_check(
             "optimizer_step_control",
-            _probe_status(probes, "optimizer_step_execution_probe"),
+            probe_status(probes, "optimizer_step_execution_probe"),
             "step_control_matched",
         ),
-        _status_check(
+        build_status_check(
             "replay_control",
-            _probe_status(probes, "accumulation_replay_control_probe"),
+            probe_status(probes, "accumulation_replay_control_probe"),
             "accumulation_replay_control_recorded",
         ),
-        _count_check(
+        build_replay_control_count_check(
             "replay_gradient_signatures",
             probes.get("accumulation_replay_control_probe", {}),
+            TORCH_ACCUMULATION_REPLAY_CONTROL_SCHEMA_VERSION,
         ),
-        _passed_probe_check(
+        build_replay_probe_check(
             "replay_buffer",
             probes.get("accumulation_replay_buffer_comparison", {}),
             TORCH_REPLAY_BUFFER_MATCHED_STATUS,
+            TORCH_REPLAY_BUFFER_COMPARISON_SCHEMA_VERSION,
             ["buffered_gradient_parity_proven"],
         ),
-        _passed_probe_check(
+        build_replay_probe_check(
             "replay_update",
             probes.get("accumulation_replay_update_comparison", {}),
             TORCH_REPLAY_UPDATE_MATCHED_STATUS,
+            TORCH_REPLAY_UPDATE_COMPARISON_SCHEMA_VERSION,
             ["optimizer_update_parity_proven"],
         ),
-        _passed_probe_check(
+        build_replay_probe_check(
             "replay_final_evaluation",
             probes.get("accumulation_replay_final_evaluation", {}),
             TORCH_REPLAY_FINAL_EVAL_MATCHED_STATUS,
+            TORCH_REPLAY_FINAL_EVAL_SCHEMA_VERSION,
             ["final_logit_parity_proven", "final_loss_parity_proven"],
         ),
-        _passed_probe_check(
+        build_replay_probe_check(
             "replay_checkpoint",
             probes.get("accumulation_replay_checkpoint_compatibility", {}),
             TORCH_REPLAY_CHECKPOINT_MATCHED_STATUS,
+            TORCH_REPLAY_CHECKPOINT_SCHEMA_VERSION,
             ["checkpoint_parity_proven"],
         ),
     ]
@@ -115,87 +134,6 @@ def build_torch_training_replay_parity_gate(
         "checks": checks,
         "summary": _summary(checks),
         "reason": _reason(passed),
-    }
-
-
-def _probe_status(probes: dict[str, Any], name: str) -> Any:
-    probe = probes.get(name, {})
-    return probe.get("status") if isinstance(probe, dict) else None
-
-
-def _bool_check(name: str, value: Any) -> dict[str, Any]:
-    return {"name": name, "passed": bool(value), "actual": bool(value)}
-
-
-def _status_check(name: str, actual: Any, expected: str) -> dict[str, Any]:
-    return {
-        "name": name,
-        "passed": actual == expected,
-        "expected": expected,
-        "actual": actual,
-    }
-
-
-def _count_check(name: str, probe: dict[str, Any]) -> dict[str, Any]:
-    match_count = _int_field(probe, "gradient_signature_match_count")
-    mismatch_count = _int_field(probe, "gradient_signature_mismatch_count")
-    planned_count = _int_field(probe, "planned_microstep_count")
-    executed_count = _int_field(probe, "executed_microstep_count")
-    backward_count = _int_field(probe, "backward_pass_count")
-    microstep_count = _microstep_count(probe)
-    passed = (
-        planned_count > 0
-        and executed_count == planned_count
-        and backward_count == planned_count
-        and match_count == planned_count
-        and mismatch_count == 0
-        and microstep_count == planned_count
-    )
-    return {
-        "name": name,
-        "passed": passed,
-        "match_count": match_count,
-        "mismatch_count": mismatch_count,
-        "planned_count": planned_count,
-        "executed_count": executed_count,
-        "backward_count": backward_count,
-        "microstep_count": microstep_count,
-    }
-
-
-def _int_field(probe: dict[str, Any], name: str) -> int:
-    try:
-        return int(probe.get(name, 0))
-    except (TypeError, ValueError):
-        return 0
-
-
-def _microstep_count(probe: dict[str, Any]) -> int:
-    microsteps = probe.get("microsteps", [])
-    return len(microsteps) if isinstance(microsteps, list) else 0
-
-
-def _passed_probe_check(
-    name: str,
-    probe: dict[str, Any],
-    expected_status: str,
-    required_proof_flags: list[str],
-) -> dict[str, Any]:
-    actual_status = probe.get("status")
-    proof_flags = {
-        flag: probe.get(flag) is True
-        for flag in required_proof_flags
-    }
-    return {
-        "name": name,
-        "passed": (
-            bool(probe.get("passed"))
-            and actual_status == expected_status
-            and all(proof_flags.values())
-        ),
-        "expected": expected_status,
-        "status": actual_status,
-        "proof_flags": proof_flags,
     }
 
 

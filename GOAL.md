@@ -81,6 +81,8 @@ reference.
   enough unless the probe also reports the expected matched status.
 - Require aggregate replay checks to be proof-flag-aware: each matched replay
   probe must also expose its explicit parity proof flag.
+- Require aggregate replay checks to be schema-aware: replay probes must report
+  the expected schema version before they can count.
 - Require replay-control count consistency: planned, executed, backward,
   matched-gradient, mismatched-gradient, and microstep-record counts must agree.
 - Distinguish real PyTorch from test doubles in runtime evidence. Test doubles

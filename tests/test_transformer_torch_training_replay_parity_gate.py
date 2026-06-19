@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -33,7 +32,6 @@ class TransformerTorchTrainingReplayParityGateTests(unittest.TestCase):
         self.assertEqual(gate["implementation_status"], gate["status"])
         self.assertFalse(gate["promoted_training_backend"])
         self.assertEqual(gate["summary"]["failed_checks"], [])
-        json.dumps(gate, sort_keys=True)
 
     def test_gate_stays_pending_when_a_replay_check_fails(self) -> None:
         probes = _matching_probes()
@@ -202,10 +200,7 @@ def _runtime(
         "available": available,
         "runtime_kind": runtime_kind,
         "dtype_available": dtype_available,
-        "device": "cpu",
-        "dtype": "float32",
     }
-
 
 def _readiness(status: str) -> dict:
     return {"status": status}
@@ -218,6 +213,7 @@ def _matching_probes() -> dict:
         "optimizer_step_probe": {"status": "ready_for_optimizer_execution"},
         "optimizer_step_execution_probe": {"status": "step_control_matched"},
         "accumulation_replay_control_probe": {
+            "schema_version": 1,
             "status": "accumulation_replay_control_recorded",
             "gradient_signature_match_count": 2,
             "gradient_signature_mismatch_count": 0,
@@ -227,22 +223,26 @@ def _matching_probes() -> dict:
             "microsteps": [{"step": 1}, {"step": 2}],
         },
         "accumulation_replay_buffer_comparison": {
+            "schema_version": 1,
             "passed": True,
             "status": "replay_buffer_signature_matched",
             "buffered_gradient_parity_proven": True,
         },
         "accumulation_replay_update_comparison": {
+            "schema_version": 1,
             "passed": True,
             "status": "replay_update_signature_matched",
             "optimizer_update_parity_proven": True,
         },
         "accumulation_replay_final_evaluation": {
+            "schema_version": 1,
             "passed": True,
             "status": "replay_final_evaluation_matched",
             "final_logit_parity_proven": True,
             "final_loss_parity_proven": True,
         },
         "accumulation_replay_checkpoint_compatibility": {
+            "schema_version": 1,
             "passed": True,
             "status": "replay_checkpoint_compatible",
             "checkpoint_parity_proven": True,

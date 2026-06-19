@@ -350,10 +350,11 @@ report now includes this aggregate gate as a required PyTorch check. The gate is
 status-aware for replay buffer, update, final-evaluation, and checkpoint
 probes, so `passed: true` cannot bypass the expected matched status or replay
 evidence. It is also proof-flag-aware: matched replay probes must expose their
-explicit parity proof flags before they can count. Finally, it requires
-replay-control count consistency: planned, executed, backward,
-matched-gradient, mismatched-gradient, and microstep-record counts must agree
-before replay gradients can count.
+explicit parity proof flags before they can count. It is schema-aware as well:
+replay probes must report the expected schema version before they can count.
+Finally, it requires replay-control count consistency: planned, executed,
+backward, matched-gradient, mismatched-gradient, and microstep-record counts
+must agree before replay gradients can count.
 Runtime evidence also records whether the imported module is real PyTorch, a
 test double, or unavailable. Test doubles can keep unit wiring deterministic,
 but they cannot satisfy the aggregate replay parity gate or produce
