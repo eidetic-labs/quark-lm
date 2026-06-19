@@ -60,7 +60,33 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         self.assertEqual(execution["applied_update_count"], 1)
         self.assertFalse(execution["step_records"][0]["optimizer_step_called"])
         self.assertTrue(execution["step_records"][1]["optimizer_step_called"])
+        self.assertEqual(
+            execution["gradient_clip"]["status"],
+            "gradient_clip_applied",
+        )
+        self.assertLessEqual(
+            execution["gradient_clip"]["max_abs_after"],
+            fixture["optimizer_config"]["gradient_clip"],
+        )
         json.dumps(execution)
+
+    def test_execution_clips_oversized_gradients_before_step(self) -> None:
+        fixture, state, optimizer_probe, torch = _ready_optimizer_inputs(
+            first_gradient_value=9.0,
+        )
+
+        execution = build_torch_optimizer_step_execution_probe(
+            fixture=fixture,
+            state=state,
+            optimizer_step_probe=optimizer_probe,
+            torch=torch,
+        )
+
+        clip = execution["gradient_clip"]
+        self.assertEqual(clip["status"], "gradient_clip_applied")
+        self.assertEqual(clip["max_abs_before"], 9.0)
+        self.assertEqual(clip["max_abs_after"], 5.0)
+        self.assertGreater(clip["changed_scalar_count"], 0)
 
     def test_execution_reports_unavailable_optimizer(self) -> None:
         fixture, state, optimizer_probe, torch = _ready_optimizer_inputs()
@@ -77,7 +103,10 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         self.assertIn("AdamW", execution["reason"])
 
 
-def _ready_optimizer_inputs() -> tuple[dict, dict, dict, object]:
+def _ready_optimizer_inputs(
+    *,
+    first_gradient_value: float | None = None,
+) -> tuple[dict, dict, dict, object]:
     fixture = _scalar_training_fixture()
     importer = fake_torch_importer(
         training_runtime=True,
@@ -96,6 +125,11 @@ def _ready_optimizer_inputs() -> tuple[dict, dict, dict, object]:
         torch=torch,
         runtime=runtime,
     )
+    if first_gradient_value is not None:
+        first = state["parameters"][0]
+        first["tensor"].grad = torch.tensor(
+            _filled(first["shape"], first_gradient_value)
+        )
     optimizer_probe = build_torch_optimizer_step_probe(
         fixture=fixture,
         state=state,
@@ -103,6 +137,12 @@ def _ready_optimizer_inputs() -> tuple[dict, dict, dict, object]:
     )
     assert optimizer_probe["status"] == TORCH_OPTIMIZER_STEP_READY_STATUS
     return fixture, state, optimizer_probe, torch
+
+
+def _filled(shape: list[int], value: float) -> object:
+    if not shape:
+        return value
+    return [_filled(shape[1:], value) for _index in range(shape[0])]
 
 
 def _scalar_training_fixture() -> dict:

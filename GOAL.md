@@ -29,6 +29,9 @@ reference.
 - Keep optimizer-step control evidence separate from numerical update evidence:
   matched cadence, schedule, and update calls do not prove final loss or weight
   parity.
+- Keep gradient-clipping evidence scoped: clipping current `tensor.grad` values
+  does not prove accumulated-gradient parity, AdamW numerical updates, or final
+  loss parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

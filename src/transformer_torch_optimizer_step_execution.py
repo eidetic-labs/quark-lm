@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_gradient_clip import apply_torch_gradient_value_clip
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_READY_STATUS,
 )
@@ -48,6 +49,18 @@ def build_torch_optimizer_step_execution_probe(
             "missing_methods": missing,
         }
 
+    gradient_clip = apply_torch_gradient_value_clip(
+        torch=torch,
+        state=state,
+        clip_value=contract["gradient_clip"]["value"],
+    )
+    if gradient_clip["status"] == "clipper_unavailable":
+        return {
+            "schema_version": TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION,
+            "status": "gradient_clip_unavailable",
+            "reason": gradient_clip["reason"],
+            "gradient_clip": gradient_clip,
+        }
     step_records = _execute_step_records(
         optimizer=optimizer,
         contract=contract,
@@ -73,12 +86,7 @@ def build_torch_optimizer_step_execution_probe(
         "applied_update_count": sum(
             1 for record in step_records if record["optimizer_step_called"]
         ),
-        "gradient_clip": {
-            "mode": contract["gradient_clip"]["mode"],
-            "value": contract["gradient_clip"]["value"],
-            "applied": False,
-            "reason": "control probe does not mutate gradient values",
-        },
+        "gradient_clip": gradient_clip,
     }
 
 

@@ -270,8 +270,8 @@ any optimizer state can be accepted as parity evidence.
 The PyTorch training-readiness gate now checks runtime availability, requested
 dtype support, parameter-manifest validity, autograd tensor construction, and
 AdamW optimizer availability. Real PyTorch training, AdamW numerical parity,
-gradient-value mutation, checkpoint compatibility, and final-loss parity remain
-future work behind this gate.
+accumulated-gradient parity, checkpoint compatibility, and final-loss parity
+remain future work behind this gate.
 
 The current trainable-state bridge builds PyTorch tensors from the scalar
 fixture's initial weights by replaying the manifest names and shapes. Candidate
@@ -288,11 +288,13 @@ The current optimizer-step readiness probe validates that contract, maps
 available `tensor.grad` values back to the trainable-parameter manifest, checks
 gradient shapes and contiguous optimizer-slot coverage, and reports readiness
 without applying an optimizer update. The current optimizer-step execution probe
-then instantiates PyTorch AdamW when available, replays the scalar contract's
-accumulation cadence, learning-rate schedule, and update/zero-grad calls, and
-records whether the step-control trace matches the scalar step records. This is
-still not full PyTorch training parity: it does not yet prove gradient clipping
-mutation, AdamW numerical updates, final logits, final loss, or checkpoint
+then applies PyTorch value clipping to available `tensor.grad` values, records
+before/after gradient extrema and changed-scalar counts, instantiates PyTorch
+AdamW when available, replays the scalar contract's accumulation cadence,
+learning-rate schedule, and update/zero-grad calls, and records whether the
+step-control trace matches the scalar step records. This is still not full
+PyTorch training parity: it does not yet prove accumulated-gradient numerical
+equivalence, AdamW numerical updates, final logits, final loss, or checkpoint
 compatibility. The next implementation layer is matching those numerical update
 effects against scalar training evidence.
 

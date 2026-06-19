@@ -30,6 +30,11 @@ def fake_torch_importer(
         backends=types.SimpleNamespace(
             mps=types.SimpleNamespace(is_available=lambda: mps),
         ),
+        nn=types.SimpleNamespace(
+            utils=types.SimpleNamespace(
+                clip_grad_value_=fake_clip_grad_value_,
+            ),
+        ),
     )
     if training_runtime:
         fake.autograd = types.SimpleNamespace()
@@ -150,11 +155,24 @@ def raw_value(value: object) -> object:
     return value.value if isinstance(value, FakeTensor) else value
 
 
+def fake_clip_grad_value_(parameters: object, clip_value: float) -> None:
+    for parameter in parameters:
+        grad = getattr(parameter, "grad", None)
+        if isinstance(grad, FakeTensor):
+            grad.value = _clip(raw_value(grad), clip_value)
+
+
 def _copy_raw(value: object) -> object:
     value = raw_value(value)
     if isinstance(value, list):
         return [_copy_raw(item) for item in value]
     return float(value) if isinstance(value, int | float) else value
+
+
+def _clip(value: object, clip_value: float):
+    if isinstance(value, list):
+        return [_clip(item, clip_value) for item in value]
+    return max(min(float(value), clip_value), -clip_value)
 
 
 def _binary(left: object, right: object, op: Any):
