@@ -185,10 +185,12 @@ def _attempt_status(
     gate: dict[str, Any],
     report: dict[str, Any],
 ) -> str:
-    if report.get("passed") is True:
-        return "training_parity_matched"
     if runtime_report.get("parity_attempt_allowed") is not True:
         return str(runtime_report.get("status", "blocked_pytorch_runtime"))
+    if gate.get("passed") is not True:
+        return str(gate.get("status", "training_parity_pending"))
+    if report.get("passed") is True:
+        return "training_parity_matched"
     return str(gate.get("status", "training_parity_pending"))
 
 

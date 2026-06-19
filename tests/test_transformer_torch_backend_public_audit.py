@@ -112,7 +112,13 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
     def test_training_attempt_requirements_contract_is_public(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
             runtime_report={"status": "passed", "parity_attempt_allowed": True},
-            candidate={"training_readiness": {"status": "ready"}},
+            candidate={
+                "training_readiness": {"status": "ready"},
+                "training_replay_parity_gate": {
+                    "status": "training_replay_parity_matched",
+                    "passed": True,
+                },
+            },
             report={"passed": True},
         )
 

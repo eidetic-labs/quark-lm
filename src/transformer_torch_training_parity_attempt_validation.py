@@ -83,10 +83,17 @@ def _validate_attempt_status(attempt: dict[str, Any]) -> None:
 
 
 def _expected_attempt_status(attempt: dict[str, Any]) -> str:
-    if attempt["training_parity_report"].get("passed") is True:
-        return "training_parity_matched"
     if attempt["runtime"].get("parity_attempt_allowed") is not True:
         return str(attempt["runtime"].get("status", "blocked_pytorch_runtime"))
+    if attempt["training_replay_parity_gate"].get("passed") is not True:
+        return str(
+            attempt["training_replay_parity_gate"].get(
+                "status",
+                "training_parity_pending",
+            )
+        )
+    if attempt["training_parity_report"].get("passed") is True:
+        return "training_parity_matched"
     return str(
         attempt["training_replay_parity_gate"].get(
             "status",
@@ -111,8 +118,6 @@ def _validate_next_requirements(
 
 
 def _expected_next_requirement_state(attempt: dict[str, Any]) -> tuple[str, str]:
-    if attempt["training_parity_report"].get("passed") is True:
-        return "complete", "satisfied"
     if attempt["runtime"].get("parity_attempt_allowed") is not True:
         return "runtime_preflight", "blocked"
     readiness_status = attempt["candidate"].get("training_readiness_status")
@@ -123,6 +128,8 @@ def _expected_next_requirement_state(attempt: dict[str, Any]) -> tuple[str, str]
         )
     if attempt["training_replay_parity_gate"].get("passed") is not True:
         return "training_replay_parity", "pending"
+    if attempt["training_parity_report"].get("passed") is True:
+        return "complete", "satisfied"
     return "training_parity_report", "pending"
 
 

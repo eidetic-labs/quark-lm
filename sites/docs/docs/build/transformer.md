@@ -136,7 +136,8 @@ persisted audit contract without reaching through private module paths. Each
 version, and that contract is available from the optional public backend
 surface. The requirements artifact also has standalone validation and a public
 stage catalog so next-action routing can be checked without validating a full
-attempt bundle.
+attempt bundle. The classifier evaluates runtime preflight, training readiness,
+and replay parity before it can classify a passed report as complete.
 Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
 Runtime preflight actions come from a canonical status-to-action map that the

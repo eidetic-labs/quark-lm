@@ -239,7 +239,9 @@ Working tagline: Big idea. Tiny package.
   schema version, and the public backend surface exposes that contract for loop
   consumers. The requirements artifact also has
   standalone validation and a public stage catalog so next-action
-  routing can be checked without validating a full attempt bundle. Stage/action
+  routing can be checked without validating a full attempt bundle. The
+  classifier now evaluates runtime preflight, training readiness, and replay
+  parity before it can classify a passed report as complete. Stage/action
   consistency is now validated too, so a well-shaped artifact cannot route a
   replay blocker through a readiness or runtime action by mistake. Runtime
   preflight actions now come from a canonical status-to-action map that the

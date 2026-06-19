@@ -55,6 +55,15 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "status is inconsistent"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_report_passed_runtime_bypass(self) -> None:
+        attempt = _attempt()
+        attempt["training_parity_report"]["passed"] = True
+        attempt["passed"] = True
+        attempt["status"] = "training_parity_matched"
+
+        with self.assertRaisesRegex(ValueError, "status is inconsistent"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_validator_rejects_dirty_closed_world_boundary(self) -> None:
         attempt = _attempt()
         attempt["closed_world_boundary"]["pretrained_tokenizer_imported"] = True

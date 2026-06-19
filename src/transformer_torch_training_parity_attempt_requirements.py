@@ -44,16 +44,6 @@ def build_torch_training_parity_attempt_requirements(
 ) -> dict[str, Any]:
     """Summarize the first unsatisfied requirement for an attempt."""
 
-    if report.get("passed") is True:
-        return _requirements(
-            stage="complete",
-            status="satisfied",
-            primary_blockers=[],
-            next_actions=[],
-            runtime_report=runtime_report,
-            candidate=candidate,
-            report=report,
-        )
     if runtime_report.get("parity_attempt_allowed") is not True:
         return _requirements(
             stage="runtime_preflight",
@@ -66,7 +56,7 @@ def build_torch_training_parity_attempt_requirements(
         )
     readiness = candidate.get("training_readiness", {})
     if readiness.get("status") != TORCH_TRAINING_READY_STATUS:
-        blockers = _summary_failures(readiness)
+        blockers = _summary_failures(readiness, fallback="training_readiness")
         return _requirements(
             stage="training_readiness",
             status=_readiness_status(readiness),
@@ -78,7 +68,7 @@ def build_torch_training_parity_attempt_requirements(
         )
     gate = candidate.get("training_replay_parity_gate", {})
     if gate.get("passed") is not True:
-        blockers = _summary_failures(gate)
+        blockers = _summary_failures(gate, fallback="training_replay_parity_gate")
         return _requirements(
             stage="training_replay_parity",
             status="pending",
@@ -88,7 +78,17 @@ def build_torch_training_parity_attempt_requirements(
             candidate=candidate,
             report=report,
         )
-    blockers = _summary_failures(report)
+    if report.get("passed") is True:
+        return _requirements(
+            stage="complete",
+            status="satisfied",
+            primary_blockers=[],
+            next_actions=[],
+            runtime_report=runtime_report,
+            candidate=candidate,
+            report=report,
+        )
+    blockers = _summary_failures(report, fallback="training_parity_report")
     return _requirements(
         stage="training_parity_report",
         status="pending",
@@ -146,11 +146,16 @@ def _readiness_status(readiness: dict[str, Any]) -> str:
     return "blocked" if readiness.get("status") == "blocked" else "pending"
 
 
-def _summary_failures(payload: dict[str, Any]) -> list[str]:
+def _summary_failures(
+    payload: dict[str, Any],
+    *,
+    fallback: str | None = None,
+) -> list[str]:
     summary = payload.get("summary")
-    if not isinstance(summary, dict):
-        return []
-    return list(summary.get("failed_checks", []))
+    failures = []
+    if isinstance(summary, dict):
+        failures = list(summary.get("failed_checks", []))
+    return failures if failures or fallback is None else [fallback]
 
 
 def _prefixed(prefix: str, values: list[str]) -> list[str]:

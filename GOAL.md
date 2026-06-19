@@ -155,12 +155,14 @@ reference.
   optional public backend surface. The
   requirements artifact must provide standalone validation and a public stage
   catalog so next-action routing can be checked without validating a full
-  attempt bundle. Stage/action consistency must be validated so well-shaped
-  artifacts cannot route blockers through the wrong remediation path. Runtime
-  preflight actions must come from one canonical status-to-action map that the
-  standalone validator also checks. Runtime-preflight blockers must also come
-  from a paired status-to-blocker map so remediation is tied to the failed
-  runtime check that justifies it.
+  attempt bundle. The classifier must evaluate runtime preflight, training
+  readiness, and replay parity before it can classify a passed report as
+  complete. Stage/action consistency must be validated so well-shaped artifacts
+  cannot route blockers through the wrong remediation path. Runtime preflight
+  actions must come from one canonical status-to-action map that the standalone
+  validator also checks. Runtime-preflight blockers must also come from a paired
+  status-to-blocker map so remediation is tied to the failed runtime check that
+  justifies it.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 
