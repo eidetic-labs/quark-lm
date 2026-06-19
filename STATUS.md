@@ -87,6 +87,10 @@ Working tagline: Big idea. Tiny package.
   the next action from report evidence without using an external model.
 - Self-improvement attempts are archived under `attempts/attempt-###/` before
   the top-level latest report is updated.
+- Tokenizer manifest/report artifacts now have standalone validation before
+  self-improvement tokenizer candidates are written, covering schema version,
+  stable manifest hash, corpus hash shape, closed-world purity flags, round-trip
+  status, full-answer-token rejection, and report math.
 - Package metadata now uses `quark-lm`, with `quark-lm-*` script aliases.
 - Public surfaces: Docusaurus docs at `docs.quark-lm.eidetic-labs.com` hosted
   by Read the Docs, and a standalone static marketing page at

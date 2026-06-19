@@ -474,7 +474,10 @@ remediation action is tied to the failed runtime check that justifies it.
   less integrated than the self-improvement promotion gate.
 - The character tokenizer is still the purity baseline, but any future subword
   tokenizer needs an artifacted manifest, offsets, special-token policy, and
-  admitted-corpus-only proof.
+  admitted-corpus-only proof. Tokenizer manifest/report artifacts now have
+  standalone validation for schema version, corpus hash shape, purity flags,
+  round-trip status, full-answer-token rejection, report math, and stable
+  manifest hash before self-improvement candidates can trust them.
 
 ## Implementation Blueprint
 

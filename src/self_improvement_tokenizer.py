@@ -9,6 +9,7 @@ from tokenizer_artifacts import (
     propose_closed_world_subword_tokenizer,
     write_tokenizer_artifacts,
 )
+from tokenizer_artifact_validation import validate_tokenizer_artifacts
 
 
 DEFAULT_TOKENIZER_MAX_TOKEN_CHARS = 4
@@ -32,6 +33,11 @@ def build_self_improvement_tokenizer_candidate(
         protected_answers=protected_answers,
         max_token_chars=max_token_chars,
         max_new_tokens=max_new_tokens,
+    )
+    validate_tokenizer_artifacts(
+        proposal["manifest"],
+        proposal["report"],
+        manifest_hash=proposal["manifest_hash"],
     )
     write_tokenizer_artifacts(
         manifest_path,

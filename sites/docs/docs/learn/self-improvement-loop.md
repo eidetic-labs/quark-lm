@@ -27,7 +27,7 @@ weights.
 | New lesson | Receive a proposed fact, rule, probe, or repair with source context. | Candidate record or admission request. |
 | Corpus | Admit only verified material into the ledgered closed world. | Ledger, corpus diff, curriculum manifest. |
 | Retrieval memory | Make admitted knowledge answerable without weight movement. | Retrieval memory cards and exact retrieval evals. |
-| Tokenizer candidates | Propose corpus-only compression without changing the active tokenizer silently. | Tokenizer manifest, tokenizer report, tokenizer candidate guard. |
+| Tokenizer candidates | Propose corpus-only compression without changing the active tokenizer silently. | Validated tokenizer manifest, tokenizer report, tokenizer candidate guard. |
 | Training candidates | Convert admitted sources and failure reports into bounded examples. | Training plan, replay plan, candidate quarantine, source map. |
 | Guarded weight update | Apply only constrained pressure to random-initialized or closed-world checkpointed weights. | Update guard, accepted/rejected attempt records, checkpoint metadata. |
 | Evaluation | Test current behavior before promotion is allowed. | Constraint-first promotion, forgetting audit, probe audits, branch metrics. |

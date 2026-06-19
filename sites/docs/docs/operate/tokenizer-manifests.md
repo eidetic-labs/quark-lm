@@ -56,6 +56,11 @@ regressing retention, unknown policy, leakage, or branch diversity.
 The report is not a neural promotion artifact. It is a tokenizer artifact that
 can become an input to a transformer screen.
 
+Before self-improvement writes a tokenizer candidate, the manifest/report pair
+must pass standalone validation. The validator checks schema version, stable
+manifest hash, corpus hash shape, purity flags, exact round-trip, report math,
+and protected full-answer-token rejection.
+
 ## Guard evidence
 
 Self-improvement reports include `tokenizer_candidate_guard`, a compact

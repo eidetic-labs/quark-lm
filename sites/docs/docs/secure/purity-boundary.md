@@ -132,6 +132,9 @@ must come from admitted text. Its `tokenizer_manifest.json` records source
 files, corpus hash, accepted and rejected candidates, and explicit
 `pretrained_tokenizer: false` / `external_vocabulary: false` evidence. See
 [Tokenizer manifests](../operate/tokenizer-manifests.md).
+Manifest/report validation also checks the stable manifest hash, round-trip
+status, full-answer-token audit, and report math before self-improvement treats
+the tokenizer candidate as evidence.
 
 Self-improvement attempts add one more check: `tokenizer_candidate_guard`.
 That guard fails if a candidate silently changes the active tokenizer, fails
