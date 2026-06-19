@@ -237,6 +237,10 @@ only when all checks pass, and a matched candidate still records replay-parity
 evidence rather than a promoted general training backend. The training parity
 report now includes this aggregate gate as a required PyTorch check, so matched
 training-looking fields cannot bypass replay evidence.
+Runtime evidence also records whether the imported module is real PyTorch, a
+test double, or unavailable. Test doubles can keep unit wiring deterministic,
+but they cannot satisfy the aggregate replay parity gate or produce
+model-quality training evidence.
 
 ## Where the sequence stands
 

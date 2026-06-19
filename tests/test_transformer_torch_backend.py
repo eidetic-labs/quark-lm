@@ -17,6 +17,8 @@ from transformer_model import TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_backend import (
     TORCH_PARITY_CANDIDATE_KIND,
+    TORCH_RUNTIME_KIND_TEST_DOUBLE,
+    TORCH_RUNTIME_KIND_UNAVAILABLE,
     build_torch_backend_parity_candidate,
     torch_runtime_status,
 )
@@ -39,6 +41,7 @@ class TransformerTorchBackendTests(unittest.TestCase):
 
         self.assertFalse(status["available"])
         self.assertEqual(status["backend"], "pytorch")
+        self.assertEqual(status["runtime_kind"], TORCH_RUNTIME_KIND_UNAVAILABLE)
         self.assertEqual(status["device"], "cpu")
         self.assertIn("ModuleNotFoundError", status["error"])
 
@@ -51,6 +54,7 @@ class TransformerTorchBackendTests(unittest.TestCase):
 
         self.assertTrue(status["available"])
         self.assertEqual(status["version"], "fake-torch")
+        self.assertEqual(status["runtime_kind"], TORCH_RUNTIME_KIND_TEST_DOUBLE)
         self.assertEqual(status["device"], "cuda")
         self.assertEqual(status["available_devices"], ["cpu", "cuda", "mps"])
         self.assertTrue(status["dtype_available"])

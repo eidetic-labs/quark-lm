@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from transformer_torch_backend import (
+    TORCH_RUNTIME_KIND_PYTORCH,
+    TORCH_RUNTIME_KIND_TEST_DOUBLE,
     TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
     TORCH_TRAINING_REPLAY_MATCHED_STATUS,
     TORCH_TRAINING_REPLAY_PENDING_STATUS,
@@ -51,6 +53,17 @@ class TransformerTorchTrainingReplayParityGateTests(unittest.TestCase):
         self.assertEqual(gate["parity_status"], "pending")
         self.assertEqual(gate["summary"]["failed_checks"], ["replay_buffer"])
 
+    def test_gate_rejects_test_double_runtime(self) -> None:
+        gate = build_torch_training_replay_parity_gate(
+            runtime=_runtime(runtime_kind=TORCH_RUNTIME_KIND_TEST_DOUBLE),
+            readiness=_readiness("ready"),
+            probes=_matching_probes(),
+        )
+
+        self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PENDING_STATUS)
+        self.assertFalse(gate["passed"])
+        self.assertEqual(gate["summary"]["failed_checks"], ["runtime_kind"])
+
     def test_gate_blocks_when_runtime_is_unavailable(self) -> None:
         gate = build_torch_training_replay_parity_gate(
             runtime=_runtime(available=False, dtype_available=False),
@@ -69,9 +82,11 @@ def _runtime(
     *,
     available: bool = True,
     dtype_available: bool = True,
+    runtime_kind: str = TORCH_RUNTIME_KIND_PYTORCH,
 ) -> dict:
     return {
         "available": available,
+        "runtime_kind": runtime_kind,
         "dtype_available": dtype_available,
         "device": "cpu",
         "dtype": "float32",

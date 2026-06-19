@@ -9,6 +9,9 @@ from transformer_backend_policy import PYTORCH_BACKEND
 
 
 TorchImporter = Callable[[str], Any]
+TORCH_RUNTIME_KIND_PYTORCH = "pytorch"
+TORCH_RUNTIME_KIND_TEST_DOUBLE = "test_double"
+TORCH_RUNTIME_KIND_UNAVAILABLE = "unavailable"
 
 
 def torch_runtime_status(
@@ -25,6 +28,7 @@ def torch_runtime_status(
         return {
             "backend": PYTORCH_BACKEND,
             "available": False,
+            "runtime_kind": TORCH_RUNTIME_KIND_UNAVAILABLE,
             "version": None,
             "requested_device": requested_device,
             "device": "cpu",
@@ -38,6 +42,7 @@ def torch_runtime_status(
     return {
         "backend": PYTORCH_BACKEND,
         "available": True,
+        "runtime_kind": _runtime_kind(torch),
         "version": str(getattr(torch, "__version__", "unknown")),
         "requested_device": requested_device,
         "device": device,
@@ -59,6 +64,13 @@ def _available_devices(torch: Any) -> list[str]:
     if mps is not None and _safe_bool_call(getattr(mps, "is_available", None)):
         devices.append("mps")
     return devices
+
+
+def _runtime_kind(torch: Any) -> str:
+    version = str(getattr(torch, "__version__", ""))
+    if version.startswith("fake-"):
+        return TORCH_RUNTIME_KIND_TEST_DOUBLE
+    return TORCH_RUNTIME_KIND_PYTORCH
 
 
 def _resolve_device(requested_device: str, available_devices: list[str]) -> str:

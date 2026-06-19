@@ -75,6 +75,9 @@ reference.
   compatibility must all match before the candidate can move from pending to
   matched; training parity reports must include this gate, and matched still
   does not mean promoted training.
+- Distinguish real PyTorch from test doubles in runtime evidence. Test doubles
+  may validate wiring, but they cannot satisfy aggregate replay parity or count
+  as model-quality training evidence.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_runtime import TORCH_RUNTIME_KIND_PYTORCH
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
@@ -23,6 +24,11 @@ def build_torch_training_replay_parity_gate(
 
     checks = [
         _bool_check("runtime_available", runtime.get("available")),
+        _status_check(
+            "runtime_kind",
+            runtime.get("runtime_kind"),
+            TORCH_RUNTIME_KIND_PYTORCH,
+        ),
         _bool_check("dtype_available", runtime.get("dtype_available")),
         _status_check(
             "training_readiness",

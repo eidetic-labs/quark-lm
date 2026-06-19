@@ -77,7 +77,12 @@ from transformer_torch_accumulation_replay_control import (
     TORCH_ACCUMULATION_REPLAY_CONTROL_SCHEMA_VERSION,
     build_torch_accumulation_replay_control_probe,
 )
-from transformer_torch_runtime import torch_runtime_status
+from transformer_torch_runtime import (
+    TORCH_RUNTIME_KIND_PYTORCH,
+    TORCH_RUNTIME_KIND_TEST_DOUBLE,
+    TORCH_RUNTIME_KIND_UNAVAILABLE,
+    torch_runtime_status,
+)
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_PROBE_SCHEMA_VERSION,
     TORCH_OPTIMIZER_STEP_READY_STATUS,
@@ -144,6 +149,9 @@ __all__ = [
     "TORCH_PARITY_CANDIDATE_KIND",
     "TORCH_PARITY_CANDIDATE_SCHEMA_VERSION",
     "TORCH_PARITY_IMPLEMENTATION_STATUS",
+    "TORCH_RUNTIME_KIND_PYTORCH",
+    "TORCH_RUNTIME_KIND_TEST_DOUBLE",
+    "TORCH_RUNTIME_KIND_UNAVAILABLE",
     "TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS",
     "TORCH_ADAMW_EXPECTED_UPDATE_SCHEMA_VERSION",
     "TORCH_GRADIENT_CLIP_APPLIED_STATUS",
