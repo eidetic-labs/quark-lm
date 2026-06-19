@@ -33,6 +33,8 @@ class TransformerTorchCandidateRuntimeReportTests(unittest.TestCase):
         report = candidate["runtime_report"]
         self.assertEqual(report["kind"], TORCH_RUNTIME_REPORT_KIND)
         self.assertEqual(report["runtime"], candidate["runtime"])
+        self.assertEqual(report["evidence_scope"], "runtime_preflight_only")
+        self.assertFalse(report["parity_attempt_allowed"])
         self.assertFalse(report["training_evidence_allowed"])
         self.assertFalse(report["closed_world_boundary"]["learned_assets_imported"])
 
@@ -48,6 +50,8 @@ class TransformerTorchCandidateRuntimeReportTests(unittest.TestCase):
         report = candidate["runtime_report"]
         self.assertEqual(report["kind"], TORCH_RUNTIME_REPORT_KIND)
         self.assertEqual(report["runtime"], candidate["runtime"])
+        self.assertEqual(report["evidence_scope"], "runtime_preflight_only")
+        self.assertFalse(report["parity_attempt_allowed"])
         self.assertFalse(report["training_evidence_allowed"])
         self.assertFalse(candidate["training_replay_parity_gate"]["passed"])
 

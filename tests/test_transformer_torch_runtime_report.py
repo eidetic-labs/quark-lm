@@ -29,6 +29,8 @@ class TransformerTorchRuntimeReportTests(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertEqual(report["kind"], TORCH_RUNTIME_REPORT_KIND)
         self.assertEqual(report["status"], "blocked_runtime_unavailable")
+        self.assertEqual(report["evidence_scope"], "runtime_preflight_only")
+        self.assertFalse(report["parity_attempt_allowed"])
         self.assertFalse(report["training_evidence_allowed"])
         self.assertEqual(
             report["summary"]["failed_checks"],
@@ -51,6 +53,7 @@ class TransformerTorchRuntimeReportTests(unittest.TestCase):
 
         self.assertTrue(report["passed"])
         self.assertEqual(report["status"], "ready_for_pytorch_parity")
+        self.assertTrue(report["parity_attempt_allowed"])
         self.assertTrue(report["training_evidence_allowed"])
         self.assertEqual(report["summary"]["failed_checks"], [])
         json.dumps(report, sort_keys=True)
@@ -77,6 +80,7 @@ class TransformerTorchRuntimeReportTests(unittest.TestCase):
         self.assertEqual(payload["kind"], TORCH_RUNTIME_REPORT_KIND)
         self.assertEqual(exit_code, 1)
         self.assertFalse(cli_payload["passed"])
+        self.assertFalse(cli_payload["parity_attempt_allowed"])
         self.assertFalse(cli_payload["training_evidence_allowed"])
 
 

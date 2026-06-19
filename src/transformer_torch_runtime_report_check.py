@@ -11,21 +11,28 @@ def build_torch_runtime_report_check(
     *,
     runtime_report: Any,
     runtime: Any,
-    require_training_evidence_allowed: bool,
+    require_parity_attempt_allowed: bool | None = None,
+    require_training_evidence_allowed: bool | None = None,
 ) -> dict[str, Any]:
     """Check that a PyTorch candidate carries consistent runtime evidence."""
 
     if not isinstance(runtime_report, dict):
         return _failed("runtime report is missing")
+    require_parity_attempt_allowed = _require_parity_attempt_allowed(
+        require_parity_attempt_allowed=require_parity_attempt_allowed,
+        require_training_evidence_allowed=require_training_evidence_allowed,
+    )
     failures = _failures(
         runtime_report=runtime_report,
         runtime=runtime,
-        require_training_evidence_allowed=require_training_evidence_allowed,
+        require_parity_attempt_allowed=require_parity_attempt_allowed,
     )
     return {
         "name": "runtime_report",
         "passed": not failures,
         "status": runtime_report.get("status"),
+        "evidence_scope": runtime_report.get("evidence_scope"),
+        "parity_attempt_allowed": _parity_attempt_allowed(runtime_report),
         "training_evidence_allowed": runtime_report.get(
             "training_evidence_allowed"
         ),
@@ -33,11 +40,21 @@ def build_torch_runtime_report_check(
     }
 
 
+def _require_parity_attempt_allowed(
+    *,
+    require_parity_attempt_allowed: bool | None,
+    require_training_evidence_allowed: bool | None,
+) -> bool:
+    if require_parity_attempt_allowed is not None:
+        return require_parity_attempt_allowed
+    return bool(require_training_evidence_allowed)
+
+
 def _failures(
     *,
     runtime_report: dict[str, Any],
     runtime: Any,
-    require_training_evidence_allowed: bool,
+    require_parity_attempt_allowed: bool,
 ) -> list[str]:
     failures = []
     if runtime_report.get("kind") != TORCH_RUNTIME_REPORT_KIND:
@@ -46,11 +63,17 @@ def _failures(
         failures.append("runtime")
     failures.extend(_boundary_failures(runtime_report.get("closed_world_boundary")))
     if (
-        require_training_evidence_allowed
-        and runtime_report.get("training_evidence_allowed") is not True
+        require_parity_attempt_allowed
+        and _parity_attempt_allowed(runtime_report) is not True
     ):
-        failures.append("training_evidence_allowed")
+        failures.append("parity_attempt_allowed")
     return failures
+
+
+def _parity_attempt_allowed(runtime_report: dict[str, Any]) -> Any:
+    if "parity_attempt_allowed" in runtime_report:
+        return runtime_report.get("parity_attempt_allowed")
+    return runtime_report.get("training_evidence_allowed")
 
 
 def _boundary_failures(boundary: Any) -> list[str]:

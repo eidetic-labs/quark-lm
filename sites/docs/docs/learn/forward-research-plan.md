@@ -244,8 +244,9 @@ model-quality training evidence. The `quark-lm-torch-runtime` preflight writes
 that runtime evidence before any real PyTorch parity attempt, and PyTorch
 candidate artifacts embed the same runtime report alongside their forward or
 training evidence. Backend and training parity reports now verify that embedded
-runtime report; training parity additionally requires runtime evidence that is
-allowed to count for real PyTorch training attempts.
+runtime report; training parity additionally requires runtime evidence that
+allows a real PyTorch parity attempt. That runtime preflight does not prove
+model-quality training evidence or promote the PyTorch backend.
 
 ## Where the sequence stands
 

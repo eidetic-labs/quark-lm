@@ -42,7 +42,7 @@ def build_training_parity_report(
             build_torch_runtime_report_check(
                 runtime_report=candidate.get("runtime_report"),
                 runtime=candidate.get("runtime"),
-                require_training_evidence_allowed=True,
+                require_parity_attempt_allowed=True,
             )
         )
     checks.extend(

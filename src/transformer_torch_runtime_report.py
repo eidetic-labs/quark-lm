@@ -45,6 +45,8 @@ def build_torch_runtime_report(
         "runtime": runtime,
         "checks": checks,
         "summary": _summary(checks),
+        "evidence_scope": "runtime_preflight_only",
+        "parity_attempt_allowed": passed,
         "closed_world_boundary": {
             "runtime_library_allowed": True,
             "learned_assets_imported": False,
@@ -129,7 +131,7 @@ def _status(runtime: dict[str, Any], passed: bool) -> str:
 
 def _reason(runtime: dict[str, Any], passed: bool) -> str:
     if passed:
-        return "real PyTorch runtime is available for parity evidence"
+        return "real PyTorch runtime is available for parity attempts"
     if not runtime.get("available"):
         return "PyTorch is not installed in this environment"
     if runtime.get("runtime_kind") == TORCH_RUNTIME_KIND_TEST_DOUBLE:

@@ -218,6 +218,8 @@ def _runtime_report(runtime: dict, *, training_allowed: bool) -> dict:
             if training_allowed
             else "blocked_test_double_runtime"
         ),
+        "evidence_scope": "runtime_preflight_only",
+        "parity_attempt_allowed": training_allowed,
         "training_evidence_allowed": training_allowed,
         "closed_world_boundary": {
             "runtime_library_allowed": True,

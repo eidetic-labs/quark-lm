@@ -112,15 +112,22 @@ class TransformerTrainingParityTests(unittest.TestCase):
             ["replay_buffer"],
         )
 
-    def test_training_report_requires_training_runtime_evidence(self) -> None:
+    def test_training_report_requires_parity_attempt_runtime_evidence(
+        self,
+    ) -> None:
         fixture = _scalar_training_fixture()
         candidate = _matching_candidate(fixture)
-        candidate["runtime_report"]["training_evidence_allowed"] = False
+        candidate["runtime_report"]["parity_attempt_allowed"] = False
 
         report = build_training_parity_report(fixture=fixture, candidate=candidate)
 
+        runtime_check = report["checks"][2]
         self.assertFalse(report["passed"])
         self.assertIn("runtime_report", report["summary"]["failed_checks"])
+        self.assertEqual(
+            runtime_check["failed_runtime_checks"],
+            ["parity_attempt_allowed"],
+        )
 
     def test_training_report_fails_when_candidate_training_drifts(self) -> None:
         fixture = _scalar_training_fixture()
@@ -186,6 +193,8 @@ def _runtime_report(runtime: dict) -> dict:
         "kind": "transformer_torch_runtime_report",
         "runtime": copy.deepcopy(runtime),
         "status": "ready_for_pytorch_parity",
+        "evidence_scope": "runtime_preflight_only",
+        "parity_attempt_allowed": True,
         "training_evidence_allowed": True,
         "closed_world_boundary": {
             "runtime_library_allowed": True,
