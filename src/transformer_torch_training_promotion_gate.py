@@ -11,6 +11,17 @@ from transformer_torch_training_attempt_boundary import (
 
 TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION = 1
 TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS = "training_backend_not_promoted"
+TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS = (
+    "training_parity_report",
+    "closed_world_boundary",
+    "fixture_scope_only",
+    "model_quality_gate",
+)
+TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES = (
+    "general_training_backend_gate",
+    "model_quality_eval_gate",
+    "profile_and_retention_gate",
+)
 
 
 def build_torch_training_backend_promotion_gate(
@@ -59,11 +70,9 @@ def build_torch_training_backend_promotion_gate(
         "closed_world_boundary_failures": boundary_failures,
         "checks": checks,
         "blockers": [check["name"] for check in checks if not check["passed"]],
-        "required_future_gates": [
-            "general_training_backend_gate",
-            "model_quality_eval_gate",
-            "profile_and_retention_gate",
-        ],
+        "required_future_gates": list(
+            TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES
+        ),
     }
 
 

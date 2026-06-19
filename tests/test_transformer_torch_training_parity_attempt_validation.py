@@ -87,6 +87,40 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "boundary failures"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_stale_promotion_gate_schema(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"]["schema_version"] = 0
+
+        with self.assertRaisesRegex(ValueError, "schema_version"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_promotion_gate_check_catalog(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"]["checks"][0][
+            "name"
+        ] = "stale_check"
+
+        with self.assertRaisesRegex(ValueError, "check catalog"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_promotion_gate_blockers(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"]["blockers"] = [
+            "fixture_scope_only"
+        ]
+
+        with self.assertRaisesRegex(ValueError, "blockers"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_stale_promotion_gate_future_gates(self) -> None:
+        attempt = _attempt()
+        attempt["training_backend_promotion_gate"]["required_future_gates"] = [
+            "model_quality_eval_gate"
+        ]
+
+        with self.assertRaisesRegex(ValueError, "future gates"):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_validator_rejects_stale_next_requirements_stage(self) -> None:
         attempt = _attempt()
         attempt["next_requirements"]["stage"] = "training_readiness"

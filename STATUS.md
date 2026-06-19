@@ -194,18 +194,20 @@ Working tagline: Big idea. Tiny package.
   consistency checks. The stored training parity report must match a report
   rebuilt from the paired fixture and candidate payloads, and the stored
   backend-promotion gate must match a gate rebuilt from the candidate, report,
-  and closed-world boundary. The next-requirements diagnosis must also rebuild
-  from the candidate runtime report, candidate, and report. Written summaries
-  now carry SHA-256 payload hashes for sibling artifacts, and the persisted
-  corpus summary must match the scalar fixture and candidate backend corpus
-  hash. Written attempt directories are reloaded through the same validation
-  contract before the writer returns. Recorded artifact paths must resolve to
-  the loaded files, and the CLI can audit an existing attempt directory with
+  and closed-world boundary. Standalone summary validation now also checks the
+  promotion-gate schema, check catalog, blocker derivation, and required future
+  gate catalog. The next-requirements diagnosis must also rebuild from the
+  candidate runtime report, candidate, and report. Written summaries now carry
+  SHA-256 payload hashes for sibling artifacts, and the persisted corpus
+  summary must match the scalar fixture and candidate backend corpus hash.
+  Written attempt directories are reloaded through the same validation contract
+  before the writer returns. Recorded artifact paths must resolve to the loaded
+  files, and the CLI can audit an existing attempt directory with
   `--verify-existing` without rebuilding it. The optional public backend
   surface exposes the written-attempt file map, hash algorithm, hash builder,
-  and loader so
-  contributors can inspect the same persisted audit contract without reaching
-  through private module paths. Each `next_requirements` summary is now a typed
+  and loader so contributors can inspect the same persisted audit contract
+  without reaching through private module paths. Each `next_requirements`
+  summary is now a typed
   artifact with an explicit kind and schema version, and the public backend
   surface exposes that contract for loop consumers. The requirements artifact
   also has standalone validation and a public stage catalog so next-action

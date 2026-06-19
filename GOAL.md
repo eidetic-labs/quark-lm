@@ -122,17 +122,19 @@ reference.
   closed-world boundary, artifact paths, and artifact payload consistency remain
   machine-checkable, including a report rebuilt from the paired fixture and
   candidate payloads and a promotion gate rebuilt from the candidate, report,
-  and closed-world boundary. The next-requirements diagnosis must also rebuild
-  from the candidate runtime report, candidate, and report. The persisted
-  corpus summary must match the scalar fixture and candidate backend corpus
-  hash. Written summaries must carry SHA-256 payload hashes for sibling
-  artifacts, and written attempt directories must reload through the same
-  validation contract before the writer returns; recorded artifact paths must
-  resolve to the loaded files, and the CLI must audit an existing attempt
-  directory without rebuilding it. The optional
-  public backend surface must expose the written-attempt file map, hash
-  algorithm, hash builder, and loader so contributors inspect the persisted
-  audit contract without private module paths. Each `next_requirements` summary
+  and closed-world boundary. Standalone summary validation must also check the
+  promotion-gate schema, check catalog, blocker derivation, and required future
+  gate catalog. The next-requirements diagnosis must also rebuild from the
+  candidate runtime report, candidate, and report. The persisted corpus summary
+  must match the scalar fixture and candidate backend corpus hash. Written
+  summaries must carry SHA-256 payload hashes for sibling artifacts, and
+  written attempt directories must reload through the same validation contract
+  before the writer returns; recorded artifact paths must resolve to the loaded
+  files, and the CLI must audit an existing attempt directory without
+  rebuilding it. The optional public backend surface must expose the
+  written-attempt file map, hash algorithm, hash builder, and loader so
+  contributors inspect the persisted audit contract without private module
+  paths. Each `next_requirements` summary
   must be a typed artifact with an explicit kind and schema version, and that
   contract must also be available from the optional public backend surface. The
   requirements artifact must provide standalone validation and a public stage

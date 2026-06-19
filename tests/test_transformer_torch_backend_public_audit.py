@@ -13,6 +13,8 @@ from transformer_torch_backend_core_exports import __all__ as CORE_EXPORTS
 from transformer_torch_backend_replay_exports import __all__ as REPLAY_EXPORTS
 from transformer_torch_backend_training_exports import __all__ as TRAINING_EXPORTS
 from transformer_torch_backend import (
+    TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
+    TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
@@ -95,6 +97,14 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
                 "blocked_runtime_unavailable"
             ],
             "runtime_available",
+        )
+        self.assertIn(
+            "model_quality_gate",
+            TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
+        )
+        self.assertIn(
+            "general_training_backend_gate",
+            TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
         )
         validate_torch_training_parity_attempt_requirements(requirements)
 

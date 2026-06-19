@@ -394,12 +394,14 @@ closed-world boundary flags, artifact paths, and artifact payloads cannot
 silently drift out of the PyTorch parity evidence chain. The stored training
 parity report must also match a report rebuilt from the paired fixture and
 candidate payloads, and the stored backend-promotion gate must match a gate
-rebuilt from the candidate, report, and closed-world boundary. The
-next-requirements diagnosis must also rebuild from the candidate runtime
-report, candidate, and report. Written summaries also carry SHA-256 payload
-hashes for sibling artifacts, and the persisted corpus summary must match the
-scalar fixture and candidate backend corpus hash. Written attempt directories
-are reloaded through the same validation contract before the writer returns.
+rebuilt from the candidate, report, and closed-world boundary. The standalone
+summary validator now also checks the promotion-gate schema, check catalog,
+blocker derivation, and required future gate catalog. The next-requirements
+diagnosis must also rebuild from the candidate runtime report, candidate, and
+report. Written summaries also carry SHA-256 payload hashes for sibling
+artifacts, and the persisted corpus summary must match the scalar fixture and
+candidate backend corpus hash. Written attempt directories are reloaded
+through the same validation contract before the writer returns.
 The CLI can also audit an existing attempt directory with `--verify-existing`
 without rebuilding it. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface exposes the written-attempt file

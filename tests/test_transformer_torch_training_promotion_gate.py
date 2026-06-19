@@ -10,6 +10,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
+    TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
+    TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION,
+    TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     build_torch_training_backend_promotion_gate,
 )
 
@@ -23,6 +26,10 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         )
 
         self.assertEqual(gate["status"], TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS)
+        self.assertEqual(
+            gate["schema_version"],
+            TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION,
+        )
         self.assertFalse(gate["passed"])
         self.assertFalse(gate["promotion_eligible"])
         self.assertFalse(gate["promoted_training_backend"])
@@ -30,10 +37,17 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         self.assertTrue(gate["closed_world_boundary_passed"])
         self.assertEqual(gate["closed_world_boundary_failures"], [])
         self.assertEqual(
+            [check["name"] for check in gate["checks"]],
+            list(TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS),
+        )
+        self.assertEqual(
             gate["blockers"],
             ["fixture_scope_only", "model_quality_gate"],
         )
-        self.assertIn("general_training_backend_gate", gate["required_future_gates"])
+        self.assertEqual(
+            gate["required_future_gates"],
+            list(TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES),
+        )
 
     def test_failed_training_parity_blocks_before_future_promotion_gates(self) -> None:
         gate = build_torch_training_backend_promotion_gate(
