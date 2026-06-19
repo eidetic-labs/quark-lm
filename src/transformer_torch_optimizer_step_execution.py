@@ -15,6 +15,13 @@ from transformer_torch_gradient_accumulation import (
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_READY_STATUS,
 )
+from transformer_torch_optimizer_step_control import (
+    TORCH_OPTIMIZER_STEP_CONTROL_MATCHED_STATUS,
+    execute_torch_optimizer_step_records,
+    final_torch_optimizer_state,
+    torch_optimizer_step_control_status,
+    torch_step_records_match_contract,
+)
 from transformer_torch_parameter_mutation import (
     build_torch_parameter_mutation_report,
     snapshot_torch_parameters,
@@ -25,7 +32,6 @@ from transformer_torch_parameter_signature_comparison import (
 
 
 TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION = 1
-TORCH_OPTIMIZER_STEP_CONTROL_MATCHED_STATUS = "step_control_matched"
 
 
 def build_torch_optimizer_step_execution_probe(
@@ -85,7 +91,10 @@ def build_torch_optimizer_step_execution_probe(
         parameters_before=parameters_before,
         contract=contract,
     )
-    step_records = _execute_step_records(optimizer=optimizer, contract=contract)
+    step_records = execute_torch_optimizer_step_records(
+        optimizer=optimizer,
+        contract=contract,
+    )
     parameter_mutation = build_torch_parameter_mutation_report(
         before=parameters_before,
         after=snapshot_torch_parameters(state),
@@ -100,7 +109,10 @@ def build_torch_optimizer_step_execution_probe(
         actual_signature=parameter_mutation["after_signature"],
         tolerance=fixture["tolerance"],
     )
-    final_state = _final_optimizer_state(contract=contract, step_records=step_records)
+    final_state = final_torch_optimizer_state(
+        contract=contract,
+        step_records=step_records,
+    )
     applied_update_count = sum(
         record["optimizer_step_called"] for record in step_records
     )
@@ -111,7 +123,10 @@ def build_torch_optimizer_step_execution_probe(
         "optimizer": contract["optimizer"],
         "step_records": step_records,
         "optimizer_state": final_state,
-        "step_records_match_contract": _records_match_contract(contract, step_records),
+        "step_records_match_contract": torch_step_records_match_contract(
+            contract=contract,
+            step_records=step_records,
+        ),
         "final_state_matches_contract": final_state
         == contract["expected_final_optimizer_state"],
         "parameter_count": contract["parameter_count"],
@@ -149,68 +164,16 @@ def _missing_optimizer_methods(optimizer: Any) -> list[str]:
     ]
 
 
-def _execute_step_records(
-    *,
-    optimizer: Any,
-    contract: dict[str, Any],
-) -> list[dict[str, Any]]:
-    records = []
-    for expected in contract["expected_step_records"]:
-        _set_optimizer_learning_rate(
-            optimizer,
-            expected["effective_learning_rate"],
-        )
-        step_called = False
-        zero_grad_called = False
-        if expected["update_applied"]:
-            optimizer.step()
-            step_called = True
-            optimizer.zero_grad()
-            zero_grad_called = True
-        records.append(
-            {
-                **expected,
-                "optimizer_step_called": step_called,
-                "optimizer_zero_grad_called": zero_grad_called,
-            }
-        )
-    return records
-
-
-def _set_optimizer_learning_rate(optimizer: Any, learning_rate: float) -> None:
-    for group in getattr(optimizer, "param_groups", []):
-        group["lr"] = learning_rate
-
-
-def _final_optimizer_state(
-    *,
-    contract: dict[str, Any],
-    step_records: list[dict[str, Any]],
-) -> dict[str, Any]:
-    if not step_records:
-        return {
-            "update_count": 0,
-            "pending_accumulation": 0,
-            "param_count": contract["parameter_count"],
-        }
-    last = step_records[-1]
-    return {
-        "update_count": last["update_count_after"],
-        "pending_accumulation": last["pending_accumulation_after"],
-        "param_count": contract["parameter_count"],
-    }
-
-
 def _status(
     contract: dict[str, Any],
     step_records: list[dict[str, Any]],
     final_state: dict[str, Any],
 ) -> str:
-    if not _records_match_contract(contract, step_records):
-        return "step_record_mismatch"
-    if final_state != contract["expected_final_optimizer_state"]:
-        return "final_state_mismatch"
-    return TORCH_OPTIMIZER_STEP_CONTROL_MATCHED_STATUS
+    return torch_optimizer_step_control_status(
+        contract=contract,
+        step_records=step_records,
+        final_state=final_state,
+    )
 
 
 def _adamw_update_signature_comparison(
@@ -229,22 +192,6 @@ def _adamw_update_signature_comparison(
         actual_signature=actual_signature,
         tolerance=tolerance,
     )
-
-
-def _records_match_contract(
-    contract: dict[str, Any],
-    step_records: list[dict[str, Any]],
-) -> bool:
-    if len(step_records) != len(contract["expected_step_records"]):
-        return False
-    for actual, expected in zip(step_records, contract["expected_step_records"]):
-        if any(actual[key] != expected[key] for key in expected):
-            return False
-        if actual["optimizer_step_called"] != expected["update_applied"]:
-            return False
-        if actual["optimizer_zero_grad_called"] != expected["update_applied"]:
-            return False
-    return True
 
 
 def _not_run(reason: str) -> dict[str, Any]:
