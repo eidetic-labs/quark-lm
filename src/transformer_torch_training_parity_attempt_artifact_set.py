@@ -8,6 +8,9 @@ from transformer_training_parity_report import build_training_parity_report
 from transformer_torch_training_parity_attempt_validation import (
     validate_torch_training_parity_attempt,
 )
+from transformer_torch_training_promotion_gate import (
+    build_torch_training_backend_promotion_gate,
+)
 
 
 REQUIRED_TORCH_TRAINING_ATTEMPT_ARTIFACTS = (
@@ -52,6 +55,7 @@ def validate_torch_training_parity_attempt_artifact_set(
         _report_summary(payloads["report"]),
     )
     _validate_report_payload(payloads)
+    _validate_promotion_gate_payload(payloads)
 
 
 def _required_payloads(artifacts: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -85,6 +89,16 @@ def _validate_report_payload(payloads: dict[str, dict[str, Any]]) -> None:
     )
     if payloads["report"] != expected:
         raise ValueError("artifacts.report payload is inconsistent")
+
+
+def _validate_promotion_gate_payload(payloads: dict[str, dict[str, Any]]) -> None:
+    expected = build_torch_training_backend_promotion_gate(
+        candidate=payloads["candidate"],
+        report=payloads["report"],
+        closed_world_boundary=payloads["attempt"]["closed_world_boundary"],
+    )
+    if payloads["attempt"]["training_backend_promotion_gate"] != expected:
+        raise ValueError("attempt.training_backend_promotion_gate is inconsistent")
 
 
 def _runtime_summary(candidate: dict[str, Any]) -> dict[str, Any]:

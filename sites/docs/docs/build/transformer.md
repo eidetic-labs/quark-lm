@@ -92,7 +92,8 @@ The attempt builder validates the summary before writing it, including attempt
 status, next requirements, promotion gate, closed-world boundary flags, evidence
 scope, artifact paths, and the fixture/candidate/report payload set. The stored
 training parity report must match a report rebuilt from the paired fixture and
-candidate.
+candidate, and the stored backend-promotion gate must match a gate rebuilt from
+the candidate, report, and closed-world boundary.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

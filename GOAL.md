@@ -121,7 +121,8 @@ reference.
   attempt status, next requirements, promotion gate, evidence scope,
   closed-world boundary, artifact paths, and artifact payload consistency remain
   machine-checkable, including a report rebuilt from the paired fixture and
-  candidate payloads.
+  candidate payloads and a promotion gate rebuilt from the candidate, report,
+  and closed-world boundary.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

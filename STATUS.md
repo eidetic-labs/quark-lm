@@ -192,7 +192,9 @@ Working tagline: Big idea. Tiny package.
   or written, including attempt status, next requirements, promotion-gate,
   closed-world boundary, evidence-scope, artifact-path, and artifact-payload
   consistency checks. The stored training parity report must match a report
-  rebuilt from the paired fixture and candidate payloads.
+  rebuilt from the paired fixture and candidate payloads, and the stored
+  backend-promotion gate must match a gate rebuilt from the candidate, report,
+  and closed-world boundary.
 
 ## Research Grounding
 
