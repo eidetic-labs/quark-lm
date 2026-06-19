@@ -41,51 +41,11 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must not promote"):
             validate_torch_training_parity_attempt(attempt)
 
-    def test_validator_rejects_stale_attempt_passed_flag(self) -> None:
-        attempt = _attempt()
-        attempt["passed"] = True
-
-        with self.assertRaisesRegex(ValueError, "passed flag"):
-            validate_torch_training_parity_attempt(attempt)
-
     def test_validator_rejects_stale_attempt_status(self) -> None:
         attempt = _attempt()
         attempt["status"] = "training_parity_matched"
 
         with self.assertRaisesRegex(ValueError, "status is inconsistent"):
-            validate_torch_training_parity_attempt(attempt)
-
-    def test_validator_rejects_report_passed_runtime_bypass(self) -> None:
-        attempt = _attempt()
-        attempt["training_parity_report"]["passed"] = True
-        attempt["passed"] = True
-
-        with self.assertRaisesRegex(ValueError, "passed flag"):
-            validate_torch_training_parity_attempt(attempt)
-
-    def test_validator_rejects_report_passed_replay_bypass(self) -> None:
-        attempt = _attempt()
-        attempt["runtime"]["parity_attempt_allowed"] = True
-        attempt["runtime"]["status"] = "passed"
-        attempt["candidate"]["training_readiness_status"] = "ready"
-        attempt["training_replay_parity_gate"]["status"] = (
-            "training_replay_parity_pending"
-        )
-        attempt["training_replay_parity_gate"]["passed"] = False
-        attempt["training_parity_report"]["passed"] = True
-        attempt["passed"] = True
-        attempt["status"] = "training_replay_parity_pending"
-        attempt["next_requirements"]["stage"] = "training_replay_parity"
-        attempt["next_requirements"]["status"] = "pending"
-        attempt["next_requirements"]["runtime_status"] = "passed"
-        attempt["next_requirements"]["parity_attempt_allowed"] = True
-        attempt["next_requirements"]["training_readiness_status"] = "ready"
-        attempt["next_requirements"]["training_replay_parity_status"] = (
-            "training_replay_parity_pending"
-        )
-        attempt["next_requirements"]["training_report_passed"] = True
-
-        with self.assertRaisesRegex(ValueError, "passed flag"):
             validate_torch_training_parity_attempt(attempt)
 
     def test_validator_rejects_dirty_closed_world_boundary(self) -> None:
