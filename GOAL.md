@@ -124,7 +124,8 @@ reference.
   candidate payloads and a promotion gate rebuilt from the candidate, report,
   and closed-world boundary. Standalone summary validation must also check the
   promotion-gate schema, check catalog, blocker derivation, and required future
-  gate catalog. The next-requirements diagnosis must also rebuild from the
+  gate catalog plus compact corpus, runtime, candidate, replay-gate, and report
+  summary shapes. The next-requirements diagnosis must also rebuild from the
   candidate runtime report, candidate, and report. The persisted corpus summary
   must match the scalar fixture and candidate backend corpus hash. Written
   summaries must carry SHA-256 payload hashes for sibling artifacts, and
@@ -134,9 +135,9 @@ reference.
   rebuilding it. The optional public backend surface must expose the
   written-attempt file map, hash algorithm, hash builder, and loader so
   contributors inspect the persisted audit contract without private module
-  paths. Each `next_requirements` summary
-  must be a typed artifact with an explicit kind and schema version, and that
-  contract must also be available from the optional public backend surface. The
+  paths. Each `next_requirements` summary must be a typed artifact with an
+  explicit kind and schema version, and that contract must also be available
+  from the optional public backend surface. The
   requirements artifact must provide standalone validation and a public stage
   catalog so next-action routing can be checked without validating a full
   attempt bundle. Stage/action consistency must be validated so well-shaped

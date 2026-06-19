@@ -196,7 +196,8 @@ Working tagline: Big idea. Tiny package.
   backend-promotion gate must match a gate rebuilt from the candidate, report,
   and closed-world boundary. Standalone summary validation now also checks the
   promotion-gate schema, check catalog, blocker derivation, and required future
-  gate catalog. The next-requirements diagnosis must also rebuild from the
+  gate catalog plus compact corpus, runtime, candidate, replay-gate, and report
+  summary shapes. The next-requirements diagnosis must also rebuild from the
   candidate runtime report, candidate, and report. Written summaries now carry
   SHA-256 payload hashes for sibling artifacts, and the persisted corpus
   summary must match the scalar fixture and candidate backend corpus hash.
@@ -207,9 +208,9 @@ Working tagline: Big idea. Tiny package.
   surface exposes the written-attempt file map, hash algorithm, hash builder,
   and loader so contributors can inspect the same persisted audit contract
   without reaching through private module paths. Each `next_requirements`
-  summary is now a typed
-  artifact with an explicit kind and schema version, and the public backend
-  surface exposes that contract for loop consumers. The requirements artifact
+  summary is now a typed artifact with an explicit kind and schema version, and
+  the public backend surface exposes that contract for loop consumers. The
+  requirements artifact
   also has standalone validation and a public stage catalog so next-action
   routing can be checked without validating a full attempt bundle. Stage/action
   consistency is now validated too, so a well-shaped artifact cannot route a

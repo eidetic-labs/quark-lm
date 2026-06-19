@@ -69,6 +69,47 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "training_text_source"):
             validate_torch_training_parity_attempt(attempt)
 
+    def test_validator_rejects_invalid_corpus_summary(self) -> None:
+        attempt = _attempt()
+        attempt["corpus"]["train_sha256"] = "not-a-sha"
+
+        with self.assertRaisesRegex(ValueError, "corpus.train_sha256"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_invalid_runtime_summary(self) -> None:
+        attempt = _attempt()
+        attempt["runtime"]["passed"] = "false"
+
+        with self.assertRaisesRegex(ValueError, "runtime.passed"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_invalid_candidate_summary(self) -> None:
+        attempt = _attempt()
+        attempt["candidate"]["training_case_status"] = ""
+
+        with self.assertRaisesRegex(ValueError, "candidate.training_case_status"):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_invalid_replay_gate_summary(self) -> None:
+        attempt = _attempt()
+        attempt["training_replay_parity_gate"]["failed_checks"] = [1]
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "training_replay_parity_gate.failed_checks",
+        ):
+            validate_torch_training_parity_attempt(attempt)
+
+    def test_validator_rejects_invalid_report_summary(self) -> None:
+        attempt = _attempt()
+        attempt["training_parity_report"]["failed_checks"] = [1]
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "training_parity_report.failed_checks",
+        ):
+            validate_torch_training_parity_attempt(attempt)
+
     def test_validator_rejects_stale_promotion_gate_boundary_status(self) -> None:
         attempt = _attempt()
         attempt["training_backend_promotion_gate"][

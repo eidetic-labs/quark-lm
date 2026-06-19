@@ -17,6 +17,9 @@ from transformer_torch_training_promotion_gate import (
 from transformer_torch_training_parity_attempt_requirement_validation import (
     validate_torch_training_parity_attempt_requirements,
 )
+from transformer_torch_training_parity_attempt_summary_validation import (
+    validate_torch_training_parity_attempt_summaries,
+)
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
@@ -54,6 +57,7 @@ def validate_torch_training_parity_attempt(
             "closed_world_boundary",
         ),
     )
+    validate_torch_training_parity_attempt_summaries(attempt)
     boundary = attempt["closed_world_boundary"]
     _validate_boundary(boundary)
     _validate_promotion_gate(attempt["training_backend_promotion_gate"], boundary)

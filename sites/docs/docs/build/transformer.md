@@ -102,11 +102,12 @@ candidate, and the stored backend-promotion gate must match a gate rebuilt from
 the candidate, report, and closed-world boundary. The next-requirements
 diagnosis must also rebuild from the candidate runtime report, candidate, and
 report. Standalone validation also checks the promotion-gate schema, check
-catalog, blocker derivation, and required future gate catalog. Written
-summaries also carry SHA-256 payload hashes for sibling artifacts, and the
-persisted corpus summary must match the scalar fixture and candidate backend
-corpus hash. Written attempt directories are reloaded through the same
-validation contract before the writer returns. The same command can run with
+catalog, blocker derivation, required future gate catalog, and compact corpus,
+runtime, candidate, replay-gate, and report summary shapes. Written summaries
+also carry SHA-256 payload hashes for sibling artifacts, and the persisted
+corpus summary must match the scalar fixture and candidate backend corpus hash.
+Written attempt directories are reloaded through the same validation contract
+before the writer returns. The same command can run with
 `--verify-existing` to audit a written attempt directory without
 rebuilding it. Recorded artifact paths must resolve to the loaded files. The
 optional public backend surface also exposes the written-attempt file map, hash
