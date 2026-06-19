@@ -8,6 +8,11 @@ from transformer_torch_parity_candidate import (
     TORCH_PARITY_IMPLEMENTATION_STATUS,
     build_torch_backend_parity_candidate,
 )
+from transformer_torch_adamw_expected_update import (
+    TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS,
+    TORCH_ADAMW_EXPECTED_UPDATE_SCHEMA_VERSION,
+    build_torch_adamw_expected_update,
+)
 from transformer_torch_gradient_clip import (
     TORCH_GRADIENT_CLIP_APPLIED_STATUS,
     TORCH_GRADIENT_CLIP_SCHEMA_VERSION,
@@ -73,6 +78,8 @@ __all__ = [
     "TORCH_PARITY_CANDIDATE_KIND",
     "TORCH_PARITY_CANDIDATE_SCHEMA_VERSION",
     "TORCH_PARITY_IMPLEMENTATION_STATUS",
+    "TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS",
+    "TORCH_ADAMW_EXPECTED_UPDATE_SCHEMA_VERSION",
     "TORCH_GRADIENT_CLIP_APPLIED_STATUS",
     "TORCH_GRADIENT_CLIP_SCHEMA_VERSION",
     "TORCH_OPTIMIZER_STEP_PROBE_SCHEMA_VERSION",
@@ -96,6 +103,7 @@ __all__ = [
     "TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_STATE_SCHEMA_VERSION",
+    "build_torch_adamw_expected_update",
     "build_torch_backend_parity_candidate",
     "apply_torch_gradient_value_clip",
     "build_torch_optimizer_step_probe",

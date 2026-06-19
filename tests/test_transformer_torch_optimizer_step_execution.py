@@ -77,6 +77,14 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
             "parameter_signature_mismatch",
         )
         self.assertFalse(execution["parameter_signature_comparison"]["passed"])
+        self.assertEqual(
+            execution["expected_adamw_update"]["status"],
+            "adamw_expected_update_built",
+        )
+        self.assertEqual(
+            execution["adamw_update_signature_comparison"]["status"],
+            "parameter_signature_matched",
+        )
         json.dumps(execution)
 
     def test_execution_clips_oversized_gradients_before_step(self) -> None:
@@ -106,6 +114,14 @@ class TransformerTorchOptimizerStepExecutionTests(unittest.TestCase):
         )
         self.assertEqual(
             execution["parameter_signature_comparison"]["status"],
+            "parameter_signature_mismatch",
+        )
+        self.assertEqual(
+            execution["expected_adamw_update"]["status"],
+            "adamw_expected_update_built",
+        )
+        self.assertEqual(
+            execution["adamw_update_signature_comparison"]["status"],
             "parameter_signature_mismatch",
         )
 

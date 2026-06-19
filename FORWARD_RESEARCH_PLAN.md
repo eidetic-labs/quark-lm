@@ -296,9 +296,11 @@ learning-rate schedule, and update/zero-grad calls, and records whether the
 step-control trace matches the scalar step records. The probe also compares the
 candidate post-step parameter signature against the scalar fixture's final
 parameter signature and reports match or mismatch under the fixture tolerance.
-This is still not full PyTorch training parity: observed tensor mutation or a
-signature mismatch report does not yet prove accumulated-gradient numerical
-equivalence, scalar-equivalent AdamW updates, final logits, final loss, or
+It now also builds the scalar-expected AdamW post-update signature from the
+current clipped gradients, assuming zero prior moments, and compares actual
+post-step mutation against that expected update. This is still not full PyTorch
+training parity: a current-gradient AdamW comparison does not yet prove
+accumulated-gradient numerical equivalence, final logits, final loss, or
 checkpoint compatibility. The next implementation layer is matching those
 numerical update effects against scalar training evidence.
 

@@ -36,6 +36,8 @@ reference.
   not prove scalar-equivalent AdamW math, final logits, or final loss parity.
 - Compare post-step parameter signatures against scalar training fixtures; a
   mismatch is expected evidence until numerical optimizer parity is implemented.
+- Compare actual post-step signatures against scalar-expected AdamW updates from
+  current clipped gradients before claiming optimizer math parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and

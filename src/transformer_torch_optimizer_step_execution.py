@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_adamw_expected_update import (
+    TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS,
+    build_torch_adamw_expected_update,
+)
 from transformer_torch_gradient_clip import apply_torch_gradient_value_clip
 from transformer_torch_optimizer_step_probe import (
     TORCH_OPTIMIZER_STEP_READY_STATUS,
@@ -69,10 +73,12 @@ def build_torch_optimizer_step_execution_probe(
             "gradient_clip": gradient_clip,
         }
     parameters_before = snapshot_torch_parameters(state)
-    step_records = _execute_step_records(
-        optimizer=optimizer,
+    expected_adamw_update = build_torch_adamw_expected_update(
+        state=state,
+        parameters_before=parameters_before,
         contract=contract,
     )
+    step_records = _execute_step_records(optimizer=optimizer, contract=contract)
     parameter_mutation = build_torch_parameter_mutation_report(
         before=parameters_before,
         after=snapshot_torch_parameters(state),
@@ -82,10 +88,12 @@ def build_torch_optimizer_step_execution_probe(
         actual_signature=parameter_mutation["after_signature"],
         tolerance=fixture["tolerance"],
     )
-    final_state = _final_optimizer_state(
-        contract=contract,
-        step_records=step_records,
+    adamw_update_signature_comparison = _adamw_update_signature_comparison(
+        expected_adamw_update=expected_adamw_update,
+        actual_signature=parameter_mutation["after_signature"],
+        tolerance=fixture["tolerance"],
     )
+    final_state = _final_optimizer_state(contract=contract, step_records=step_records)
     return {
         "schema_version": TORCH_OPTIMIZER_STEP_EXECUTION_SCHEMA_VERSION,
         "status": _status(contract, step_records, final_state),
@@ -93,10 +101,7 @@ def build_torch_optimizer_step_execution_probe(
         "optimizer": contract["optimizer"],
         "step_records": step_records,
         "optimizer_state": final_state,
-        "step_records_match_contract": _records_match_contract(
-            contract,
-            step_records,
-        ),
+        "step_records_match_contract": _records_match_contract(contract, step_records),
         "final_state_matches_contract": final_state
         == contract["expected_final_optimizer_state"],
         "parameter_count": contract["parameter_count"],
@@ -105,7 +110,9 @@ def build_torch_optimizer_step_execution_probe(
         ),
         "gradient_clip": gradient_clip,
         "parameter_mutation": parameter_mutation,
+        "expected_adamw_update": expected_adamw_update,
         "parameter_signature_comparison": signature_comparison,
+        "adamw_update_signature_comparison": adamw_update_signature_comparison,
     }
 
 
@@ -195,6 +202,24 @@ def _status(
     if final_state != contract["expected_final_optimizer_state"]:
         return "final_state_mismatch"
     return TORCH_OPTIMIZER_STEP_CONTROL_MATCHED_STATUS
+
+
+def _adamw_update_signature_comparison(
+    *,
+    expected_adamw_update: dict[str, Any],
+    actual_signature: dict[str, Any],
+    tolerance: dict[str, float],
+) -> dict[str, Any]:
+    if expected_adamw_update["status"] != TORCH_ADAMW_EXPECTED_UPDATE_BUILT_STATUS:
+        return {
+            "status": "not_run",
+            "reason": "expected AdamW update was not built",
+        }
+    return build_torch_parameter_signature_comparison(
+        expected_signature=expected_adamw_update["expected_signature"],
+        actual_signature=actual_signature,
+        tolerance=tolerance,
+    )
 
 
 def _records_match_contract(
