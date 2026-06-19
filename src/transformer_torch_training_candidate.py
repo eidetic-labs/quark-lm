@@ -11,6 +11,11 @@ from transformer_torch_runtime import TorchImporter, torch_runtime_status
 from transformer_torch_training_candidate_probes import (
     build_torch_training_probe_artifacts,
 )
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+    TORCH_TRAINING_REPLAY_PENDING_STATUS,
+    build_torch_training_replay_parity_gate,
+)
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_READY_STATUS,
     build_torch_training_readiness,
@@ -22,8 +27,8 @@ TORCH_TRAINING_PARITY_CANDIDATE_KIND = (
     "transformer_torch_training_parity_candidate"
 )
 TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION = 1
-TORCH_TRAINING_IMPLEMENTATION_STATUS = "training_not_implemented"
 TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS = "training_runtime_incomplete"
+TORCH_TRAINING_REPLAY_PARITY_STATUS = TORCH_TRAINING_REPLAY_PENDING_STATUS
 
 
 def build_torch_training_parity_candidate(
@@ -46,16 +51,22 @@ def build_torch_training_parity_candidate(
         runtime=runtime,
         importer=importer,
     )
-    outputs = _candidate_outputs(
-        fixture=fixture,
-        runtime=runtime,
-        readiness=readiness,
-    )
     probes = build_torch_training_probe_artifacts(
         fixture=fixture,
         importer=importer,
         readiness=readiness,
         runtime=runtime,
+    )
+    gate = build_torch_training_replay_parity_gate(
+        runtime=runtime,
+        readiness=readiness,
+        probes=probes,
+    )
+    outputs = _candidate_outputs(
+        fixture=fixture,
+        runtime=runtime,
+        readiness=readiness,
+        gate=gate,
     )
     return {
         "schema_version": TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
@@ -84,6 +95,7 @@ def build_torch_training_parity_candidate(
         ),
         "training_readiness": readiness,
         **probes,
+        "training_replay_parity_gate": gate,
         "training_case": outputs["training_case"],
     }
 
@@ -93,6 +105,7 @@ def _candidate_outputs(
     fixture: dict[str, Any],
     runtime: dict[str, Any],
     readiness: dict[str, Any],
+    gate: dict[str, Any],
 ) -> dict[str, Any]:
     if not runtime["available"]:
         return {
@@ -124,13 +137,19 @@ def _candidate_outputs(
                 reason="pytorch training runtime is missing required capabilities",
             ),
         }
+    if gate["status"] == TORCH_TRAINING_REPLAY_MATCHED_STATUS:
+        return {
+            "implementation_status": TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+            "parity_status": "matched",
+            "training_case": _matched_case(fixture["training_case"]),
+        }
     return {
-        "implementation_status": TORCH_TRAINING_IMPLEMENTATION_STATUS,
+        "implementation_status": TORCH_TRAINING_REPLAY_PENDING_STATUS,
         "parity_status": "pending",
         "training_case": _case_stub(
             fixture["training_case"],
             status="pending",
-            reason="pytorch training parity is not implemented yet",
+            reason=gate["reason"],
         ),
     }
 
@@ -149,4 +168,14 @@ def _case_stub(
         "target": case["target"],
         "learning_rate": case["learning_rate"],
         "steps": case["steps"],
+    }
+
+
+def _matched_case(case: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **copy.deepcopy(case),
+        "status": "matched",
+        "reason": "pytorch replay parity gates matched scalar training evidence",
+        "evidence_source": "training_replay_parity_gate",
+        "promoted_training_backend": False,
     }

@@ -103,11 +103,18 @@ from transformer_torch_parameter_signature_comparison import (
     build_torch_parameter_signature_comparison,
 )
 from transformer_torch_training_candidate import (
-    TORCH_TRAINING_IMPLEMENTATION_STATUS,
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
     TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
+    TORCH_TRAINING_REPLAY_PARITY_STATUS,
     TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
     build_torch_training_parity_candidate,
+)
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION,
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+    TORCH_TRAINING_REPLAY_PENDING_STATUS,
+    TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
+    build_torch_training_replay_parity_gate,
 )
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_BLOCKED_STATUS,
@@ -180,11 +187,15 @@ __all__ = [
     "TORCH_PARAMETER_SIGNATURE_COMPARISON_SCHEMA_VERSION",
     "TORCH_PARAMETER_SIGNATURE_MATCHED_STATUS",
     "TORCH_PARAMETER_SIGNATURE_MISMATCH_STATUS",
-    "TORCH_TRAINING_IMPLEMENTATION_STATUS",
     "TORCH_TRAINING_BLOCKED_STATUS",
     "TORCH_TRAINING_PENDING_STATUS",
     "TORCH_TRAINING_PARITY_CANDIDATE_KIND",
     "TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION",
+    "TORCH_TRAINING_REPLAY_PARITY_STATUS",
+    "TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION",
+    "TORCH_TRAINING_REPLAY_MATCHED_STATUS",
+    "TORCH_TRAINING_REPLAY_PENDING_STATUS",
+    "TORCH_TRAINING_REPLAY_BLOCKED_STATUS",
     "TORCH_TRAINING_READINESS_SCHEMA_VERSION",
     "TORCH_TRAINING_READY_STATUS",
     "TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS",
@@ -211,6 +222,7 @@ __all__ = [
     "build_torch_parameter_signature_comparison",
     "build_torch_training_backward_probe",
     "build_torch_training_parity_candidate",
+    "build_torch_training_replay_parity_gate",
     "build_torch_training_readiness",
     "build_torch_training_state",
     "summarize_torch_training_state",

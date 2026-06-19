@@ -147,9 +147,10 @@ without promoting PyTorch training. The artifact records runtime availability,
 requested device and dtype, optimizer config, and the scalar training case the
 future trainer must match. If PyTorch is available but lacks required training
 capabilities, the candidate is `pending` with `training_runtime_incomplete`.
-If the runtime is training-capable, the candidate is still `pending` with
-`training_not_implemented`; if the runtime or requested dtype is unavailable,
-it records a blocked or pending case rather than fabricated metrics.
+If the runtime is training-capable, the candidate remains `pending` with
+`training_replay_parity_pending` until every replay parity gate matches. If the
+runtime or requested dtype is unavailable, it records a blocked or pending case
+rather than fabricated metrics.
 
 The current bridge records a trainable-parameter manifest on scalar training
 fixtures and PyTorch candidates. It names the scalar optimizer parameter order,
@@ -228,6 +229,12 @@ gated behind final evaluation: it converts the replay-updated tensor state into
 the existing QuarkLM checkpoint payload, validates and reloads it, then compares
 the reloaded final logits and loss to scalar evidence. A match proves checkpoint
 compatibility only; promoted PyTorch training remains a separate gate.
+The aggregate training replay parity gate now checks runtime readiness, initial
+loss, backward coverage, optimizer control, replay gradient signatures, replay
+buffer parity, replay update parity, final evaluation, and checkpoint
+compatibility together. The PyTorch candidate may move from pending to matched
+only when all checks pass, and a matched candidate still records replay-parity
+evidence rather than a promoted general training backend.
 
 ## Where the sequence stands
 

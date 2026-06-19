@@ -12,8 +12,8 @@ from support.char_model import char_model_fixture, context_and_target
 from support.fake_torch import fake_torch_importer
 from transformer_model import OptimizationConfig
 from transformer_torch_backend import (
-    TORCH_TRAINING_IMPLEMENTATION_STATUS,
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
+    TORCH_TRAINING_REPLAY_PARITY_STATUS,
     TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
     build_torch_training_parity_candidate,
 )
@@ -73,7 +73,7 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         )
         self.assertFalse(report["passed"])
 
-    def test_candidate_stays_pending_when_training_is_not_implemented(self) -> None:
+    def test_candidate_stays_pending_until_replay_parity_matches(self) -> None:
         fixture = _scalar_training_fixture()
 
         candidate = build_torch_training_parity_candidate(
@@ -179,8 +179,12 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         )
         self.assertEqual(
             candidate["implementation_status"],
-            TORCH_TRAINING_IMPLEMENTATION_STATUS,
+            TORCH_TRAINING_REPLAY_PARITY_STATUS,
         )
+        gate = candidate["training_replay_parity_gate"]
+        self.assertEqual(gate["status"], TORCH_TRAINING_REPLAY_PARITY_STATUS)
+        self.assertFalse(gate["passed"])
+        self.assertIn("replay_buffer", gate["summary"]["failed_checks"])
         self.assertEqual(candidate["backend"]["parity_status"], "pending")
         self.assertEqual(candidate["optimizer_config"], fixture["optimizer_config"])
         self.assertEqual(
@@ -190,7 +194,7 @@ class TransformerTorchTrainingCandidateTests(unittest.TestCase):
         self.assertEqual(candidate["training_case"]["status"], "pending")
         self.assertEqual(
             candidate["training_case"]["reason"],
-            "pytorch training parity is not implemented yet",
+            "one or more replay parity gates have not matched scalar training evidence",
         )
         self.assertFalse(report["passed"])
         self.assertNotIn("backend_metadata", report["summary"]["failed_checks"])
@@ -242,7 +246,3 @@ def _scalar_training_fixture() -> dict:
         steps=2,
         corpus_hash="corpus-hash",
     )
-
-
-if __name__ == "__main__":
-    unittest.main()

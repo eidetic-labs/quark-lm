@@ -69,6 +69,11 @@ reference.
 - Gate checkpoint compatibility behind final replay evaluation; matched
   round-trip checkpoints prove checkpoint parity only, not promoted PyTorch
   training.
+- Gate PyTorch candidate status behind aggregate replay parity: runtime
+  readiness, initial loss, backward coverage, optimizer control, replay
+  gradients, replay buffers, replay updates, final evaluation, and checkpoint
+  compatibility must all match before the candidate can move from pending to
+  matched, and matched still does not mean promoted training.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
