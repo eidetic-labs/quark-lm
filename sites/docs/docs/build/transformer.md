@@ -86,7 +86,8 @@ PYTHONPATH=src python3 -m unittest discover \
 The attempt summary also carries `training_backend_promotion_gate`. That gate is
 expected to fail today: it records that matched replay parity is fixture-level
 evidence, while a promoted or generalized PyTorch trainer still needs separate
-model-quality, profile, and retention gates.
+model-quality, profile, and retention gates. When the closed-world boundary is
+dirty, the gate names the exact failed boundary fields.
 The attempt builder validates the summary before writing it, including the
 promotion gate, closed-world boundary flags, evidence scope, and artifact paths.
 

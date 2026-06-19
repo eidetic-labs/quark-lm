@@ -21,6 +21,7 @@ def build_torch_training_backend_promotion_gate(
 ) -> dict[str, Any]:
     """Record why replay parity evidence is not backend promotion evidence."""
 
+    boundary_failures = _boundary_failures(closed_world_boundary)
     checks = [
         _check(
             "training_parity_report",
@@ -29,7 +30,7 @@ def build_torch_training_backend_promotion_gate(
         ),
         _check(
             "closed_world_boundary",
-            _boundary_passed(closed_world_boundary),
+            not boundary_failures,
             "closed-world boundary flags must remain clean",
         ),
         _check(
@@ -54,7 +55,8 @@ def build_torch_training_backend_promotion_gate(
             candidate=candidate,
             report=report,
         ),
-        "closed_world_boundary_passed": _boundary_passed(closed_world_boundary),
+        "closed_world_boundary_passed": not boundary_failures,
+        "closed_world_boundary_failures": boundary_failures,
         "checks": checks,
         "blockers": [check["name"] for check in checks if not check["passed"]],
         "required_future_gates": [
@@ -80,12 +82,13 @@ def _parity_evidence_matched(
     )
 
 
-def _boundary_passed(boundary: dict[str, Any]) -> bool:
+def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
     expected = build_torch_training_attempt_boundary()
-    return all(
-        boundary.get(key) is expected_value
+    return [
+        key
         for key, expected_value in expected.items()
-    )
+        if boundary.get(key) is not expected_value
+    ]
 
 
 def _check(name: str, passed: bool, reason: str) -> dict[str, Any]:

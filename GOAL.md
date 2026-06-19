@@ -115,7 +115,8 @@ reference.
   match scalar training replay evidence before any backend promotion claim.
 - Embed an explicit PyTorch backend-promotion gate in training parity attempts;
   matched replay parity is fixture evidence only and must not silently become a
-  promoted/general training backend.
+  promoted/general training backend. The gate should report exact closed-world
+  boundary fields when the boundary fails.
 - Validate PyTorch training parity attempt summaries before trust or write so
   promotion gate, evidence scope, closed-world boundary, and artifact paths
   remain machine-checkable.

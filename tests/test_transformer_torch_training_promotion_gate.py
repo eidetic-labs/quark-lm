@@ -28,6 +28,7 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         self.assertFalse(gate["promoted_training_backend"])
         self.assertTrue(gate["parity_evidence_matched"])
         self.assertTrue(gate["closed_world_boundary_passed"])
+        self.assertEqual(gate["closed_world_boundary_failures"], [])
         self.assertEqual(
             gate["blockers"],
             ["fixture_scope_only", "model_quality_gate"],
@@ -62,6 +63,10 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         )
 
         self.assertFalse(gate["closed_world_boundary_passed"])
+        self.assertEqual(
+            gate["closed_world_boundary_failures"],
+            ["pretrained_weights_imported"],
+        )
         self.assertIn("closed_world_boundary", gate["blockers"])
 
     def test_closed_world_boundary_requires_runtime_library_allowance(self) -> None:
@@ -75,6 +80,10 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         )
 
         self.assertFalse(gate["closed_world_boundary_passed"])
+        self.assertEqual(
+            gate["closed_world_boundary_failures"],
+            ["runtime_library_allowed"],
+        )
         self.assertIn("closed_world_boundary", gate["blockers"])
 
     def test_closed_world_boundary_requires_admitted_curriculum_source(self) -> None:
@@ -88,7 +97,32 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
         )
 
         self.assertFalse(gate["closed_world_boundary_passed"])
+        self.assertEqual(
+            gate["closed_world_boundary_failures"],
+            ["training_text_source"],
+        )
         self.assertIn("closed_world_boundary", gate["blockers"])
+
+    def test_closed_world_boundary_reports_multiple_failures(self) -> None:
+        boundary = _boundary()
+        boundary["runtime_library_allowed"] = False
+        boundary["training_text_source"] = "external_corpus"
+        boundary["external_embeddings_imported"] = True
+
+        gate = build_torch_training_backend_promotion_gate(
+            candidate=_candidate(parity_status="matched", replay_passed=True),
+            report={"passed": True},
+            closed_world_boundary=boundary,
+        )
+
+        self.assertEqual(
+            gate["closed_world_boundary_failures"],
+            [
+                "runtime_library_allowed",
+                "training_text_source",
+                "external_embeddings_imported",
+            ],
+        )
 
 
 def _candidate(*, parity_status: str, replay_passed: bool) -> dict:
