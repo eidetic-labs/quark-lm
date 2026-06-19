@@ -26,10 +26,16 @@ weights and trains with a small standard-library scalar autodiff engine.
 
 The scalar implementation is still the canonical reference. QuarkLM also has an
 optional experimental PyTorch parity surface for tiny backend fixtures, but it
-does not add PyTorch as a dependency and it is not a promoted training backend.
-It can only become performance evidence after deterministic scalar parity gates
-pass for the relevant profile. Use the runtime preflight before attempting that
-evidence:
+does not add PyTorch as a default dependency and it is not a promoted training
+backend. It can only become performance evidence after deterministic scalar
+parity gates pass for the relevant profile. Install the optional runtime extra
+only when you want to attempt PyTorch parity:
+
+```bash title="Install the optional PyTorch runtime"
+python3 -m pip install -e ".[pytorch]"
+```
+
+Then use the runtime preflight before attempting that evidence:
 
 ```bash title="Check optional PyTorch runtime evidence"
 PYTHONPATH=src python3 -m transformer_torch_runtime_report \

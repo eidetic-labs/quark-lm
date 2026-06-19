@@ -105,6 +105,8 @@ reference.
   evidence or backend promotion.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
+- Provide PyTorch only through an explicit optional package extra; the default
+  scalar install remains dependency-free and canonical.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
   code-quality review as the evidence gate for this phase.
 

@@ -94,7 +94,9 @@ with a small standard-library scalar autodiff engine.
 
 PyTorch is the planned performance backend, but only as an optional runtime
 library. The current PyTorch work is experimental parity evidence against
-scalar fixtures, not a promoted training path.
+scalar fixtures, not a promoted training path. The optional `pytorch` package
+extra installs a runtime library only; it does not import pretrained weights,
+pretrained tokenizers, external embeddings, or unledgered data.
 
 The transformer is not yet the reliable answering path. It is the weight
 consolidation path: the component that should gradually learn from admitted

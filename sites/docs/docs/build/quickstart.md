@@ -5,7 +5,7 @@ description: Run the current QuarkLM prototype, and read what each command produ
 
 # Quickstart
 
-<p className="qlm-meta"><span>10 min read</span><span>For first-time operators</span><span>Updated 2026-06-16</span></p>
+<p className="qlm-meta"><span>10 min read</span><span>For first-time operators</span><span>Updated 2026-06-19</span></p>
 
 <div className="qlm-lead">
 
@@ -50,6 +50,8 @@ an answer — it does not prove any model learned it.
 - `PYTHONPATH=src` is set, so the modules under `src/` resolve as top-level
   modules.
 - You can write under `runs/` — every step records its evidence there.
+- Optional PyTorch parity commands require an opt-in runtime install:
+  `python3 -m pip install -e ".[pytorch]"`. The scalar path does not require it.
 
 ## 1. Build the curriculum
 

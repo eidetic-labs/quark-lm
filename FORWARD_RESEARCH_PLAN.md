@@ -228,7 +228,8 @@ policy and parity-fixture contract. Scalar fixtures record backend metadata,
 model config, tokenizer summary, forward logits, losses, and fixed-prompt
 generation traces. Candidate backends must compare against those fixtures before
 their outputs can be trusted as model-quality evidence. This contract does not
-add PyTorch as a dependency.
+add PyTorch as a default dependency; PyTorch is exposed only through an
+explicit optional `pytorch` package extra for parity attempts.
 
 The second layer is an optional PyTorch backend surface: runtime availability
 detection plus candidate parity artifacts. It records whether PyTorch is

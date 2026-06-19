@@ -174,6 +174,9 @@ Working tagline: Big idea. Tiny package.
   instead of a promoted backend claim. The summary names the next unsatisfied
   requirement so the loop can separate runtime, readiness, replay, and report
   failures.
+- Optional PyTorch runtime installation is exposed as the `pytorch` package
+  extra. It is not part of the default scalar install and does not introduce
+  pretrained weights, tokenizers, external embeddings, or unledgered data.
 
 ## Research Grounding
 
