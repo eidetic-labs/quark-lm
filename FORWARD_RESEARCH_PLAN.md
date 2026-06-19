@@ -343,7 +343,9 @@ loss, backward coverage, optimizer control, replay gradient signatures, replay
 buffer parity, replay update parity, final evaluation, and checkpoint
 compatibility together. The PyTorch candidate may move from pending to matched
 only when all checks pass, and a matched candidate still records replay-parity
-evidence rather than a promoted general training backend.
+evidence rather than a promoted general training backend. The training parity
+report now includes this aggregate gate as a required PyTorch check, so matched
+training-looking fields cannot bypass replay evidence.
 
 ## Current QuarkLM Diagnosis
 

@@ -84,6 +84,34 @@ class TransformerTrainingParityTests(unittest.TestCase):
         self.assertEqual(report["candidate_backend"], PYTORCH_BACKEND)
         self.assertEqual(report["summary"]["failed_checks"], [])
 
+    def test_training_report_requires_replay_gate_for_pytorch_candidate(self) -> None:
+        fixture = _scalar_training_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate.pop("training_replay_parity_gate")
+
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
+        self.assertFalse(report["passed"])
+        self.assertIn(
+            "training_replay_parity_gate",
+            report["summary"]["failed_checks"],
+        )
+
+    def test_training_report_fails_when_replay_gate_is_pending(self) -> None:
+        fixture = _scalar_training_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate["training_replay_parity_gate"] = _pending_replay_gate()
+
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
+        gate_check = report["checks"][1]
+        self.assertFalse(report["passed"])
+        self.assertEqual(gate_check["name"], "training_replay_parity_gate")
+        self.assertEqual(
+            gate_check["failed_gate_checks"],
+            ["replay_buffer"],
+        )
+
     def test_training_report_fails_when_candidate_training_drifts(self) -> None:
         fixture = _scalar_training_fixture()
         candidate = _matching_candidate(fixture)
@@ -136,6 +164,27 @@ def _matching_candidate(fixture: dict) -> dict:
             fixture["optimizer_step_contract"]
         ),
         "training_case": copy.deepcopy(fixture["training_case"]),
+        "training_replay_parity_gate": _matched_replay_gate(),
+    }
+
+
+def _matched_replay_gate() -> dict:
+    return {
+        "status": "training_replay_parity_matched",
+        "passed": True,
+        "parity_status": "matched",
+        "promoted_training_backend": False,
+        "summary": {"failed_checks": []},
+    }
+
+
+def _pending_replay_gate() -> dict:
+    return {
+        "status": "training_replay_parity_pending",
+        "passed": False,
+        "parity_status": "pending",
+        "promoted_training_backend": False,
+        "summary": {"failed_checks": ["replay_buffer"]},
     }
 
 

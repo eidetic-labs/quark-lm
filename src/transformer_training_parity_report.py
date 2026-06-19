@@ -14,6 +14,9 @@ from transformer_training_parity_schema import (
     TRAINING_PARITY_REPORT_KIND,
     TRAINING_PARITY_SCHEMA_VERSION,
 )
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+)
 
 
 def build_training_parity_report(
@@ -28,6 +31,12 @@ def build_training_parity_report(
     actual = candidate.get("training_case", {})
     tolerance = fixture["tolerance"]
     checks = [_backend_metadata_check(candidate.get("backend"))]
+    if _candidate_backend_name(candidate) == PYTORCH_BACKEND:
+        checks.append(
+            _training_replay_parity_gate_check(
+                candidate.get("training_replay_parity_gate")
+            )
+        )
     checks.extend(
         [
             _number_check(
@@ -84,6 +93,33 @@ def build_training_parity_report(
         "passed": all(check["passed"] for check in checks),
         "checks": checks,
         "summary": _summary(checks),
+    }
+
+
+def _training_replay_parity_gate_check(gate: Any) -> dict[str, Any]:
+    if not isinstance(gate, dict):
+        return {
+            "name": "training_replay_parity_gate",
+            "passed": False,
+            "error": "training replay parity gate is missing",
+        }
+    summary = gate.get("summary")
+    failed_checks = (
+        list(summary.get("failed_checks", [])) if isinstance(summary, dict) else []
+    )
+    passed = (
+        gate.get("passed") is True
+        and gate.get("status") == TORCH_TRAINING_REPLAY_MATCHED_STATUS
+        and gate.get("parity_status") == "matched"
+        and gate.get("promoted_training_backend") is False
+    )
+    return {
+        "name": "training_replay_parity_gate",
+        "passed": passed,
+        "status": gate.get("status"),
+        "parity_status": gate.get("parity_status"),
+        "promoted_training_backend": gate.get("promoted_training_backend"),
+        "failed_gate_checks": failed_checks,
     }
 
 
