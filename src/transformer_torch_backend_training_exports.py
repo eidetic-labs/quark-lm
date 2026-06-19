@@ -55,6 +55,9 @@ from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
     build_torch_training_backend_promotion_gate,
 )
+from transformer_torch_training_promotion_gate_validation import (
+    validate_torch_training_backend_promotion_gate,
+)
 from transformer_torch_training_readiness import (
     TORCH_TRAINING_BLOCKED_STATUS,
     TORCH_TRAINING_PENDING_STATUS,
@@ -124,5 +127,6 @@ __all__ = [
     "validate_torch_training_parity_attempt_requirements",
     "validate_torch_training_parity_attempt_audit",
     "validate_torch_training_parity_attempt_summaries",
+    "validate_torch_training_backend_promotion_gate",
     "validate_torch_training_state_summary",
 ]

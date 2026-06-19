@@ -394,15 +394,16 @@ closed-world boundary flags, artifact paths, and artifact payloads cannot
 silently drift out of the PyTorch parity evidence chain. The stored training
 parity report must also match a report rebuilt from the paired fixture and
 candidate payloads, and the stored backend-promotion gate must match a gate
-rebuilt from the candidate, report, and closed-world boundary. The standalone
-summary validator now also checks the promotion-gate schema, check catalog,
-blocker derivation, required future gate catalog, and compact corpus, runtime,
-candidate, replay-gate, and report summary shapes. The next-requirements
-diagnosis must also rebuild from the candidate runtime report, candidate, and
-report. Written summaries also carry SHA-256 payload hashes for sibling
-artifacts, and the persisted corpus summary must match the scalar fixture and
-candidate backend corpus hash. Written attempt directories are reloaded through
-the same validation contract before the writer returns.
+rebuilt from the candidate, report, and closed-world boundary. The
+backend-promotion gate now has standalone validation for schema, check catalog,
+blocker derivation, boundary state, and required future gate catalog.
+Standalone summary validation checks compact corpus, runtime, candidate,
+replay-gate, and report summary shapes. The next-requirements diagnosis must
+also rebuild from the candidate runtime report, candidate, and report. Written
+summaries also carry SHA-256 payload hashes for sibling artifacts, and the
+persisted corpus summary must match the scalar fixture and candidate backend
+corpus hash. Written attempt directories are reloaded through the same
+validation contract before the writer returns.
 The CLI can also audit an existing attempt directory with `--verify-existing`
 without rebuilding it. Verification emits a compact audit result for both valid
 and invalid written attempts, giving loop automation pass/fail status and
@@ -411,8 +412,9 @@ standalone validation for its status, error, routing, promotion, and
 artifact-file-map fields. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface exposes the written-attempt file map,
 hash algorithm, hash builder, loader, compact summary validator, and compact
-audit-result builder, validator, and status catalog so contributors can inspect
-the persisted audit contract without reaching through private module paths. Each
+audit-result builder, validator, and status catalog plus the
+backend-promotion-gate validator so contributors can inspect the persisted audit
+contract without reaching through private module paths. Each
 `next_requirements` summary is now a typed artifact with an explicit kind and
 schema version, and the public backend surface exposes that contract for loop
 consumers. The requirements artifact also has

@@ -29,6 +29,7 @@ from transformer_torch_backend import (
     build_torch_training_parity_attempt_audit,
     build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
+    validate_torch_training_backend_promotion_gate,
     validate_torch_training_parity_attempt_audit,
     validate_torch_training_parity_attempt_requirements,
     validate_torch_training_parity_attempt_summaries,
@@ -71,6 +72,7 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         )
         self.assertTrue(callable(load_torch_training_parity_attempt_artifact_set))
         self.assertTrue(callable(build_torch_training_parity_attempt_audit))
+        self.assertTrue(callable(validate_torch_training_backend_promotion_gate))
         self.assertTrue(callable(validate_torch_training_parity_attempt_audit))
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,

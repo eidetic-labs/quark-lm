@@ -8,17 +8,14 @@ from corpus_artifacts import SCHEMA_VERSION
 from transformer_torch_training_attempt_boundary import (
     torch_training_attempt_boundary_failures,
 )
-from transformer_torch_training_promotion_gate import (
-    TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
-    TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
-    TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION,
-    TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
-)
 from transformer_torch_training_parity_attempt_requirement_validation import (
     validate_torch_training_parity_attempt_requirements,
 )
 from transformer_torch_training_parity_attempt_summary_validation import (
     validate_torch_training_parity_attempt_summaries,
+)
+from transformer_torch_training_promotion_gate_validation import (
+    validate_torch_training_backend_promotion_gate,
 )
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
@@ -60,7 +57,10 @@ def validate_torch_training_parity_attempt(
     validate_torch_training_parity_attempt_summaries(attempt)
     boundary = attempt["closed_world_boundary"]
     _validate_boundary(boundary)
-    _validate_promotion_gate(attempt["training_backend_promotion_gate"], boundary)
+    validate_torch_training_backend_promotion_gate(
+        attempt["training_backend_promotion_gate"],
+        closed_world_boundary=boundary,
+    )
     _validate_attempt_status(attempt)
     _validate_next_requirements(attempt["next_requirements"], attempt)
     if require_artifacts:
@@ -71,60 +71,6 @@ def _validate_boundary(boundary: dict[str, Any]) -> None:
     failures = torch_training_attempt_boundary_failures(boundary)
     if failures:
         raise ValueError(f"closed_world_boundary.{failures[0]} is invalid")
-
-
-def _validate_promotion_gate(gate: dict[str, Any], boundary: dict[str, Any]) -> None:
-    if (
-        gate.get("schema_version")
-        != TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION
-    ):
-        raise ValueError("training backend promotion gate schema_version is invalid")
-    if gate.get("status") != TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS:
-        raise ValueError("training backend promotion gate status is invalid")
-    if gate.get("passed") is not False:
-        raise ValueError("training backend promotion gate must not pass")
-    if gate.get("promotion_eligible") is not False:
-        raise ValueError("training backend promotion gate must not be eligible")
-    if gate.get("promoted_training_backend") is not False:
-        raise ValueError("training backend promotion gate must not promote")
-    if gate.get("evidence_scope") != "fixture_replay_parity_only":
-        raise ValueError("training backend promotion gate evidence_scope is invalid")
-    _validate_promotion_gate_checks(gate)
-    if gate.get("required_future_gates") != list(
-        TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES
-    ):
-        raise ValueError("training backend promotion gate future gates are invalid")
-    boundary_failures = _boundary_failures(boundary)
-    if gate.get("closed_world_boundary_passed") is not (not boundary_failures):
-        raise ValueError("training backend promotion gate boundary status is invalid")
-    if gate.get("closed_world_boundary_failures") != boundary_failures:
-        raise ValueError("training backend promotion gate boundary failures are invalid")
-
-
-def _validate_promotion_gate_checks(gate: dict[str, Any]) -> None:
-    checks = gate.get("checks")
-    if not isinstance(checks, list):
-        raise ValueError("training backend promotion gate checks are invalid")
-    if [check.get("name") for check in checks] != list(
-        TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS
-    ):
-        raise ValueError("training backend promotion gate check catalog is invalid")
-    for check in checks:
-        if not isinstance(check.get("passed"), bool):
-            raise ValueError("training backend promotion gate check status is invalid")
-        if not isinstance(check.get("reason"), str) or not check["reason"].strip():
-            raise ValueError("training backend promotion gate check reason is invalid")
-    expected_blockers = [
-        check["name"]
-        for check in checks
-        if check.get("passed") is False
-    ]
-    if gate.get("blockers") != expected_blockers:
-        raise ValueError("training backend promotion gate blockers are invalid")
-
-
-def _boundary_failures(boundary: dict[str, Any]) -> list[str]:
-    return torch_training_attempt_boundary_failures(boundary)
 
 
 def _validate_attempt_status(attempt: dict[str, Any]) -> None:
