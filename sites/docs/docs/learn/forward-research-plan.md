@@ -303,7 +303,9 @@ stage catalog so next-action routing can be checked without validating a full
 attempt bundle. Stage/action consistency is validated too, so a well-shaped
 artifact cannot route a replay blocker through a readiness or runtime action by
 mistake. Runtime preflight actions come from a canonical status-to-action map
-that the standalone validator also checks.
+that the standalone validator also checks. Runtime-preflight blockers use a
+paired status-to-blocker map so the remediation action is tied to the failed
+runtime check that justifies it.
 
 ## Where the sequence stands
 

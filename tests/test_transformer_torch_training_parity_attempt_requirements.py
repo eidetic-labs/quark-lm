@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from transformer_torch_training_parity_attempt_requirements import (
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
@@ -116,6 +117,13 @@ class TransformerTorchTrainingParityAttemptRequirementsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "runtime action"):
             validate_torch_training_parity_attempt_requirements(requirements)
 
+    def test_validator_rejects_runtime_blocker_status_mismatch(self) -> None:
+        requirements = _valid_requirements()
+        requirements["primary_blockers"] = ["runtime_available"]
+
+        with self.assertRaisesRegex(ValueError, "runtime blocker"):
+            validate_torch_training_parity_attempt_requirements(requirements)
+
     def test_validator_rejects_stage_action_mismatch(self) -> None:
         requirements = _stage_requirements(
             stage="training_replay_parity",
@@ -153,6 +161,12 @@ class TransformerTorchTrainingParityAttemptRequirementsTests(unittest.TestCase):
                 "blocked_dtype_unavailable"
             ],
             "request_available_pytorch_dtype",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS[
+                "blocked_dtype_unavailable"
+            ],
+            "dtype_available",
         )
 
 

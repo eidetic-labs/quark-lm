@@ -412,6 +412,8 @@ full attempt bundle. Stage/action consistency is validated too, so a
 well-shaped artifact cannot route a replay blocker through a readiness or
 runtime action by mistake. Runtime preflight actions now come from a canonical
 status-to-action map that the standalone validator also checks.
+Runtime-preflight blockers now use a paired status-to-blocker map so the
+remediation action is tied to the failed runtime check that justifies it.
 
 ## Current QuarkLM Diagnosis
 

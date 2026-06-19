@@ -13,6 +13,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
@@ -72,6 +73,12 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
                 "blocked_runtime_unavailable"
             ],
             "install_real_pytorch_runtime",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS[
+                "blocked_runtime_unavailable"
+            ],
+            "runtime_available",
         )
         validate_torch_training_parity_attempt_requirements(requirements)
 

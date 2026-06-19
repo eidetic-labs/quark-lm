@@ -7,6 +7,7 @@ from typing import Any
 from transformer_torch_training_parity_attempt_requirements import (
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
@@ -85,6 +86,11 @@ def _validate_stage_routing(
         )
         if next_actions[0] != expected_action:
             raise ValueError("next_requirements.runtime action is inconsistent")
+        expected_blocker = TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS.get(
+            runtime_status,
+        )
+        if expected_blocker is not None and expected_blocker not in primary_blockers:
+            raise ValueError("next_requirements.runtime blocker is inconsistent")
         return
     expected_actions = [
         f"{_action_prefix(stage)}:{blocker}" for blocker in primary_blockers

@@ -117,6 +117,8 @@ Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
 Runtime preflight actions come from a canonical status-to-action map that the
 standalone validator also checks.
+Runtime-preflight blockers use a paired status-to-blocker map so the
+remediation action is tied to the failed runtime check that justifies it.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

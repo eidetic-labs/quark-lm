@@ -29,6 +29,11 @@ TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS = {
     "blocked_test_double_runtime": "run_again_with_real_pytorch_runtime",
     "blocked_dtype_unavailable": "request_available_pytorch_dtype",
 }
+TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS = {
+    "blocked_runtime_unavailable": "runtime_available",
+    "blocked_test_double_runtime": "runtime_kind",
+    "blocked_dtype_unavailable": "dtype_available",
+}
 
 
 def build_torch_training_parity_attempt_requirements(
