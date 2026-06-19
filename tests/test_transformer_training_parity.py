@@ -31,6 +31,26 @@ class TransformerTrainingParityTests(unittest.TestCase):
         self.assertEqual(fixture["optimizer_config"]["optimizer"], "adamw")
         self.assertEqual(len(case["step_records"]), 2)
         self.assertEqual(case["step_records"][0]["optimizer_summary"]["update_count"], 0)
+        self.assertFalse(
+            case["step_records"][0]["optimizer_gradient_evidence"][
+                "update_applied"
+            ]
+        )
+        self.assertFalse(
+            case["step_records"][0]["optimizer_gradient_evidence"][
+                "accumulated_gradient"
+            ]["available"]
+        )
+        self.assertTrue(
+            case["step_records"][1]["optimizer_gradient_evidence"][
+                "update_applied"
+            ]
+        )
+        self.assertTrue(
+            case["step_records"][1]["optimizer_gradient_evidence"][
+                "accumulated_gradient"
+            ]["available"]
+        )
         self.assertEqual(case["optimizer_state"]["update_count"], 1)
         self.assertEqual(case["optimizer_state"]["pending_accumulation"], 0)
         self.assertEqual(

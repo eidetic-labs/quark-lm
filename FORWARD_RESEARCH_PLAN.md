@@ -319,7 +319,11 @@ optimizer updates are applied. That is still not full PyTorch training parity:
 it does not yet prove buffered-gradient numerical equivalence, optimizer
 updates, final logits, final loss, or checkpoint compatibility. The next
 implementation layer is matching those numerical update effects against scalar
-training evidence.
+training evidence. Scalar training fixtures now record per-step gradient-buffer
+evidence: raw gradients, clipped gradients, buffer state before and after the
+microstep, and the averaged gradient vector used when an update is applied. That
+gives the PyTorch backend a concrete numerical target for accumulated-gradient
+parity without promoting the PyTorch path yet.
 
 ## Current QuarkLM Diagnosis
 

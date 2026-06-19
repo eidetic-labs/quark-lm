@@ -32,9 +32,29 @@ class TransformerOptimizerStateTest(unittest.TestCase):
         model.train_step(context, target, learning_rate=0.02)
         self.assertEqual(optimizer.update_count, 0)
         self.assertEqual(optimizer.pending_accumulation, 1)
+        self.assertFalse(optimizer.last_apply_evidence["update_applied"])
+        self.assertFalse(
+            optimizer.last_apply_evidence["accumulated_gradient"]["available"]
+        )
+        self.assertGreater(
+            optimizer.last_apply_evidence["clipped_gradient"]["signature"][
+                "count"
+            ],
+            0,
+        )
         model.train_step(context, target, learning_rate=0.02)
         self.assertEqual(optimizer.update_count, 1)
         self.assertEqual(optimizer.pending_accumulation, 0)
+        self.assertTrue(optimizer.last_apply_evidence["update_applied"])
+        self.assertTrue(
+            optimizer.last_apply_evidence["accumulated_gradient"]["available"]
+        )
+        self.assertEqual(
+            optimizer.last_apply_evidence["accumulated_gradient"]["signature"][
+                "count"
+            ],
+            len(optimizer.first_moment),
+        )
         self.assertGreater(before, model.nll(context, target))
 
         with tempfile.TemporaryDirectory() as temp:

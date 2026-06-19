@@ -154,6 +154,9 @@ def _training_step(
         "step": step,
         "loss": loss,
         "optimizer_summary": optimizer.summary(),
+        "optimizer_gradient_evidence": copy.deepcopy(
+            optimizer.last_apply_evidence
+        ),
     }
 
 
@@ -207,3 +210,26 @@ def _validate_training_case(case: Any) -> None:
     for key in required:
         if key not in case:
             raise ValueError(f"training_case missing {key}")
+    for record in case["step_records"]:
+        _validate_step_record(record)
+
+
+def _validate_step_record(record: Any) -> None:
+    if not isinstance(record, dict):
+        raise ValueError("training step record must be a dict")
+    required = {"step", "loss", "optimizer_summary", "optimizer_gradient_evidence"}
+    for key in required:
+        if key not in record:
+            raise ValueError(f"training step record missing {key}")
+    evidence = record["optimizer_gradient_evidence"]
+    if not isinstance(evidence, dict):
+        raise ValueError("optimizer_gradient_evidence must be a dict")
+    for key in (
+        "raw_gradient",
+        "clipped_gradient",
+        "buffer_before",
+        "buffer_after_add",
+        "accumulated_gradient",
+    ):
+        if key not in evidence:
+            raise ValueError(f"optimizer_gradient_evidence missing {key}")

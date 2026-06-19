@@ -8,6 +8,9 @@ from typing import Any
 
 from autograd import Scalar
 from transformer_model import OptimizationConfig, validate_optimization_config
+from transformer_optimizer_gradient_evidence import (
+    build_optimizer_gradient_evidence,
+)
 
 
 class ScalarOptimizer:
@@ -26,6 +29,7 @@ class ScalarOptimizer:
         self.second_moment = second_moment or []
         self.gradient_buffer = gradient_buffer or []
         self.pending_accumulation = pending_accumulation
+        self.last_apply_evidence: dict[str, Any] | None = None
         validate_optimization_config(self.config)
 
     def effective_learning_rate(self, base_learning_rate: float, next_step: int | None = None) -> float:
@@ -43,11 +47,31 @@ class ScalarOptimizer:
 
     def apply(self, params: list[Scalar], base_learning_rate: float) -> float:
         self._ensure_slots(len(params))
-        for index, parameter in enumerate(params):
-            self.gradient_buffer[index] += self._clipped_grad(parameter)
+        buffer_before = list(self.gradient_buffer)
+        update_count_before = self.update_count
+        pending_before = self.pending_accumulation
+        raw_grads = [parameter.grad for parameter in params]
+        clipped_grads = [self._clipped_grad(parameter) for parameter in params]
+        for index, grad in enumerate(clipped_grads):
+            self.gradient_buffer[index] += grad
+        buffer_after_add = list(self.gradient_buffer)
         self.pending_accumulation += 1
         if self.pending_accumulation < self.config.gradient_accumulation_steps:
-            return self.effective_learning_rate(base_learning_rate)
+            learning_rate = self.effective_learning_rate(base_learning_rate)
+            self.last_apply_evidence = build_optimizer_gradient_evidence(
+                raw_gradients=raw_grads,
+                clipped_gradients=clipped_grads,
+                buffer_before=buffer_before,
+                buffer_after_add=buffer_after_add,
+                accumulated_gradients=None,
+                update_applied=False,
+                update_count_before=update_count_before,
+                update_count_after=self.update_count,
+                pending_accumulation_before=pending_before,
+                pending_accumulation_after=self.pending_accumulation,
+                learning_rate=learning_rate,
+            )
+            return learning_rate
         accumulated_grads = [
             value / self.pending_accumulation
             for value in self.gradient_buffer
@@ -62,6 +86,19 @@ class ScalarOptimizer:
             self._apply_adamw(params, accumulated_grads, learning_rate)
         else:
             raise ValueError(f"unsupported optimizer: {self.config.optimizer}")
+        self.last_apply_evidence = build_optimizer_gradient_evidence(
+            raw_gradients=raw_grads,
+            clipped_gradients=clipped_grads,
+            buffer_before=buffer_before,
+            buffer_after_add=buffer_after_add,
+            accumulated_gradients=accumulated_grads,
+            update_applied=True,
+            update_count_before=update_count_before,
+            update_count_after=self.update_count,
+            pending_accumulation_before=pending_before,
+            pending_accumulation_after=self.pending_accumulation,
+            learning_rate=learning_rate,
+        )
         return learning_rate
 
     def _ensure_slots(self, param_count: int) -> None:

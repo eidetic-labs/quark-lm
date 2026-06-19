@@ -18,6 +18,10 @@ from transformer_gradient_accumulation_contract import (
     build_gradient_accumulation_contract,
     validate_gradient_accumulation_contract,
 )
+from transformer_optimizer_gradient_evidence import (
+    OPTIMIZER_GRADIENT_EVIDENCE_SCHEMA_VERSION,
+    build_optimizer_gradient_evidence,
+)
 from transformer_training_parameter_manifest import (
     TRAINING_PARAMETER_MANIFEST_SCHEMA_VERSION,
     TRAINING_PARAMETER_ORDER,
@@ -42,7 +46,9 @@ __all__ = [
     "OPTIMIZER_STEP_CONTRACT_SCHEMA_VERSION",
     "GRADIENT_ACCUMULATION_CONTRACT_KIND",
     "GRADIENT_ACCUMULATION_CONTRACT_SCHEMA_VERSION",
+    "OPTIMIZER_GRADIENT_EVIDENCE_SCHEMA_VERSION",
     "build_gradient_accumulation_contract",
+    "build_optimizer_gradient_evidence",
     "build_optimizer_step_contract",
     "build_scalar_training_parity_fixture",
     "build_training_parameter_manifest",

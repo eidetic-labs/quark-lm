@@ -53,6 +53,9 @@ reference.
 - Keep replay-control evidence scoped: recorded PyTorch microstep backward
   control does not prove buffered-gradient math, optimizer updates, final
   logits, or final loss parity.
+- Record scalar gradient-buffer evidence in training parity fixtures so PyTorch
+  can compare raw, clipped, buffered, averaged, and applied gradients before
+  claiming accumulated-gradient parity.
 - Keep PyTorch optional: no dependency requirement, no pretrained assets, no
   unledgered data, and no promoted capability claim.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
