@@ -406,16 +406,16 @@ the same validation contract before the writer returns.
 The CLI can also audit an existing attempt directory with `--verify-existing`
 without rebuilding it. Recorded artifact paths must resolve to the loaded
 files. The optional public backend surface exposes the written-attempt file
-map, hash algorithm, hash builder, and loader so contributors can inspect the
-persisted audit contract without reaching through private module paths. Each
-`next_requirements` summary is now a typed artifact with an explicit kind and
-schema version, and the public backend surface exposes that contract for loop
-consumers. The requirements artifact also has standalone validation and a
-public stage catalog so next-action routing can be checked without validating a
-full attempt bundle. Stage/action consistency is validated too, so a
-well-shaped artifact cannot route a replay blocker through a readiness or
-runtime action by mistake. Runtime preflight actions now come from a canonical
-status-to-action map that the standalone validator also checks.
+map, hash algorithm, hash builder, loader, and compact summary validator so
+contributors can inspect the persisted audit contract without reaching through
+private module paths. Each `next_requirements` summary is now a typed artifact
+with an explicit kind and schema version, and the public backend surface
+exposes that contract for loop consumers. The requirements artifact also has
+standalone validation and a public stage catalog so next-action routing can be
+checked without validating a full attempt bundle. Stage/action consistency is
+validated too, so a well-shaped artifact cannot route a replay blocker through
+a readiness or runtime action by mistake. Runtime preflight actions now come
+from a canonical status-to-action map that the standalone validator also checks.
 Runtime-preflight blockers now use a paired status-to-blocker map so the
 remediation action is tied to the failed runtime check that justifies it.
 

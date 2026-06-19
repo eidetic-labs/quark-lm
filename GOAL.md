@@ -133,11 +133,11 @@ reference.
   before the writer returns; recorded artifact paths must resolve to the loaded
   files, and the CLI must audit an existing attempt directory without
   rebuilding it. The optional public backend surface must expose the
-  written-attempt file map, hash algorithm, hash builder, and loader so
-  contributors inspect the persisted audit contract without private module
-  paths. Each `next_requirements` summary must be a typed artifact with an
-  explicit kind and schema version, and that contract must also be available
-  from the optional public backend surface. The
+  written-attempt file map, hash algorithm, hash builder, loader, and compact
+  summary validator so contributors inspect the persisted audit contract
+  without private module paths. Each `next_requirements` summary must be a
+  typed artifact with an explicit kind and schema version, and that contract
+  must also be available from the optional public backend surface. The
   requirements artifact must provide standalone validation and a public stage
   catalog so next-action routing can be checked without validating a full
   attempt bundle. Stage/action consistency must be validated so well-shaped

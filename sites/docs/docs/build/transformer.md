@@ -111,13 +111,13 @@ before the writer returns. The same command can run with
 `--verify-existing` to audit a written attempt directory without
 rebuilding it. Recorded artifact paths must resolve to the loaded files. The
 optional public backend surface also exposes the written-attempt file map, hash
-algorithm, hash builder, and loader so contributors can inspect the same
-persisted audit contract without reaching through private module paths. Each
-`next_requirements` summary is a typed artifact with an explicit kind and schema
-version, and that contract is available from the optional public backend
-surface. The requirements artifact also has standalone validation and a public
-stage catalog so next-action routing can be checked without validating a full
-attempt bundle.
+algorithm, hash builder, loader, and compact summary validator so contributors
+can inspect the same persisted audit contract without reaching through private
+module paths. Each `next_requirements` summary is a typed artifact with an
+explicit kind and schema version, and that contract is available from the
+optional public backend surface. The requirements artifact also has standalone
+validation and a public stage catalog so next-action routing can be checked
+without validating a full attempt bundle.
 Stage/action consistency is validated too, so a well-shaped artifact cannot
 route a replay blocker through a readiness or runtime action by mistake.
 Runtime preflight actions come from a canonical status-to-action map that the

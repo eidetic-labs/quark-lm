@@ -28,6 +28,9 @@ from transformer_torch_training_parity_attempt_reader import (
 from transformer_torch_training_parity_attempt_requirement_validation import (
     validate_torch_training_parity_attempt_requirements,
 )
+from transformer_torch_training_parity_attempt_summary_validation import (
+    validate_torch_training_parity_attempt_summaries,
+)
 from transformer_torch_training_parity_attempt_requirements import (
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
@@ -108,5 +111,6 @@ __all__ = [
     "summarize_torch_training_state",
     "torch_training_weights_from_state",
     "validate_torch_training_parity_attempt_requirements",
+    "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_state_summary",
 ]

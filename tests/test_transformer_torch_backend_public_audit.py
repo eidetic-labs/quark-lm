@@ -27,6 +27,7 @@ from transformer_torch_backend import (
     build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
     validate_torch_training_parity_attempt_requirements,
+    validate_torch_training_parity_attempt_summaries,
 )
 
 
@@ -107,6 +108,41 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
             TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES,
         )
         validate_torch_training_parity_attempt_requirements(requirements)
+
+    def test_training_attempt_summary_validation_is_public(self) -> None:
+        attempt = {
+            "corpus": {
+                "corpus_dir": "corpus",
+                "train_sha256": "a" * 64,
+                "train_chars": 1,
+                "manifest": {},
+            },
+            "runtime": {
+                "status": "passed",
+                "passed": True,
+                "parity_attempt_allowed": True,
+                "runtime_kind": "pytorch",
+                "device": "cpu",
+                "dtype": "float64",
+            },
+            "candidate": {
+                "implementation_status": "training_replay_parity_matched",
+                "parity_status": "matched",
+                "training_readiness_status": "ready",
+                "training_case_status": "computed",
+            },
+            "training_replay_parity_gate": {
+                "status": "training_replay_parity_matched",
+                "passed": True,
+                "failed_checks": [],
+            },
+            "training_parity_report": {
+                "passed": True,
+                "failed_checks": [],
+            },
+        }
+
+        validate_torch_training_parity_attempt_summaries(attempt)
 
 
 if __name__ == "__main__":
