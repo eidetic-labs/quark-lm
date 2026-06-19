@@ -66,6 +66,12 @@ and stores a compact attempt summary. The artifact set is:
 | `training_parity_report.json` | The candidate-versus-scalar report, including runtime and replay-gate checks. |
 | `torch_training_parity_attempt.json` | The concise decision summary, artifact paths, closed-world boundary flags, failed checks, backend-promotion gate, and next unsatisfied requirement. |
 
+```bash title="Verify an existing PyTorch training parity attempt"
+PYTHONPATH=src python3 -m transformer_torch_training_parity_attempt_cli \
+  --output-dir build/torch_training_parity_attempt_float64 \
+  --verify-existing
+```
+
 If real PyTorch is not installed, the command still writes the artifacts and
 records `blocked_runtime_unavailable`. That blocked result is useful evidence;
 it is not a model-quality failure and it does not change the scalar reference.
@@ -97,7 +103,8 @@ the candidate, report, and closed-world boundary. The next-requirements
 diagnosis must also rebuild from the candidate runtime report, candidate, and
 report. Written summaries also carry SHA-256 payload hashes for sibling
 artifacts, and written attempt directories are reloaded through the same
-validation contract before the writer returns.
+validation contract before the writer returns. The same command can run with
+`--verify-existing` to audit a written attempt directory without rebuilding it.
 
 It is **not** the reliable answering path. Retrieval memory and the deterministic
 responder already answer admitted probes exactly (see [Build](./index.md)). The

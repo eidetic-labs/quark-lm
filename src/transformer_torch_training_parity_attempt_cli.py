@@ -12,12 +12,20 @@ from transformer_torch_training_parity_attempt import (
     build_torch_training_parity_attempt,
     write_torch_training_parity_attempt,
 )
+from transformer_torch_training_parity_attempt_reader import (
+    load_torch_training_parity_attempt_artifact_set,
+)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--verify-existing",
+        action="store_true",
+        help="validate an existing output directory without rebuilding artifacts",
+    )
     parser.add_argument(
         "--fixture-id",
         default="admitted-curriculum-training-parity",
@@ -37,6 +45,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.verify_existing:
+        artifacts = load_torch_training_parity_attempt_artifact_set(args.output_dir)
+        print(json.dumps(artifacts["attempt"], indent=2, sort_keys=True))
+        return 0
     artifacts = build_torch_training_parity_attempt(
         corpus_dir=args.corpus_dir,
         fixture_id=args.fixture_id,

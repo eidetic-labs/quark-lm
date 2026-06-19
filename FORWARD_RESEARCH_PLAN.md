@@ -398,7 +398,9 @@ rebuilt from the candidate, report, and closed-world boundary. The
 next-requirements diagnosis must also rebuild from the candidate runtime
 report, candidate, and report. Written summaries also carry SHA-256 payload
 hashes for sibling artifacts, and written attempt directories are reloaded
-through the same validation contract before the writer returns.
+through the same validation contract before the writer returns. The CLI can
+also audit an existing attempt directory with `--verify-existing` without
+rebuilding it.
 
 ## Current QuarkLM Diagnosis
 

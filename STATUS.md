@@ -198,7 +198,8 @@ Working tagline: Big idea. Tiny package.
   from the candidate runtime report, candidate, and report. Written summaries
   now carry SHA-256 payload hashes for sibling artifacts, and written attempt
   directories are reloaded through the same validation contract before the
-  writer returns.
+  writer returns. The CLI can also audit an existing attempt directory with
+  `--verify-existing` without rebuilding it.
 
 ## Research Grounding
 
