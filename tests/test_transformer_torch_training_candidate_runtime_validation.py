@@ -40,6 +40,13 @@ class TransformerTorchTrainingCandidateRuntimeValidationTests(unittest.TestCase)
         with self.assertRaisesRegex(ValueError, "runtime_report.runtime"):
             validate_torch_training_candidate_runtime_report(candidate)
 
+    def test_validator_rejects_extra_runtime_report_key(self) -> None:
+        candidate = _candidate()
+        candidate["runtime_report"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "runtime_report keys"):
+            validate_torch_training_candidate_runtime_report(candidate)
+
     def test_validator_rejects_dirty_runtime_boundary(self) -> None:
         candidate = _candidate()
         candidate["runtime_report"]["closed_world_boundary"][

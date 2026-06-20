@@ -33,6 +33,8 @@ def validate_torch_runtime_report(report: dict[str, Any]) -> None:
 
     if not isinstance(report, dict):
         raise ValueError("runtime_report must be a dict")
+    if set(report) != _REPORT_KEYS:
+        raise ValueError("runtime_report keys are inconsistent")
     if report.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("runtime_report.schema_version is inconsistent")
     if report.get("kind") != TORCH_RUNTIME_REPORT_KIND:
@@ -52,6 +54,8 @@ def validate_torch_runtime_report(report: dict[str, Any]) -> None:
 
 
 def _validate_runtime(runtime: dict[str, Any]) -> None:
+    if set(runtime) != _runtime_keys(runtime):
+        raise ValueError("runtime_report.runtime keys are inconsistent")
     _require_bool(runtime, "available", label="runtime")
     _require_bool(runtime, "dtype_available", label="runtime")
     runtime_kind = _require_non_empty_string(
@@ -73,6 +77,7 @@ def _validate_checks(report: dict[str, Any]) -> None:
         raise ValueError("runtime_report.check catalog is inconsistent")
     expected = _expected_check_results(report["runtime"])
     for check in checks:
+        _validate_check_keys(check)
         name = check["name"]
         if not isinstance(check.get("passed"), bool):
             raise ValueError(f"runtime_report.checks.{name}.passed is invalid")
@@ -84,6 +89,8 @@ def _validate_summary(report: dict[str, Any]) -> None:
     summary = report.get("summary")
     if not isinstance(summary, dict):
         raise ValueError("runtime_report.summary must be a dict")
+    if set(summary) != _SUMMARY_KEYS:
+        raise ValueError("runtime_report.summary keys are inconsistent")
     checks = report["checks"]
     failed = [check["name"] for check in checks if check.get("passed") is not True]
     if summary.get("check_count") != len(checks):
@@ -97,6 +104,8 @@ def _validate_summary(report: dict[str, Any]) -> None:
 def _validate_boundary(boundary: Any) -> None:
     if not isinstance(boundary, dict):
         raise ValueError("runtime_report.closed_world_boundary must be a dict")
+    if set(boundary) != _BOUNDARY_KEYS:
+        raise ValueError("runtime_report.closed_world_boundary keys are inconsistent")
     expected = {
         "runtime_library_allowed": True,
         "learned_assets_imported": False,
@@ -108,6 +117,22 @@ def _validate_boundary(boundary: Any) -> None:
     for key, expected_value in expected.items():
         if boundary.get(key) is not expected_value:
             raise ValueError(f"runtime_report.closed_world_boundary.{key}")
+
+
+def _runtime_keys(runtime: dict[str, Any]) -> set[str]:
+    if runtime.get("available") is True:
+        return _AVAILABLE_RUNTIME_KEYS
+    return _UNAVAILABLE_RUNTIME_KEYS
+
+
+def _validate_check_keys(check: dict[str, Any]) -> None:
+    expected = (
+        _STATUS_CHECK_KEYS
+        if check.get("name") == "runtime_kind"
+        else _BOOL_CHECK_KEYS
+    )
+    if set(check) != expected:
+        raise ValueError(f"runtime_report.checks.{check.get('name')}.keys")
 
 
 def _validate_flags(report: dict[str, Any]) -> None:
@@ -181,3 +206,45 @@ _RUNTIME_KINDS = (
     TORCH_RUNTIME_KIND_TEST_DOUBLE,
     TORCH_RUNTIME_KIND_UNAVAILABLE,
 )
+_REPORT_KEYS = {
+    "schema_version",
+    "kind",
+    "status",
+    "passed",
+    "runtime",
+    "checks",
+    "summary",
+    "evidence_scope",
+    "parity_attempt_allowed",
+    "closed_world_boundary",
+    "training_evidence_allowed",
+    "reason",
+}
+_UNAVAILABLE_RUNTIME_KEYS = {
+    "backend",
+    "available",
+    "runtime_kind",
+    "version",
+    "requested_device",
+    "device",
+    "requested_dtype",
+    "dtype",
+    "dtype_available",
+    "error",
+}
+_AVAILABLE_RUNTIME_KEYS = _UNAVAILABLE_RUNTIME_KEYS | {"available_devices"}
+_SUMMARY_KEYS = {
+    "check_count",
+    "passed_check_count",
+    "failed_checks",
+}
+_BOUNDARY_KEYS = {
+    "runtime_library_allowed",
+    "learned_assets_imported",
+    "training_data_imported",
+    "pretrained_weights_imported",
+    "pretrained_tokenizer_imported",
+    "external_embeddings_imported",
+}
+_BOOL_CHECK_KEYS = {"name", "passed", "actual"}
+_STATUS_CHECK_KEYS = {"name", "passed", "expected", "actual"}

@@ -104,6 +104,41 @@ class TransformerTorchRuntimeReportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "failed_checks"):
             validate_torch_runtime_report(report)
 
+    def test_validator_rejects_extra_report_key(self) -> None:
+        report = build_torch_runtime_report(importer=_real_like_importer)
+        report["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "runtime_report keys"):
+            validate_torch_runtime_report(report)
+
+    def test_validator_rejects_extra_runtime_key(self) -> None:
+        report = build_torch_runtime_report(importer=_real_like_importer)
+        report["runtime"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "runtime keys"):
+            validate_torch_runtime_report(report)
+
+    def test_validator_rejects_extra_summary_key(self) -> None:
+        report = build_torch_runtime_report(importer=_real_like_importer)
+        report["summary"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "summary keys"):
+            validate_torch_runtime_report(report)
+
+    def test_validator_rejects_extra_boundary_key(self) -> None:
+        report = build_torch_runtime_report(importer=_real_like_importer)
+        report["closed_world_boundary"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "closed_world_boundary keys"):
+            validate_torch_runtime_report(report)
+
+    def test_validator_rejects_extra_check_key(self) -> None:
+        report = build_torch_runtime_report(importer=_real_like_importer)
+        report["checks"][0]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "runtime_available.keys"):
+            validate_torch_runtime_report(report)
+
     def test_validator_rejects_stale_status(self) -> None:
         report = build_torch_runtime_report(importer=_missing_importer)
         report["status"] = "ready_for_pytorch_parity"
