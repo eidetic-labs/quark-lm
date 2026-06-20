@@ -97,6 +97,41 @@ class TransformerTorchTrainingParityAttemptAuditValidationTests(unittest.TestCas
         with self.assertRaisesRegex(ValueError, "evidence_hashes.runtime_report"):
             validate_torch_training_parity_attempt_audit(audit)
 
+    def test_validator_rejects_runtime_allowed_with_failures(self) -> None:
+        audit = _valid_audit()
+        audit["runtime_status"] = "ready_for_pytorch_parity"
+        audit["parity_attempt_allowed"] = True
+
+        with self.assertRaisesRegex(ValueError, "audit.runtime_failed_checks"):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_ready_readiness_with_failures(self) -> None:
+        audit = _valid_audit()
+        audit["training_readiness_status"] = "ready"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "audit.training_readiness_failed_checks",
+        ):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_passed_replay_with_failures(self) -> None:
+        audit = _valid_audit()
+        audit["training_replay_parity_passed"] = True
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "audit.training_replay_parity_failed_checks",
+        ):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_passed_report_with_failures(self) -> None:
+        audit = _valid_audit()
+        audit["training_report_passed"] = True
+
+        with self.assertRaisesRegex(ValueError, "audit.training_report_failed_checks"):
+            validate_torch_training_parity_attempt_audit(audit)
+
     def test_validator_exposes_evidence_hash_key_catalog(self) -> None:
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,

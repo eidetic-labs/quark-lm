@@ -24,6 +24,7 @@ from transformer_torch_training_parity_attempt_audit_requirements import (
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
+from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
 TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND = (
@@ -113,6 +114,7 @@ def _validate_valid_audit(audit: dict[str, Any]) -> None:
         "training_report_failed_checks",
     ):
         _require_string_list(audit, key)
+    _validate_failed_check_consistency(audit)
     validate_torch_training_parity_attempt_audit_status(audit)
     validate_torch_training_parity_attempt_audit_requirements(audit)
     if audit.get("promoted_training_backend") is not False:
@@ -181,6 +183,39 @@ def _validate_routing(audit: dict[str, Any]) -> None:
         status_error="audit.next_requirements_status",
         action_error="audit.next_actions",
     )
+
+
+def _validate_failed_check_consistency(audit: dict[str, Any]) -> None:
+    _reject_success_with_failed_checks(
+        audit,
+        success_key="parity_attempt_allowed",
+        failed_checks_key="runtime_failed_checks",
+    )
+    if (
+        audit["training_readiness_status"] == TORCH_TRAINING_READY_STATUS
+        and audit["training_readiness_failed_checks"]
+    ):
+        raise ValueError("audit.training_readiness_failed_checks is inconsistent")
+    _reject_success_with_failed_checks(
+        audit,
+        success_key="training_replay_parity_passed",
+        failed_checks_key="training_replay_parity_failed_checks",
+    )
+    _reject_success_with_failed_checks(
+        audit,
+        success_key="training_report_passed",
+        failed_checks_key="training_report_failed_checks",
+    )
+
+
+def _reject_success_with_failed_checks(
+    audit: dict[str, Any],
+    *,
+    success_key: str,
+    failed_checks_key: str,
+) -> None:
+    if audit[success_key] and audit[failed_checks_key]:
+        raise ValueError(f"audit.{failed_checks_key} is inconsistent")
 
 
 def _is_sha256(value: Any) -> bool:
