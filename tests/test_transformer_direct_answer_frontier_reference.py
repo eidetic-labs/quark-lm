@@ -48,6 +48,33 @@ class TransformerDirectAnswerFrontierReferenceTest(unittest.TestCase):
         self.assertTrue(reference["final_comparison"]["passed"])
         self.assertFalse(reference["baseline_comparison"]["coverage_preserved"])
         self.assertTrue(reference["final_comparison"]["coverage_preserved"])
+        self.assertTrue(reference["frontier_gap_summary"]["active"])
+        self.assertFalse(reference["frontier_gap_summary"]["used_for_training"])
+        self.assertEqual(
+            reference["frontier_gap_summary"]["repair_focus_profiles"],
+            [],
+        )
+
+    def test_records_frontier_gap_summary_for_failed_final_comparison(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            frontier_path = Path(temp) / "frontier_metrics.json"
+            frontier_path.write_text(
+                json.dumps(metrics_with_profile_coverage("frontier", {"qa": 0.5})),
+                encoding="utf-8",
+            )
+
+            reference = build_direct_answer_frontier_reference(
+                args=SimpleNamespace(direct_answer_frontier_metrics=frontier_path),
+                direct_baseline=_snapshot(0.5),
+                final_snapshot=_snapshot(0.0),
+            )
+
+        summary = reference["frontier_gap_summary"]
+        self.assertTrue(summary["active"])
+        self.assertFalse(summary["passed"])
+        self.assertFalse(summary["used_for_training"])
+        self.assertEqual(summary["coverage_regressed_profiles"], ["qa"])
+        self.assertEqual(summary["repair_focus_profiles"], ["qa"])
 
 
 def _snapshot(coverage: float) -> dict[str, object]:

@@ -9,6 +9,7 @@ from transformer_branch_frontier_comparison import (
     compare_metrics_to_branch_frontier,
     load_frontier_metrics,
 )
+from transformer_direct_answer_frontier_gap import build_frontier_gap_summary
 
 
 def build_direct_answer_frontier_reference(
@@ -21,6 +22,8 @@ def build_direct_answer_frontier_reference(
     if path is None:
         return _inactive_reference()
     frontier_metrics = load_frontier_metrics(Path(path))
+    baseline_comparison = _compare_snapshot(direct_baseline, frontier_metrics)
+    final_comparison = _compare_snapshot(final_snapshot, frontier_metrics)
     return {
         "active": True,
         "used_for_training": False,
@@ -30,8 +33,9 @@ def build_direct_answer_frontier_reference(
             "Frontier metrics are an evaluation reference for guard evidence; "
             "they are not training data, weights, tokenizer state, or embeddings."
         ),
-        "baseline_comparison": _compare_snapshot(direct_baseline, frontier_metrics),
-        "final_comparison": _compare_snapshot(final_snapshot, frontier_metrics),
+        "baseline_comparison": baseline_comparison,
+        "final_comparison": final_comparison,
+        "frontier_gap_summary": build_frontier_gap_summary(final_comparison),
     }
 
 
@@ -43,6 +47,7 @@ def _inactive_reference() -> dict[str, Any]:
         "frontier_run_id": None,
         "baseline_comparison": None,
         "final_comparison": None,
+        "frontier_gap_summary": None,
     }
 
 
