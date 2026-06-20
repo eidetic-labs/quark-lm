@@ -9,6 +9,10 @@ from transformer_backend_policy import (
     validate_transformer_backend_metadata,
 )
 from transformer_experiment_constants import TRAINING_DATA_DESCRIPTION
+from transformer_frontier_reference_constraints import (
+    REFERENCE_KEY,
+    direct_answer_frontier_reference_checks,
+)
 from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
 
 
@@ -148,3 +152,5 @@ def _append_direct_answer_evidence(
                 "passed": bool(diversity.get("passed")),
             }
         )
+    if REFERENCE_KEY in direct_answer:
+        evidence.extend(direct_answer_frontier_reference_checks(direct_answer))
