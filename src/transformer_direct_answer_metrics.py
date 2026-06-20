@@ -16,6 +16,9 @@ from transformer_direct_answer_metric_sections import (
 from transformer_direct_answer_frontier_reference import (
     build_direct_answer_frontier_reference,
 )
+from transformer_direct_answer_update_outcome import (
+    direct_answer_weight_update_outcome,
+)
 from transformer_experiment import TRAINING_DATA_DESCRIPTION
 from transformer_model import GenerationConfig
 
@@ -132,6 +135,16 @@ def build_direct_answer_metrics(
             direct_answer_restored_frontier_progress_snapshot
         ),
         "direct_answer_frontier_progress_guard": direct_answer_frontier_progress_guard,
+        "direct_answer_weight_update_outcome": direct_answer_weight_update_outcome(
+            direct_steps_to_run=direct_steps_to_run,
+            training_skipped=direct_answer_training_skipped,
+            skip_reason=direct_answer_skip_reason,
+            restored_best_branch_snapshot=direct_answer_restored_best_branch_snapshot,
+            restored_frontier_progress_snapshot=(
+                direct_answer_restored_frontier_progress_snapshot
+            ),
+            frontier_progress_guard=direct_answer_frontier_progress_guard,
+        ),
         "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
         "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),
         "direct_answer_branch_snapshot_coverage_floor": (
