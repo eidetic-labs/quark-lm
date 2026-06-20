@@ -29,32 +29,33 @@ def build_replay_control_count_check(
     expected_schema_version: int,
 ) -> dict[str, Any]:
     schema_version = probe.get("schema_version")
-    match_count = _int_field(probe, "gradient_signature_match_count")
-    mismatch_count = _int_field(probe, "gradient_signature_mismatch_count")
-    planned_count = _int_field(probe, "planned_microstep_count")
-    executed_count = _int_field(probe, "executed_microstep_count")
-    backward_count = _int_field(probe, "backward_pass_count")
-    microstep_count = _microstep_count(probe)
+    counts = {
+        "match_count": _count_field(probe, "gradient_signature_match_count"),
+        "mismatch_count": _count_field(probe, "gradient_signature_mismatch_count"),
+        "planned_count": _count_field(probe, "planned_microstep_count"),
+        "executed_count": _count_field(probe, "executed_microstep_count"),
+        "backward_count": _count_field(probe, "backward_pass_count"),
+        "microstep_count": _microstep_count(probe),
+    }
+    count_values = {key: value for key, (value, _) in counts.items()}
+    count_types_valid = all(valid for _, valid in counts.values())
     passed = (
         schema_version == expected_schema_version
-        and planned_count > 0
-        and executed_count == planned_count
-        and backward_count == planned_count
-        and match_count == planned_count
-        and mismatch_count == 0
-        and microstep_count == planned_count
+        and count_types_valid
+        and count_values["planned_count"] > 0
+        and count_values["executed_count"] == count_values["planned_count"]
+        and count_values["backward_count"] == count_values["planned_count"]
+        and count_values["match_count"] == count_values["planned_count"]
+        and count_values["mismatch_count"] == 0
+        and count_values["microstep_count"] == count_values["planned_count"]
     )
     return {
         "name": name,
         "passed": passed,
         "schema_version": schema_version,
         "expected_schema_version": expected_schema_version,
-        "match_count": match_count,
-        "mismatch_count": mismatch_count,
-        "planned_count": planned_count,
-        "executed_count": executed_count,
-        "backward_count": backward_count,
-        "microstep_count": microstep_count,
+        "count_types_valid": count_types_valid,
+        **count_values,
     }
 
 
@@ -87,13 +88,12 @@ def build_replay_probe_check(
     }
 
 
-def _int_field(probe: dict[str, Any], name: str) -> int:
-    try:
-        return int(probe.get(name, 0))
-    except (TypeError, ValueError):
-        return 0
+def _count_field(probe: dict[str, Any], name: str) -> tuple[int, bool]:
+    value = probe.get(name)
+    valid = type(value) is int and value >= 0
+    return (value if valid else 0, valid)
 
 
-def _microstep_count(probe: dict[str, Any]) -> int:
+def _microstep_count(probe: dict[str, Any]) -> tuple[int, bool]:
     microsteps = probe.get("microsteps", [])
-    return len(microsteps) if isinstance(microsteps, list) else 0
+    return (len(microsteps), isinstance(microsteps, list))
