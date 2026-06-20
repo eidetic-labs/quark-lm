@@ -6,6 +6,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from transformer_branch_frontier_comparison import (
+    compare_metrics_to_branch_frontier,
+)
+
 
 SWEEP_REPORT_KIND = "transformer_answer_sweep_report"
 SWEEP_REPORT_SCHEMA_VERSION = 1
@@ -18,6 +22,7 @@ def build_answer_sweep_report(
     trials: list[dict[str, Any]],
     max_trials: int,
     dry_run: bool,
+    frontier_metrics_path: Path | None = None,
 ) -> dict[str, Any]:
     return {
         "schema_version": SWEEP_REPORT_SCHEMA_VERSION,
@@ -34,6 +39,9 @@ def build_answer_sweep_report(
         "max_trials": max_trials,
         "trials": trials,
         "summary": _summary(trials, dry_run),
+        "frontier_metrics_path": (
+            str(frontier_metrics_path) if frontier_metrics_path is not None else None
+        ),
         "pretrained_weights": False,
         "pretrained_tokenizer": False,
         "external_embeddings": False,
@@ -46,10 +54,11 @@ def trial_report_from_metrics(
     run_path: Path,
     config: dict[str, Any],
     metrics: dict[str, Any],
+    frontier_metrics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     promotion = metrics.get("constraint_first_promotion", {})
     branch_evidence = _branch_evidence(metrics)
-    return {
+    report = {
         "trial_id": trial_id,
         "status": "completed",
         "run": str(run_path),
@@ -64,6 +73,13 @@ def trial_report_from_metrics(
         "quality_metrics_considered": promotion.get("quality_metrics_considered"),
         "direct_answer_branch_evidence": branch_evidence,
     }
+    frontier_comparison = compare_metrics_to_branch_frontier(
+        metrics=metrics,
+        frontier_metrics=frontier_metrics,
+    )
+    if frontier_comparison is not None:
+        report["frontier_comparison"] = frontier_comparison
+    return report
 
 
 def planned_trial_report(
@@ -121,6 +137,17 @@ def _summary(trials: list[dict[str, Any]], dry_run: bool) -> dict[str, Any]:
             .get("branch_diversity_target", {})
             .get("passed")
             is True
+        ),
+        "frontier_competitive_trials": sum(
+            1
+            for trial in completed
+            if trial.get("frontier_comparison", {}).get("passed") is True
+        ),
+        "frontier_regressed_trials": sum(
+            1
+            for trial in completed
+            if trial.get("frontier_comparison", {}).get("available") is True
+            and trial.get("frontier_comparison", {}).get("passed") is False
         ),
     }
 

@@ -29,6 +29,15 @@ def add_answer_sweep_parser(
         help="Path for the combined sweep report. Defaults to RUN/sweep_report.json.",
     )
     sweep_parser.add_argument(
+        "--sweep-frontier-metrics",
+        type=Path,
+        default=None,
+        help=(
+            "Optional frontier metrics JSON used to compare each trial against "
+            "the best proven branch-diversity evidence."
+        ),
+    )
+    sweep_parser.add_argument(
         "--sweep-max-trials",
         type=int,
         default=16,

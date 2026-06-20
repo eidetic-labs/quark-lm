@@ -13,6 +13,7 @@ from transformer_answer_sweep_report import (
     trial_report_from_metrics,
     write_answer_sweep_report,
 )
+from transformer_branch_frontier_comparison import load_frontier_metrics
 
 
 def run_transformer_answer_sweep(
@@ -21,6 +22,8 @@ def run_transformer_answer_sweep(
 ) -> dict[str, Any]:
     axes = parse_sweep_axes(args.sweep_axis)
     trials = build_sweep_trials(args, axes)
+    frontier_metrics_path = getattr(args, "sweep_frontier_metrics", None)
+    frontier_metrics = load_frontier_metrics(frontier_metrics_path)
     if len(trials) > args.sweep_max_trials:
         raise ValueError(
             f"sweep expands to {len(trials)} trials, "
@@ -45,6 +48,7 @@ def run_transformer_answer_sweep(
                 run_path=trial.args.run,
                 config=trial.config,
                 metrics=metrics,
+                frontier_metrics=frontier_metrics,
             )
         )
     report = build_answer_sweep_report(
@@ -53,6 +57,7 @@ def run_transformer_answer_sweep(
         trials=trial_reports,
         max_trials=args.sweep_max_trials,
         dry_run=args.sweep_dry_run,
+        frontier_metrics_path=frontier_metrics_path,
     )
     report_path = args.sweep_report or (args.run / "sweep_report.json")
     report["report_path"] = str(report_path)

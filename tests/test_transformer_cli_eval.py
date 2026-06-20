@@ -170,6 +170,8 @@ class TransformerCliEvalTest(unittest.TestCase):
                 "embedding_dim=4,8",
                 "--sweep-max-trials",
                 "4",
+                "--sweep-frontier-metrics",
+                "runs/frontier/transformer_answer_metrics.json",
                 "--sweep-dry-run",
             ]
         )
@@ -181,6 +183,10 @@ class TransformerCliEvalTest(unittest.TestCase):
             ["tokenizer=char,closed-world-subword", "embedding_dim=4,8"],
         )
         self.assertEqual(args.sweep_max_trials, 4)
+        self.assertEqual(
+            args.sweep_frontier_metrics,
+            Path("runs/frontier/transformer_answer_metrics.json"),
+        )
         self.assertTrue(args.sweep_dry_run)
 
     def test_parse_eval_args_accepts_generation_trace_controls(self) -> None:
