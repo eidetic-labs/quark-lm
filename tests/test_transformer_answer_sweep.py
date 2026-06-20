@@ -7,6 +7,7 @@ from pathlib import Path
 
 from support.commands import answer_sweep, parse_args
 from transformer_answer_sweep_axes import parse_sweep_axes
+from transformer_answer_sweep_report import trial_report_from_metrics
 
 
 class TransformerAnswerSweepTest(unittest.TestCase):
@@ -80,6 +81,54 @@ class TransformerAnswerSweepTest(unittest.TestCase):
             {"char", "closed-world-subword"},
         )
         self.assertTrue(subword_manifest_exists)
+
+    def test_trial_report_records_branch_diversity_evidence(self) -> None:
+        report = trial_report_from_metrics(
+            trial_id="trial-01",
+            run_path=Path("runs/trial-01"),
+            config={"embedding_dim": 8},
+            metrics={
+                "constraint_first_promotion": {"status": "rejected"},
+                "direct_answer": {
+                    "direct_answer_mode": (
+                        "branch-profile-balanced-rank-margin-unlikelihood"
+                    ),
+                    "actual_steps": 4,
+                    "direct_answer_update_guard": {
+                        "accepted_steps": 2,
+                        "rejected_steps": 1,
+                        "accepted_learning_rate_scale_counts": {"0.25": 2},
+                    },
+                    "routing_repair_batch_evidence": {
+                        "passed": True,
+                        "branch_count": 12,
+                        "retention_anchor_count": 0,
+                    },
+                    "final": {
+                        "branch_target_coverage_by_profile": {"qa": 0.25},
+                        "branch_diversity_target": {
+                            "passed": False,
+                            "failed_profiles": 1,
+                            "passed_profiles": 0,
+                            "max_dominant_predicted_rate": 1.0,
+                            "min_target_token_coverage": 0.25,
+                            "root_cause": {
+                                "mode_counts": {"target_coverage_gap": 1}
+                            },
+                        },
+                    },
+                },
+            },
+        )
+
+        evidence = report["direct_answer_branch_evidence"]
+        self.assertEqual(evidence["actual_steps"], 4)
+        self.assertEqual(
+            evidence["branch_target_coverage_by_profile"],
+            {"qa": 0.25},
+        )
+        self.assertEqual(evidence["update_guard"]["accepted_steps"], 2)
+        self.assertEqual(evidence["routing_repair_batch_evidence"]["branch_count"], 12)
 
 
 if __name__ == "__main__":

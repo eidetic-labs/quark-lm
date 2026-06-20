@@ -48,6 +48,7 @@ def trial_report_from_metrics(
     metrics: dict[str, Any],
 ) -> dict[str, Any]:
     promotion = metrics.get("constraint_first_promotion", {})
+    branch_evidence = _branch_evidence(metrics)
     return {
         "trial_id": trial_id,
         "status": "completed",
@@ -61,6 +62,7 @@ def trial_report_from_metrics(
         "constraint_status": promotion.get("status"),
         "failed_constraints": promotion.get("failed_constraints", []),
         "quality_metrics_considered": promotion.get("quality_metrics_considered"),
+        "direct_answer_branch_evidence": branch_evidence,
     }
 
 
@@ -112,4 +114,58 @@ def _summary(trials: list[dict[str, Any]], dry_run: bool) -> dict[str, Any]:
                 if trial.get("constraint_status") is not None
             }
         ),
+        "branch_diversity_passed_trials": sum(
+            1
+            for trial in completed
+            if trial.get("direct_answer_branch_evidence", {})
+            .get("branch_diversity_target", {})
+            .get("passed")
+            is True
+        ),
     }
+
+
+def _branch_evidence(metrics: dict[str, Any]) -> dict[str, Any]:
+    direct_answer = _as_dict(metrics.get("direct_answer"))
+    final = _as_dict(direct_answer.get("final"))
+    diversity = _as_dict(final.get("branch_diversity_target"))
+    root_cause = _as_dict(diversity.get("root_cause"))
+    guard = _as_dict(direct_answer.get("direct_answer_update_guard"))
+    routing = _as_dict(direct_answer.get("routing_repair_batch_evidence"))
+    return {
+        "direct_answer_mode": direct_answer.get("direct_answer_mode"),
+        "actual_steps": direct_answer.get("actual_steps"),
+        "branch_target_coverage_by_profile": final.get(
+            "branch_target_coverage_by_profile",
+            {},
+        ),
+        "branch_diversity_target": {
+            "passed": diversity.get("passed"),
+            "failed_profiles": diversity.get("failed_profiles"),
+            "passed_profiles": diversity.get("passed_profiles"),
+            "max_dominant_predicted_rate": diversity.get(
+                "max_dominant_predicted_rate"
+            ),
+            "min_target_token_coverage": diversity.get(
+                "min_target_token_coverage"
+            ),
+            "mode_counts": root_cause.get("mode_counts", {}),
+        },
+        "update_guard": {
+            "accepted_steps": guard.get("accepted_steps"),
+            "rejected_steps": guard.get("rejected_steps"),
+            "accepted_learning_rate_scale_counts": guard.get(
+                "accepted_learning_rate_scale_counts",
+                {},
+            ),
+        },
+        "routing_repair_batch_evidence": {
+            "passed": routing.get("passed"),
+            "branch_count": routing.get("branch_count"),
+            "retention_anchor_count": routing.get("retention_anchor_count"),
+        },
+    }
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
