@@ -4,9 +4,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from support.commands import parse_args, train_transformer_answers
 from tokenizer_artifact_validation import validate_tokenizer_artifacts
+from transformer_training_tokenizer import training_tokenizer
 
 
 class TransformerAnswerTokenizerTest(unittest.TestCase):
@@ -78,6 +80,36 @@ class TransformerAnswerTokenizerTest(unittest.TestCase):
         )
         self.assertEqual(diagnostics["kind"], "transformer_long_answer_diagnostics")
         self.assertFalse(metrics["pretrained_tokenizer"])
+
+    def test_answer_training_subword_tokenizer_protects_answer_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            run_dir = Path(temp) / "answer-tokenizer"
+            train_path = Path(temp) / "train.txt"
+            train_text = "ki ki ki kite kitchen ki\n"
+            train_path.write_text(train_text, encoding="utf-8")
+            args = SimpleNamespace(
+                resume_checkpoint=None,
+                tokenizer="closed-world-subword",
+                tokenizer_manifest=None,
+                tokenizer_report=None,
+                tokenizer_max_token_chars=4,
+                tokenizer_max_new_tokens=8,
+                train_text=train_path,
+                run=run_dir,
+            )
+
+            tokenizer = training_tokenizer(
+                args,
+                train_text,
+                object,
+                protected_answers={"ki"},
+            )
+            report = json.loads(
+                (run_dir / "tokenizer_report.json").read_text(encoding="utf-8")
+            )
+
+        self.assertNotIn("ki", tokenizer.tokens)
+        self.assertEqual(report["full_answer_tokens"], [])
 
 
 if __name__ == "__main__":

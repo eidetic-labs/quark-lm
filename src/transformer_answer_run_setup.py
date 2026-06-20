@@ -92,8 +92,13 @@ def prepare_transformer_answer_run(
 ) -> TransformerAnswerRunSetup:
     ensure_curriculum(args.train_text, args.valid)
     train_text = args.train_text.read_text(encoding="utf-8")
-    tokenizer = training_tokenizer(args, train_text, model_class)
     examples = load_training_examples(args.train_text, args.corpus_dir)
+    tokenizer = training_tokenizer(
+        args,
+        train_text,
+        model_class,
+        protected_answers={example.target for example in examples},
+    )
     training_pool = answer_training_pool(examples)
     model, resume_metadata = initialize_transformer_for_training_fn(args, tokenizer)
     optimizer = load_optimizer_state(

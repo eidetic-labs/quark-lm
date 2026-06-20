@@ -23,15 +23,21 @@ def training_tokenizer(
     args: argparse.Namespace,
     train_text: str,
     model_cls: Any,
+    protected_answers: set[str] | None = None,
 ) -> TokenizerProtocol:
     args._training_text_for_vocab_audit = train_text
     if args.resume_checkpoint is None:
-        return _fresh_training_tokenizer(args, train_text)
+        return _fresh_training_tokenizer(args, train_text, protected_answers)
     _model, checkpoint_tokenizer = model_cls.load(args.resume_checkpoint)
     if checkpoint_tokenizer is None:
         raise ValueError("resume checkpoint does not contain a tokenizer")
     if args.tokenizer == "closed-world-subword":
-        return _subword_training_tokenizer(args, train_text, checkpoint_tokenizer)
+        return _subword_training_tokenizer(
+            args,
+            train_text,
+            checkpoint_tokenizer,
+            protected_answers,
+        )
     args.tokenizer_manifest_hash = None
     return checkpoint_tokenizer.extend(train_text)
 
@@ -93,11 +99,12 @@ def initialize_transformer_for_training_command(
 def _fresh_training_tokenizer(
     args: argparse.Namespace,
     train_text: str,
+    protected_answers: set[str] | None,
 ) -> TokenizerProtocol:
     if args.tokenizer == "char":
         args.tokenizer_manifest_hash = None
         return CharTokenizer.train(train_text)
-    return _subword_training_tokenizer(args, train_text, None)
+    return _subword_training_tokenizer(args, train_text, None, protected_answers)
 
 
 def _can_resize_model_vocab(base_tokenizer: Any, expanded_tokenizer: Any) -> bool:
@@ -111,10 +118,12 @@ def _subword_training_tokenizer(
     args: argparse.Namespace,
     train_text: str,
     base_tokenizer: Any | None,
+    protected_answers: set[str] | None,
 ) -> TokenizerProtocol:
     proposal = propose_closed_world_subword_tokenizer(
         train_text,
         source_files=[str(_training_source_path(args))],
+        protected_answers=protected_answers,
         max_token_chars=args.tokenizer_max_token_chars,
         max_new_tokens=args.tokenizer_max_new_tokens,
         base_tokenizer=base_tokenizer,
