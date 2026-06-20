@@ -15,6 +15,9 @@ from transformer_direct_answer_profile_balanced_batches import (
 )
 from transformer_direct_answer_repairs import train_direct_answer_lesson
 from transformer_direct_modes import ANSWER_TERMINATOR
+from transformer_profile_grouped_rank_collapse import (
+    train_profile_grouped_rank_collapse,
+)
 from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
@@ -83,8 +86,9 @@ def train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood(
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
-    return model.train_step_with_branch_rank_collapse_margin(
-        unprofiled_branch_records(branches),
+    return train_profile_grouped_rank_collapse(
+        model,
+        branches,
         learning_rate,
         negative_weight,
         positive_weight,

@@ -110,6 +110,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             ANSWER_TERMINATOR,
         )
         calls: list[list[tuple[list[int], int, int]]] = []
+        losses = [7.0, 4.0]
 
         def train_step(
             branches: list[tuple[list[int], int, int]],
@@ -117,7 +118,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             **_kwargs: object,
         ) -> float:
             calls.append(branches)
-            return 5.5
+            return losses[len(calls) - 1]
 
         fixture.model.train_step_with_branch_rank_collapse_margin = train_step
 
@@ -138,10 +139,12 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             terminator=ANSWER_TERMINATOR,
         )
 
-        self.assertEqual(loss, 5.5)
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(len(calls[0]), 3)
-        self.assertTrue(all(len(branch) == 3 for branch in calls[0]))
+        self.assertEqual(loss, 5.0)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(sorted(len(call) for call in calls), [1, 2])
+        self.assertTrue(
+            all(len(branch) == 3 for call in calls for branch in call)
+        )
 
     def test_retention_rank_margin_runs_single_combined_step(self) -> None:
         fixture = branch_training_fixture(seed=52)
