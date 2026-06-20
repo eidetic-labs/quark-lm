@@ -48,6 +48,8 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         self.assertEqual(record["step"], 1)
         self.assertEqual(record["profiles"], ["owner", "qa"])
         self.assertEqual(record["branch_count"], 2)
+        self.assertEqual(sorted(record["target_counts_by_profile"]), ["owner", "qa"])
+        self.assertEqual(sorted(record["predicted_counts_by_profile"]), ["owner", "qa"])
 
     def test_records_profile_balanced_rank_bundle_batch(self) -> None:
         fixture = branch_training_fixture(seed=40)
@@ -116,6 +118,7 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         self.assertTrue(summary["target_floor_competitor_movement"]["available"])
         assert record is not None
         self.assertTrue(record["target_floor_competitor_summary"])
+        self.assertTrue(record["target_floor_anchor_target_counts_by_profile"])
 
     def test_records_retention_anchors_for_retention_rank_bundle(self) -> None:
         fixture = branch_training_fixture(seed=40)
