@@ -122,6 +122,8 @@ def parse_direct_answer_mode_case(mode: str) -> Namespace:
             "1.5",
             "--direct-answer-contrast-weight",
             "1.25",
+            "--direct-answer-representation-weight",
+            "0.75",
             "--direct-answer-recovery-steps",
             "2",
             "--direct-answer-branch-position",

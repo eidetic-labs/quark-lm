@@ -15,6 +15,7 @@ class TransformerCliAnswerParserTest(unittest.TestCase):
             self.assertEqual(args.direct_answer_rollout_interval, 4)
             self.assertEqual(args.direct_answer_positive_weight, 1.5)
             self.assertEqual(args.direct_answer_contrast_weight, 1.25)
+            self.assertEqual(args.direct_answer_representation_weight, 0.75)
             self.assertEqual(args.direct_answer_recovery_steps, 2)
             self.assertEqual(args.direct_answer_branch_position, 1)
             self.assertEqual(args.direct_answer_branch_span, 3)

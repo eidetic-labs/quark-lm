@@ -113,7 +113,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
         topk_branches, retention_anchors, kwargs = calls[0]
         self.assertEqual(len(topk_branches), 2)
         self.assertGreater(len(retention_anchors), 0)
-        self.assertEqual(kwargs["representation_weight"], 2.0)
+        self.assertEqual(kwargs["representation_weight"], 0.0)
         self.assertTrue(all(len(branch) == 3 for branch in topk_branches))
         self.assertTrue(all(len(branch) == 4 for branch in retention_anchors))
 

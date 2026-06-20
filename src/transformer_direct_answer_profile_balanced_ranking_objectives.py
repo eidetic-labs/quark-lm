@@ -133,6 +133,7 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
     params: list[Scalar] | None = None,
     repair_target_profiles: list[str] | None = None,
     eval_records: dict[str, list[dict[str, Any]]] | None = None,
+    representation_weight: float = 0.0,
 ) -> float:
     branches = _profile_balanced_branches(
         model,
@@ -176,7 +177,7 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
         candidate_count,
         params=params,
         target_floor_anchors=target_floor_anchors,
-        representation_weight=candidate_weight,
+        representation_weight=representation_weight,
     )
 
 

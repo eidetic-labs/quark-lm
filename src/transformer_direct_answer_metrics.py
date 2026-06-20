@@ -119,6 +119,9 @@ def build_direct_answer_metrics(
         "direct_answer_negative_weight": args.direct_answer_negative_weight,
         "direct_answer_positive_weight": args.direct_answer_positive_weight,
         "direct_answer_contrast_weight": args.direct_answer_contrast_weight,
+        "direct_answer_representation_weight": (
+            getattr(args, "direct_answer_representation_weight", 0.0)
+        ),
         "direct_answer_recovery_steps": args.direct_answer_recovery_steps,
         "direct_answer_branch_position": args.direct_answer_branch_position,
         "direct_answer_branch_span": args.direct_answer_branch_span,

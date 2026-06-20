@@ -165,6 +165,7 @@ def _add_direct_answer_options(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--direct-answer-negative-weight", type=float, default=0.5)
     answer_parser.add_argument("--direct-answer-positive-weight", type=float, default=1.0)
     answer_parser.add_argument("--direct-answer-contrast-weight", type=float, default=1.0)
+    answer_parser.add_argument("--direct-answer-representation-weight", type=float, default=0.0)
     answer_parser.add_argument("--direct-answer-recovery-steps", type=int, default=3)
     answer_parser.add_argument("--direct-answer-branch-position", type=int, default=1)
     answer_parser.add_argument("--direct-answer-branch-span", type=int, default=1)
