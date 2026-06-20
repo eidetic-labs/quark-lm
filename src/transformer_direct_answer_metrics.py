@@ -22,6 +22,9 @@ from transformer_direct_answer_update_outcome import (
 )
 from transformer_experiment import TRAINING_DATA_DESCRIPTION
 from transformer_model import GenerationConfig
+from transformer_routing_repair_response_policy import (
+    routing_repair_bundle_requires_branch_response,
+)
 
 
 def build_direct_answer_metrics(
@@ -152,6 +155,11 @@ def build_direct_answer_metrics(
             ),
             frontier_progress_guard=direct_answer_frontier_progress_guard,
             update_guard=direct_answer_update_guard,
+            require_branch_response_for_acceptance=(
+                routing_repair_bundle_requires_branch_response(
+                    getattr(args, "experiment_bundle", None)
+                )
+            ),
         ),
         "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
         "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),

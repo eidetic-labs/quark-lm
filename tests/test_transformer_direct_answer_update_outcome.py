@@ -132,6 +132,28 @@ class TransformerDirectAnswerUpdateOutcomeTest(unittest.TestCase):
             8,
         )
 
+    def test_response_required_bundle_rejects_neutral_only_update(self) -> None:
+        outcome = direct_answer_weight_update_outcome(
+            direct_steps_to_run=8,
+            training_skipped=False,
+            skip_reason=None,
+            restored_best_branch_snapshot=False,
+            restored_frontier_progress_snapshot=False,
+            frontier_progress_guard={"active": True, "progress_preserved": True},
+            update_guard={
+                "attempted_updates": 8,
+                "accepted_steps": 1,
+                "rejected_steps": 7,
+                "routing_repair_neutral_update_acceptances": 1,
+                "routing_repair_branch_response_acceptances": 0,
+            },
+            require_branch_response_for_acceptance=True,
+        )
+
+        self.assertEqual(outcome["status"], "rejected_no_branch_response")
+        self.assertFalse(outcome["accepted"])
+        self.assertEqual(outcome["reason"], "branch_response_required")
+
 
 if __name__ == "__main__":
     unittest.main()

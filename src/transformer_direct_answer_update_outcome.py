@@ -14,6 +14,7 @@ def direct_answer_weight_update_outcome(
     restored_frontier_progress_snapshot: bool,
     frontier_progress_guard: dict[str, Any],
     update_guard: dict[str, Any] | None = None,
+    require_branch_response_for_acceptance: bool = False,
 ) -> dict[str, Any]:
     """Summarize whether direct-answer weights were accepted or restored."""
 
@@ -58,6 +59,21 @@ def direct_answer_weight_update_outcome(
             status="rejected_guard_updates",
             accepted=False,
             reason="all_guarded_updates_rejected",
+            direct_steps_to_run=direct_steps_to_run,
+            restored_best_branch_snapshot=restored_best_branch_snapshot,
+            restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
+            frontier_progress_guard=frontier_progress_guard,
+            guard_summary=guard_summary,
+        )
+    if (
+        require_branch_response_for_acceptance
+        and guard_summary["active"]
+        and guard_summary["routing_repair_branch_response_acceptances"] <= 0
+    ):
+        return _outcome(
+            status="rejected_no_branch_response",
+            accepted=False,
+            reason="branch_response_required",
             direct_steps_to_run=direct_steps_to_run,
             restored_best_branch_snapshot=restored_best_branch_snapshot,
             restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,

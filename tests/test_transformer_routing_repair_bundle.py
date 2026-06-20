@@ -19,6 +19,9 @@ from transformer_routing_repair_bundle import (
     routing_repair_bundle_hypothesis,
     routing_repair_bundle_notes,
 )
+from transformer_routing_repair_response_policy import (
+    routing_repair_bundle_requires_branch_response,
+)
 
 
 class TransformerRoutingRepairBundleTests(unittest.TestCase):
@@ -141,6 +144,24 @@ class TransformerRoutingRepairBundleTests(unittest.TestCase):
             routing_repair_bundle_supports_mode(
                 PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
                 PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
+            )
+        )
+
+    def test_pressure_bundles_require_branch_response(self) -> None:
+        for bundle in (
+            PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+            PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+            PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
+            PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
+        ):
+            with self.subTest(bundle=bundle):
+                self.assertTrue(
+                    routing_repair_bundle_requires_branch_response(bundle)
+                )
+
+        self.assertFalse(
+            routing_repair_bundle_requires_branch_response(
+                PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
             )
         )
 
