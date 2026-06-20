@@ -33,6 +33,8 @@ def validate_torch_training_readiness(readiness: dict[str, Any]) -> None:
 
     if not isinstance(readiness, dict):
         raise ValueError("candidate.training_readiness must be a dict")
+    if set(readiness) != _READINESS_KEYS:
+        raise ValueError("candidate.training_readiness keys are inconsistent")
     if (
         readiness.get("schema_version")
         != TORCH_TRAINING_READINESS_SCHEMA_VERSION
@@ -75,6 +77,8 @@ def _validate_summary(
     summary = readiness.get("summary")
     if not isinstance(summary, dict):
         raise ValueError("candidate.training_readiness.summary is invalid")
+    if set(summary) != _SUMMARY_KEYS:
+        raise ValueError("candidate.training_readiness.summary keys are inconsistent")
     failed = [check["name"] for check in checks if check["passed"] is not True]
     if not _matches_count(summary.get("check_count"), len(checks)):
         raise ValueError("candidate.training_readiness.summary.check_count")
@@ -97,3 +101,16 @@ def _expected_status(checks: list[dict[str, Any]]) -> str:
 
 def _matches_count(value: Any, expected: int) -> bool:
     return type(value) is int and value == expected
+
+
+_READINESS_KEYS = {
+    "schema_version",
+    "status",
+    "checks",
+    "summary",
+}
+_SUMMARY_KEYS = {
+    "check_count",
+    "passed_check_count",
+    "failed_checks",
+}

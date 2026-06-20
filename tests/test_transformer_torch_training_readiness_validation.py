@@ -28,6 +28,20 @@ class TransformerTorchTrainingReadinessValidationTests(unittest.TestCase):
     def test_validator_accepts_blocked_base_catalog(self) -> None:
         validate_torch_training_readiness(_blocked_readiness())
 
+    def test_validator_rejects_extra_readiness_key(self) -> None:
+        readiness = _ready_readiness()
+        readiness["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "training_readiness keys"):
+            validate_torch_training_readiness(readiness)
+
+    def test_validator_rejects_extra_summary_key(self) -> None:
+        readiness = _ready_readiness()
+        readiness["summary"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "summary keys"):
+            validate_torch_training_readiness(readiness)
+
     def test_validator_rejects_stale_status(self) -> None:
         readiness = _blocked_readiness()
         readiness["status"] = TORCH_TRAINING_READY_STATUS
