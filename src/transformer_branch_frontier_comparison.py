@@ -11,6 +11,9 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_target_coverage_diagnostics,
 )
 from branch_diversity_snapshots import branch_diversity_snapshot_score
+from transformer_branch_frontier_profile_diagnostics import (
+    branch_frontier_profile_regression_diagnostics,
+)
 
 
 def load_frontier_metrics(path: Path | None) -> dict[str, Any] | None:
@@ -68,6 +71,12 @@ def compare_metrics_to_branch_frontier(
         "snapshot_branch_diversity_passed": _branch_diversity_passed(snapshot),
         "frontier_branch_diversity_passed": _branch_diversity_passed(
             frontier_snapshot
+        ),
+        "profile_regression_diagnostics": (
+            branch_frontier_profile_regression_diagnostics(
+                snapshot=snapshot,
+                frontier_snapshot=frontier_snapshot,
+            )
         ),
     }
 

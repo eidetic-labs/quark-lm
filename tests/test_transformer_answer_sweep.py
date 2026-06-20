@@ -153,6 +153,10 @@ class TransformerAnswerSweepTest(unittest.TestCase):
             comparison["coverage_diagnostics"]["worst_violation"]["profile"],
             "qa",
         )
+        self.assertEqual(
+            comparison["profile_regression_diagnostics"]["worst_profile"]["profile"],
+            "qa",
+        )
 
     def test_answer_sweep_report_summarizes_frontier_comparisons(self) -> None:
         frontier_path = Path("runs/frontier/transformer_answer_metrics.json")
