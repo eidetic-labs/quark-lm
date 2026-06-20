@@ -11,6 +11,7 @@ def validate_torch_training_case(case: dict[str, Any]) -> None:
 
     if not isinstance(case, dict):
         raise ValueError("candidate.training_case must be a dict")
+    _validate_case_keys(case)
     _require_non_empty_string(case, "case_id")
     _require_non_empty_string(case, "status")
     _require_non_empty_string(case, "reason")
@@ -20,6 +21,18 @@ def validate_torch_training_case(case: dict[str, Any]) -> None:
     _validate_steps(case)
     if case["status"] == "matched":
         _validate_matched_case(case)
+
+
+def _validate_case_keys(case: dict[str, Any]) -> None:
+    expected = (
+        _MATCHED_CASE_KEYS if case.get("status") == "matched" else _BASE_CASE_KEYS
+    )
+    if set(case) != expected:
+        missing = expected - set(case)
+        if missing:
+            field = sorted(missing)[0]
+            raise ValueError(f"candidate.training_case.{field} is missing")
+        raise ValueError("candidate.training_case keys are inconsistent")
 
 
 def _validate_context(case: dict[str, Any]) -> None:
@@ -67,3 +80,18 @@ def _require_non_empty_string(record: dict[str, Any], key: str) -> None:
     value = record.get(key)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"candidate.training_case.{key} must be a non-empty string")
+
+
+_BASE_CASE_KEYS = {
+    "case_id",
+    "status",
+    "reason",
+    "context",
+    "target",
+    "learning_rate",
+    "steps",
+}
+_MATCHED_CASE_KEYS = _BASE_CASE_KEYS | {
+    "evidence_source",
+    "promoted_training_backend",
+}

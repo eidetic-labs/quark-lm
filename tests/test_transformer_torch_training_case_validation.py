@@ -25,6 +25,23 @@ class TransformerTorchTrainingCaseValidationTests(unittest.TestCase):
 
         validate_torch_training_case(case)
 
+    def test_validator_rejects_extra_pending_case_key(self) -> None:
+        case = {**_case(), "unvalidated_extra_field": "drift"}
+
+        with self.assertRaisesRegex(ValueError, "training_case keys"):
+            validate_torch_training_case(case)
+
+    def test_validator_rejects_extra_matched_case_key(self) -> None:
+        case = {
+            **_case(status="matched"),
+            "evidence_source": "training_replay_parity_gate",
+            "promoted_training_backend": False,
+            "unvalidated_extra_field": "drift",
+        }
+
+        with self.assertRaisesRegex(ValueError, "training_case keys"):
+            validate_torch_training_case(case)
+
     def test_validator_rejects_boolean_numeric_evidence(self) -> None:
         cases = {
             "context": [0, True, 2],

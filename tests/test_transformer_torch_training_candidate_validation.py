@@ -109,6 +109,13 @@ class TransformerTorchTrainingCandidateValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "training_case.steps"):
             validate_torch_training_parity_candidate(candidate)
 
+    def test_validator_rejects_extra_training_case_key(self) -> None:
+        candidate = _candidate(importer=_missing_importer)
+        candidate["training_case"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "training_case keys"):
+            validate_torch_training_parity_candidate(candidate)
+
     def test_public_required_key_catalog_includes_replay_gate(self) -> None:
         self.assertIn(
             "training_replay_parity_gate",
