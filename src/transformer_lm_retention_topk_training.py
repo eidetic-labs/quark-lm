@@ -7,6 +7,8 @@ from typing import Any
 from autograd import Scalar, zero_grad
 from replay_plan import BranchReplayRecord
 from transformer_lm_branch_retention_floor_loss import retention_floor_loss
+from transformer_lm_candidate_set_loss import candidate_set_target_loss
+from transformer_lm_target_floor_topk_loss import target_floor_combined_topk_loss
 from transformer_math import softmax_scalars
 
 TopKBranchRecord = tuple[list[int], int, int]
@@ -39,10 +41,11 @@ def train_branch_retention_topk_softmax(
     anchor_loss = retention_floor_loss(model, retention_anchors, candidate_weight)
     if anchor_loss is not None:
         loss = loss + anchor_loss
-    target_floor_loss = retention_floor_loss(
+    target_floor_loss = target_floor_combined_topk_loss(
         model,
         target_floor_anchors or [],
         candidate_weight,
+        candidate_count,
     )
     if target_floor_loss is not None:
         loss = loss + target_floor_loss
@@ -69,7 +72,7 @@ def _topk_softmax_loss(
             loss = loss + (
                 -(Scalar(1.0) - probs[predicted] + 1e-12).log()
             ) * negative_weight
-        loss = loss + _candidate_loss(
+        loss = loss + candidate_set_target_loss(
             logits,
             target,
             candidate_weight,
@@ -77,31 +80,3 @@ def _topk_softmax_loss(
             model.config.vocab_size,
         )
     return loss / max(len(branches), 1)
-
-
-def _candidate_loss(
-    logits: list[Scalar],
-    target: int,
-    candidate_weight: float,
-    candidate_count: int,
-    vocab_size: int,
-) -> Scalar:
-    if candidate_weight <= 0.0:
-        return Scalar(0.0)
-    hard_candidates = [
-        index
-        for index in sorted(
-            range(vocab_size),
-            key=lambda item: logits[item].data,
-            reverse=True,
-        )
-        if index != target
-    ]
-    if candidate_count > 0:
-        hard_candidates = hard_candidates[:candidate_count]
-    candidate_ids = [target, *hard_candidates]
-    if len(candidate_ids) <= 1:
-        return Scalar(0.0)
-    candidate_logits = [logits[candidate_id] for candidate_id in candidate_ids]
-    candidate_probs = softmax_scalars(candidate_logits)
-    return (-candidate_probs[0].log()) * candidate_weight

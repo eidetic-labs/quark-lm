@@ -36,6 +36,31 @@ class TransformerRetentionTopKTrainingTests(unittest.TestCase):
         self.assertGreater(loss, 0.0)
         self.assertEqual(calls, [0.03])
 
+    def test_target_floor_training_uses_candidate_set_depth(self) -> None:
+        shallow_loss = _target_floor_loss(candidate_count=1)
+        full_loss = _target_floor_loss(candidate_count=0)
+
+        self.assertGreater(full_loss, shallow_loss)
+
+
+def _target_floor_loss(candidate_count: int) -> float:
+    fixture = branch_training_fixture(seed=75)
+    model = fixture.model
+    context = [fixture.tokenizer.pad_id] * (model.config.context_size - 1)
+    context.append(fixture.tokenizer.stoi["q"])
+    target = fixture.tokenizer.stoi["n"]
+
+    return model.train_step_with_branch_retention_topk_softmax(
+        [],
+        [],
+        learning_rate=0.0,
+        negative_weight=0.0,
+        positive_weight=0.0,
+        candidate_weight=2.0,
+        candidate_count=candidate_count,
+        target_floor_anchors=[(context, target, target, "qa")],
+    )
+
 
 if __name__ == "__main__":
     unittest.main()
