@@ -43,11 +43,17 @@ def runtime_report(runtime: dict, *, training_allowed: bool) -> dict:
 
 def runtime(*, runtime_kind: str) -> dict:
     return {
+        "backend": "pytorch",
         "available": True,
         "runtime_kind": runtime_kind,
+        "version": "test-runtime",
+        "requested_device": "cpu",
         "device": "cpu",
+        "available_devices": ["cpu"],
+        "requested_dtype": "float32",
         "dtype": "float32",
         "dtype_available": True,
+        "error": None,
     }
 
 

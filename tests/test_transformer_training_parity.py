@@ -157,7 +157,7 @@ class TransformerTrainingParityTests(unittest.TestCase):
         gate_check = report["checks"][1]
         self.assertFalse(report["passed"])
         self.assertEqual(gate_check["name"], "training_replay_parity_gate")
-        self.assertIn("schema_version", gate_check["error"])
+        self.assertIn("keys", gate_check["error"])
 
     def test_training_report_requires_parity_attempt_runtime_evidence(
         self,

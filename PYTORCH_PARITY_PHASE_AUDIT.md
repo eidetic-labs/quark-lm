@@ -14,6 +14,7 @@ PyTorch as QuarkLM's trainer.
 | --- | --- |
 | Branch | `feature/model-loop-audit` |
 | Latest implementation checkpoint entering this audit | `a362d27 Validate training candidate schema` |
+| Latest closeout checkpoint | `c82d918 Audit training exports` plus `PYTORCH_PARITY_PHASE_EXIT_CHECKLIST.md`. |
 | Scalar role | Canonical dependency-free reference implementation. |
 | PyTorch role | Optional runtime library for parity evidence only. |
 | Default dependency status | PyTorch remains optional and is not required by the scalar install. |
@@ -62,27 +63,24 @@ This phase is out of scope:
 | Attempt artifacts | Done | Attempts validate status, pass flag, evidence scope, closed-world boundary, promotion gate, next requirements, compact summaries, hashes, and artifact map. |
 | Persistence | Done | Writer records payload hashes and artifact paths, then reloads through the same validation contract. |
 | CLI audit | Done | `--verify-existing` audits written attempts without rebuilding artifacts. |
-| Compact audit | Done | Valid and invalid audit results have standalone validation for status, errors, routing, promotion, artifact file map, artifact hashes, and evidence hashes. |
-| Public surface | Done | Optional backend exports include the current audit, requirements, runtime, candidate, replay-gate, and promotion-gate helpers/catalogs needed by contributors. |
+| Compact audit | Done | Valid and invalid audit results have standalone validation for status, errors, routing, promotion, artifact file map, artifact hashes, evidence hashes, and exact payload keys. |
+| Public surface | Done | Optional backend exports include the current audit, requirements, runtime, candidate, replay-gate, promotion-gate, and compact audit schema helpers/catalogs needed by contributors. |
 
-## Remaining Phase Gaps
+## Closeout Status
 
-| Priority | Gap | Why it matters | Exit proof |
+| Priority | Gap | Status | Exit proof |
 | --- | --- | --- | --- |
-| P0 | Nested schema strictness pass | Top-level candidate and attempt maps are exact, but nested payloads should be reviewed for extra-key drift before PR. | Focused tests prove runtime report, readiness, replay gate, training case, promotion gate, and audit payloads reject unvalidated top-level extras where appropriate. |
-| P0 | Public export completeness audit | The public optional backend surface is large and manually curated. | A focused test proves every phase-critical validator, builder, status catalog, and schema/key catalog named in this audit is exported exactly once. |
-| P1 | Real-runtime evidence refresh | The branch contains many contract changes after the last documented real-runtime posture. | A fresh `quark-lm-torch-runtime` and `quark-lm-torch-training-parity` run on a PyTorch-installed environment emits valid artifacts or a clean blocked-runtime audit. |
-| P1 | Phase exit checklist | The repo needs a short stopping rule for this phase before returning to tokenizer/transformer model-quality work. | A checklist records phase gates, non-claims, commands, and the next roadmap lane. |
-| P2 | SRP watchlist cleanup | `transformer_torch_training_parity_attempt_audit_validation.py` and a few tests are close to the practical 250-line limit. | Any further changes to those files either remain small or extract focused helpers/tests before growth. |
+| P0 | Nested schema strictness pass | Closed | Focused tests prove runtime report, readiness, replay gate, training case, promotion gate, and audit payloads reject unvalidated top-level extras where appropriate. |
+| P0 | Public export completeness audit | Closed | `tests/test_transformer_torch_backend_training_exports.py` proves the phase-critical training export catalog is explicit, public, and duplicate-free. |
+| P1 | Real-runtime evidence refresh | Closed with blocked-runtime evidence | Runtime preflight and training parity attempt both report `blocked_runtime_unavailable` because PyTorch is not installed; the written-attempt audit still passes as `artifact_set_valid`. |
+| P1 | Phase exit checklist | Closed | `PYTORCH_PARITY_PHASE_EXIT_CHECKLIST.md` records gates, non-claims, commands, blocked-runtime reason, and the next roadmap lane. |
+| P2 | SRP watchlist cleanup | Closed for touched files | The compact audit schema was extracted to a focused helper; touched source and test files remain under the practical 250-line target. |
 
 ## Recommended Next Steps
 
-1. Do one targeted nested-schema strictness pass.
-2. Do one public-export completeness pass.
-3. Refresh or intentionally skip real-runtime evidence with an explicit reason.
-4. Write the phase exit checklist.
-5. Open a PR for the PyTorch parity evidence phase.
-6. Return to the broader roadmap: tokenizer quality, transformer quality,
+1. Run the final bounded validation set for this phase.
+2. Open a PR for the PyTorch parity evidence phase.
+3. Return to the broader roadmap: tokenizer quality, transformer quality,
    corpus growth, and model-quality evaluation.
 
 ## Stop Rule

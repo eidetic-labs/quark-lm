@@ -65,7 +65,8 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
 
     def test_validator_rejects_report_not_rebuilt_from_candidate(self) -> None:
         artifacts = _artifacts()
-        artifacts["candidate"]["training_case"]["final_loss"] = 0.125
+        artifacts["report"] = copy.deepcopy(artifacts["report"])
+        artifacts["candidate"]["parameter_manifest"]["parameter_count"] = 999
         artifacts["attempt"]["candidate"] = build_torch_attempt_candidate_summary(
             artifacts["candidate"]
         )
