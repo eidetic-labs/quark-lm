@@ -36,8 +36,16 @@ from transformer_torch_training_parity_attempt_audit import (
 from transformer_torch_training_parity_attempt_audit_validation import (
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
-    TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS,
     validate_torch_training_parity_attempt_audit,
+)
+from transformer_torch_training_parity_attempt_audit_schema import (
+    TORCH_TRAINING_PARITY_ATTEMPT_BASE_AUDIT_KEYS,
+    TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS,
+    TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_KEYS,
+    TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_RESULT_KEYS,
+    TORCH_TRAINING_PARITY_ATTEMPT_VALID_AUDIT_KEYS,
+    TORCH_TRAINING_PARITY_ATTEMPT_VALID_AUDIT_RESULT_KEYS,
+    validate_torch_training_parity_attempt_audit_keys,
 )
 from transformer_torch_training_parity_attempt_artifact_set import (
     REQUIRED_TORCH_TRAINING_ATTEMPT_ARTIFACTS,
@@ -148,7 +156,12 @@ __all__ = [
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES",
+    "TORCH_TRAINING_PARITY_ATTEMPT_BASE_AUDIT_KEYS",
     "TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_KEYS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_RESULT_KEYS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_VALID_AUDIT_KEYS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_VALID_AUDIT_RESULT_KEYS",
     "TORCH_TRAINING_PARITY_ATTEMPT_FILES",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES",
     "TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND",
@@ -201,6 +214,7 @@ __all__ = [
     "torch_training_weights_from_state",
     "validate_torch_training_parity_attempt_requirements",
     "validate_torch_training_parity_attempt_audit",
+    "validate_torch_training_parity_attempt_audit_keys",
     "validate_torch_training_parity_attempt_audit_requirements",
     "validate_torch_training_parity_attempt_audit_status",
     "validate_torch_training_parity_attempt_artifact_set",
