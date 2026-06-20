@@ -172,6 +172,8 @@ class TransformerCliEvalTest(unittest.TestCase):
                 "4",
                 "--sweep-frontier-metrics",
                 "runs/frontier/transformer_answer_metrics.json",
+                "--sweep-existing-report",
+                "runs/previous/sweep_report.json",
                 "--sweep-dry-run",
             ]
         )
@@ -186,6 +188,10 @@ class TransformerCliEvalTest(unittest.TestCase):
         self.assertEqual(
             args.sweep_frontier_metrics,
             Path("runs/frontier/transformer_answer_metrics.json"),
+        )
+        self.assertEqual(
+            args.sweep_existing_report,
+            Path("runs/previous/sweep_report.json"),
         )
         self.assertTrue(args.sweep_dry_run)
 

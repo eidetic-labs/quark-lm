@@ -182,6 +182,61 @@ class TransformerAnswerSweepTest(unittest.TestCase):
         self.assertEqual(report["summary"]["frontier_competitive_trials"], 1)
         self.assertEqual(report["summary"]["frontier_regressed_trials"], 1)
 
+    def test_answer_sweep_backfills_frontier_from_existing_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            trial_run = temp_path / "trial-01"
+            trial_run.mkdir()
+            (trial_run / "transformer_answer_metrics.json").write_text(
+                json.dumps(_metrics_with_profile_coverage("trial", {"qa": 0.125})),
+                encoding="utf-8",
+            )
+            source_report = temp_path / "source_sweep_report.json"
+            source_report.write_text(
+                json.dumps(
+                    {
+                        "run_id": "source-sweep",
+                        "axes": {"embedding_dim": [4]},
+                        "max_trials": 1,
+                        "trials": [
+                            {
+                                "trial_id": "trial-01",
+                                "status": "completed",
+                                "run": str(trial_run),
+                                "config": {"embedding_dim": 4},
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            frontier_path = temp_path / "frontier_metrics.json"
+            frontier_path.write_text(
+                json.dumps(_metrics_with_profile_coverage("frontier", {"qa": 0.25})),
+                encoding="utf-8",
+            )
+            run_dir = temp_path / "rebuilt-sweep"
+            args = parse_args(
+                [
+                    "answer-sweep",
+                    "--run",
+                    str(run_dir),
+                    "--sweep-existing-report",
+                    str(source_report),
+                    "--sweep-frontier-metrics",
+                    str(frontier_path),
+                ]
+            )
+
+            report = answer_sweep(args)
+            saved = json.loads((run_dir / "sweep_report.json").read_text())
+
+        self.assertEqual(report["report_mode"], "existing_metrics_backfill")
+        self.assertEqual(report["source_report_path"], str(source_report))
+        self.assertEqual(report["summary"]["frontier_competitive_trials"], 0)
+        self.assertEqual(report["summary"]["frontier_regressed_trials"], 1)
+        self.assertEqual(saved["report_mode"], "existing_metrics_backfill")
+
 
 def _metrics_with_profile_coverage(
     run_id: str,

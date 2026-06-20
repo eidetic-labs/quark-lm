@@ -38,6 +38,15 @@ def add_answer_sweep_parser(
         ),
     )
     sweep_parser.add_argument(
+        "--sweep-existing-report",
+        type=Path,
+        default=None,
+        help=(
+            "Rebuild the sweep report from existing trial metrics instead of "
+            "running training trials."
+        ),
+    )
+    sweep_parser.add_argument(
         "--sweep-max-trials",
         type=int,
         default=16,

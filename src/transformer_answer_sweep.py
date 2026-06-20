@@ -7,6 +7,9 @@ from collections.abc import Callable
 from typing import Any
 
 from transformer_answer_sweep_axes import build_sweep_trials, parse_sweep_axes
+from transformer_answer_sweep_backfill import (
+    rebuild_answer_sweep_report_from_metrics,
+)
 from transformer_answer_sweep_report import (
     build_answer_sweep_report,
     planned_trial_report,
@@ -21,9 +24,21 @@ def run_transformer_answer_sweep(
     train_answer_trial: Callable[[argparse.Namespace], dict[str, Any]],
 ) -> dict[str, Any]:
     axes = parse_sweep_axes(args.sweep_axis)
-    trials = build_sweep_trials(args, axes)
     frontier_metrics_path = getattr(args, "sweep_frontier_metrics", None)
     frontier_metrics = load_frontier_metrics(frontier_metrics_path)
+    existing_report_path = getattr(args, "sweep_existing_report", None)
+    if existing_report_path is not None:
+        report = rebuild_answer_sweep_report_from_metrics(
+            source_report_path=existing_report_path,
+            frontier_metrics=frontier_metrics,
+            frontier_metrics_path=frontier_metrics_path,
+        )
+        report_path = args.sweep_report or (args.run / "sweep_report.json")
+        report["report_path"] = str(report_path)
+        write_answer_sweep_report(report_path, report)
+        return report
+
+    trials = build_sweep_trials(args, axes)
     if len(trials) > args.sweep_max_trials:
         raise ValueError(
             f"sweep expands to {len(trials)} trials, "
