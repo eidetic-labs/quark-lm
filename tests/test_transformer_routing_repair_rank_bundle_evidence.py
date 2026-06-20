@@ -5,10 +5,12 @@ from typing import Any
 
 from transformer_backend_policy import transformer_backend_metadata
 from transformer_experiment import (
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     TRAINING_DATA_DESCRIPTION,
 )
 from transformer_routing_repair_bundle import (
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
 )
 from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
@@ -40,6 +42,41 @@ class TransformerRoutingRepairRankBundleEvidenceTests(unittest.TestCase):
         self.assertTrue(
             by_name["rank_pressure_requires_branch_response"]["passed"]
         )
+
+    def test_rank_collapse_bundle_rejects_rank_only_response(self) -> None:
+        checks = routing_repair_bundle_checks(
+            _rank_collapse_metrics(
+                baseline_rank=20.0,
+                final_rank=8.0,
+                final_top3=0.25,
+                final_predicted_unique=1,
+                final_dominant_rate=1.0,
+            )
+        )
+
+        by_name = {check["name"]: check for check in checks}
+        response = by_name["rank_collapse_pressure_requires_branch_response"]
+        self.assertTrue(by_name["rank_collapse_pressure"]["passed"])
+        self.assertFalse(response["passed"])
+        details = response["details"]["collapse_response_delta"]
+        self.assertEqual(details["improved_profile_count"], 0)
+
+    def test_rank_collapse_bundle_accepts_top_one_collapse_response(self) -> None:
+        checks = routing_repair_bundle_checks(
+            _rank_collapse_metrics(
+                baseline_rank=20.0,
+                final_rank=8.0,
+                final_top3=0.25,
+                final_predicted_unique=2,
+                final_dominant_rate=0.5,
+            )
+        )
+
+        by_name = {check["name"]: check for check in checks}
+        response = by_name["rank_collapse_pressure_requires_branch_response"]
+        self.assertTrue(response["passed"])
+        details = response["details"]["collapse_response_delta"]
+        self.assertEqual(details["improved_profile_count"], 1)
 
 
 def _metrics(
@@ -76,16 +113,55 @@ def _metrics(
     }
 
 
-def _snapshot(target_rank: float, *, top3_rate: float) -> dict[str, Any]:
+def _rank_collapse_metrics(
+    *,
+    baseline_rank: float,
+    final_rank: float,
+    final_top3: float,
+    final_predicted_unique: int,
+    final_dominant_rate: float,
+) -> dict[str, Any]:
+    metrics = _metrics(
+        baseline_rank=baseline_rank,
+        final_rank=final_rank,
+        final_top3=final_top3,
+    )
+    metrics["experiment_bundle"] = PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE
+    direct_answer = metrics["direct_answer"]
+    direct_answer["direct_answer_mode"] = (
+        PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE
+    )
+    direct_answer["baseline"] = _snapshot(
+        baseline_rank,
+        top3_rate=0.0,
+        predicted_unique=1,
+        dominant_rate=1.0,
+    )
+    direct_answer["final"] = _snapshot(
+        final_rank,
+        top3_rate=final_top3,
+        predicted_unique=final_predicted_unique,
+        dominant_rate=final_dominant_rate,
+    )
+    return metrics
+
+
+def _snapshot(
+    target_rank: float,
+    *,
+    top3_rate: float,
+    predicted_unique: int = 1,
+    dominant_rate: float = 1.0,
+) -> dict[str, Any]:
     return {
         "branch_target_coverage_by_profile": {"qa": 0.25},
         "branch_profiles": {
             "qa": {
                 "diversity": {
                     "target_unique": 2,
-                    "predicted_unique": 1,
+                    "predicted_unique": predicted_unique,
                     "target_token_coverage": 0.25,
-                    "dominant_predicted_rate": 1.0,
+                    "dominant_predicted_rate": dominant_rate,
                 },
                 "target_rank": {
                     "avg": target_rank,

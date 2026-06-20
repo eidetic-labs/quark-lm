@@ -8,6 +8,10 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
+from branch_diversity_collapse_response import (
+    branch_diversity_collapse_response_delta,
+    branch_diversity_collapse_response_improved,
+)
 from branch_diversity_snapshots import branch_diversity_snapshot_score_improved
 from constraint_first_report import promotion_check
 from transformer_routing_repair_bundle import (
@@ -31,6 +35,7 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "Bundle B must reject rank-margin movement when target coverage "
             "and target-rank branch-diversity score remain unchanged."
         ),
+        collapse_response_required=False,
     )
 
 
@@ -43,14 +48,16 @@ def rank_collapse_routing_repair_checks(
         pressure_name="rank_collapse_pressure",
         pressure_mode=PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
         pressure_rule=(
-            "Bundle E must apply profile-balanced rank-margin pressure with "
+            "Bundle E must apply profile-grouped rank-margin pressure with "
             "batch-dominant anti-collapse pressure."
         ),
         response_name="rank_collapse_pressure_requires_branch_response",
         response_rule=(
-            "Bundle E must reject rank-collapse movement when target coverage, "
-            "target-rank, and collapse diagnostics remain unchanged."
+            "Bundle E must reject rank-collapse movement until top-1 collapse "
+            "diagnostics show predicted-token diversity or dominant-rate "
+            "improvement."
         ),
+        collapse_response_required=True,
     )
 
 
@@ -63,6 +70,7 @@ def _rank_like_routing_repair_checks(
     pressure_rule: str,
     response_name: str,
     response_rule: str,
+    collapse_response_required: bool,
 ) -> list[dict[str, Any]]:
     direct_answer = _as_dict(metrics.get("direct_answer"))
     baseline = _as_dict(direct_answer.get("baseline"))
@@ -84,6 +92,11 @@ def _rank_like_routing_repair_checks(
         baseline,
         coverage_delta,
         diversity_passed,
+        collapse_response_required,
+    )
+    collapse_response_delta = branch_diversity_collapse_response_delta(
+        final,
+        baseline,
     )
 
     return [
@@ -157,6 +170,8 @@ def _rank_like_routing_repair_checks(
             response_rule,
             {
                 "coverage_delta": coverage_delta,
+                "collapse_response_delta": collapse_response_delta,
+                "collapse_response_required": collapse_response_required,
                 "branch_diversity_passed": diversity_passed,
                 "branch_diversity_score_improved": (
                     branch_diversity_snapshot_score_improved(final, baseline)
@@ -196,7 +211,13 @@ def _branch_response_recorded(
     baseline: dict[str, Any],
     coverage_delta: dict[str, Any],
     diversity_passed: bool,
+    collapse_response_required: bool,
 ) -> bool:
+    if collapse_response_required:
+        return diversity_passed or branch_diversity_collapse_response_improved(
+            final,
+            baseline,
+        )
     return (
         diversity_passed
         or _as_int(coverage_delta.get("improved_profile_count")) > 0
