@@ -21,6 +21,7 @@ def build_torch_training_parity_attempt_compact_requirements(
     return build_torch_training_parity_attempt_requirements(
         runtime_report={
             "status": runtime.get("status"),
+            "passed": runtime.get("passed"),
             "parity_attempt_allowed": runtime.get("parity_attempt_allowed"),
             "summary": {"failed_checks": list(runtime.get("failed_checks", []))},
         },

@@ -42,7 +42,7 @@ class TransformerTorchTrainingParityAttemptCompactRequirementsTests(
 
     def test_compact_readiness_uses_readiness_failed_checks(self) -> None:
         requirements = _requirements(
-            runtime={"status": "passed", "parity_attempt_allowed": True},
+            runtime=_ready_runtime(),
             candidate={
                 "training_readiness_status": "pending",
                 "training_readiness_failed_checks": ["adamw_optimizer"],
@@ -59,7 +59,7 @@ class TransformerTorchTrainingParityAttemptCompactRequirementsTests(
 
     def test_compact_replay_gate_uses_replay_failed_checks(self) -> None:
         requirements = _requirements(
-            runtime={"status": "passed", "parity_attempt_allowed": True},
+            runtime=_ready_runtime(),
             candidate={"training_readiness_status": "ready"},
             gate={
                 "status": "training_replay_parity_pending",
@@ -79,7 +79,7 @@ class TransformerTorchTrainingParityAttemptCompactRequirementsTests(
 
     def test_compact_report_failure_uses_report_failed_checks(self) -> None:
         requirements = _requirements(
-            runtime={"status": "passed", "parity_attempt_allowed": True},
+            runtime=_ready_runtime(),
             candidate={"training_readiness_status": "ready"},
             gate={
                 "status": "training_replay_parity_matched",
@@ -98,7 +98,7 @@ class TransformerTorchTrainingParityAttemptCompactRequirementsTests(
 
     def test_compact_complete_has_no_actions(self) -> None:
         requirements = _requirements(
-            runtime={"status": "passed", "parity_attempt_allowed": True},
+            runtime=_ready_runtime(),
             candidate={"training_readiness_status": "ready"},
             gate={
                 "status": "training_replay_parity_matched",
@@ -111,6 +111,52 @@ class TransformerTorchTrainingParityAttemptCompactRequirementsTests(
         self.assertEqual(requirements["status"], "satisfied")
         self.assertEqual(requirements["primary_blockers"], [])
         self.assertEqual(requirements["next_actions"], [])
+        validate_torch_training_parity_attempt_requirements(requirements)
+
+    def test_compact_complete_requires_ready_runtime_status(self) -> None:
+        requirements = _requirements(
+            runtime={
+                "status": "blocked_test_double_runtime",
+                "passed": True,
+                "parity_attempt_allowed": True,
+                "failed_checks": ["runtime_kind"],
+            },
+            candidate={"training_readiness_status": "ready"},
+            gate={
+                "status": "training_replay_parity_matched",
+                "passed": True,
+            },
+            report={"passed": True},
+        )
+
+        self.assertEqual(requirements["stage"], "runtime_preflight")
+        self.assertEqual(requirements["primary_blockers"], ["runtime_kind"])
+        self.assertEqual(
+            requirements["next_actions"],
+            ["run_again_with_real_pytorch_runtime"],
+        )
+        validate_torch_training_parity_attempt_requirements(requirements)
+
+    def test_compact_complete_requires_matched_replay_status(self) -> None:
+        requirements = _requirements(
+            runtime=_ready_runtime(),
+            candidate={"training_readiness_status": "ready"},
+            gate={
+                "status": "training_replay_parity_pending",
+                "passed": True,
+            },
+            report={"passed": True},
+        )
+
+        self.assertEqual(requirements["stage"], "training_replay_parity")
+        self.assertEqual(
+            requirements["primary_blockers"],
+            ["training_replay_parity_gate"],
+        )
+        self.assertEqual(
+            requirements["next_actions"],
+            ["resolve_replay_gate:training_replay_parity_gate"],
+        )
         validate_torch_training_parity_attempt_requirements(requirements)
 
     def test_compact_rebuild_matches_generated_attempt(self) -> None:
@@ -139,6 +185,7 @@ def _requirements(
     return build_torch_training_parity_attempt_compact_requirements(
         runtime={
             "status": runtime.get("status"),
+            "passed": runtime.get("passed"),
             "parity_attempt_allowed": runtime.get("parity_attempt_allowed", False),
             "failed_checks": list(runtime.get("failed_checks", [])),
         },
@@ -168,6 +215,14 @@ def _from_attempt(attempt: dict) -> dict:
         training_replay_parity_gate=attempt["training_replay_parity_gate"],
         training_parity_report=attempt["training_parity_report"],
     )
+
+
+def _ready_runtime() -> dict:
+    return {
+        "status": "ready_for_pytorch_parity",
+        "passed": True,
+        "parity_attempt_allowed": True,
+    }
 
 
 def _missing_importer(name: str) -> object:

@@ -26,7 +26,11 @@ from transformer_torch_backend import (  # noqa: E402
 class TransformerTorchBackendPublicRequirementsTests(unittest.TestCase):
     def test_training_attempt_requirements_contract_is_public(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
-            runtime_report={"status": "passed", "parity_attempt_allowed": True},
+            runtime_report={
+                "status": "ready_for_pytorch_parity",
+                "passed": True,
+                "parity_attempt_allowed": True,
+            },
             candidate={
                 "training_readiness": {"status": "ready"},
                 "training_replay_parity_gate": {
@@ -81,7 +85,7 @@ class TransformerTorchBackendPublicRequirementsTests(unittest.TestCase):
                 "manifest": {},
             },
             "runtime": {
-                "status": "passed",
+                "status": "ready_for_pytorch_parity",
                 "passed": True,
                 "parity_attempt_allowed": True,
                 "failed_checks": [],

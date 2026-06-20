@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_training_parity_attempt_status import (
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS,
+)
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+)
 from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
@@ -44,7 +50,7 @@ def build_torch_training_parity_attempt_requirements(
 ) -> dict[str, Any]:
     """Summarize the first unsatisfied requirement for an attempt."""
 
-    if runtime_report.get("parity_attempt_allowed") is not True:
+    if not _runtime_preflight_ready(runtime_report):
         return _requirements(
             stage="runtime_preflight",
             status="blocked",
@@ -67,7 +73,7 @@ def build_torch_training_parity_attempt_requirements(
             report=report,
         )
     gate = candidate.get("training_replay_parity_gate", {})
-    if gate.get("passed") is not True:
+    if not _replay_gate_matched(gate):
         blockers = _summary_failures(gate, fallback="training_replay_parity_gate")
         return _requirements(
             stage="training_replay_parity",
@@ -135,6 +141,22 @@ def _runtime_blockers(runtime_report: dict[str, Any]) -> list[str]:
         return [blocker]
     blockers = _summary_failures(runtime_report)
     return blockers if blockers else ["parity_attempt_allowed"]
+
+
+def _runtime_preflight_ready(runtime_report: dict[str, Any]) -> bool:
+    return (
+        runtime_report.get("passed") is True
+        and runtime_report.get("parity_attempt_allowed") is True
+        and runtime_report.get("status")
+        == TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS
+    )
+
+
+def _replay_gate_matched(gate: dict[str, Any]) -> bool:
+    return (
+        gate.get("passed") is True
+        and gate.get("status") == TORCH_TRAINING_REPLAY_MATCHED_STATUS
+    )
 
 
 def _runtime_next_actions(runtime_report: dict[str, Any]) -> list[str]:

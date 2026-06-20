@@ -84,7 +84,7 @@ def _runtime_preflight() -> dict:
 
 def _runtime_passed() -> dict:
     return {
-        "runtime_status": "passed",
+        "runtime_status": "ready_for_pytorch_parity",
         "parity_attempt_allowed": True,
         "runtime_failed_checks": [],
         "training_readiness_status": "ready",

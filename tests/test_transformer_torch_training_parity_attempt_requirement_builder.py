@@ -74,7 +74,7 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
 
     def test_complete_attempt_is_typed(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
-            runtime_report={"status": "passed", "parity_attempt_allowed": True},
+            runtime_report=_ready_runtime_report(),
             candidate={
                 "training_readiness": {"status": "ready"},
                 "training_replay_parity_gate": {
@@ -93,6 +93,32 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
         self.assertEqual(requirements["status"], "satisfied")
         self.assertEqual(requirements["primary_blockers"], [])
         self.assertEqual(requirements["next_actions"], [])
+        validate_torch_training_parity_attempt_requirements(requirements)
+
+    def test_complete_attempt_requires_ready_runtime_status(self) -> None:
+        requirements = build_torch_training_parity_attempt_requirements(
+            runtime_report={
+                "status": "blocked_test_double_runtime",
+                "passed": True,
+                "parity_attempt_allowed": True,
+                "summary": {"failed_checks": ["runtime_kind"]},
+            },
+            candidate={
+                "training_readiness": {"status": "ready"},
+                "training_replay_parity_gate": {
+                    "status": "training_replay_parity_matched",
+                    "passed": True,
+                },
+            },
+            report={"passed": True},
+        )
+
+        self.assertEqual(requirements["stage"], "runtime_preflight")
+        self.assertEqual(requirements["primary_blockers"], ["runtime_kind"])
+        self.assertEqual(
+            requirements["next_actions"],
+            ["run_again_with_real_pytorch_runtime"],
+        )
         validate_torch_training_parity_attempt_requirements(requirements)
 
     def test_report_passed_cannot_bypass_runtime_preflight(self) -> None:
@@ -122,7 +148,7 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
 
     def test_report_passed_cannot_bypass_replay_gate(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
-            runtime_report={"status": "passed", "parity_attempt_allowed": True},
+            runtime_report=_ready_runtime_report(),
             candidate={
                 "training_readiness": {"status": "ready"},
                 "training_replay_parity_gate": {
@@ -142,9 +168,34 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
         )
         validate_torch_training_parity_attempt_requirements(requirements)
 
+    def test_report_passed_cannot_bypass_replay_gate_status(self) -> None:
+        requirements = build_torch_training_parity_attempt_requirements(
+            runtime_report=_ready_runtime_report(),
+            candidate={
+                "training_readiness": {"status": "ready"},
+                "training_replay_parity_gate": {
+                    "status": "training_replay_parity_pending",
+                    "passed": True,
+                    "summary": {"failed_checks": []},
+                },
+            },
+            report={"passed": True},
+        )
+
+        self.assertEqual(requirements["stage"], "training_replay_parity")
+        self.assertEqual(
+            requirements["primary_blockers"],
+            ["training_replay_parity_gate"],
+        )
+        self.assertEqual(
+            requirements["next_actions"],
+            ["resolve_replay_gate:training_replay_parity_gate"],
+        )
+        validate_torch_training_parity_attempt_requirements(requirements)
+
     def test_missing_readiness_summary_uses_default_blocker(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
-            runtime_report={"status": "passed", "parity_attempt_allowed": True},
+            runtime_report=_ready_runtime_report(),
             candidate={"training_readiness": {"status": "pending"}},
             report={"passed": False},
         )
@@ -156,6 +207,14 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
             ["satisfy_training_readiness:training_readiness"],
         )
         validate_torch_training_parity_attempt_requirements(requirements)
+
+
+def _ready_runtime_report() -> dict:
+    return {
+        "status": "ready_for_pytorch_parity",
+        "passed": True,
+        "parity_attempt_allowed": True,
+    }
 
 
 if __name__ == "__main__":

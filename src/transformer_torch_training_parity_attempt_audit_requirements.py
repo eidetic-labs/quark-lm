@@ -17,6 +17,7 @@ def validate_torch_training_parity_attempt_audit_requirements(
     expected = build_torch_training_parity_attempt_compact_requirements(
         runtime={
             "status": audit.get("runtime_status"),
+            "passed": audit.get("parity_attempt_allowed"),
             "parity_attempt_allowed": audit.get("parity_attempt_allowed"),
             "failed_checks": list(audit.get("runtime_failed_checks", [])),
         },
