@@ -116,7 +116,9 @@ def _validate_next_requirements(
 def _validate_artifacts(artifacts: Any) -> None:
     if not isinstance(artifacts, dict):
         raise ValueError("artifacts must be a dict")
-    for key in ("fixture", "candidate", "report", "attempt"):
+    if set(artifacts) != set(_ARTIFACT_KEYS):
+        raise ValueError("artifacts keys are inconsistent")
+    for key in _ARTIFACT_KEYS:
         value = artifacts.get(key)
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"artifacts.{key} must be a non-empty string")
@@ -152,3 +154,5 @@ _NEXT_REQUIREMENT_COMPARISON_ORDER = (
     "primary_blockers",
     "next_actions",
 )
+
+_ARTIFACT_KEYS = ("fixture", "candidate", "report", "attempt")

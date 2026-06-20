@@ -211,6 +211,22 @@ class TransformerTorchTrainingParityAttemptValidationTests(unittest.TestCase):
             require_artifacts=True,
         )
 
+    def test_writer_validation_rejects_extra_artifact_path(self) -> None:
+        attempt = _attempt()
+        attempt["artifacts"] = {
+            "fixture": "fixture.json",
+            "candidate": "candidate.json",
+            "report": "report.json",
+            "attempt": "attempt.json",
+            "extra": "extra.json",
+        }
+
+        with self.assertRaisesRegex(ValueError, "artifacts keys"):
+            validate_torch_training_parity_attempt(
+                attempt,
+                require_artifacts=True,
+            )
+
 
 def _attempt() -> dict:
     artifacts = build_torch_training_parity_attempt(

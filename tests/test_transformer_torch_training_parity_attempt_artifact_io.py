@@ -87,6 +87,18 @@ class TransformerTorchTrainingParityAttemptArtifactIoTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "artifacts.candidate"):
                 load_torch_training_parity_attempt_artifact_set(Path(temp))
 
+    def test_loader_rejects_extra_recorded_artifact_path(self) -> None:
+        artifacts = _artifacts()
+        with tempfile.TemporaryDirectory() as temp:
+            written = write_torch_training_parity_attempt(Path(temp), artifacts)
+            attempt_path = Path(written["artifacts"]["attempt"])
+            attempt = _read_json(attempt_path)
+            attempt["artifacts"]["extra"] = str(Path(temp) / "extra.json")
+            _write_json(attempt_path, attempt)
+
+            with self.assertRaisesRegex(ValueError, "artifacts keys"):
+                load_torch_training_parity_attempt_artifact_set(Path(temp))
+
     def test_writer_rejects_mixed_artifact_set(self) -> None:
         artifacts = _artifacts()
         other_artifacts = _artifacts(fixture_id="other-training-parity-attempt")
