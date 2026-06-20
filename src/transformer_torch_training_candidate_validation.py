@@ -8,11 +8,13 @@ from transformer_backend_policy import (
     PYTORCH_BACKEND,
     validate_transformer_backend_metadata,
 )
-from transformer_torch_runtime_report_check import build_torch_runtime_report_check
 from transformer_torch_training_case_validation import validate_torch_training_case
 from transformer_torch_training_candidate import (
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
     TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
+)
+from transformer_torch_training_candidate_runtime_validation import (
+    validate_torch_training_candidate_runtime_report,
 )
 from transformer_torch_training_candidate_routing_validation import (
     validate_torch_training_candidate_routing,
@@ -76,7 +78,7 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
     _require_non_empty_string(candidate, "implementation_status")
     _require_dicts(candidate, _DICT_SECTIONS)
     _validate_backend(candidate["backend"])
-    _validate_runtime_report(candidate)
+    validate_torch_training_candidate_runtime_report(candidate)
     validate_torch_training_readiness(candidate["training_readiness"])
     validate_torch_training_replay_parity_gate(
         candidate["training_replay_parity_gate"]
@@ -89,17 +91,6 @@ def _validate_backend(backend: dict[str, Any]) -> None:
     validate_transformer_backend_metadata(backend, require_artifact_fields=True)
     if backend.get("backend") != PYTORCH_BACKEND:
         raise ValueError("candidate.backend must be pytorch")
-
-
-def _validate_runtime_report(candidate: dict[str, Any]) -> None:
-    check = build_torch_runtime_report_check(
-        runtime_report=candidate["runtime_report"],
-        runtime=candidate["runtime"],
-    )
-    if check.get("passed") is True:
-        return
-    failures = check.get("failed_runtime_checks") or [check.get("error", "invalid")]
-    raise ValueError(f"candidate.runtime_report.{failures[0]} is inconsistent")
 
 
 def _require_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:
