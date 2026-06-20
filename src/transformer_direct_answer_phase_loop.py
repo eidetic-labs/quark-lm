@@ -124,6 +124,7 @@ def run_direct_answer_training_loop(
                     direct_answer_update_guard=direct_answer_update_guard,
                     model=lambda: current_state["model"],
                     tokenizer=lambda: current_state["tokenizer"],
+                    optimizer=lambda: current_state["optimizer"],
                     params=lambda: current_state["params"],
                     restore_state=restore_and_refresh_state,
                     train_mode_step=train_mode_step,

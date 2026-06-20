@@ -17,6 +17,9 @@ from transformer_direct_answer_update_guard import (
     record_direct_update_guard_acceptance,
     record_direct_update_guard_rejection_attempt,
 )
+from transformer_routing_repair_optimizer_diagnostics import (
+    record_routing_repair_optimizer_probe,
+)
 
 ROUTING_REPAIR_LEARNING_RATE_SCALES = (1.0, 0.5, 0.25, 0.125, 0.0625)
 ROUTING_REPAIR_UPDATE_SHAPE = "routing_repair_scaled"
@@ -36,6 +39,7 @@ class RoutingRepairUpdateSearchContext:
     direct_answer_update_guard: dict[str, Any]
     model: Callable[[], Any]
     tokenizer: Callable[[], Any]
+    optimizer: Callable[[], Any]
     params: Callable[[], Any]
     restore_state: Callable[[dict[str, Any], dict[str, Any]], None]
     train_mode_step: Callable[..., Any]
@@ -67,6 +71,12 @@ def apply_routing_repair_update_search(
         guard["attempted_updates"] += 1
         result = _train_scaled_update(ctx, learning_rate_scale)
         last_loss = float(result.loss)
+        record_routing_repair_optimizer_probe(
+            guard,
+            ctx.optimizer(),
+            learning_rate_scale,
+            last_loss,
+        )
         probe_snapshot = _probe_snapshot(ctx, learning_rate_scale)
         coverage_preserved = branch_diversity_snapshot_preserves_target_coverage(
             probe_snapshot,

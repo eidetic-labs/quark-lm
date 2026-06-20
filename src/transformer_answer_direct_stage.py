@@ -101,8 +101,8 @@ def run_transformer_direct_answer_stage(
     def restore_direct_update_state(
         model_payload: dict[str, Any],
         optimizer_payload: dict[str, Any],
-    ) -> None:
-        restore_stage_state_and_rebind_recorder(
+    ) -> tuple[Any, Any, Any, Any]:
+        return restore_stage_state_and_rebind_recorder(
             stage_state,
             direct_runtime.snapshot_recorder,
             model_payload,

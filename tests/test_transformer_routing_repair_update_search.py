@@ -35,6 +35,9 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         self.assertEqual(guard["accepted_steps"], 1)
         self.assertEqual(guard["rejected_steps"], 0)
         self.assertEqual(guard["routing_repair_accepted_learning_rate_scale"], 0.5)
+        self.assertEqual(guard["routing_repair_optimizer_probe_count"], 2)
+        self.assertEqual(guard["routing_repair_optimizer_update_applied_count"], 2)
+        self.assertEqual(guard["routing_repair_optimizer_nonzero_gradient_count"], 2)
 
     def test_rejects_preserved_coverage_without_response(self) -> None:
         recorder = _Recorder(
@@ -132,6 +135,7 @@ def _context(
         direct_answer_update_guard=guard,
         model=lambda: object(),
         tokenizer=lambda: object(),
+        optimizer=lambda: _Optimizer(),
         params=lambda: [],
         restore_state=lambda model, optimizer: restores.append((model, optimizer)),
         train_mode_step=lambda **kwargs: _train_result(kwargs, train_rates),
@@ -225,6 +229,23 @@ class _Rng:
 
     def setstate(self, state: object) -> None:
         self.restored_states.append(state)
+
+
+class _Optimizer:
+    last_apply_evidence = {
+        "raw_gradient": {"signature": {"abs_sum": 1.5}},
+        "clipped_gradient": {"signature": {"abs_sum": 1.25}},
+        "accumulated_gradient": {
+            "available": True,
+            "signature": {"abs_sum": 1.0},
+        },
+        "update_applied": True,
+        "learning_rate": 0.04,
+        "update_count_before": 0,
+        "update_count_after": 1,
+        "pending_accumulation_before": 0,
+        "pending_accumulation_after": 0,
+    }
 
 
 if __name__ == "__main__":
