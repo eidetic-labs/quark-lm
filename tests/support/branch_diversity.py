@@ -13,6 +13,7 @@ from branch_diversity_snapshots import (
     branch_diversity_snapshot_collapsed_profile_names,
     branch_diversity_snapshot_profile_diversity_delta,
     branch_diversity_snapshot_score,
+    branch_diversity_snapshot_score_improved,
 )
 from replay_plan import branch_replay_plan
 from transformer_branch_diversity_summary import summarize_branch_diversity_target
@@ -30,6 +31,7 @@ __all__ = [
     "branch_diversity_snapshot_preserves_target_coverage",
     "branch_diversity_snapshot_profile_diversity_delta",
     "branch_diversity_snapshot_score",
+    "branch_diversity_snapshot_score_improved",
     "branch_diversity_snapshot_target_coverage_delta",
     "branch_diversity_snapshot_target_coverage_diagnostics",
     "branch_replay_plan",

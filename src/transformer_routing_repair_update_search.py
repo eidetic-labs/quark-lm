@@ -11,6 +11,7 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
+from branch_diversity_snapshots import branch_diversity_snapshot_score_improved
 from transformer_direct_answer_mode_dispatch import DirectAnswerModeStepResult
 from transformer_direct_answer_update_guard import (
     record_direct_update_guard_acceptance,
@@ -71,11 +72,12 @@ def apply_routing_repair_update_search(
             probe_snapshot,
             ctx.direct_baseline,
         )
-        coverage_responded = _coverage_response_recorded(
+        branch_response = _branch_response_recorded(
             probe_snapshot,
             ctx.direct_baseline,
         )
-        if coverage_preserved and coverage_responded:
+        if coverage_preserved and branch_response:
+            _record_branch_response(guard, learning_rate_scale)
             record_direct_update_guard_acceptance(
                 guard,
                 learning_rate_scale,
@@ -149,7 +151,7 @@ def _probe_snapshot(
     )
 
 
-def _coverage_response_recorded(
+def _branch_response_recorded(
     snapshot: dict[str, Any],
     baseline: dict[str, Any],
 ) -> bool:
@@ -157,7 +159,22 @@ def _coverage_response_recorded(
     if isinstance(diversity, dict) and diversity.get("passed") is True:
         return True
     delta = branch_diversity_snapshot_target_coverage_delta(snapshot, baseline)
-    return int(delta.get("improved_profile_count", 0)) > 0
+    return (
+        int(delta.get("improved_profile_count", 0)) > 0
+        or branch_diversity_snapshot_score_improved(snapshot, baseline)
+    )
+
+
+def _record_branch_response(
+    guard: dict[str, Any],
+    learning_rate_scale: float,
+) -> None:
+    guard["routing_repair_branch_response_acceptances"] = int(
+        guard.get("routing_repair_branch_response_acceptances", 0)
+    ) + 1
+    scales = guard.setdefault("routing_repair_branch_response_learning_rate_scales", [])
+    if isinstance(scales, list):
+        scales.append(learning_rate_scale)
 
 
 def _record_no_response_rejection(

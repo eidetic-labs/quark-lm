@@ -77,6 +77,15 @@ def branch_diversity_snapshot_score(snapshot: dict[str, Any]) -> tuple[float, ..
     )
 
 
+def branch_diversity_snapshot_score_improved(
+    snapshot: dict[str, Any],
+    baseline: dict[str, Any],
+) -> bool:
+    return branch_diversity_snapshot_score(snapshot) > branch_diversity_snapshot_score(
+        baseline
+    )
+
+
 def branch_diversity_snapshot_collapsed_profile_names(
     snapshot: dict[str, Any],
 ) -> list[str]:
@@ -98,6 +107,7 @@ __all__ = [
     "branch_diversity_snapshot_collapsed_profile_names",
     "branch_diversity_snapshot_profile_diversity_delta",
     "branch_diversity_snapshot_score",
+    "branch_diversity_snapshot_score_improved",
 ]
 
 

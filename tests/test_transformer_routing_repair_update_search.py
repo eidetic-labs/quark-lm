@@ -62,6 +62,30 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         )
         self.assertIsNone(guard["routing_repair_accepted_learning_rate_scale"])
 
+    def test_accepts_preserved_coverage_with_rank_response(self) -> None:
+        recorder = _Recorder([_snapshot(0.5, target_rank=8.0, top3_rate=0.25)])
+        restores: list[tuple[dict, dict]] = []
+        train_rates: list[float] = []
+        guard = _guard()
+
+        result = apply_routing_repair_update_search(
+            _context(
+                recorder=recorder,
+                guard=guard,
+                restores=restores,
+                train_rates=train_rates,
+            )
+        )
+
+        self.assertTrue(result.update_guard_applied)
+        self.assertEqual(guard["accepted_steps"], 1)
+        self.assertEqual(guard["rejected_steps"], 0)
+        self.assertEqual(
+            guard["routing_repair_branch_response_acceptances"],
+            1,
+        )
+        self.assertEqual(guard["routing_repair_accepted_learning_rate_scale"], 1.0)
+
     def test_rejects_all_scales_and_restores_baseline(self) -> None:
         recorder = _Recorder([_snapshot(0.25)] * len(ROUTING_REPAIR_LEARNING_RATE_SCALES))
         restores: list[tuple[dict, dict]] = []
@@ -124,13 +148,31 @@ def _train_result(kwargs: dict, train_rates: list[float]) -> SimpleNamespace:
     return SimpleNamespace(loss=train_rates[-1], update_guard_applied=False)
 
 
-def _snapshot(coverage: float) -> dict:
+def _snapshot(
+    coverage: float,
+    *,
+    target_rank: float = 20.0,
+    top3_rate: float = 0.0,
+) -> dict:
     return {
+        "branch_diversity_target": {
+            "passed": False,
+            "passed_profiles": 0,
+            "failed_profiles": 1,
+            "min_target_token_coverage": coverage,
+        },
         "branch_profiles": {
             "qa": {
                 "diversity": {
                     "target_unique": 2,
                     "target_token_coverage": coverage,
+                    "predicted_unique": 1,
+                    "dominant_predicted_rate": 1.0,
+                },
+                "target_rank": {
+                    "avg": target_rank,
+                    "top3_rate": top3_rate,
+                    "top5_rate": top3_rate,
                 }
             }
         }
