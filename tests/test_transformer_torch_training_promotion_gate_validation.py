@@ -17,6 +17,26 @@ from transformer_torch_training_promotion_gate_validation import (  # noqa: E402
 
 
 class TransformerTorchTrainingPromotionGateValidationTests(unittest.TestCase):
+    def test_validator_rejects_extra_promotion_gate_key(self) -> None:
+        gate = _gate()
+        gate["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "promotion gate keys"):
+            validate_torch_training_backend_promotion_gate(
+                gate,
+                closed_world_boundary=_boundary(),
+            )
+
+    def test_validator_rejects_extra_promotion_check_key(self) -> None:
+        gate = _gate()
+        gate["checks"][0]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "check keys"):
+            validate_torch_training_backend_promotion_gate(
+                gate,
+                closed_world_boundary=_boundary(),
+            )
+
     def test_validator_rejects_stale_promotion_gate_blockers(self) -> None:
         gate = _gate()
         gate["blockers"] = ["fixture_scope_only"]

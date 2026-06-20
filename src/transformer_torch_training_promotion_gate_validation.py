@@ -24,6 +24,8 @@ def validate_torch_training_backend_promotion_gate(
 
     if not isinstance(gate, dict):
         raise ValueError("training backend promotion gate must be a dict")
+    if set(gate) != _GATE_KEYS:
+        raise ValueError("training backend promotion gate keys are invalid")
     if (
         gate.get("schema_version")
         != TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION
@@ -56,6 +58,8 @@ def _validate_checks(gate: dict[str, Any]) -> None:
     ):
         raise ValueError("training backend promotion gate check catalog is invalid")
     for check in checks:
+        if set(check) != _CHECK_KEYS:
+            raise ValueError("training backend promotion gate check keys are invalid")
         if not isinstance(check.get("passed"), bool):
             raise ValueError("training backend promotion gate check status is invalid")
         if not isinstance(check.get("reason"), str) or not check["reason"].strip():
@@ -96,3 +100,20 @@ def _validate_boundary(
         raise ValueError("training backend promotion gate boundary status is invalid")
     if gate.get("closed_world_boundary_failures") != boundary_failures:
         raise ValueError("training backend promotion gate boundary failures are invalid")
+
+
+_GATE_KEYS = {
+    "schema_version",
+    "status",
+    "passed",
+    "promotion_eligible",
+    "promoted_training_backend",
+    "evidence_scope",
+    "parity_evidence_matched",
+    "closed_world_boundary_passed",
+    "closed_world_boundary_failures",
+    "checks",
+    "blockers",
+    "required_future_gates",
+}
+_CHECK_KEYS = {"name", "passed", "reason"}
