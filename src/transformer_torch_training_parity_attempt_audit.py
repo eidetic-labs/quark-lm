@@ -39,6 +39,8 @@ def _valid_audit(output_dir: Path, attempt: dict[str, Any]) -> dict[str, Any]:
     next_requirements = attempt["next_requirements"]
     promotion_gate = attempt["training_backend_promotion_gate"]
     runtime = attempt["runtime"]
+    replay_gate = attempt["training_replay_parity_gate"]
+    report = attempt["training_parity_report"]
     return {
         **_base_audit(output_dir),
         "status": "artifact_set_valid",
@@ -48,6 +50,9 @@ def _valid_audit(output_dir: Path, attempt: dict[str, Any]) -> dict[str, Any]:
         "attempt_passed": attempt["passed"],
         "runtime_status": runtime["status"],
         "parity_attempt_allowed": runtime["parity_attempt_allowed"],
+        "training_replay_parity_status": replay_gate["status"],
+        "training_replay_parity_passed": replay_gate["passed"],
+        "training_report_passed": report["passed"],
         "next_requirements_stage": next_requirements["stage"],
         "next_requirements_status": next_requirements["status"],
         "next_actions": list(next_requirements["next_actions"]),

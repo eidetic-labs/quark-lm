@@ -42,6 +42,18 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
         self.assertEqual(audit["attempt_status"], written["status"])
         self.assertEqual(audit["attempt_passed"], written["passed"])
         self.assertEqual(
+            audit["training_replay_parity_status"],
+            written["training_replay_parity_gate"]["status"],
+        )
+        self.assertEqual(
+            audit["training_replay_parity_passed"],
+            written["training_replay_parity_gate"]["passed"],
+        )
+        self.assertEqual(
+            audit["training_report_passed"],
+            written["training_parity_report"]["passed"],
+        )
+        self.assertEqual(
             audit["next_requirements_stage"],
             written["next_requirements"]["stage"],
         )
@@ -110,6 +122,20 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
         audit["error"] = "stale"
 
         with self.assertRaisesRegex(ValueError, "valid_result"):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_stale_attempt_status(self) -> None:
+        audit = _valid_audit()
+        audit["attempt_status"] = "training_parity_matched"
+
+        with self.assertRaisesRegex(ValueError, "attempt_status"):
+            validate_torch_training_parity_attempt_audit(audit)
+
+    def test_validator_rejects_stale_attempt_passed(self) -> None:
+        audit = _valid_audit()
+        audit["attempt_passed"] = True
+
+        with self.assertRaisesRegex(ValueError, "attempt_passed"):
             validate_torch_training_parity_attempt_audit(audit)
 
     def test_validator_rejects_invalid_audit_without_error_detail(self) -> None:
@@ -188,6 +214,9 @@ def _valid_audit() -> dict:
         "attempt_passed": False,
         "runtime_status": "blocked_runtime_unavailable",
         "parity_attempt_allowed": False,
+        "training_replay_parity_status": "training_replay_parity_pending",
+        "training_replay_parity_passed": False,
+        "training_report_passed": False,
         "next_requirements_stage": "runtime_preflight",
         "next_requirements_status": "blocked",
         "next_actions": ["install_real_pytorch_runtime"],
