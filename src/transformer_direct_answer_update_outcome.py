@@ -136,6 +136,12 @@ def _guard_summary(update_guard: dict[str, Any] | None) -> dict[str, Any]:
         "attempted_updates": attempted,
         "accepted_steps": accepted,
         "rejected_steps": rejected,
+        "routing_repair_branch_response_acceptances": int(
+            guard.get("routing_repair_branch_response_acceptances", 0)
+        ),
+        "routing_repair_neutral_update_acceptances": int(
+            guard.get("routing_repair_neutral_update_acceptances", 0)
+        ),
         "frontier_update_guard_active": (
             guard.get("frontier_update_guard_active") is True
         ),
@@ -144,5 +150,13 @@ def _guard_summary(update_guard: dict[str, Any] | None) -> dict[str, Any]:
 
 def _accepted_reason(guard_summary: dict[str, Any]) -> str:
     if guard_summary["active"]:
+        branch_acceptances = guard_summary[
+            "routing_repair_branch_response_acceptances"
+        ]
+        neutral_acceptances = guard_summary[
+            "routing_repair_neutral_update_acceptances"
+        ]
+        if neutral_acceptances > 0 and branch_acceptances <= 0:
+            return "guarded_neutral_updates_accepted"
         return "guarded_updates_accepted"
     return "frontier_progress_preserved"

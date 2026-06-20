@@ -108,6 +108,30 @@ class TransformerDirectAnswerUpdateOutcomeTest(unittest.TestCase):
         self.assertTrue(outcome["accepted"])
         self.assertEqual(outcome["reason"], "frontier_progress_preserved")
 
+    def test_neutral_routing_repair_updates_report_neutral_reason(self) -> None:
+        outcome = direct_answer_weight_update_outcome(
+            direct_steps_to_run=8,
+            training_skipped=False,
+            skip_reason=None,
+            restored_best_branch_snapshot=False,
+            restored_frontier_progress_snapshot=False,
+            frontier_progress_guard={"active": True, "progress_preserved": True},
+            update_guard={
+                "attempted_updates": 8,
+                "accepted_steps": 8,
+                "rejected_steps": 0,
+                "routing_repair_neutral_update_acceptances": 8,
+            },
+        )
+
+        self.assertEqual(outcome["status"], "accepted")
+        self.assertTrue(outcome["accepted"])
+        self.assertEqual(outcome["reason"], "guarded_neutral_updates_accepted")
+        self.assertEqual(
+            outcome["guard"]["routing_repair_neutral_update_acceptances"],
+            8,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

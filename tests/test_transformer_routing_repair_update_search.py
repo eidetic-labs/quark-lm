@@ -12,6 +12,9 @@ from transformer_routing_repair_update_search import (
     ROUTING_REPAIR_LEARNING_RATE_SCALES,
     apply_routing_repair_update_search,
 )
+from transformer_routing_repair_neutral_updates import (
+    ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE,
+)
 
 
 class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
@@ -45,10 +48,8 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         self.assertEqual(guard["routing_repair_optimizer_update_applied_count"], 2)
         self.assertEqual(guard["routing_repair_optimizer_nonzero_gradient_count"], 2)
 
-    def test_rejects_preserved_coverage_without_response(self) -> None:
-        recorder = RoutingRepairRecorder(
-            [routing_repair_snapshot(0.5)] * len(ROUTING_REPAIR_LEARNING_RATE_SCALES)
-        )
+    def test_accepts_preserved_coverage_without_response_as_neutral(self) -> None:
+        recorder = RoutingRepairRecorder([routing_repair_snapshot(0.5)])
         restores: list[tuple[dict, dict]] = []
         train_rates: list[float] = []
         guard = routing_repair_guard()
@@ -63,13 +64,14 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         )
 
         self.assertTrue(result.update_guard_applied)
-        self.assertEqual(guard["accepted_steps"], 0)
-        self.assertEqual(guard["rejected_steps"], 1)
+        self.assertEqual(guard["accepted_steps"], 1)
+        self.assertEqual(guard["rejected_steps"], 0)
+        self.assertEqual(guard["routing_repair_neutral_update_acceptances"], 1)
+        self.assertEqual(guard["routing_repair_accepted_learning_rate_scale"], 1.0)
         self.assertEqual(
-            guard["routing_repair_no_response_rejections"],
-            len(ROUTING_REPAIR_LEARNING_RATE_SCALES),
+            guard["accepted_update_shape_counts"],
+            {ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE: 1},
         )
-        self.assertIsNone(guard["routing_repair_accepted_learning_rate_scale"])
 
     def test_accepts_preserved_coverage_with_rank_response(self) -> None:
         recorder = RoutingRepairRecorder(

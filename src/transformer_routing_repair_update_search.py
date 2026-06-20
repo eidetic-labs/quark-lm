@@ -23,6 +23,10 @@ from transformer_direct_answer_update_guard import (
 from transformer_routing_repair_optimizer_diagnostics import (
     record_routing_repair_optimizer_probe,
 )
+from transformer_routing_repair_neutral_updates import (
+    ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE,
+    record_routing_repair_neutral_acceptance,
+)
 
 ROUTING_REPAIR_LEARNING_RATE_SCALES = (1.0, 0.5, 0.25, 0.125, 0.0625)
 ROUTING_REPAIR_UPDATE_SHAPE = "routing_repair_scaled"
@@ -104,10 +108,19 @@ def apply_routing_repair_update_search(
                 learning_rate_scale
             )
             return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
+        if coverage_preserved and stability_preserved:
+            record_routing_repair_neutral_acceptance(guard, learning_rate_scale)
+            record_direct_update_guard_acceptance(
+                guard,
+                learning_rate_scale,
+                ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE,
+            )
+            guard["routing_repair_accepted_learning_rate_scale"] = (
+                learning_rate_scale
+            )
+            return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
         if coverage_preserved and not stability_preserved:
             _record_stability_rejection(guard, learning_rate_scale)
-        elif coverage_preserved:
-            _record_no_response_rejection(guard, learning_rate_scale)
         record_direct_update_guard_rejection_attempt(
             guard,
             ctx.direct_baseline,
@@ -192,18 +205,6 @@ def _record_branch_response(
         guard.get("routing_repair_branch_response_acceptances", 0)
     ) + 1
     scales = guard.setdefault("routing_repair_branch_response_learning_rate_scales", [])
-    if isinstance(scales, list):
-        scales.append(learning_rate_scale)
-
-
-def _record_no_response_rejection(
-    guard: dict[str, Any],
-    learning_rate_scale: float,
-) -> None:
-    guard["routing_repair_no_response_rejections"] = int(
-        guard.get("routing_repair_no_response_rejections", 0)
-    ) + 1
-    scales = guard.setdefault("routing_repair_no_response_learning_rate_scales", [])
     if isinstance(scales, list):
         scales.append(learning_rate_scale)
 
