@@ -5,6 +5,10 @@ from __future__ import annotations
 import random
 from typing import Any
 
+from transformer_branch_replay_rank_diagnostics import (
+    branch_replay_rank_movement,
+    branch_replay_rank_summary,
+)
 from transformer_direct_answer_profile_balanced_batches import (
     direct_answer_profile_balanced_branch_batch,
 )
@@ -85,6 +89,7 @@ def record_routing_repair_batch_step(
     )
     retention_anchors = []
     target_floor_anchors = []
+    target_floor_rank_summary = None
     if getattr(args, "direct_answer_mode", None) in {
         ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
         ROUTING_REPAIR_TOPK_BATCH_MODE,
@@ -110,12 +115,17 @@ def record_routing_repair_batch_step(
             terminator,
             repair_target_profiles=direct_answer_repair_target_profiles(args),
         )
+        target_floor_rank_summary = branch_replay_rank_summary(
+            model,
+            target_floor_anchors,
+        )
     return routing_repair_batch_step_record(
         direct_step,
         branches,
         retention_anchors,
         target_floor_anchors,
         target_depth,
+        target_floor_rank_summary,
     )
 
 
@@ -182,6 +192,7 @@ def routing_repair_batch_evidence_summary(
         "target_floor_anchor_count": sum(
             int(record.get("target_floor_anchor_count", 0)) for record in step_records
         ),
+        "target_floor_rank_movement": branch_replay_rank_movement(step_records),
         "profiles": covered_profiles,
         "required_eval_profiles": required,
         "profile_balanced_branch_batches": batch_check,

@@ -14,6 +14,7 @@ def routing_repair_batch_step_record(
     retention_anchors: list[Any],
     target_floor_anchors: list[Any],
     min_targets_per_profile: int,
+    target_floor_rank_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     profiles: Counter[str] = Counter()
     targets: Counter[int] = Counter()
@@ -49,4 +50,5 @@ def routing_repair_batch_step_record(
         "target_floor_anchor_profile_counts": dict(
             sorted(target_floor_profiles.items())
         ),
+        "target_floor_rank_summary": target_floor_rank_summary,
     }

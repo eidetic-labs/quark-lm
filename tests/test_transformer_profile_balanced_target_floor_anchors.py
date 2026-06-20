@@ -142,6 +142,8 @@ class TransformerProfileBalancedTargetFloorAnchorTests(unittest.TestCase):
         assert record is not None
         self.assertGreater(record["target_floor_anchor_count"], 0)
         self.assertTrue(record["target_floor_anchor_profile_counts"])
+        self.assertTrue(record["target_floor_rank_summary"])
+        self.assertIn("avg_target_rank", record["target_floor_rank_summary"])
 
 
 def _profiles(branches: list[tuple[list[int], int, int, str]]) -> set[str]:
