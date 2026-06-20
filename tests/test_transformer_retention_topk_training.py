@@ -42,8 +42,17 @@ class TransformerRetentionTopKTrainingTests(unittest.TestCase):
 
         self.assertGreater(full_loss, shallow_loss)
 
+    def test_target_floor_training_uses_competitor_pressure(self) -> None:
+        plain_loss = _target_floor_loss(candidate_count=1, negative_weight=0.0)
+        competitor_loss = _target_floor_loss(candidate_count=1, negative_weight=1.0)
 
-def _target_floor_loss(candidate_count: int) -> float:
+        self.assertGreater(competitor_loss, plain_loss)
+
+
+def _target_floor_loss(
+    candidate_count: int,
+    negative_weight: float = 0.0,
+) -> float:
     fixture = branch_training_fixture(seed=75)
     model = fixture.model
     context = [fixture.tokenizer.pad_id] * (model.config.context_size - 1)
@@ -54,7 +63,7 @@ def _target_floor_loss(candidate_count: int) -> float:
         [],
         [],
         learning_rate=0.0,
-        negative_weight=0.0,
+        negative_weight=negative_weight,
         positive_weight=0.0,
         candidate_weight=2.0,
         candidate_count=candidate_count,

@@ -46,14 +46,19 @@ def target_floor_combined_topk_loss(
     target_floor_anchors: list[BranchReplayRecord],
     candidate_weight: float,
     candidate_count: int,
+    competitor_weight: float = 0.0,
 ) -> Scalar | None:
-    """Return balanced full-floor and top-k floor pressure in one forward pass."""
+    """Return balanced floor, top-k, and competitor pressure in one pass."""
 
-    if not target_floor_anchors or candidate_weight <= 0.0:
+    if (
+        not target_floor_anchors
+        or (candidate_weight <= 0.0 and competitor_weight <= 0.0)
+    ):
         return None
     floor_losses_by_target: dict[tuple[str, int], Scalar] = {}
     floor_counts_by_target: Counter[tuple[str, int]] = Counter()
     candidate_loss = Scalar(0.0)
+    competitor_loss = Scalar(0.0)
     anchor_count = 0
     for anchor in target_floor_anchors:
         context, target, _predicted, profile = branch_replay_parts(anchor)
@@ -73,6 +78,11 @@ def target_floor_combined_topk_loss(
             candidate_count,
             model.config.vocab_size,
         )
+        competitor_loss = competitor_loss + _competitor_unlikelihood_loss(
+            probs,
+            target,
+            competitor_weight,
+        )
         anchor_count += 1
     if anchor_count == 0:
         return None
@@ -80,4 +90,31 @@ def target_floor_combined_topk_loss(
         balanced_target_loss(floor_losses_by_target, floor_counts_by_target)
         * candidate_weight
     )
-    return balanced_floor_loss + (candidate_loss / anchor_count)
+    return (
+        balanced_floor_loss
+        + (candidate_loss / anchor_count)
+        + (competitor_loss / anchor_count)
+    )
+
+
+def _competitor_unlikelihood_loss(
+    probs: list[Scalar],
+    target: int,
+    competitor_weight: float,
+) -> Scalar:
+    if competitor_weight <= 0.0:
+        return Scalar(0.0)
+    competitor = _top_competitor_id(probs, target)
+    if competitor is None:
+        return Scalar(0.0)
+    return (-(Scalar(1.0) - probs[competitor] + 1e-12).log()) * competitor_weight
+
+
+def _top_competitor_id(probs: list[Scalar], target: int) -> int | None:
+    ranked_ids = sorted(
+        range(len(probs)),
+        key=lambda index: (-probs[index].data, index),
+    )
+    if not ranked_ids or ranked_ids[0] == target:
+        return None
+    return ranked_ids[0]

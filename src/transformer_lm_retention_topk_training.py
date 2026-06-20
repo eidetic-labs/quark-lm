@@ -46,6 +46,7 @@ def train_branch_retention_topk_softmax(
         target_floor_anchors or [],
         candidate_weight,
         candidate_count,
+        negative_weight,
     )
     if target_floor_loss is not None:
         loss = loss + target_floor_loss

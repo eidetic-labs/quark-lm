@@ -77,6 +77,7 @@ class TransformerTargetFloorTopKLossTests(unittest.TestCase):
             anchors,
             candidate_weight=1.0,
             candidate_count=1,
+            competitor_weight=0.0,
         )
 
         self.assertIsNotNone(split_floor)
@@ -92,6 +93,32 @@ class TransformerTargetFloorTopKLossTests(unittest.TestCase):
         )
         self.assertEqual(split_model.forward_calls, 2)
         self.assertEqual(combined_model.forward_calls, 1)
+
+    def test_combined_loss_adds_competitor_unlikelihood(self) -> None:
+        anchors = [([0, 1], 0, 1, "qa")]
+        plain_model = _FakeModel([Scalar(0.0), Scalar(3.0), Scalar(2.0)])
+        competitor_model = _FakeModel([Scalar(0.0), Scalar(3.0), Scalar(2.0)])
+
+        plain = target_floor_combined_topk_loss(
+            plain_model,
+            anchors,
+            candidate_weight=1.0,
+            candidate_count=1,
+            competitor_weight=0.0,
+        )
+        with_competitor = target_floor_combined_topk_loss(
+            competitor_model,
+            anchors,
+            candidate_weight=1.0,
+            candidate_count=1,
+            competitor_weight=1.0,
+        )
+
+        self.assertIsNotNone(plain)
+        self.assertIsNotNone(with_competitor)
+        assert plain is not None
+        assert with_competitor is not None
+        self.assertGreater(with_competitor.data, plain.data)
 
 
 class _FakeConfig:
