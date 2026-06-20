@@ -43,6 +43,8 @@ class TransformerAnswerSweepTest(unittest.TestCase):
                 "answer-sweep",
                 "--run",
                 "runs/sweep",
+                "--sweep-frontier-metrics",
+                "runs/frontier/transformer_answer_metrics.json",
                 "--sweep-axis",
                 (
                     "experiment_bundle="
@@ -79,6 +81,10 @@ class TransformerAnswerSweepTest(unittest.TestCase):
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
                 PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
             ],
+        )
+        self.assertEqual(
+            [trial.args.direct_answer_frontier_metrics for trial in trials],
+            [Path("runs/frontier/transformer_answer_metrics.json")] * 3,
         )
 
     def test_answer_sweep_runs_char_and_subword_trials(self) -> None:

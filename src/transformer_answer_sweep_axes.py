@@ -114,6 +114,7 @@ def _trial_from_config(args: Namespace, config: dict[str, Any], index: int) -> S
     derived_mode = _apply_bundle_default_mode(trial_args, config)
     if derived_mode is not None:
         trial_config["direct_answer_mode"] = derived_mode
+    _apply_sweep_frontier_metrics(trial_args, args)
     trial_args.command = "answer-train"
     trial_args.run = args.run / _trial_slug(index, trial_config)
     trial_args.tokenizer_manifest = None
@@ -123,6 +124,14 @@ def _trial_from_config(args: Namespace, config: dict[str, Any], index: int) -> S
         config=trial_config,
         args=trial_args,
     )
+
+
+def _apply_sweep_frontier_metrics(trial_args: Namespace, args: Namespace) -> None:
+    if getattr(trial_args, "direct_answer_frontier_metrics", None) is not None:
+        return
+    frontier_metrics = getattr(args, "sweep_frontier_metrics", None)
+    if frontier_metrics is not None:
+        trial_args.direct_answer_frontier_metrics = frontier_metrics
 
 
 def _apply_bundle_default_mode(args: Namespace, config: dict[str, Any]) -> str | None:

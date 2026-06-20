@@ -148,6 +148,15 @@ def _add_direct_answer_options(answer_parser: argparse.ArgumentParser) -> None:
         ),
     )
     answer_parser.add_argument(
+        "--direct-answer-frontier-metrics",
+        type=Path,
+        default=None,
+        help=(
+            "Prior transformer_answer_metrics.json used as an explicit "
+            "frontier reference for evidence gates. The file is not training data."
+        ),
+    )
+    answer_parser.add_argument(
         "--memory-consolidation-max-profiles",
         type=int,
         default=3,

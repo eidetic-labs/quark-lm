@@ -28,7 +28,15 @@ class TransformerSweepPlanTest(unittest.TestCase):
         self.assertEqual(plan["kind"], "transformer_sweep_plan")
         self.assertEqual(plan["current_trial"]["tokenizer_type"], "char")
         self.assertEqual(plan["current_trial"]["transformer_profile"], "modern_small")
+        self.assertEqual(
+            plan["current_trial"]["direct_answer_frontier_metrics_path"],
+            "runs/frontier/transformer_answer_metrics.json",
+        )
         self.assertEqual(plan["axes"]["context_size"], [16])
+        self.assertEqual(
+            plan["axes"]["direct_answer_frontier_metrics_path"],
+            ["runs/frontier/transformer_answer_metrics.json"],
+        )
         self.assertFalse(plan["pretrained_weights"])
         self.assertFalse(plan["pretrained_tokenizer"])
 
@@ -47,6 +55,10 @@ class TransformerSweepPlanTest(unittest.TestCase):
         summary = sweep_plan_summary(written)
         self.assertEqual(summary["axis_count"], len(plan["axes"]))
         self.assertEqual(summary["promotion_scope"], plan["promotion_scope"])
+        self.assertEqual(
+            summary["direct_answer_frontier_metrics_path"],
+            "runs/frontier/transformer_answer_metrics.json",
+        )
 
 
 def _args() -> SimpleNamespace:
@@ -69,6 +81,9 @@ def _args() -> SimpleNamespace:
         gradient_accumulation_steps=4,
         transformer_profile="modern_small",
         tokenizer_manifest_hash="abc123",
+        direct_answer_frontier_metrics=Path(
+            "runs/frontier/transformer_answer_metrics.json"
+        ),
     )
 
 

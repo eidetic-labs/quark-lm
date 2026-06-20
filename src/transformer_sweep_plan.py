@@ -48,6 +48,9 @@ def sweep_plan_summary(plan: dict[str, Any]) -> dict[str, Any]:
         "tokenizer_type": plan.get("current_trial", {}).get("tokenizer_type"),
         "transformer_profile": plan.get("current_trial", {}).get("transformer_profile"),
         "direct_answer_mode": plan.get("current_trial", {}).get("direct_answer_mode"),
+        "direct_answer_frontier_metrics_path": plan.get("current_trial", {}).get(
+            "direct_answer_frontier_metrics_path"
+        ),
         "promotion_scope": plan.get("promotion_scope"),
     }
 
@@ -76,8 +79,14 @@ def _trial_config(args: Any, tokenizer: Any) -> dict[str, Any]:
         "direct_answer_steps": args.direct_answer_steps,
         "direct_answer_mode": args.direct_answer_mode,
         "direct_answer_learning_rate": args.direct_answer_learning_rate,
+        "direct_answer_frontier_metrics_path": _frontier_metrics_path(args),
         "gradient_clip": getattr(args, "gradient_clip", 0.0),
         "warmup_steps": getattr(args, "warmup_steps", 0),
         "decay_steps": getattr(args, "decay_steps", 0),
         "gradient_accumulation_steps": getattr(args, "gradient_accumulation_steps", 1),
     }
+
+
+def _frontier_metrics_path(args: Any) -> str | None:
+    path = getattr(args, "direct_answer_frontier_metrics", None)
+    return str(path) if path is not None else None
