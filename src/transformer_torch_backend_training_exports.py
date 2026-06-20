@@ -72,6 +72,12 @@ from transformer_torch_training_readiness import (
     TORCH_TRAINING_READY_STATUS,
     build_torch_training_readiness,
 )
+from transformer_torch_training_readiness_validation import (
+    TORCH_TRAINING_READINESS_BASE_CHECKS,
+    TORCH_TRAINING_READINESS_CHECK_CATALOGS,
+    TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
+    validate_torch_training_readiness,
+)
 from transformer_torch_training_replay_parity_gate import (
     TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
     TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION,
@@ -110,6 +116,9 @@ __all__ = [
     "TORCH_TRAINING_PARITY_CANDIDATE_KIND",
     "TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION",
     "TORCH_TRAINING_PENDING_STATUS",
+    "TORCH_TRAINING_READINESS_BASE_CHECKS",
+    "TORCH_TRAINING_READINESS_CHECK_CATALOGS",
+    "TORCH_TRAINING_READINESS_RUNTIME_CHECKS",
     "TORCH_TRAINING_READINESS_SCHEMA_VERSION",
     "TORCH_TRAINING_READY_STATUS",
     "TORCH_TRAINING_REPLAY_BLOCKED_STATUS",
@@ -140,5 +149,6 @@ __all__ = [
     "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_backend_promotion_gate",
     "validate_torch_training_parity_candidate",
+    "validate_torch_training_readiness",
     "validate_torch_training_state_summary",
 ]

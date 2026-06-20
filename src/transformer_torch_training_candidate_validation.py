@@ -16,9 +16,10 @@ from transformer_torch_training_candidate import (
     TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
 )
 from transformer_torch_training_readiness import (
-    TORCH_TRAINING_BLOCKED_STATUS,
-    TORCH_TRAINING_PENDING_STATUS,
     TORCH_TRAINING_READY_STATUS,
+)
+from transformer_torch_training_readiness_validation import (
+    validate_torch_training_readiness,
 )
 from transformer_torch_training_replay_parity_gate import (
     TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
@@ -76,7 +77,7 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
     _require_dicts(candidate, _DICT_SECTIONS)
     _validate_backend(candidate["backend"])
     _validate_runtime_report(candidate)
-    _validate_readiness(candidate["training_readiness"])
+    validate_torch_training_readiness(candidate["training_readiness"])
     _validate_replay_gate(candidate["training_replay_parity_gate"])
     validate_torch_training_case(candidate["training_case"])
     _validate_routing(candidate)
@@ -97,18 +98,6 @@ def _validate_runtime_report(candidate: dict[str, Any]) -> None:
         return
     failures = check.get("failed_runtime_checks") or [check.get("error", "invalid")]
     raise ValueError(f"candidate.runtime_report.{failures[0]} is inconsistent")
-
-
-def _validate_readiness(readiness: dict[str, Any]) -> None:
-    if readiness.get("status") not in {
-        TORCH_TRAINING_READY_STATUS,
-        TORCH_TRAINING_PENDING_STATUS,
-        TORCH_TRAINING_BLOCKED_STATUS,
-    }:
-        raise ValueError("candidate.training_readiness.status is invalid")
-    if not isinstance(readiness.get("checks"), list):
-        raise ValueError("candidate.training_readiness.checks is invalid")
-    _validate_summary("candidate.training_readiness", readiness.get("summary"))
 
 
 def _validate_replay_gate(gate: dict[str, Any]) -> None:

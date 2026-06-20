@@ -29,6 +29,9 @@ from transformer_torch_backend import (
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_KIND,
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
+    TORCH_TRAINING_READINESS_BASE_CHECKS,
+    TORCH_TRAINING_READINESS_CHECK_CATALOGS,
+    TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
     build_torch_runtime_report_hash,
     build_torch_training_attempt_payload_hash,
@@ -42,6 +45,7 @@ from transformer_torch_backend import (
     validate_torch_training_parity_attempt_requirements,
     validate_torch_training_parity_attempt_summaries,
     validate_torch_training_parity_candidate,
+    validate_torch_training_readiness,
 )
 
 
@@ -95,7 +99,13 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertTrue(callable(validate_torch_training_backend_promotion_gate))
         self.assertTrue(callable(validate_torch_training_parity_attempt_audit))
         self.assertTrue(callable(validate_torch_training_parity_candidate))
+        self.assertTrue(callable(validate_torch_training_readiness))
         self.assertIn("runtime_report", REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS)
+        self.assertIn(
+            TORCH_TRAINING_READINESS_BASE_CHECKS
+            + TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
+            TORCH_TRAINING_READINESS_CHECK_CATALOGS,
+        )
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
             "transformer_torch_training_parity_attempt_audit",

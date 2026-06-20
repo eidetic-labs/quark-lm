@@ -17,6 +17,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_READY_STATUS,
     build_torch_training_readiness,
     torch_runtime_status,
+    validate_torch_training_readiness,
 )
 from transformer_training_parity import build_scalar_training_parity_fixture
 
@@ -34,6 +35,7 @@ class TransformerTorchTrainingReadinessTests(unittest.TestCase):
 
         self.assertEqual(readiness["status"], TORCH_TRAINING_BLOCKED_STATUS)
         self.assertIn("runtime_available", readiness["summary"]["failed_checks"])
+        validate_torch_training_readiness(readiness)
 
     def test_readiness_marks_forward_only_runtime_pending(self) -> None:
         fixture = _scalar_training_fixture()
@@ -49,6 +51,7 @@ class TransformerTorchTrainingReadinessTests(unittest.TestCase):
         self.assertIn("autograd", readiness["summary"]["failed_checks"])
         self.assertIn("adamw_optimizer", readiness["summary"]["failed_checks"])
         self.assertNotIn("parameter_manifest", readiness["summary"]["failed_checks"])
+        validate_torch_training_readiness(readiness)
 
     def test_readiness_accepts_training_capable_runtime(self) -> None:
         fixture = _scalar_training_fixture()
@@ -63,6 +66,7 @@ class TransformerTorchTrainingReadinessTests(unittest.TestCase):
 
         self.assertEqual(readiness["status"], TORCH_TRAINING_READY_STATUS)
         self.assertEqual(readiness["summary"]["failed_checks"], [])
+        validate_torch_training_readiness(readiness)
 
 
 def _missing_importer(name: str) -> object:

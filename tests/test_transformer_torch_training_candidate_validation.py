@@ -59,6 +59,13 @@ class TransformerTorchTrainingCandidateValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "runtime_report.runtime"):
             validate_torch_training_parity_candidate(candidate)
 
+    def test_validator_rejects_stale_readiness_summary_count(self) -> None:
+        candidate = _candidate(importer=_missing_importer)
+        candidate["training_readiness"]["summary"]["check_count"] = True
+
+        with self.assertRaisesRegex(ValueError, "training_readiness.summary"):
+            validate_torch_training_parity_candidate(candidate)
+
     def test_validator_rejects_stale_replay_gate_status(self) -> None:
         candidate = _candidate(importer=_missing_importer)
         candidate["training_replay_parity_gate"]["passed"] = True
