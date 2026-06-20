@@ -13,6 +13,10 @@ from transformer_torch_training_candidate import (
     TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
     build_torch_training_parity_candidate,
 )
+from transformer_torch_training_candidate_routing_validation import (
+    TORCH_TRAINING_CANDIDATE_ROUTE_FIELDS,
+    validate_torch_training_candidate_routing,
+)
 from transformer_torch_training_candidate_validation import (
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
     validate_torch_training_parity_candidate,
@@ -106,6 +110,7 @@ __all__ = [
     "TORCH_TRAINING_BACKEND_PROMOTION_REQUIRED_FUTURE_GATES",
     "TORCH_TRAINING_BACKWARD_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_BLOCKED_STATUS",
+    "TORCH_TRAINING_CANDIDATE_ROUTE_FIELDS",
     "TORCH_TRAINING_LOSS_PROBE_SCHEMA_VERSION",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS",
     "TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND",
@@ -153,6 +158,7 @@ __all__ = [
     "validate_torch_training_parity_attempt_audit",
     "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_backend_promotion_gate",
+    "validate_torch_training_candidate_routing",
     "validate_torch_training_parity_candidate",
     "validate_torch_training_readiness",
     "validate_torch_training_replay_parity_gate",

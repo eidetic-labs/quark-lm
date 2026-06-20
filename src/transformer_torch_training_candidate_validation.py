@@ -13,10 +13,9 @@ from transformer_torch_training_case_validation import validate_torch_training_c
 from transformer_torch_training_candidate import (
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
     TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
-    TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS,
 )
-from transformer_torch_training_readiness import (
-    TORCH_TRAINING_READY_STATUS,
+from transformer_torch_training_candidate_routing_validation import (
+    validate_torch_training_candidate_routing,
 )
 from transformer_torch_training_readiness_validation import (
     validate_torch_training_readiness,
@@ -83,7 +82,7 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
         candidate["training_replay_parity_gate"]
     )
     validate_torch_training_case(candidate["training_case"])
-    _validate_routing(candidate)
+    validate_torch_training_candidate_routing(candidate)
 
 
 def _validate_backend(backend: dict[str, Any]) -> None:
@@ -101,46 +100,6 @@ def _validate_runtime_report(candidate: dict[str, Any]) -> None:
         return
     failures = check.get("failed_runtime_checks") or [check.get("error", "invalid")]
     raise ValueError(f"candidate.runtime_report.{failures[0]} is inconsistent")
-
-
-def _validate_routing(candidate: dict[str, Any]) -> None:
-    expected = _expected_routing(candidate)
-    for key, value in expected.items():
-        if key == "backend.parity_status":
-            actual = candidate["backend"].get("parity_status")
-        elif key == "training_case.status":
-            actual = candidate["training_case"].get("status")
-        else:
-            actual = candidate.get(key)
-        if actual != value:
-            raise ValueError(f"candidate.{key} is inconsistent")
-
-
-def _expected_routing(candidate: dict[str, Any]) -> dict[str, str]:
-    runtime = candidate["runtime"]
-    readiness = candidate["training_readiness"]
-    gate = candidate["training_replay_parity_gate"]
-    if runtime.get("available") is not True:
-        return _routing("runtime_unavailable", "failed", "blocked")
-    if runtime.get("dtype_available") is not True:
-        return _routing("dtype_unavailable", "pending", "pending")
-    if readiness.get("status") != TORCH_TRAINING_READY_STATUS:
-        return _routing(TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS, "pending", "pending")
-    if gate.get("status") == TORCH_TRAINING_REPLAY_MATCHED_STATUS:
-        return _routing(TORCH_TRAINING_REPLAY_MATCHED_STATUS, "matched", "matched")
-    return _routing(TORCH_TRAINING_REPLAY_PENDING_STATUS, "pending", "pending")
-
-
-def _routing(
-    implementation_status: str,
-    parity_status: str,
-    training_case_status: str,
-) -> dict[str, str]:
-    return {
-        "implementation_status": implementation_status,
-        "backend.parity_status": parity_status,
-        "training_case.status": training_case_status,
-    }
 
 
 def _require_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:
