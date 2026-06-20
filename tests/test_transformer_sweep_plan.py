@@ -28,6 +28,16 @@ class TransformerSweepPlanTest(unittest.TestCase):
         self.assertEqual(plan["kind"], "transformer_sweep_plan")
         self.assertEqual(plan["current_trial"]["tokenizer_type"], "char")
         self.assertEqual(plan["current_trial"]["transformer_profile"], "modern_small")
+        self.assertEqual(plan["current_trial"]["attention_heads"], 2)
+        self.assertTrue(plan["current_trial"]["use_pre_layer_norm"])
+        self.assertTrue(plan["current_trial"]["use_rms_norm"])
+        self.assertTrue(plan["current_trial"]["use_gated_mlp"])
+        self.assertTrue(plan["current_trial"]["use_rotary_positions"])
+        self.assertEqual(plan["current_trial"]["optimizer"], "adamw")
+        self.assertEqual(plan["current_trial"]["gradient_clip"], 2.0)
+        self.assertEqual(plan["current_trial"]["warmup_steps"], 5)
+        self.assertEqual(plan["current_trial"]["decay_steps"], 40)
+        self.assertEqual(plan["current_trial"]["gradient_accumulation_steps"], 2)
         self.assertEqual(
             plan["current_trial"]["direct_answer_frontier_metrics_path"],
             "runs/frontier/transformer_answer_metrics.json",
@@ -64,21 +74,41 @@ class TransformerSweepPlanTest(unittest.TestCase):
 def _args() -> SimpleNamespace:
     return SimpleNamespace(
         run=Path("runs/sweep"),
+        seed=17,
         context_size=16,
         embedding_dim=8,
-        attention_heads=2,
+        attention_heads=1,
         num_layers=2,
         feedforward_dim=24,
-        optimizer="adamw",
+        use_layer_norm=False,
+        use_pre_layer_norm=False,
+        use_rms_norm=False,
+        layer_norm_epsilon=1e-5,
+        use_gated_mlp=False,
+        tie_output_embeddings=False,
+        use_rotary_positions=False,
+        use_kv_cache_path=False,
+        use_context_mean=False,
+        use_context_projection=False,
+        use_prompt_prefix_projection=False,
+        use_prompt_position_projection=False,
+        prompt_position_projection_scale=1.0,
+        use_prompt_attention_summary=False,
+        optimizer="sgd",
         learning_rate=0.01,
         steps=50,
         direct_answer_steps=10,
         direct_answer_mode="branch-context-profile-coverage-preserving-deficit-unlikelihood",
         direct_answer_learning_rate=0.02,
-        gradient_clip=1.0,
-        warmup_steps=2,
+        gradient_clip=5.0,
+        weight_decay=0.0,
+        adam_beta1=0.9,
+        adam_beta2=0.999,
+        adam_epsilon=1e-8,
+        warmup_steps=0,
         decay_steps=40,
-        gradient_accumulation_steps=4,
+        min_learning_rate=0.0,
+        gradient_accumulation_steps=1,
         transformer_profile="modern_small",
         tokenizer_manifest_hash="abc123",
         direct_answer_frontier_metrics=Path(

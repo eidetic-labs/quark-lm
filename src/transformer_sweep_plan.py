@@ -6,6 +6,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from transformer_model import (
+    optimization_config_from_args,
+    transformer_config_from_args,
+)
+
 
 SWEEP_PLAN_KIND = "transformer_sweep_plan"
 SWEEP_PLAN_SCHEMA_VERSION = 1
@@ -63,27 +68,33 @@ def write_transformer_sweep_plan(path: Path, plan: dict[str, Any]) -> None:
 
 
 def _trial_config(args: Any, tokenizer: Any) -> dict[str, Any]:
+    model_config = transformer_config_from_args(args, tokenizer.vocab_size)
+    optimizer_config = optimization_config_from_args(args)
     return {
         "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
         "vocab_size": tokenizer.vocab_size,
         "tokenizer_manifest_hash": getattr(args, "tokenizer_manifest_hash", None),
-        "transformer_profile": getattr(args, "transformer_profile", "default"),
-        "context_size": args.context_size,
-        "embedding_dim": args.embedding_dim,
-        "attention_heads": args.attention_heads,
-        "num_layers": args.num_layers,
-        "feedforward_dim": args.feedforward_dim,
-        "optimizer": getattr(args, "optimizer", "sgd"),
+        "transformer_profile": model_config.transformer_profile,
+        "context_size": model_config.context_size,
+        "embedding_dim": model_config.embedding_dim,
+        "attention_heads": model_config.attention_heads,
+        "num_layers": model_config.num_layers,
+        "feedforward_dim": model_config.feedforward_dim,
+        "use_pre_layer_norm": model_config.use_pre_layer_norm,
+        "use_rms_norm": model_config.use_rms_norm,
+        "use_gated_mlp": model_config.use_gated_mlp,
+        "use_rotary_positions": model_config.use_rotary_positions,
+        "optimizer": optimizer_config.optimizer,
         "learning_rate": args.learning_rate,
         "steps": args.steps,
         "direct_answer_steps": args.direct_answer_steps,
         "direct_answer_mode": args.direct_answer_mode,
         "direct_answer_learning_rate": args.direct_answer_learning_rate,
         "direct_answer_frontier_metrics_path": _frontier_metrics_path(args),
-        "gradient_clip": getattr(args, "gradient_clip", 0.0),
-        "warmup_steps": getattr(args, "warmup_steps", 0),
-        "decay_steps": getattr(args, "decay_steps", 0),
-        "gradient_accumulation_steps": getattr(args, "gradient_accumulation_steps", 1),
+        "gradient_clip": optimizer_config.gradient_clip,
+        "warmup_steps": optimizer_config.warmup_steps,
+        "decay_steps": optimizer_config.decay_steps,
+        "gradient_accumulation_steps": optimizer_config.gradient_accumulation_steps,
     }
 
 

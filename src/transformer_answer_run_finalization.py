@@ -90,6 +90,7 @@ def finalize_transformer_answer_run(
         "answer-train",
         resume_metadata,
     )
+    resolved_config = checkpoint_metadata["config"]
     model.save(checkpoint_path, tokenizer, checkpoint_metadata)
     tokenizer.save(artifacts.tokenizer)
     long_answer_diagnostics = build_long_answer_diagnostics_report(
@@ -128,27 +129,35 @@ def finalize_transformer_answer_run(
         "choice_loss_weight": args.choice_loss_weight,
         "choice_negatives": args.choice_negatives,
         "choice_max_chars": args.choice_max_chars,
-        "vocab_size": tokenizer.vocab_size,
-        "context_size": args.context_size,
-        "embedding_dim": args.embedding_dim,
-        "feedforward_dim": args.feedforward_dim,
-        "num_layers": args.num_layers,
-        "attention_heads": args.attention_heads,
-        "use_layer_norm": args.use_layer_norm,
-        "use_pre_layer_norm": args.use_pre_layer_norm,
-        "use_rms_norm": args.use_rms_norm,
-        "layer_norm_epsilon": args.layer_norm_epsilon,
-        "use_gated_mlp": args.use_gated_mlp,
-        "tie_output_embeddings": args.tie_output_embeddings,
-        "use_rotary_positions": args.use_rotary_positions,
-        "use_kv_cache_path": args.use_kv_cache_path,
-        "use_context_mean": args.use_context_mean,
-        "use_context_projection": args.use_context_projection,
-        "use_prompt_prefix_projection": args.use_prompt_prefix_projection,
-        "use_prompt_position_projection": args.use_prompt_position_projection,
-        "prompt_position_projection_scale": args.prompt_position_projection_scale,
-        "use_prompt_attention_summary": args.use_prompt_attention_summary,
-        "transformer_profile": getattr(args, "transformer_profile", "default"),
+        "vocab_size": resolved_config["vocab_size"],
+        "context_size": resolved_config["context_size"],
+        "embedding_dim": resolved_config["embedding_dim"],
+        "feedforward_dim": resolved_config["feedforward_dim"],
+        "num_layers": resolved_config["num_layers"],
+        "attention_heads": resolved_config["attention_heads"],
+        "use_layer_norm": resolved_config["use_layer_norm"],
+        "use_pre_layer_norm": resolved_config["use_pre_layer_norm"],
+        "use_rms_norm": resolved_config["use_rms_norm"],
+        "layer_norm_epsilon": resolved_config["layer_norm_epsilon"],
+        "use_gated_mlp": resolved_config["use_gated_mlp"],
+        "tie_output_embeddings": resolved_config["tie_output_embeddings"],
+        "use_rotary_positions": resolved_config["use_rotary_positions"],
+        "use_kv_cache_path": resolved_config["use_kv_cache_path"],
+        "use_context_mean": resolved_config["use_context_mean"],
+        "use_context_projection": resolved_config["use_context_projection"],
+        "use_prompt_prefix_projection": resolved_config[
+            "use_prompt_prefix_projection"
+        ],
+        "use_prompt_position_projection": resolved_config[
+            "use_prompt_position_projection"
+        ],
+        "prompt_position_projection_scale": resolved_config[
+            "prompt_position_projection_scale"
+        ],
+        "use_prompt_attention_summary": resolved_config[
+            "use_prompt_attention_summary"
+        ],
+        "transformer_profile": resolved_config["transformer_profile"],
         "context_coverage": context_coverage,
         "baseline": baseline,
         "final": last_snapshot,
