@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 from transformer_model import (
     optimization_config_from_args,
     transformer_config_from_args,
@@ -53,6 +54,9 @@ def sweep_plan_summary(plan: dict[str, Any]) -> dict[str, Any]:
         "tokenizer_type": plan.get("current_trial", {}).get("tokenizer_type"),
         "transformer_profile": plan.get("current_trial", {}).get("transformer_profile"),
         "direct_answer_mode": plan.get("current_trial", {}).get("direct_answer_mode"),
+        "direct_answer_repair_target_profiles": plan.get("current_trial", {}).get(
+            "direct_answer_repair_target_profiles"
+        ),
         "direct_answer_frontier_metrics_path": plan.get("current_trial", {}).get(
             "direct_answer_frontier_metrics_path"
         ),
@@ -70,6 +74,7 @@ def write_transformer_sweep_plan(path: Path, plan: dict[str, Any]) -> None:
 def _trial_config(args: Any, tokenizer: Any) -> dict[str, Any]:
     model_config = transformer_config_from_args(args, tokenizer.vocab_size)
     optimizer_config = optimization_config_from_args(args)
+    repair_target_profiles = direct_answer_repair_target_profiles(args)
     return {
         "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
         "vocab_size": tokenizer.vocab_size,
@@ -89,6 +94,7 @@ def _trial_config(args: Any, tokenizer: Any) -> dict[str, Any]:
         "steps": args.steps,
         "direct_answer_steps": args.direct_answer_steps,
         "direct_answer_mode": args.direct_answer_mode,
+        "direct_answer_repair_target_profiles": repair_target_profiles,
         "direct_answer_learning_rate": args.direct_answer_learning_rate,
         "direct_answer_frontier_metrics_path": _frontier_metrics_path(args),
         "gradient_clip": optimizer_config.gradient_clip,

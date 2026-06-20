@@ -42,7 +42,15 @@ class TransformerSweepPlanTest(unittest.TestCase):
             plan["current_trial"]["direct_answer_frontier_metrics_path"],
             "runs/frontier/transformer_answer_metrics.json",
         )
+        self.assertEqual(
+            plan["current_trial"]["direct_answer_repair_target_profiles"],
+            ["learning", "owner"],
+        )
         self.assertEqual(plan["axes"]["context_size"], [16])
+        self.assertEqual(
+            plan["axes"]["direct_answer_repair_target_profiles"],
+            [["learning", "owner"]],
+        )
         self.assertEqual(
             plan["axes"]["direct_answer_frontier_metrics_path"],
             ["runs/frontier/transformer_answer_metrics.json"],
@@ -68,6 +76,10 @@ class TransformerSweepPlanTest(unittest.TestCase):
         self.assertEqual(
             summary["direct_answer_frontier_metrics_path"],
             "runs/frontier/transformer_answer_metrics.json",
+        )
+        self.assertEqual(
+            summary["direct_answer_repair_target_profiles"],
+            ["learning", "owner"],
         )
 
 
@@ -100,6 +112,7 @@ def _args() -> SimpleNamespace:
         direct_answer_steps=10,
         direct_answer_mode="branch-context-profile-coverage-preserving-deficit-unlikelihood",
         direct_answer_learning_rate=0.02,
+        direct_answer_repair_target_profile=["owner", "learning", "owner"],
         gradient_clip=5.0,
         weight_decay=0.0,
         adam_beta1=0.9,

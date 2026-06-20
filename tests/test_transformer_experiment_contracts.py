@@ -82,6 +82,7 @@ class TransformerExperimentContractsTest(unittest.TestCase):
 
     def test_transformer_training_recipe_records_replay_and_rerun_surface(self) -> None:
         args = _recipe_args()
+        args.direct_answer_repair_target_profile = ["owner", "learning"]
         tokenizer = CharTokenizer.train("abc")
 
         recipe = transformer_training_recipe(
@@ -104,6 +105,14 @@ class TransformerExperimentContractsTest(unittest.TestCase):
         self.assertEqual(
             recipe["rerun"]["entry_point"],
             "quark-lm-transformer answer-train",
+        )
+        self.assertEqual(
+            recipe["objective"]["direct_answer"]["repair_target_profiles"],
+            ["learning", "owner"],
+        )
+        self.assertEqual(
+            recipe["rerun"]["arguments"]["direct_answer_repair_target_profile"],
+            ["learning", "owner"],
         )
 
     def test_transformer_experiment_decision_records_screen_evidence(self) -> None:

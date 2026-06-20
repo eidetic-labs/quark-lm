@@ -13,6 +13,7 @@ from transformer_experiment_constants import (
 )
 from transformer_experiment_modes import is_profile_aware_direct_answer_mode
 from transformer_backend_policy import SCALAR_BACKEND, transformer_backend_metadata
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 from transformer_model import TRANSFORMER_ARCHITECTURE, TRANSFORMER_TOKENIZER
 
 
@@ -40,6 +41,7 @@ def transformer_training_recipe(
     sweep_plan_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     direct_enabled = args.direct_answer_steps > 0
+    repair_target_profiles = direct_answer_repair_target_profiles(args)
     objective = {
         "target_loss": {
             "steps": args.steps,
@@ -60,6 +62,7 @@ def transformer_training_recipe(
             "require_branch_context_gate": (
                 args.direct_answer_require_branch_context_gate
             ),
+            "repair_target_profiles": repair_target_profiles,
         },
         "generation": dict(generation_config),
     }
@@ -153,6 +156,7 @@ def transformer_training_recipe(
                 "feedforward_dim": args.feedforward_dim,
                 "direct_answer_steps": args.direct_answer_steps,
                 "direct_answer_mode": args.direct_answer_mode,
+                "direct_answer_repair_target_profile": repair_target_profiles,
                 "seed": args.seed,
             },
         },
