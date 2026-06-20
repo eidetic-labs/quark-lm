@@ -11,6 +11,9 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
+from branch_diversity_snapshot_stability import (
+    branch_diversity_snapshot_preserves_profile_stability,
+)
 from branch_diversity_snapshots import branch_diversity_snapshot_score_improved
 from transformer_direct_answer_mode_dispatch import DirectAnswerModeStepResult
 from transformer_direct_answer_update_guard import (
@@ -82,11 +85,15 @@ def apply_routing_repair_update_search(
             probe_snapshot,
             ctx.direct_baseline,
         )
+        stability_preserved = branch_diversity_snapshot_preserves_profile_stability(
+            probe_snapshot,
+            ctx.direct_baseline,
+        )
         branch_response = _branch_response_recorded(
             probe_snapshot,
             ctx.direct_baseline,
         )
-        if coverage_preserved and branch_response:
+        if coverage_preserved and stability_preserved and branch_response:
             _record_branch_response(guard, learning_rate_scale)
             record_direct_update_guard_acceptance(
                 guard,
@@ -97,7 +104,9 @@ def apply_routing_repair_update_search(
                 learning_rate_scale
             )
             return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
-        if coverage_preserved:
+        if coverage_preserved and not stability_preserved:
+            _record_stability_rejection(guard, learning_rate_scale)
+        elif coverage_preserved:
             _record_no_response_rejection(guard, learning_rate_scale)
         record_direct_update_guard_rejection_attempt(
             guard,
@@ -195,6 +204,18 @@ def _record_no_response_rejection(
         guard.get("routing_repair_no_response_rejections", 0)
     ) + 1
     scales = guard.setdefault("routing_repair_no_response_learning_rate_scales", [])
+    if isinstance(scales, list):
+        scales.append(learning_rate_scale)
+
+
+def _record_stability_rejection(
+    guard: dict[str, Any],
+    learning_rate_scale: float,
+) -> None:
+    guard["routing_repair_stability_rejections"] = int(
+        guard.get("routing_repair_stability_rejections", 0)
+    ) + 1
+    scales = guard.setdefault("routing_repair_stability_learning_rate_scales", [])
     if isinstance(scales, list):
         scales.append(learning_rate_scale)
 

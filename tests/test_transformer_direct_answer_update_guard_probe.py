@@ -89,6 +89,56 @@ class TransformerDirectAnswerUpdateGuardProbeTests(unittest.TestCase):
         )
         restore.assert_called_once_with({"model": True}, {"optimizer": True})
 
+    def test_rejects_probe_when_stability_regresses(self) -> None:
+        guard = {"checked_steps": 0, "attempted_updates": 0, "rejected_steps": 0}
+        recorder = Mock()
+        probe_snapshot = _snapshot(predicted_unique=1, dominant_rate=1.0)
+        recorder.record.return_value = probe_snapshot
+        restore = Mock()
+        baseline = _snapshot(predicted_unique=2, dominant_rate=0.5)
+
+        with patch(
+            "transformer_direct_answer_update_guard."
+            "record_direct_update_guard_rejection_attempt",
+        ) as rejection:
+            accepted = apply_direct_update_guard_probe(
+                direct_answer_update_guard=guard,
+                direct_baseline=baseline,
+                direct_step=5,
+                direct_snapshot_recorder=recorder,
+                pre_update_model_payload={"model": True},
+                pre_update_optimizer_payload={"optimizer": True},
+                restore_direct_update_state=restore,
+            )
+
+        self.assertFalse(accepted)
+        self.assertEqual(guard["checked_steps"], 1)
+        self.assertEqual(guard["attempted_updates"], 1)
+        self.assertEqual(guard["rejected_steps"], 1)
+        rejection.assert_called_once_with(
+            guard,
+            baseline,
+            5,
+            probe_snapshot,
+            1.0,
+        )
+        restore.assert_called_once_with({"model": True}, {"optimizer": True})
+
+
+def _snapshot(predicted_unique: int, dominant_rate: float) -> dict:
+    return {
+        "branch_profiles": {
+            "qa": {
+                "diversity": {
+                    "target_unique": 2,
+                    "target_token_coverage": 0.5,
+                    "predicted_unique": predicted_unique,
+                    "dominant_predicted_rate": dominant_rate,
+                }
+            }
+        }
+    }
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -122,6 +122,8 @@ EMPTY_DICT_KEYS = (
     "rejected_learning_rate_scale_counts",
     "rejected_update_shape_counts",
     "rejected_violation_profile_counts",
+    "rejected_stability_violation_counts",
+    "rejected_stability_violation_profile_counts",
 )
 
 EMPTY_LIST_KEYS = (
@@ -140,5 +142,6 @@ EMPTY_LIST_KEYS = (
     "profile_scale_memory_consolidation_probe_sample",
     "profile_scale_memory_consolidation_missing_first_token_probe_sample",
     "rejected_floor_diagnostic_sample",
+    "rejected_stability_diagnostic_sample",
     "rejected_step_sample",
 )

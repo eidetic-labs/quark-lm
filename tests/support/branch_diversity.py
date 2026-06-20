@@ -8,6 +8,10 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
 )
+from branch_diversity_snapshot_stability import (
+    branch_diversity_snapshot_preserves_profile_stability,
+    branch_diversity_snapshot_stability_diagnostics,
+)
 from branch_diversity_snapshots import (
     branch_diversity_profile_delta_has_coverage_gain,
     branch_diversity_snapshot_collapsed_profile_names,
@@ -28,10 +32,12 @@ from transformer_branch_representation_profiles import (
 __all__ = [
     "branch_diversity_profile_delta_has_coverage_gain",
     "branch_diversity_snapshot_collapsed_profile_names",
+    "branch_diversity_snapshot_preserves_profile_stability",
     "branch_diversity_snapshot_preserves_target_coverage",
     "branch_diversity_snapshot_profile_diversity_delta",
     "branch_diversity_snapshot_score",
     "branch_diversity_snapshot_score_improved",
+    "branch_diversity_snapshot_stability_diagnostics",
     "branch_diversity_snapshot_target_coverage_delta",
     "branch_diversity_snapshot_target_coverage_diagnostics",
     "branch_replay_plan",
