@@ -11,6 +11,9 @@ from tokenizer import CharTokenizer
 from transformer_direct_answer_core import direct_answer_branch_context
 from transformer_direct_answer_profile_keys import direct_answer_training_profile_key
 from transformer_direct_modes import ANSWER_TERMINATOR
+from transformer_profile_balanced_target_depth import (
+    PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
+)
 
 ProfiledBranchSeed = tuple[list[int], int, str]
 
@@ -23,6 +26,7 @@ def direct_answer_profile_balanced_branch_batch(
     branch_position: int,
     batch_size: int,
     terminator: str = ANSWER_TERMINATOR,
+    min_targets_per_profile: int = PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
 ) -> list[BranchReplayRecord]:
     """Build a bounded batch that covers trainable profile families first."""
 
@@ -57,7 +61,8 @@ def direct_answer_profile_balanced_branch_batch(
             rng,
         )
 
-    max_records = max(len(profiles), max(1, batch_size))
+    target_depth = max(1, int(min_targets_per_profile))
+    max_records = max(len(profiles) * target_depth, max(1, batch_size))
     while len(seeds) < max_records:
         progressed = False
         for profile in profiles:

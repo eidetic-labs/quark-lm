@@ -15,6 +15,10 @@ from transformer_direct_answer_profile_balanced_batches import (
 )
 from transformer_direct_answer_repairs import train_direct_answer_lesson
 from transformer_direct_modes import ANSWER_TERMINATOR
+from transformer_profile_balanced_target_depth import (
+    PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
+    PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
+)
 
 
 def train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood(
@@ -68,7 +72,14 @@ def train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood(
     params: list[Scalar] | None = None,
 ) -> float:
     branches = _profile_balanced_branches(
-        model, tokenizer, branch_examples, rng, branch_position, batch_size, terminator
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+        min_targets_per_profile=PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
@@ -125,6 +136,7 @@ def _profile_balanced_branches(
     branch_position: int,
     batch_size: int,
     terminator: str,
+    min_targets_per_profile: int = PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
 ) -> list[tuple[list[int], int, int, str]]:
     return direct_answer_profile_balanced_branch_batch(
         model,
@@ -134,6 +146,7 @@ def _profile_balanced_branches(
         branch_position,
         batch_size,
         terminator,
+        min_targets_per_profile=min_targets_per_profile,
     )
 
 

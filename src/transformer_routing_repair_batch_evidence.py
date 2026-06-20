@@ -14,8 +14,13 @@ from transformer_direct_answer_profile_keys import trainable_eval_profile_keys
 from transformer_profile_balanced_retention_anchors import (
     profile_balanced_retention_anchor_batch,
 )
+from transformer_profile_balanced_target_depth import (
+    PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
+    PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
+)
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
@@ -60,6 +65,7 @@ def record_routing_repair_batch_step(
         return None
     probe_rng = random.Random()
     probe_rng.setstate(rng.getstate())
+    target_depth = routing_repair_min_targets_per_profile(args)
     branches = direct_answer_profile_balanced_branch_batch(
         model,
         tokenizer,
@@ -68,6 +74,7 @@ def record_routing_repair_batch_step(
         getattr(args, "direct_answer_branch_position", 1),
         getattr(args, "direct_answer_branch_batch_size", 1),
         terminator,
+        min_targets_per_profile=target_depth,
     )
     retention_anchors = []
     if (
@@ -83,7 +90,7 @@ def record_routing_repair_batch_step(
             getattr(args, "direct_answer_branch_batch_size", 1),
             terminator,
         )
-    return _step_record(direct_step, branches, retention_anchors)
+    return _step_record(direct_step, branches, retention_anchors, target_depth)
 
 
 def routing_repair_batch_evidence_summary(
@@ -123,6 +130,7 @@ def routing_repair_batch_evidence_summary(
         "bundle": getattr(args, "experiment_bundle", None),
         "direct_answer_mode": getattr(args, "direct_answer_mode", None),
         "batch_builder": "profile-balanced-training-family-branch-batch",
+        "min_targets_per_profile": routing_repair_min_targets_per_profile(args),
         "step_count": len(step_records),
         "branch_count": sum(
             int(record.get("branch_count", 0)) for record in step_records
@@ -143,6 +151,7 @@ def _step_record(
     direct_step: int,
     branches: list[Any],
     retention_anchors: list[Any],
+    min_targets_per_profile: int,
 ) -> dict[str, Any]:
     profiles: Counter[str] = Counter()
     targets: Counter[int] = Counter()
@@ -161,6 +170,7 @@ def _step_record(
         retention_profiles[profile] += 1
     return {
         "step": direct_step,
+        "min_targets_per_profile": min_targets_per_profile,
         "branch_count": len(branches),
         "profiles": sorted(profiles),
         "profile_counts": dict(sorted(profiles.items())),
@@ -170,6 +180,15 @@ def _step_record(
         "retention_anchor_count": len(retention_anchors),
         "retention_anchor_profile_counts": dict(sorted(retention_profiles.items())),
     }
+
+
+def routing_repair_min_targets_per_profile(args: Any) -> int:
+    if (
+        getattr(args, "direct_answer_mode", None)
+        == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE
+    ):
+        return PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE
+    return PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE
 
 
 def _required_eval_profiles(baseline: dict[str, Any]) -> dict[str, Any]:

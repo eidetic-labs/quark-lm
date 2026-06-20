@@ -142,6 +142,32 @@ class TransformerBranchBatchTest(unittest.TestCase):
             {"glossary", "owner", "qa", "self"},
         )
 
+    def test_profile_balanced_branch_batch_can_deepen_profile_targets(self) -> None:
+        fixture = branch_training_fixture(seed=40)
+
+        batch = direct_answer_profile_balanced_branch_batch(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.examples,
+            random.Random(11),
+            branch_position=1,
+            batch_size=2,
+            terminator=ANSWER_TERMINATOR,
+            min_targets_per_profile=2,
+        )
+
+        profile_targets = {
+            profile: {
+                fixture.tokenizer.itos[target]
+                for _context, target, _predicted, branch_profile in batch
+                if branch_profile == profile
+            }
+            for profile in {branch_profile for *_rest, branch_profile in batch}
+        }
+        self.assertEqual(len(batch), 3)
+        self.assertEqual(profile_targets["qa"], {"n", "g"})
+        self.assertEqual(profile_targets["owner"], {"t"})
+
 
 if __name__ == "__main__":
     unittest.main()

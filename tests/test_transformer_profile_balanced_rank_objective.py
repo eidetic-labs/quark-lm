@@ -140,7 +140,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
 
         self.assertEqual(loss, 5.5)
         self.assertEqual(len(calls), 1)
-        self.assertEqual(len(calls[0]), 2)
+        self.assertEqual(len(calls[0]), 3)
         self.assertTrue(all(len(branch) == 3 for branch in calls[0]))
 
     def test_retention_rank_margin_runs_single_combined_step(self) -> None:
