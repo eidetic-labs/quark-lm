@@ -10,6 +10,10 @@ from typing import Any, Callable
 
 from transformer_objectives import DIRECT_ANSWER_OBJECTIVE_MODES
 from transformer_profiles import DEFAULT_PROFILE, MODERN_SMALL_PROFILE
+from transformer_routing_repair_bundle import (
+    EXPERIMENT_BUNDLES,
+    routing_repair_bundle_mode,
+)
 
 
 @dataclass(frozen=True)
@@ -24,6 +28,7 @@ _STRING_CHOICES = {
     "transformer_profile": {DEFAULT_PROFILE, MODERN_SMALL_PROFILE},
     "optimizer": {"sgd", "adamw"},
     "direct_answer_mode": set(DIRECT_ANSWER_OBJECTIVE_MODES),
+    "experiment_bundle": set(EXPERIMENT_BUNDLES),
 }
 
 _VALUE_PARSERS: dict[str, Callable[[str], Any]] = {
@@ -38,6 +43,7 @@ _VALUE_PARSERS: dict[str, Callable[[str], Any]] = {
     "steps": int,
     "direct_answer_steps": int,
     "direct_answer_mode": str,
+    "experiment_bundle": str,
     "learning_rate": float,
     "direct_answer_learning_rate": float,
 }
@@ -102,17 +108,33 @@ def _parse_axis_value(name: str, value: str) -> Any:
 
 def _trial_from_config(args: Namespace, config: dict[str, Any], index: int) -> SweepTrial:
     trial_args = copy.copy(args)
+    trial_config = dict(config)
     for name, value in config.items():
         setattr(trial_args, name, value)
+    derived_mode = _apply_bundle_default_mode(trial_args, config)
+    if derived_mode is not None:
+        trial_config["direct_answer_mode"] = derived_mode
     trial_args.command = "answer-train"
-    trial_args.run = args.run / _trial_slug(index, config)
+    trial_args.run = args.run / _trial_slug(index, trial_config)
     trial_args.tokenizer_manifest = None
     trial_args.tokenizer_report = None
     return SweepTrial(
         trial_id=f"trial-{index:02d}",
-        config=dict(config),
+        config=trial_config,
         args=trial_args,
     )
+
+
+def _apply_bundle_default_mode(args: Namespace, config: dict[str, Any]) -> str | None:
+    if "experiment_bundle" not in config or "direct_answer_mode" in config:
+        return None
+    if getattr(args, "direct_answer_mode", None) != "first-error":
+        return None
+    bundle_mode = routing_repair_bundle_mode(config["experiment_bundle"])
+    if bundle_mode is not None:
+        args.direct_answer_mode = bundle_mode
+        return bundle_mode
+    return None
 
 
 def _trial_slug(index: int, config: dict[str, Any]) -> str:

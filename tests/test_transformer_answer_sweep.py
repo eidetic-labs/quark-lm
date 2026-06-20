@@ -6,10 +6,16 @@ import unittest
 from pathlib import Path
 
 from support.commands import answer_sweep, parse_args
-from transformer_answer_sweep_axes import parse_sweep_axes
+from transformer_answer_sweep_axes import build_sweep_trials, parse_sweep_axes
 from transformer_answer_sweep_report import (
     build_answer_sweep_report,
     trial_report_from_metrics,
+)
+from transformer_routing_repair_bundle import (
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_ROUTING_REPAIR_MODE,
 )
 
 
@@ -20,12 +26,57 @@ class TransformerAnswerSweepTest(unittest.TestCase):
                 "tokenizer=char,closed-world-subword",
                 "context-size=8,16",
                 "learning_rate=0.01",
+                f"experiment_bundle={PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE}",
             ]
         )
 
         self.assertEqual(axes["tokenizer"], ["char", "closed-world-subword"])
         self.assertEqual(axes["context_size"], [8, 16])
         self.assertEqual(axes["learning_rate"], [0.01])
+        self.assertEqual(
+            axes["experiment_bundle"],
+            [PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE],
+        )
+
+    def test_experiment_bundle_axis_applies_canonical_direct_answer_mode(self) -> None:
+        args = parse_args(
+            [
+                "answer-sweep",
+                "--run",
+                "runs/sweep",
+                "--sweep-axis",
+                (
+                    "experiment_bundle="
+                    f"{PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE},"
+                    f"{PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE}"
+                ),
+            ]
+        )
+        axes = parse_sweep_axes(args.sweep_axis)
+
+        trials = build_sweep_trials(args, axes)
+
+        self.assertEqual(
+            [trial.args.experiment_bundle for trial in trials],
+            [
+                PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+                PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+            ],
+        )
+        self.assertEqual(
+            [trial.args.direct_answer_mode for trial in trials],
+            [
+                PROFILE_BALANCED_ROUTING_REPAIR_MODE,
+                PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+            ],
+        )
+        self.assertEqual(
+            [trial.config["direct_answer_mode"] for trial in trials],
+            [
+                PROFILE_BALANCED_ROUTING_REPAIR_MODE,
+                PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+            ],
+        )
 
     def test_answer_sweep_runs_char_and_subword_trials(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
