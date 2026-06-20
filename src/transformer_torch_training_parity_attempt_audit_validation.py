@@ -12,10 +12,8 @@ from transformer_torch_training_parity_attempt_hashes import (
 from transformer_torch_training_parity_attempt_reader import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
 )
-from transformer_torch_training_parity_attempt_requirements import (
-    TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES,
-    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS,
-    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS,
+from transformer_torch_training_parity_attempt_requirement_routing import (
+    validate_torch_training_requirement_routing,
 )
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
@@ -123,67 +121,17 @@ def _validate_hash_map(
 
 
 def _validate_routing(audit: dict[str, Any]) -> None:
-    stage = audit["next_requirements_stage"]
-    status = audit["next_requirements_status"]
-    next_actions = audit["next_actions"]
-    runtime_status = audit["runtime_status"]
-    if stage not in TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENT_STAGES:
-        raise ValueError("audit.next_requirements_stage is unsupported")
-    if status not in _allowed_requirement_statuses(stage):
-        raise ValueError("audit.next_requirements_status is unsupported")
-    if stage == "complete":
-        if next_actions:
-            raise ValueError("audit.next_actions are inconsistent")
-        return
-    if not next_actions:
-        raise ValueError("audit.next_actions must not be empty")
-    if stage == "runtime_preflight":
-        _validate_runtime_preflight_action(runtime_status, next_actions)
-        return
-    expected_prefix = _stage_action_prefix(stage)
-    if any(not _has_action_prefix(action, expected_prefix) for action in next_actions):
-        raise ValueError("audit.next_actions are inconsistent")
-
-
-def _allowed_requirement_statuses(stage: str) -> tuple[str, ...]:
-    if stage == "complete":
-        return ("satisfied",)
-    if stage == "runtime_preflight":
-        return ("blocked",)
-    if stage == "training_readiness":
-        return ("blocked", "pending")
-    return ("pending",)
-
-
-def _validate_runtime_preflight_action(
-    runtime_status: str,
-    next_actions: list[str],
-) -> None:
-    if len(next_actions) != 1:
-        raise ValueError("audit.next_actions are inconsistent")
-    if next_actions[0] not in TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS:
-        raise ValueError("audit.next_actions are inconsistent")
-    expected_action = TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS.get(
-        runtime_status,
-        "fix_pytorch_runtime_preflight",
+    validate_torch_training_requirement_routing(
+        stage=audit["next_requirements_stage"],
+        status=audit["next_requirements_status"],
+        next_actions=audit["next_actions"],
+        runtime_status=audit["runtime_status"],
+        exact_actions=False,
+        require_blockers=False,
+        stage_error="audit.next_requirements_stage",
+        status_error="audit.next_requirements_status",
+        action_error="audit.next_actions",
     )
-    if next_actions[0] != expected_action:
-        raise ValueError("audit.next_actions are inconsistent")
-
-
-def _stage_action_prefix(stage: str) -> str:
-    if stage == "training_readiness":
-        return "satisfy_training_readiness"
-    if stage == "training_replay_parity":
-        return "resolve_replay_gate"
-    if stage == "training_parity_report":
-        return "resolve_training_parity_check"
-    raise ValueError("audit.next_requirements_stage is unsupported")
-
-
-def _has_action_prefix(action: str, prefix: str) -> bool:
-    marker = f"{prefix}:"
-    return action.startswith(marker) and len(action) > len(marker)
 
 
 def _is_sha256(value: Any) -> bool:
