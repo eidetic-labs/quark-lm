@@ -39,6 +39,7 @@ class RoutingRepairUpdateSearchContext:
     example: Any
     lesson: Any
     branch_examples: list[Any]
+    eval_records: dict[str, list[dict[str, Any]]] | None
     rng: Any
     terminator: str
     direct_baseline: dict[str, Any]
@@ -154,6 +155,7 @@ def _train_scaled_update(
         example=ctx.example,
         lesson=ctx.lesson,
         branch_examples=ctx.branch_examples,
+        eval_records=ctx.eval_records,
         rng=ctx.rng,
         direct_step=ctx.direct_step,
         terminator=ctx.terminator,

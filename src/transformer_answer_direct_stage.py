@@ -116,6 +116,7 @@ def run_transformer_direct_answer_stage(
         optimizer=stage_state.optimizer,
         direct_lessons=direct_setup.direct_lessons,
         direct_training_pool=direct_setup.direct_training_pool,
+        direct_eval_records=setup.eval_records,
         direct_training_cursor=direct_runtime.training_cursor,
         direct_rng=direct_setup.direct_rng,
         direct_steps_to_run=direct_runtime.steps_to_run,

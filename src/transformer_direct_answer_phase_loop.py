@@ -46,6 +46,7 @@ def run_direct_answer_training_loop(
     train_adaptive_baseline_floor_update: Callable[..., float],
     train_baseline_anchored_prompt: Callable[..., float],
     restore_direct_update_state: Callable[[dict[str, Any], dict[str, Any]], None],
+    direct_eval_records: dict[str, list[dict[str, Any]]] | None = None,
     train_mode_step: Callable[..., Any] = train_direct_answer_mode_step,
     apply_guard_probe: Callable[..., None] = apply_direct_update_guard_probe,
 ) -> DirectAnswerLoopResult:
@@ -68,6 +69,9 @@ def run_direct_answer_training_loop(
         "optimizer": optimizer,
         "params": direct_params,
     }
+    eval_records = direct_eval_records
+    if eval_records is None:
+        eval_records = getattr(direct_snapshot_recorder, "eval_records", None)
 
     def restore_and_refresh_state(
         model_payload: dict[str, Any],
@@ -98,6 +102,7 @@ def run_direct_answer_training_loop(
             model=current_state["model"],
             tokenizer=current_state["tokenizer"],
             branch_examples=direct_training_pool,
+            eval_records=eval_records,
             rng=direct_rng,
             direct_step=direct_step,
             terminator=direct_answer_terminator,
@@ -127,6 +132,7 @@ def run_direct_answer_training_loop(
                     example=example,
                     lesson=direct_lessons[example],
                     branch_examples=direct_training_pool,
+                    eval_records=eval_records,
                     rng=direct_rng,
                     terminator=direct_answer_terminator,
                     direct_baseline=direct_baseline,
@@ -153,6 +159,7 @@ def run_direct_answer_training_loop(
                 example=example,
                 lesson=direct_lessons[example],
                 branch_examples=direct_training_pool,
+                eval_records=eval_records,
                 rng=direct_rng,
                 direct_step=direct_step,
                 terminator=direct_answer_terminator,

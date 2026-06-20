@@ -22,8 +22,8 @@ from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
 )
-from transformer_profile_balanced_retention_anchors import (
-    profile_balanced_retention_anchor_batch,
+from transformer_routing_repair_retention_anchors import (
+    routing_repair_retention_anchor_batch,
 )
 
 
@@ -129,6 +129,7 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
     repair_target_profiles: list[str] | None = None,
+    eval_records: dict[str, list[dict[str, Any]]] | None = None,
 ) -> float:
     branches = _profile_balanced_branches(
         model,
@@ -142,10 +143,11 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
-    retention_anchors = profile_balanced_retention_anchor_batch(
+    retention_anchors = routing_repair_retention_anchor_batch(
         model,
         tokenizer,
         branch_examples,
+        eval_records,
         rng,
         branch_position,
         batch_size,

@@ -45,6 +45,7 @@ class BranchContrastModeStep:
     rng: random.Random
     terminator: str
     params: list[Scalar]
+    eval_records: dict[str, list[dict[str, Any]]] | None = None
 
 
 def train_first_error_unlikelihood(step: BranchContrastModeStep) -> float:

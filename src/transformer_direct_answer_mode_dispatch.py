@@ -66,6 +66,7 @@ def train_direct_answer_mode_step(
     pre_update_rng_state: object | None,
     train_adaptive_baseline_floor_update: AdaptiveBaselineFloorUpdate,
     train_baseline_anchored_prompt: BaselineAnchoredPromptUpdate,
+    eval_records: dict[str, list[dict[str, Any]]] | None = None,
 ) -> DirectAnswerModeStepResult:
     error_repair_loss = train_direct_answer_error_repair_mode_step(
         args=args,
@@ -89,6 +90,7 @@ def train_direct_answer_mode_step(
                 example=example,
                 lesson=lesson,
                 branch_examples=branch_examples,
+                eval_records=eval_records,
                 rng=rng,
                 direct_step=direct_step,
                 terminator=terminator,

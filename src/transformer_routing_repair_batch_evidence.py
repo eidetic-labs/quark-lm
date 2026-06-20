@@ -12,8 +12,8 @@ from transformer_direct_answer_profile_balanced_batches import (
 )
 from transformer_direct_answer_profile_keys import trainable_eval_profile_keys
 from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
-from transformer_profile_balanced_retention_anchors import (
-    profile_balanced_retention_anchor_batch,
+from transformer_routing_repair_retention_anchors import (
+    routing_repair_retention_anchor_batch,
 )
 from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
@@ -59,6 +59,7 @@ def record_routing_repair_batch_step(
     rng: random.Random,
     direct_step: int,
     terminator: str,
+    eval_records: dict[str, list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any] | None:
     """Record the same profile-balanced branch surface used by Bundle A."""
 
@@ -83,10 +84,11 @@ def record_routing_repair_batch_step(
         ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
         ROUTING_REPAIR_TOPK_BATCH_MODE,
     }:
-        retention_anchors = profile_balanced_retention_anchor_batch(
+        retention_anchors = routing_repair_retention_anchor_batch(
             model,
             tokenizer,
             branch_examples,
+            eval_records,
             probe_rng,
             getattr(args, "direct_answer_branch_position", 1),
             getattr(args, "direct_answer_branch_batch_size", 1),

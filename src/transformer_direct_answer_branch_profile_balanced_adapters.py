@@ -84,6 +84,7 @@ def train_profile_balanced_branch_topk_softmax(
         step.terminator,
         step.params,
         direct_answer_repair_target_profiles(args),
+        step.eval_records,
     )
 
 

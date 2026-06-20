@@ -68,6 +68,7 @@ def train_direct_answer_branch_contrast_mode_step(
     direct_step: int,
     terminator: str,
     params: list[Scalar],
+    eval_records: dict[str, list[dict[str, Any]]] | None = None,
 ) -> float:
     step = BranchContrastModeStep(
         args=args,
@@ -79,6 +80,7 @@ def train_direct_answer_branch_contrast_mode_step(
         rng=rng,
         terminator=terminator,
         params=params,
+        eval_records=eval_records,
     )
     mode = args.direct_answer_mode
     if mode == "branch-profile-balanced-rank-margin-unlikelihood":

@@ -21,6 +21,7 @@ def routing_repair_context(
         example="example",
         lesson="lesson",
         branch_examples=["example"],
+        eval_records=None,
         rng=_Rng(),
         terminator="\n",
         direct_baseline=baseline or routing_repair_snapshot(0.5),
