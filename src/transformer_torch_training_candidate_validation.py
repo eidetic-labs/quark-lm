@@ -9,6 +9,7 @@ from transformer_backend_policy import (
     validate_transformer_backend_metadata,
 )
 from transformer_torch_runtime_report_check import build_torch_runtime_report_check
+from transformer_torch_training_case_validation import validate_torch_training_case
 from transformer_torch_training_candidate import (
     TORCH_TRAINING_PARITY_CANDIDATE_KIND,
     TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION,
@@ -77,7 +78,7 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
     _validate_runtime_report(candidate)
     _validate_readiness(candidate["training_readiness"])
     _validate_replay_gate(candidate["training_replay_parity_gate"])
-    _validate_training_case(candidate["training_case"])
+    validate_torch_training_case(candidate["training_case"])
     _validate_routing(candidate)
 
 
@@ -147,23 +148,6 @@ def _validate_replay_gate_status(gate: dict[str, Any]) -> None:
     if gate["status"] == TORCH_TRAINING_REPLAY_PENDING_STATUS:
         if gate["parity_status"] != "pending":
             raise ValueError("candidate.training_replay_parity_gate.parity_status")
-
-
-def _validate_training_case(case: dict[str, Any]) -> None:
-    _require_non_empty_string(case, "case_id")
-    _require_non_empty_string(case, "status")
-    _require_non_empty_string(case, "reason")
-    if not isinstance(case.get("context"), list):
-        raise ValueError("candidate.training_case.context is invalid")
-    if not isinstance(case.get("target"), int):
-        raise ValueError("candidate.training_case.target is invalid")
-    if not isinstance(case.get("learning_rate"), int | float):
-        raise ValueError("candidate.training_case.learning_rate is invalid")
-    if not isinstance(case.get("steps"), int) or case["steps"] <= 0:
-        raise ValueError("candidate.training_case.steps is invalid")
-    if case["status"] == "matched":
-        if case.get("promoted_training_backend") is not False:
-            raise ValueError("candidate.training_case must not promote")
 
 
 def _validate_routing(candidate: dict[str, Any]) -> None:
