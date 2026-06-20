@@ -39,6 +39,29 @@ TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS = (
     "training_replay_parity_gate",
     "training_parity_report",
 )
+TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS = (
+    "fixture_id",
+    "attempt_status",
+    "attempt_passed",
+    "runtime_status",
+    "parity_attempt_allowed",
+    "runtime_failed_checks",
+    "training_readiness_status",
+    "training_readiness_failed_checks",
+    "training_replay_parity_status",
+    "training_replay_parity_passed",
+    "training_replay_parity_failed_checks",
+    "training_report_passed",
+    "training_report_failed_checks",
+    "next_requirements_stage",
+    "next_requirements_status",
+    "next_actions",
+    "training_backend_promotion_status",
+    "promoted_training_backend",
+    "artifact_hash_algorithm",
+    "artifact_hashes",
+    "evidence_hashes",
+)
 
 
 def validate_torch_training_parity_attempt_audit(
@@ -122,6 +145,13 @@ def _validate_invalid_audit(audit: dict[str, Any]) -> None:
         raise ValueError("audit.passed is inconsistent")
     _require_non_empty_string(audit, "error_type")
     _require_non_empty_string(audit, "error")
+    _reject_valid_result_fields(audit)
+
+
+def _reject_valid_result_fields(audit: dict[str, Any]) -> None:
+    for key in TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS:
+        if key in audit:
+            raise ValueError(f"audit.{key} must not be present for invalid results")
 
 
 def _validate_hash_map(
