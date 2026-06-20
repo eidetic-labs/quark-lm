@@ -98,6 +98,17 @@ def run_transformer_direct_answer_stage(
         train_baseline_anchored_prompt=baseline_anchored_prompt_updater.train,
     )
 
+    def restore_direct_update_state(
+        model_payload: dict[str, Any],
+        optimizer_payload: dict[str, Any],
+    ) -> None:
+        restore_stage_state_and_rebind_recorder(
+            stage_state,
+            direct_runtime.snapshot_recorder,
+            model_payload,
+            optimizer_payload,
+        )
+
     loop_result = run_direct_answer_training_loop(
         args=args,
         model=stage_state.model,
@@ -124,7 +135,7 @@ def run_transformer_direct_answer_stage(
         best_direct_snapshot=direct_runtime.best_snapshot,
         train_adaptive_baseline_floor_update=train_adaptive_baseline_floor_update,
         train_baseline_anchored_prompt=baseline_anchored_prompt_updater.train,
-        restore_direct_update_state=stage_state.restore,
+        restore_direct_update_state=restore_direct_update_state,
     )
     direct_phase = complete_direct_answer_phase(
         args=args,
@@ -163,3 +174,14 @@ def run_transformer_direct_answer_stage(
         ),
         direct_answer_metrics=direct_phase.metrics,
     )
+
+
+def restore_stage_state_and_rebind_recorder(
+    stage_state: DirectAnswerStageState,
+    snapshot_recorder: Any,
+    model_payload: dict[str, Any],
+    optimizer_payload: dict[str, Any],
+) -> None:
+    stage_state.restore(model_payload, optimizer_payload)
+    snapshot_recorder.model = lambda: stage_state.model
+    snapshot_recorder.tokenizer = lambda: stage_state.tokenizer

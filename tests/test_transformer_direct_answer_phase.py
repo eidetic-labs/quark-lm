@@ -1,10 +1,13 @@
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from transformer_direct_answer_phase import (
     complete_direct_answer_phase,
     run_direct_answer_training_loop,
 )
+from transformer_routing_repair_batch_evidence import ROUTING_REPAIR_BATCH_MODE
+from transformer_routing_repair_bundle import PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
 
 
 class FakeRng:
@@ -106,6 +109,79 @@ class TransformerDirectAnswerPhaseTest(unittest.TestCase):
         self.assertEqual(best_snapshot.records, [{"step": 2, "train_loss": 1.5}])
         self.assertEqual(result.last_snapshot, {"step": 2, "train_loss": 1.5})
         self.assertEqual(result.last_snapshot_step, 2)
+
+    def test_routing_repair_bundle_uses_update_guard_probe(self) -> None:
+        guard_calls: list[int] = []
+        batch_steps: list[int] = []
+
+        def train_mode_step(**kwargs: object) -> SimpleNamespace:
+            return SimpleNamespace(loss=1.0, update_guard_applied=False)
+
+        def apply_guard_probe(**kwargs: object) -> None:
+            guard_calls.append(int(kwargs["direct_step"]))
+
+        def record_batch_step(**kwargs: object) -> dict[str, object]:
+            batch_steps.append(int(kwargs["direct_step"]))
+            return {"step": kwargs["direct_step"], "profiles": ["qa"]}
+
+        def batch_summary(
+            args: object,
+            steps: list[dict[str, object]],
+            baseline: dict[str, object],
+        ) -> dict[str, object]:
+            return {"passed": True, "steps": steps, "baseline": baseline}
+
+        with (
+            patch(
+                "transformer_direct_answer_phase_loop.record_routing_repair_batch_step",
+                side_effect=record_batch_step,
+            ),
+            patch(
+                "transformer_direct_answer_phase_loop.routing_repair_batch_evidence_summary",
+                side_effect=batch_summary,
+            ),
+        ):
+            result = run_direct_answer_training_loop(
+                args=SimpleNamespace(
+                    direct_answer_eval_every=0,
+                    experiment_bundle=PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+                    direct_answer_mode=ROUTING_REPAIR_BATCH_MODE,
+                ),
+                model=FakeModel(),
+                tokenizer=object(),
+                optimizer=FakeOptimizer(),
+                direct_lessons={"a": "lesson-a"},
+                direct_training_pool=["a"],
+                direct_training_cursor=FakeCursor(),
+                direct_rng=FakeRng(),
+                direct_steps_to_run=1,
+                direct_answer_terminator="\n",
+                direct_params=["param"],
+                direct_answer_baseline_floor_update_gate_active=False,
+                direct_answer_baseline_floor_adaptive_updates_active=False,
+                direct_answer_update_guard={},
+                direct_baseline={"baseline": True},
+                direct_snapshot_recorder=FakeRecorder(),
+                best_direct_snapshot=FakeBestSnapshot(),
+                last_direct_snapshot={"step": 0},
+                last_direct_snapshot_step=0,
+                train_adaptive_baseline_floor_update=lambda *args: 0.0,
+                train_baseline_anchored_prompt=lambda *args: 0.0,
+                restore_direct_update_state=lambda *_: None,
+                train_mode_step=train_mode_step,
+                apply_guard_probe=apply_guard_probe,
+            )
+
+        self.assertEqual(batch_steps, [1])
+        self.assertEqual(guard_calls, [1])
+        self.assertEqual(
+            result.routing_repair_batch_evidence,
+            {
+                "passed": True,
+                "steps": [{"step": 1, "profiles": ["qa"]}],
+                "baseline": {"baseline": True},
+            },
+        )
 
     def test_complete_phase_restores_snapshot_and_builds_metrics(self) -> None:
         direct_setup = SimpleNamespace(

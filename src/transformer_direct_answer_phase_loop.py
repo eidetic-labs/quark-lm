@@ -9,6 +9,7 @@ from transformer_direct_answer_phase_types import DirectAnswerLoopResult
 from transformer_direct_answer_update_guard import apply_direct_update_guard_probe
 from transformer_routing_repair_batch_evidence import (
     record_routing_repair_batch_step,
+    routing_repair_batch_evidence_enabled,
     routing_repair_batch_evidence_summary,
 )
 
@@ -42,12 +43,17 @@ def run_direct_answer_training_loop(
 ) -> DirectAnswerLoopResult:
     running_direct_loss = 0.0
     routing_repair_batch_steps: list[dict[str, Any]] = []
+    routing_repair_guard_active = routing_repair_batch_evidence_enabled(args)
+    update_guard_probe_active = (
+        direct_answer_baseline_floor_update_gate_active
+        or routing_repair_guard_active
+    )
     for direct_step in range(1, direct_steps_to_run + 1):
         example = direct_training_cursor.next()
         pre_update_model_payload: dict[str, Any] | None = None
         pre_update_optimizer_payload: dict[str, Any] | None = None
         pre_update_rng_state = None
-        if direct_answer_baseline_floor_update_gate_active:
+        if update_guard_probe_active:
             pre_update_model_payload = model.to_dict(tokenizer)
             pre_update_optimizer_payload = optimizer.to_dict()
             pre_update_rng_state = direct_rng.getstate()
@@ -94,10 +100,7 @@ def run_direct_answer_training_loop(
             train_baseline_anchored_prompt=train_baseline_anchored_prompt,
         )
         running_direct_loss += mode_step_result.loss
-        if (
-            direct_answer_baseline_floor_update_gate_active
-            and not mode_step_result.update_guard_applied
-        ):
+        if update_guard_probe_active and not mode_step_result.update_guard_applied:
             apply_guard_probe(
                 direct_answer_update_guard=direct_answer_update_guard,
                 direct_baseline=direct_baseline,

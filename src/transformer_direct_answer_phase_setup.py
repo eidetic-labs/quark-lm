@@ -11,6 +11,9 @@ from transformer_direct_answer_snapshot_lifecycle import (
 from transformer_direct_answer_guard_state import build_direct_answer_update_guard
 from transformer_direct_answer_phase_types import DirectAnswerPhaseRuntime
 from transformer_direct_answer_update_guard import direct_answer_update_parameters
+from transformer_routing_repair_batch_evidence import (
+    routing_repair_batch_evidence_enabled,
+)
 from transformer_training import ShuffledTrainingCursor
 
 
@@ -102,6 +105,9 @@ def initialize_direct_answer_phase(
         direct_memory_consolidation_profile_specific_missing_first_token_target_map=(
             direct_setup.direct_memory_consolidation_profile_specific_missing_first_token_target_map
         ),
+    )
+    update_guard["routing_repair_coverage_guard_active"] = (
+        routing_repair_batch_evidence_enabled(args)
     )
     return DirectAnswerPhaseRuntime(
         snapshot_recorder=snapshot_recorder,
