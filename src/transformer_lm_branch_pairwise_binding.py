@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from autograd import Scalar, zero_grad
+from transformer_lm_hidden_contrast import pairwise_hidden_contrast_loss
 from transformer_math import linear_scalars, softmax_scalars
 
 
@@ -36,7 +37,7 @@ class TransformerBranchPairwiseBindingMixin:
         loss = branch_loss / max(len(branches), 1)
         if representation_weight > 0.0:
             loss = loss + (
-                _pairwise_hidden_contrast_loss(
+                pairwise_hidden_contrast_loss(
                     hidden_by_target,
                     self.config.embedding_dim,
                 )
@@ -85,7 +86,7 @@ class TransformerBranchPairwiseBindingMixin:
         loss = branch_loss / max(len(branches), 1)
         if binding_weight > 0.0:
             loss = loss + (
-                _pairwise_hidden_contrast_loss(
+                pairwise_hidden_contrast_loss(
                     hidden_by_target,
                     self.config.embedding_dim,
                 )
@@ -111,25 +112,3 @@ def _add_branch_prediction_loss(
             -(Scalar(1.0) - probs[predicted] + 1e-12).log()
         ) * negative_weight
     return branch_loss
-
-
-def _pairwise_hidden_contrast_loss(
-    hidden_by_target: list[tuple[list[Scalar], int]],
-    embedding_dim: int,
-) -> Scalar:
-    contrast_loss = Scalar(0.0)
-    contrast_pairs = 0
-    for left_index, (left_hidden, left_target) in enumerate(hidden_by_target):
-        for right_hidden, right_target in hidden_by_target[left_index + 1:]:
-            if left_target == right_target:
-                continue
-            distance_sq = Scalar(0.0)
-            for left_value, right_value in zip(left_hidden, right_hidden):
-                delta = left_value - right_value
-                distance_sq = distance_sq + delta * delta
-            distance_sq = distance_sq / max(embedding_dim, 1)
-            contrast_loss = contrast_loss + (-distance_sq).exp()
-            contrast_pairs += 1
-    if not contrast_pairs:
-        return Scalar(0.0)
-    return contrast_loss / contrast_pairs
