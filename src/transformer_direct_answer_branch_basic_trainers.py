@@ -15,6 +15,7 @@ from transformer_direct_answer_branch_basic_step import BranchBasicModeStep
 from transformer_direct_answer_repair_objectives import (
     train_direct_answer_branch_repair_unlikelihood,
 )
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 from transformer_direct_answer_repairs import train_direct_answer_first_error_unlikelihood
 from transformer_routing_repair_bundle import PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
 
@@ -86,6 +87,7 @@ def train_branch_batch_contrast(step: BranchBasicModeStep) -> float:
         args.direct_answer_branch_batch_size,
         step.terminator,
         step.params,
+        direct_answer_repair_target_profiles(args),
     )
 
 
@@ -151,15 +153,28 @@ def train_branch_target_margin(step: BranchBasicModeStep) -> float:
 
 def train_branch_hidden_projection_margin(step: BranchBasicModeStep) -> float:
     args = step.args
-    trainer = train_direct_answer_branch_hidden_projection_margin_unlikelihood
     if (
         getattr(args, "experiment_bundle", None)
         == PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
     ):
-        trainer = (
-            train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood
+        return train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood(
+            step.model,
+            step.tokenizer,
+            step.example,
+            step.branch_examples,
+            step.lesson,
+            step.rng,
+            args.direct_answer_learning_rate,
+            args.direct_answer_negative_weight,
+            args.direct_answer_positive_weight,
+            args.direct_answer_contrast_weight,
+            args.direct_answer_branch_position,
+            args.direct_answer_branch_batch_size,
+            step.terminator,
+            step.params,
+            direct_answer_repair_target_profiles(args),
         )
-    return trainer(
+    return train_direct_answer_branch_hidden_projection_margin_unlikelihood(
         step.model,
         step.tokenizer,
         step.example,

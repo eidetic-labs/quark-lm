@@ -86,6 +86,10 @@ class TransformerCliAnswerParserTest(unittest.TestCase):
                 "9",
                 "--direct-answer-frontier-metrics",
                 "runs/frontier/transformer_answer_metrics.json",
+                "--direct-answer-repair-target-profile",
+                "learning",
+                "--direct-answer-repair-target-profile",
+                "owner",
             ]
         )
 
@@ -102,6 +106,10 @@ class TransformerCliAnswerParserTest(unittest.TestCase):
         self.assertEqual(
             args.direct_answer_frontier_metrics,
             Path("runs/frontier/transformer_answer_metrics.json"),
+        )
+        self.assertEqual(
+            args.direct_answer_repair_target_profile,
+            ["learning", "owner"],
         )
 
     def test_parse_answer_sweep_args_accepts_declared_axes(self) -> None:

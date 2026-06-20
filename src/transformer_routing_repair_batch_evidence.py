@@ -11,6 +11,7 @@ from transformer_direct_answer_profile_balanced_batches import (
     direct_answer_profile_balanced_branch_batch,
 )
 from transformer_direct_answer_profile_keys import trainable_eval_profile_keys
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 from transformer_profile_balanced_retention_anchors import (
     profile_balanced_retention_anchor_batch,
 )
@@ -75,6 +76,7 @@ def record_routing_repair_batch_step(
         getattr(args, "direct_answer_branch_batch_size", 1),
         terminator,
         min_targets_per_profile=target_depth,
+        repair_target_profiles=direct_answer_repair_target_profiles(args),
     )
     retention_anchors = []
     if (
@@ -104,7 +106,13 @@ def routing_repair_batch_evidence_summary(
         return None
     required = _required_eval_profiles(baseline)
     trainable = trainable_eval_profile_keys()
-    trainable_required = sorted(set(required["failed_profiles"]) & trainable)
+    declared_targets = direct_answer_repair_target_profiles(args)
+    trainable_required_all = sorted(set(required["failed_profiles"]) & trainable)
+    trainable_required = (
+        sorted(set(declared_targets) & trainable)
+        if declared_targets
+        else trainable_required_all
+    )
     covered_profiles = sorted(
         {
             profile
@@ -115,22 +123,31 @@ def routing_repair_batch_evidence_summary(
     covered_trainable = sorted(set(covered_profiles) & set(trainable_required))
     missing_trainable = sorted(set(trainable_required) - set(covered_trainable))
     unmapped_eval_only = sorted(set(required["failed_profiles"]) - trainable)
+    missing_declared_targets = sorted(set(declared_targets) - set(covered_profiles))
     batch_check = {
         "name": "profile_balanced_branch_batches",
-        "passed": bool(step_records) and not missing_trainable,
+        "passed": (
+            bool(step_records)
+            and not missing_trainable
+            and not missing_declared_targets
+        ),
         "status": "passed"
-        if bool(step_records) and not missing_trainable
+        if bool(step_records) and not missing_trainable and not missing_declared_targets
         else "failed",
         "required_trainable_profiles": trainable_required,
+        "all_failed_trainable_profiles": trainable_required_all,
         "covered_trainable_profiles": covered_trainable,
         "missing_trainable_profiles": missing_trainable,
         "eval_only_profiles": unmapped_eval_only,
+        "declared_repair_target_profiles": declared_targets,
+        "missing_declared_repair_target_profiles": missing_declared_targets,
     }
     return {
         "bundle": getattr(args, "experiment_bundle", None),
         "direct_answer_mode": getattr(args, "direct_answer_mode", None),
         "batch_builder": "profile-balanced-training-family-branch-batch",
         "min_targets_per_profile": routing_repair_min_targets_per_profile(args),
+        "declared_repair_target_profiles": declared_targets,
         "step_count": len(step_records),
         "branch_count": sum(
             int(record.get("branch_count", 0)) for record in step_records

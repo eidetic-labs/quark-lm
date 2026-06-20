@@ -188,6 +188,7 @@ def train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikel
     batch_size: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    repair_target_profiles: list[str] | None = None,
 ) -> float:
     branches = direct_answer_profile_balanced_branch_batch(
         model,
@@ -197,6 +198,7 @@ def train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikel
         branch_position,
         batch_size,
         terminator,
+        repair_target_profiles=repair_target_profiles,
     )
     if not branches:
         return train_direct_answer_lesson(

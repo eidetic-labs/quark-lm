@@ -168,6 +168,30 @@ class TransformerBranchBatchTest(unittest.TestCase):
         self.assertEqual(profile_targets["qa"], {"n", "g"})
         self.assertEqual(profile_targets["owner"], {"t"})
 
+    def test_profile_balanced_branch_batch_can_target_declared_profiles(self) -> None:
+        glossary = AnswerExample(
+            prompt="q: glossary?\na:",
+            target=" green.",
+            source="fact:glossary",
+        )
+        fixture = branch_training_fixture(seed=40, extra_examples=[glossary])
+
+        batch = direct_answer_profile_balanced_branch_batch(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.examples + [glossary],
+            random.Random(11),
+            branch_position=1,
+            batch_size=4,
+            terminator=ANSWER_TERMINATOR,
+            repair_target_profiles=["glossary", "owner"],
+        )
+
+        self.assertEqual(
+            {profile for _context, _target, _predicted, profile in batch},
+            {"glossary", "owner"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

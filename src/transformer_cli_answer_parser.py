@@ -169,6 +169,15 @@ def _add_direct_answer_options(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--direct-answer-branch-position", type=int, default=1)
     answer_parser.add_argument("--direct-answer-branch-span", type=int, default=1)
     answer_parser.add_argument("--direct-answer-branch-batch-size", type=int, default=4)
+    answer_parser.add_argument(
+        "--direct-answer-repair-target-profile",
+        action="append",
+        default=None,
+        help=(
+            "Limit declared profile-balanced repair batches to this trainable "
+            "profile. Repeat for multiple profiles."
+        ),
+    )
     answer_parser.add_argument("--direct-answer-hard-negatives", type=int, default=16)
     answer_parser.add_argument("--direct-answer-train-top-layer-only", action="store_true")
     answer_parser.add_argument(

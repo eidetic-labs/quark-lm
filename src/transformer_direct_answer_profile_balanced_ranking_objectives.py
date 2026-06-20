@@ -40,9 +40,17 @@ def train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood(
     hard_negative_count: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    repair_target_profiles: list[str] | None = None,
 ) -> float:
     branches = _profile_balanced_branches(
-        model, tokenizer, branch_examples, rng, branch_position, batch_size, terminator
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+        repair_target_profiles=repair_target_profiles,
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
@@ -73,6 +81,7 @@ def train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood(
     hard_negative_count: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    repair_target_profiles: list[str] | None = None,
 ) -> float:
     branches = _profile_balanced_branches(
         model,
@@ -83,6 +92,7 @@ def train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood(
         batch_size,
         terminator,
         min_targets_per_profile=PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
+        repair_target_profiles=repair_target_profiles,
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
@@ -115,9 +125,17 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
     candidate_count: int,
     terminator: str = ANSWER_TERMINATOR,
     params: list[Scalar] | None = None,
+    repair_target_profiles: list[str] | None = None,
 ) -> float:
     branches = _profile_balanced_branches(
-        model, tokenizer, branch_examples, rng, branch_position, batch_size, terminator
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+        repair_target_profiles=repair_target_profiles,
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
@@ -141,6 +159,7 @@ def _profile_balanced_branches(
     batch_size: int,
     terminator: str,
     min_targets_per_profile: int = PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
+    repair_target_profiles: list[str] | None = None,
 ) -> list[tuple[list[int], int, int, str]]:
     return direct_answer_profile_balanced_branch_batch(
         model,
@@ -151,6 +170,7 @@ def _profile_balanced_branches(
         batch_size,
         terminator,
         min_targets_per_profile=min_targets_per_profile,
+        repair_target_profiles=repair_target_profiles,
     )
 
 

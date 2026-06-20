@@ -12,6 +12,7 @@ from transformer_direct_answer_branch_ranking_objectives import (
 from transformer_direct_answer_branch_retention_objectives import (
     train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood,
 )
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 
 
 def train_profile_balanced_branch_rank_margin(
@@ -34,6 +35,7 @@ def train_profile_balanced_branch_rank_margin(
         args.direct_answer_hard_negatives,
         step.terminator,
         step.params,
+        direct_answer_repair_target_profiles(args),
     )
 
 
@@ -57,6 +59,7 @@ def train_profile_balanced_branch_rank_collapse(
         args.direct_answer_hard_negatives,
         step.terminator,
         step.params,
+        direct_answer_repair_target_profiles(args),
     )
 
 
@@ -80,6 +83,7 @@ def train_profile_balanced_branch_topk_softmax(
         args.direct_answer_hard_negatives,
         step.terminator,
         step.params,
+        direct_answer_repair_target_profiles(args),
     )
 
 

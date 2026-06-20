@@ -10,6 +10,7 @@ from replay_plan import BranchReplayRecord
 from tokenizer import CharTokenizer
 from transformer_direct_answer_core import direct_answer_branch_context
 from transformer_direct_answer_profile_keys import direct_answer_training_profile_key
+from transformer_direct_answer_repair_targets import normalized_repair_target_profiles
 from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
@@ -27,6 +28,7 @@ def direct_answer_profile_balanced_branch_batch(
     batch_size: int,
     terminator: str = ANSWER_TERMINATOR,
     min_targets_per_profile: int = PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
+    repair_target_profiles: list[str] | tuple[str, ...] | None = None,
 ) -> list[BranchReplayRecord]:
     """Build a bounded batch that covers trainable profile families first."""
 
@@ -37,6 +39,7 @@ def direct_answer_profile_balanced_branch_batch(
         branch_position,
         terminator,
     )
+    grouped = _targeted_profile_groups(grouped, repair_target_profiles)
     profiles = sorted(grouped)
     rng.shuffle(profiles)
     if not profiles:
@@ -79,6 +82,20 @@ def direct_answer_profile_balanced_branch_batch(
         if not progressed:
             break
     return _profiled_records(model, seeds)
+
+
+def _targeted_profile_groups(
+    grouped: dict[str, dict[int, list[ProfiledBranchSeed]]],
+    repair_target_profiles: list[str] | tuple[str, ...] | None,
+) -> dict[str, dict[int, list[ProfiledBranchSeed]]]:
+    targets = set(normalized_repair_target_profiles(repair_target_profiles))
+    if not targets:
+        return grouped
+    return {
+        profile: target_seeds
+        for profile, target_seeds in grouped.items()
+        if profile in targets
+    }
 
 
 def unprofiled_branch_records(

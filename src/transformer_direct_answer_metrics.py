@@ -13,6 +13,7 @@ from transformer_direct_answer_metric_sections import (
     build_baseline_floor_metric_section,
     build_memory_consolidation_metric_section,
 )
+from transformer_direct_answer_repair_targets import direct_answer_repair_target_profiles
 from transformer_direct_answer_frontier_reference import (
     build_direct_answer_frontier_reference,
 )
@@ -122,6 +123,9 @@ def build_direct_answer_metrics(
         "direct_answer_branch_position": args.direct_answer_branch_position,
         "direct_answer_branch_span": args.direct_answer_branch_span,
         "direct_answer_branch_batch_size": args.direct_answer_branch_batch_size,
+        "direct_answer_repair_target_profiles": direct_answer_repair_target_profiles(
+            args
+        ),
         "direct_answer_hard_negatives": args.direct_answer_hard_negatives,
         "direct_answer_train_top_layer_only": args.direct_answer_train_top_layer_only,
         "direct_answer_freeze_output_bias": args.direct_answer_freeze_output_bias,
