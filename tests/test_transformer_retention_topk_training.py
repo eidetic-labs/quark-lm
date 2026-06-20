@@ -30,6 +30,7 @@ class TransformerRetentionTopKTrainingTests(unittest.TestCase):
             positive_weight=1.0,
             candidate_weight=2.0,
             candidate_count=3,
+            target_floor_anchors=[(context, target, target, "qa")],
         )
 
         self.assertGreater(loss, 0.0)

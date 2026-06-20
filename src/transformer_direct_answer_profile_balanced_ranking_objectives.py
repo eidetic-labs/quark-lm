@@ -22,6 +22,9 @@ from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
 )
+from transformer_profile_balanced_target_floor_anchors import (
+    profile_balanced_target_floor_anchors_from_examples,
+)
 from transformer_routing_repair_retention_anchors import (
     routing_repair_retention_anchor_batch,
 )
@@ -153,6 +156,16 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
         batch_size,
         terminator,
     )
+    target_floor_anchors = profile_balanced_target_floor_anchors_from_examples(
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+        repair_target_profiles=repair_target_profiles,
+    )
     return model.train_step_with_branch_retention_topk_softmax(
         unprofiled_branch_records(branches),
         retention_anchors,
@@ -162,6 +175,7 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
         candidate_weight,
         candidate_count,
         params=params,
+        target_floor_anchors=target_floor_anchors,
     )
 
 

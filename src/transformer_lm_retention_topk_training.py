@@ -22,6 +22,7 @@ def train_branch_retention_topk_softmax(
     candidate_weight: float,
     candidate_count: int,
     params: list[Scalar] | None = None,
+    target_floor_anchors: list[BranchReplayRecord] | None = None,
 ) -> float:
     """Apply top-k pressure and retention preservation in one optimizer step."""
 
@@ -38,6 +39,13 @@ def train_branch_retention_topk_softmax(
     anchor_loss = retention_floor_loss(model, retention_anchors, candidate_weight)
     if anchor_loss is not None:
         loss = loss + anchor_loss
+    target_floor_loss = retention_floor_loss(
+        model,
+        target_floor_anchors or [],
+        candidate_weight,
+    )
+    if target_floor_loss is not None:
+        loss = loss + target_floor_loss
     loss.backward()
     model.apply_gradients(params, learning_rate)
     return loss.data

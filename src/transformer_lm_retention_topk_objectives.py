@@ -21,6 +21,7 @@ class TransformerRetentionTopKObjectiveMixin:
         candidate_weight: float,
         candidate_count: int,
         params: list[Scalar] | None = None,
+        target_floor_anchors: list[BranchReplayRecord] | None = None,
     ) -> float:
         return train_branch_retention_topk_softmax(
             self,
@@ -32,4 +33,5 @@ class TransformerRetentionTopKObjectiveMixin:
             candidate_weight,
             candidate_count,
             params=params,
+            target_floor_anchors=target_floor_anchors,
         )

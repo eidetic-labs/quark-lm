@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import random
-from collections import Counter
 from typing import Any
 
-from replay_plan import branch_replay_parts
 from transformer_direct_answer_profile_balanced_batches import (
     direct_answer_profile_balanced_branch_batch,
 )
@@ -19,6 +17,9 @@ from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
 )
+from transformer_profile_balanced_target_floor_anchors import (
+    profile_balanced_target_floor_anchors_from_examples,
+)
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
@@ -27,6 +28,9 @@ from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_ROUTING_REPAIR_MODE,
     routing_repair_bundle_supports_mode,
+)
+from transformer_routing_repair_batch_step_records import (
+    routing_repair_batch_step_record,
 )
 
 ROUTING_REPAIR_BATCH_MODE = PROFILE_BALANCED_ROUTING_REPAIR_MODE
@@ -80,6 +84,7 @@ def record_routing_repair_batch_step(
         repair_target_profiles=direct_answer_repair_target_profiles(args),
     )
     retention_anchors = []
+    target_floor_anchors = []
     if getattr(args, "direct_answer_mode", None) in {
         ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
         ROUTING_REPAIR_TOPK_BATCH_MODE,
@@ -94,7 +99,24 @@ def record_routing_repair_batch_step(
             getattr(args, "direct_answer_branch_batch_size", 1),
             terminator,
         )
-    return _step_record(direct_step, branches, retention_anchors, target_depth)
+    if getattr(args, "direct_answer_mode", None) == ROUTING_REPAIR_TOPK_BATCH_MODE:
+        target_floor_anchors = profile_balanced_target_floor_anchors_from_examples(
+            model,
+            tokenizer,
+            branch_examples,
+            probe_rng,
+            getattr(args, "direct_answer_branch_position", 1),
+            getattr(args, "direct_answer_branch_batch_size", 1),
+            terminator,
+            repair_target_profiles=direct_answer_repair_target_profiles(args),
+        )
+    return routing_repair_batch_step_record(
+        direct_step,
+        branches,
+        retention_anchors,
+        target_floor_anchors,
+        target_depth,
+    )
 
 
 def routing_repair_batch_evidence_summary(
@@ -157,47 +179,15 @@ def routing_repair_batch_evidence_summary(
         "retention_anchor_count": sum(
             int(record.get("retention_anchor_count", 0)) for record in step_records
         ),
+        "target_floor_anchor_count": sum(
+            int(record.get("target_floor_anchor_count", 0)) for record in step_records
+        ),
         "profiles": covered_profiles,
         "required_eval_profiles": required,
         "profile_balanced_branch_batches": batch_check,
         "steps": step_records,
         "passed": batch_check["passed"],
         "status": batch_check["status"],
-    }
-
-
-def _step_record(
-    direct_step: int,
-    branches: list[Any],
-    retention_anchors: list[Any],
-    min_targets_per_profile: int,
-) -> dict[str, Any]:
-    profiles: Counter[str] = Counter()
-    targets: Counter[int] = Counter()
-    predictions: Counter[int] = Counter()
-    represented_targets: Counter[int] = Counter()
-    retention_profiles: Counter[str] = Counter()
-    for branch in branches:
-        _context, target, predicted, profile = branch_replay_parts(branch)
-        profiles[profile] += 1
-        targets[target] += 1
-        predictions[predicted] += 1
-        if predicted == target:
-            represented_targets[target] += 1
-    for anchor in retention_anchors:
-        _context, _target, _predicted, profile = branch_replay_parts(anchor)
-        retention_profiles[profile] += 1
-    return {
-        "step": direct_step,
-        "min_targets_per_profile": min_targets_per_profile,
-        "branch_count": len(branches),
-        "profiles": sorted(profiles),
-        "profile_counts": dict(sorted(profiles.items())),
-        "target_count": len(targets),
-        "predicted_count": len(predictions),
-        "represented_target_count": len(represented_targets),
-        "retention_anchor_count": len(retention_anchors),
-        "retention_anchor_profile_counts": dict(sorted(retention_profiles.items())),
     }
 
 
