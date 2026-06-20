@@ -96,6 +96,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "branch-context-profile-baseline-floor-diversity-branch-stable-coverage-recovery-branch-diversity-collapsed-profile-binding-remaining-profile-owner-paraphrase-memory-consolidation-remaining-collapsed-profile-specific-missing-first-token-frontier-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood",
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
+    "branch-profile-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",
     "branch-balanced-topk-softmax-unlikelihood",
     "periodic-branch-representation-contrast-unlikelihood",

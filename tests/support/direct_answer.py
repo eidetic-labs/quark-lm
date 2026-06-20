@@ -51,6 +51,7 @@ from transformer_direct_answer_branch_contrast_objectives import (
     train_direct_answer_branch_span_contrast_unlikelihood,
     train_direct_answer_branch_topk_softmax_unlikelihood,
     train_direct_answer_hard_branch_contrast_unlikelihood,
+    train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood,
 )
 from transformer_direct_answer_branch_repairs import (
     direct_answer_branch_repair_error,
@@ -170,6 +171,7 @@ __all__ = [
     "train_direct_answer_first_error_unlikelihood",
     "train_direct_answer_generated_prefix_recovery_unlikelihood",
     "train_direct_answer_hard_branch_contrast_unlikelihood",
+    "train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood",
     "train_direct_answer_lesson",
     "train_direct_answer_loop_escape_unlikelihood",
     "train_direct_answer_repeat_loop_unlikelihood",

@@ -30,6 +30,23 @@ class TransformerDirectAnswerBranchContrastDispatchTests(unittest.TestCase):
         )
         self.assertTrue(rank_margin.call_args.kwargs["balance_targets"])
 
+    def test_profile_balanced_rank_margin_routes_to_profile_balanced_objective(self) -> None:
+        args = _args("branch-profile-balanced-rank-margin-unlikelihood")
+
+        with patch(
+            "transformer_direct_answer_branch_contrast_adapters."
+            "train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood",
+            return_value=1.5,
+        ) as profile_balanced_rank:
+            loss = _train(args)
+
+        self.assertEqual(loss, 1.5)
+        profile_balanced_rank.assert_called_once()
+        self.assertEqual(
+            profile_balanced_rank.call_args.args[12],
+            args.direct_answer_hard_negatives,
+        )
+
     def test_periodic_span_repair_uses_first_error_fallback_off_interval(self) -> None:
         args = _args("periodic-branch-span-repair-unlikelihood", interval=3)
 
@@ -98,6 +115,10 @@ class TransformerDirectAnswerBranchContrastDispatchTests(unittest.TestCase):
         repair.assert_not_called()
 
     def test_mode_set_contains_rank_and_contrast_modes(self) -> None:
+        self.assertIn(
+            "branch-profile-balanced-rank-margin-unlikelihood",
+            BRANCH_CONTRAST_DIRECT_ANSWER_MODES,
+        )
         self.assertIn(
             "branch-balanced-topk-softmax-unlikelihood",
             BRANCH_CONTRAST_DIRECT_ANSWER_MODES,

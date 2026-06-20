@@ -6,14 +6,51 @@ from typing import Any
 
 
 PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE = "profile-balanced-routing-repair"
-EXPERIMENT_BUNDLES = (PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,)
+PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE = (
+    "profile-balanced-rank-routing-repair"
+)
+PROFILE_BALANCED_ROUTING_REPAIR_MODE = (
+    "branch-hidden-projection-margin-unlikelihood"
+)
+PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE = (
+    "branch-profile-balanced-rank-margin-unlikelihood"
+)
+EXPERIMENT_BUNDLES = (
+    PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+)
+
+_BUNDLE_MODES = {
+    PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE: PROFILE_BALANCED_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE: (
+        PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+    ),
+}
+
+
+def routing_repair_bundle_mode(bundle: str | None) -> str | None:
+    return _BUNDLE_MODES.get(bundle)
+
+
+def routing_repair_bundle_supports_mode(
+    bundle: str | None,
+    mode: str | None,
+) -> bool:
+    expected = routing_repair_bundle_mode(bundle)
+    return expected is not None and mode == expected
 
 
 def routing_repair_bundle_hypothesis(bundle: str | None) -> str | None:
     """Return the default hypothesis for a declared routing-repair bundle."""
 
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
-        return None
+        if bundle != PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
+            return None
+        return (
+            "Profile-balanced hard-negative rank-margin pressure can improve "
+            "branch routing when applied across failed profile families with "
+            "coverage-preserving acceptance gates."
+        )
     return (
         "Hidden-projection margin pressure can improve branch routing only when "
         "applied across profile-balanced replay with representation-separation "
@@ -24,6 +61,51 @@ def routing_repair_bundle_hypothesis(bundle: str | None) -> str | None:
 def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
     """Return required acceptance gates for a declared routing-repair bundle."""
 
+    if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
+        return [
+            _gate(
+                "profile_balanced_branch_batches",
+                (
+                    "Record branch batches that cover failing multi-target profiles, "
+                    "zero-coverage profiles, and buried-target profiles before updates."
+                ),
+            ),
+            _gate(
+                "rank_margin_pressure",
+                (
+                    "Apply profile-balanced hard-negative rank-margin pressure "
+                    "across failed profile-family branch targets."
+                ),
+            ),
+            _gate(
+                "representation_separation_evidence",
+                (
+                    "Record target centroid distances and centroid margins for branch "
+                    "representations before accepting the repair."
+                ),
+            ),
+            _gate(
+                "coverage_preserving_update_guard",
+                (
+                    "Reject updates that improve local scores while dropping any "
+                    "profile below baseline target-token coverage."
+                ),
+            ),
+            _gate(
+                "branch_diversity_acceptance_gate",
+                (
+                    "Accept the screen only when branch-diversity evidence improves "
+                    "without retention, leakage, unknown-policy, or coverage regression."
+                ),
+            ),
+            _gate(
+                "rank_pressure_requires_branch_response",
+                (
+                    "Reject rank-margin movement when target coverage and target-rank "
+                    "branch-diversity score remain unchanged."
+                ),
+            ),
+        ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
     return [
@@ -75,6 +157,13 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
 def routing_repair_bundle_failure_criteria(bundle: str | None) -> list[str]:
     """Return bundle-specific early rejection criteria."""
 
+    if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
+        return [
+            "Any profile drops below baseline target-token coverage.",
+            "Dominant predicted rate remains 1.0 across all measured profiles.",
+            "Rank-margin pressure produces no target-rank, top-k, or coverage response.",
+            "Representation centroid distance or margin fails to improve.",
+        ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
     return [
@@ -88,6 +177,11 @@ def routing_repair_bundle_failure_criteria(bundle: str | None) -> list[str]:
 def routing_repair_bundle_notes(bundle: str | None) -> list[str]:
     """Return explanatory notes for the experiment intent."""
 
+    if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
+        return [
+            "Experiment bundle: Bundle B, profile-balanced rank routing repair.",
+            "This bundle is a planned gate contract; it does not promote transformer language-model behavior.",
+        ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
     return [

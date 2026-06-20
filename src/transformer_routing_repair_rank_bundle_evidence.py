@@ -1,4 +1,4 @@
-"""Evidence checks for declared routing-repair experiment bundles."""
+"""Evidence checks for profile-balanced rank routing repair."""
 
 from __future__ import annotations
 
@@ -8,49 +8,34 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_preserves_target_coverage,
     branch_diversity_snapshot_target_coverage_delta,
 )
+from branch_diversity_snapshots import branch_diversity_snapshot_score_improved
 from constraint_first_report import promotion_check
-from transformer_routing_repair_rank_bundle_evidence import rank_routing_repair_checks
 from transformer_routing_repair_bundle import (
-    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
-    PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
 )
 
 
-def routing_repair_bundle_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return promotion-shaped evidence checks for declared routing repair bundles."""
-
-    bundle = metrics.get("experiment_bundle")
-    if bundle not in {
-        PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
-        PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
-    }:
-        return []
-    if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
-        return rank_routing_repair_checks(metrics)
-    return _hidden_projection_routing_repair_checks(metrics)
-
-
-def _hidden_projection_routing_repair_checks(
-    metrics: dict[str, Any],
-) -> list[dict[str, Any]]:
+def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
     direct_answer = _as_dict(metrics.get("direct_answer"))
-    baseline, final = _direct_answer_snapshots(metrics)
+    baseline = _as_dict(direct_answer.get("baseline"))
+    final = _as_dict(direct_answer.get("final"))
     diversity = _as_dict(final.get("branch_diversity_target"))
     audit = _as_dict(final.get("branch_routing_audit"))
     representation = _as_dict(audit.get("representation"))
-    logit_prior = _as_dict(audit.get("logit_prior"))
     batch_evidence = _as_dict(direct_answer.get("routing_repair_batch_evidence"))
     coverage_delta = branch_diversity_snapshot_target_coverage_delta(final, baseline)
 
-    hidden_pressure_count = _hidden_projection_pressure_count(logit_prior)
-    coverage_surface_present = _coverage_surface_present(coverage_delta)
     diversity_passed = diversity.get("passed") is True
+    coverage_surface_present = _coverage_surface_present(coverage_delta)
     coverage_preserved = (
         coverage_surface_present
         and branch_diversity_snapshot_preserves_target_coverage(final, baseline)
     )
-    coverage_responded = (
-        _as_int(coverage_delta.get("improved_profile_count")) > 0 or diversity_passed
+    branch_responded = _branch_response_recorded(
+        final,
+        baseline,
+        coverage_delta,
+        diversity_passed,
     )
 
     return [
@@ -58,7 +43,7 @@ def _hidden_projection_routing_repair_checks(
             "profile_balanced_branch_batches",
             _profile_balanced_branch_batches_recorded(batch_evidence),
             (
-                "Bundle A must record profile-balanced training-family branch "
+                "Bundle B must record profile-balanced training-family branch "
                 "batches before judging routing-repair evidence."
             ),
             {
@@ -69,23 +54,29 @@ def _hidden_projection_routing_repair_checks(
             },
         ),
         promotion_check(
-            "hidden_projection_margin_pressure",
-            hidden_pressure_count > 0,
+            "rank_margin_pressure",
+            _rank_margin_pressure_configured(direct_answer),
             (
-                "Bundle A must record hidden-projection or mixed hidden/bias "
-                "pressure for branch-routing failures."
+                "Bundle B must apply profile-balanced hard-negative "
+                "rank-margin pressure for branch-routing failures."
             ),
             {
-                "hidden_projection_pressure_count": hidden_pressure_count,
-                "profile_count": logit_prior.get("profile_count", 0),
-                "pressure_counts": logit_prior.get("pressure_counts", {}),
+                "direct_answer_mode": direct_answer.get("direct_answer_mode"),
+                "direct_answer_contrast_weight": direct_answer.get(
+                    "direct_answer_contrast_weight",
+                    0.0,
+                ),
+                "direct_answer_hard_negatives": direct_answer.get(
+                    "direct_answer_hard_negatives",
+                    0,
+                ),
             },
         ),
         promotion_check(
             "representation_separation_evidence",
             _representation_separation_recorded(final, representation),
             (
-                "Bundle A must record representation-separation evidence for "
+                "Bundle B must record representation-separation evidence for "
                 "multi-target branch profiles."
             ),
             {
@@ -103,7 +94,7 @@ def _hidden_projection_routing_repair_checks(
             "coverage_preserving_update_guard",
             coverage_preserved,
             (
-                "Bundle A must reject updates that drop final target-token "
+                "Bundle B must reject updates that drop final target-token "
                 "coverage below baseline coverage."
             ),
             coverage_delta,
@@ -111,30 +102,25 @@ def _hidden_projection_routing_repair_checks(
         promotion_check(
             "branch_diversity_acceptance_gate",
             diversity_passed,
-            "Bundle A accepts only when branch-diversity evidence passes.",
+            "Bundle B accepts only when branch-diversity evidence passes.",
             {"branch_diversity_target": diversity},
         ),
         promotion_check(
-            "hidden_advantage_requires_coverage_response",
-            hidden_pressure_count > 0 and coverage_responded,
+            "rank_pressure_requires_branch_response",
+            _rank_margin_pressure_configured(direct_answer) and branch_responded,
             (
-                "Bundle A must reject hidden-advantage movement when target-token "
-                "coverage remains unchanged."
+                "Bundle B must reject rank-margin movement when target coverage "
+                "and target-rank branch-diversity score remain unchanged."
             ),
             {
-                "hidden_projection_pressure_count": hidden_pressure_count,
                 "coverage_delta": coverage_delta,
                 "branch_diversity_passed": diversity_passed,
+                "branch_diversity_score_improved": (
+                    branch_diversity_snapshot_score_improved(final, baseline)
+                ),
             },
         ),
     ]
-
-
-def _direct_answer_snapshots(
-    metrics: dict[str, Any],
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    direct_answer = _as_dict(metrics.get("direct_answer"))
-    return _as_dict(direct_answer.get("baseline")), _as_dict(direct_answer.get("final"))
 
 
 def _profile_balanced_branch_batches_recorded(
@@ -152,9 +138,24 @@ def _representation_separation_recorded(
     return bool(recorded_profiles) and _as_int(representation.get("profile_count")) > 0
 
 
-def _hidden_projection_pressure_count(logit_prior: dict[str, Any]) -> int:
-    return _as_int(logit_prior.get("hidden_projection_profile_count")) + _as_int(
-        logit_prior.get("mixed_profile_count")
+def _rank_margin_pressure_configured(direct_answer: dict[str, Any]) -> bool:
+    return (
+        direct_answer.get("direct_answer_mode")
+        == PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+        and _as_float(direct_answer.get("direct_answer_contrast_weight")) > 0.0
+    )
+
+
+def _branch_response_recorded(
+    final: dict[str, Any],
+    baseline: dict[str, Any],
+    coverage_delta: dict[str, Any],
+    diversity_passed: bool,
+) -> bool:
+    return (
+        diversity_passed
+        or _as_int(coverage_delta.get("improved_profile_count")) > 0
+        or branch_diversity_snapshot_score_improved(final, baseline)
     )
 
 
@@ -174,3 +175,10 @@ def _as_int(value: Any) -> int:
         return int(value)
     except (TypeError, ValueError):
         return 0
+
+
+def _as_float(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0

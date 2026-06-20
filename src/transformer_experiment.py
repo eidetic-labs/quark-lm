@@ -37,6 +37,7 @@ from transformer_experiment_recipe import (
 )
 from transformer_routing_repair_bundle import (
     EXPERIMENT_BUNDLES,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
 )
 from transformer_run_artifacts import TransformerRunArtifacts
@@ -45,6 +46,7 @@ from transformer_run_artifacts import TransformerRunArtifacts
 __all__ = [
     "EXPERIMENT_BUNDLES",
     "PROFILE_AWARE_DIRECT_ANSWER_MODES",
+    "PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE",
     "PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE",
     "PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_MODE",
     "PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_MODE",

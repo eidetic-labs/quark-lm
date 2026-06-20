@@ -89,6 +89,7 @@ DIRECT_ANSWER_MODE_CASES = (
     "branch-context-profile-baseline-floor-profile-scale-calibrated-sequential-profile-stabilization-unlikelihood",
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
+    "branch-profile-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",
     "branch-balanced-topk-softmax-unlikelihood",
     "periodic-branch-representation-contrast-unlikelihood",

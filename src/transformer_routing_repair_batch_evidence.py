@@ -13,16 +13,23 @@ from transformer_direct_answer_profile_balanced_batches import (
 from transformer_direct_answer_profile_keys import trainable_eval_profile_keys
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_ROUTING_REPAIR_MODE,
+    routing_repair_bundle_supports_mode,
 )
 
-ROUTING_REPAIR_BATCH_MODE = "branch-hidden-projection-margin-unlikelihood"
+ROUTING_REPAIR_BATCH_MODE = PROFILE_BALANCED_ROUTING_REPAIR_MODE
+ROUTING_REPAIR_RANK_BATCH_MODE = PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+ROUTING_REPAIR_BATCH_MODES = (
+    ROUTING_REPAIR_BATCH_MODE,
+    ROUTING_REPAIR_RANK_BATCH_MODE,
+)
 
 
 def routing_repair_batch_evidence_enabled(args: Any) -> bool:
-    return (
-        getattr(args, "experiment_bundle", None)
-        == PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
-        and getattr(args, "direct_answer_mode", None) == ROUTING_REPAIR_BATCH_MODE
+    return routing_repair_bundle_supports_mode(
+        getattr(args, "experiment_bundle", None),
+        getattr(args, "direct_answer_mode", None),
     )
 
 
@@ -88,7 +95,8 @@ def routing_repair_batch_evidence_summary(
         "eval_only_profiles": unmapped_eval_only,
     }
     return {
-        "bundle": PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+        "bundle": getattr(args, "experiment_bundle", None),
+        "direct_answer_mode": getattr(args, "direct_answer_mode", None),
         "batch_builder": "profile-balanced-training-family-branch-batch",
         "step_count": len(step_records),
         "branch_count": sum(

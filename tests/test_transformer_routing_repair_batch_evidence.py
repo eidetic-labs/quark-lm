@@ -14,10 +14,12 @@ from support.branch_training import branch_training_fixture  # noqa: E402
 from support.core import ANSWER_TERMINATOR  # noqa: E402
 from transformer_routing_repair_batch_evidence import (  # noqa: E402
     ROUTING_REPAIR_BATCH_MODE,
+    ROUTING_REPAIR_RANK_BATCH_MODE,
     record_routing_repair_batch_step,
     routing_repair_batch_evidence_summary,
 )
 from transformer_routing_repair_bundle import (  # noqa: E402
+    PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
 )
 
@@ -42,6 +44,34 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         self.assertEqual(record["step"], 1)
         self.assertEqual(record["profiles"], ["owner", "qa"])
         self.assertEqual(record["branch_count"], 2)
+
+    def test_records_profile_balanced_rank_bundle_batch(self) -> None:
+        fixture = branch_training_fixture(seed=40)
+        args = _args(
+            mode=ROUTING_REPAIR_RANK_BATCH_MODE,
+            bundle=PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+        )
+
+        record = record_routing_repair_batch_step(
+            args=args,
+            model=fixture.model,
+            tokenizer=fixture.tokenizer,
+            branch_examples=fixture.examples,
+            rng=random.Random(11),
+            direct_step=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertIsNotNone(record)
+        summary = routing_repair_batch_evidence_summary(
+            args,
+            [record] if record is not None else [],
+            _baseline(),
+        )
+        self.assertIsNotNone(summary)
+        assert summary is not None
+        self.assertEqual(summary["bundle"], PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE)
+        self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_RANK_BATCH_MODE)
 
     def test_summary_covers_trainable_failed_profiles(self) -> None:
         fixture = branch_training_fixture(seed=40)
@@ -87,9 +117,12 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         self.assertIsNone(routing_repair_batch_evidence_summary(args, [], _baseline()))
 
 
-def _args(mode: str = ROUTING_REPAIR_BATCH_MODE) -> Namespace:
+def _args(
+    mode: str = ROUTING_REPAIR_BATCH_MODE,
+    bundle: str = PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+) -> Namespace:
     return Namespace(
-        experiment_bundle=PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+        experiment_bundle=bundle,
         direct_answer_mode=mode,
         direct_answer_branch_position=1,
         direct_answer_branch_batch_size=2,
