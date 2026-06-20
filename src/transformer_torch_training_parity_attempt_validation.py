@@ -14,6 +14,10 @@ from transformer_torch_training_parity_attempt_requirement_validation import (
 from transformer_torch_training_parity_attempt_summary_validation import (
     validate_torch_training_parity_attempt_summaries,
 )
+from transformer_torch_training_parity_attempt_status import (
+    resolve_torch_training_parity_attempt_passed,
+    resolve_torch_training_parity_attempt_status,
+)
 from transformer_torch_training_promotion_gate_validation import (
     validate_torch_training_backend_promotion_gate,
 )
@@ -74,40 +78,20 @@ def _validate_boundary(boundary: dict[str, Any]) -> None:
 
 
 def _validate_attempt_status(attempt: dict[str, Any]) -> None:
-    expected_passed = _expected_attempt_passed(attempt)
+    expected_passed = resolve_torch_training_parity_attempt_passed(
+        runtime=attempt["runtime"],
+        training_replay_parity_gate=attempt["training_replay_parity_gate"],
+        training_parity_report=attempt["training_parity_report"],
+    )
     if attempt.get("passed") is not expected_passed:
         raise ValueError("training parity attempt passed flag is inconsistent")
-    expected_status = _expected_attempt_status(attempt)
+    expected_status = resolve_torch_training_parity_attempt_status(
+        runtime=attempt["runtime"],
+        training_replay_parity_gate=attempt["training_replay_parity_gate"],
+        training_parity_report=attempt["training_parity_report"],
+    )
     if attempt.get("status") != expected_status:
         raise ValueError("training parity attempt status is inconsistent")
-
-
-def _expected_attempt_status(attempt: dict[str, Any]) -> str:
-    if attempt["runtime"].get("parity_attempt_allowed") is not True:
-        return str(attempt["runtime"].get("status", "blocked_pytorch_runtime"))
-    if attempt["training_replay_parity_gate"].get("passed") is not True:
-        return str(
-            attempt["training_replay_parity_gate"].get(
-                "status",
-                "training_parity_pending",
-            )
-        )
-    if attempt["training_parity_report"].get("passed") is True:
-        return "training_parity_matched"
-    return str(
-        attempt["training_replay_parity_gate"].get(
-            "status",
-            "training_parity_pending",
-        )
-    )
-
-
-def _expected_attempt_passed(attempt: dict[str, Any]) -> bool:
-    return (
-        attempt["runtime"].get("parity_attempt_allowed") is True
-        and attempt["training_replay_parity_gate"].get("passed") is True
-        and attempt["training_parity_report"].get("passed") is True
-    )
 
 
 def _validate_next_requirements(

@@ -63,6 +63,12 @@ from transformer_torch_training_parity_attempt_requirements import (
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS,
     build_torch_training_parity_attempt_requirements,
 )
+from transformer_torch_training_parity_attempt_status import (
+    TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
+    resolve_torch_training_parity_attempt_passed,
+    resolve_torch_training_parity_attempt_status,
+)
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
     TORCH_TRAINING_BACKEND_PROMOTION_GATE_CHECKS,
@@ -127,6 +133,8 @@ __all__ = [
     "TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTION_BY_STATUS",
     "TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_ACTIONS",
     "TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS",
+    "TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS",
     "TORCH_TRAINING_PARITY_CANDIDATE_KIND",
     "TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION",
     "TORCH_TRAINING_PENDING_STATUS",
@@ -157,6 +165,8 @@ __all__ = [
     "build_torch_training_replay_parity_gate",
     "build_torch_training_state",
     "load_torch_training_parity_attempt_artifact_set",
+    "resolve_torch_training_parity_attempt_passed",
+    "resolve_torch_training_parity_attempt_status",
     "summarize_torch_training_state",
     "torch_training_weights_from_state",
     "validate_torch_training_parity_attempt_requirements",

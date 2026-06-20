@@ -29,6 +29,10 @@ from transformer_torch_training_parity_attempt_summaries import (
     build_torch_attempt_report_summary,
     build_torch_attempt_runtime_summary,
 )
+from transformer_torch_training_parity_attempt_status import (
+    resolve_torch_training_parity_attempt_passed,
+    resolve_torch_training_parity_attempt_status,
+)
 from transformer_torch_training_parity_attempt_writer import (
     write_torch_training_parity_attempt,
 )
@@ -155,8 +159,16 @@ def _attempt_summary(
         "schema_version": SCHEMA_VERSION,
         "kind": TORCH_TRAINING_PARITY_ATTEMPT_KIND,
         "fixture_id": fixture["fixture_id"],
-        "status": _attempt_status(runtime_report, gate, report),
-        "passed": _attempt_passed(runtime_report, gate, report),
+        "status": resolve_torch_training_parity_attempt_status(
+            runtime=runtime_report,
+            training_replay_parity_gate=gate,
+            training_parity_report=report,
+        ),
+        "passed": resolve_torch_training_parity_attempt_passed(
+            runtime=runtime_report,
+            training_replay_parity_gate=gate,
+            training_parity_report=report,
+        ),
         "promoted_training_backend": False,
         "evidence_scope": "training_parity_attempt_only",
         "corpus": _corpus_summary(corpus_dir, curriculum_manifest, train_text),
@@ -178,32 +190,6 @@ def _attempt_summary(
         ),
         "closed_world_boundary": closed_world_boundary,
     }
-
-
-def _attempt_status(
-    runtime_report: dict[str, Any],
-    gate: dict[str, Any],
-    report: dict[str, Any],
-) -> str:
-    if runtime_report.get("parity_attempt_allowed") is not True:
-        return str(runtime_report.get("status", "blocked_pytorch_runtime"))
-    if gate.get("passed") is not True:
-        return str(gate.get("status", "training_parity_pending"))
-    if report.get("passed") is True:
-        return "training_parity_matched"
-    return str(gate.get("status", "training_parity_pending"))
-
-
-def _attempt_passed(
-    runtime_report: dict[str, Any],
-    gate: dict[str, Any],
-    report: dict[str, Any],
-) -> bool:
-    return (
-        runtime_report.get("parity_attempt_allowed") is True
-        and gate.get("passed") is True
-        and report.get("passed") is True
-    )
 
 
 def _corpus_summary(

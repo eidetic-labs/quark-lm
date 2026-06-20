@@ -33,6 +33,8 @@ from transformer_torch_backend import (
     TORCH_TRAINING_PARITY_ATTEMPT_REQUIREMENTS_SCHEMA_VERSION,
     TORCH_TRAINING_READINESS_BASE_CHECKS,
     TORCH_TRAINING_READINESS_CHECK_CATALOGS,
+    TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
     TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
     TORCH_TRAINING_REPLAY_GATE_CHECKS,
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
@@ -42,6 +44,8 @@ from transformer_torch_backend import (
     build_torch_training_parity_attempt_audit,
     build_torch_training_parity_attempt_requirements,
     load_torch_training_parity_attempt_artifact_set,
+    resolve_torch_training_parity_attempt_passed,
+    resolve_torch_training_parity_attempt_status,
     validate_torch_runtime_report,
     validate_torch_training_backend_promotion_gate,
     validate_torch_training_candidate_runtime_report,
@@ -102,6 +106,8 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertTrue(callable(build_torch_runtime_report_hash))
         self.assertTrue(callable(build_torch_training_attempt_payload_hash))
         self.assertTrue(callable(build_torch_training_parity_attempt_audit))
+        self.assertTrue(callable(resolve_torch_training_parity_attempt_passed))
+        self.assertTrue(callable(resolve_torch_training_parity_attempt_status))
         self.assertTrue(callable(validate_torch_training_backend_promotion_gate))
         self.assertTrue(callable(validate_torch_training_candidate_runtime_report))
         self.assertTrue(callable(validate_torch_training_candidate_routing))
@@ -124,6 +130,14 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_KIND,
             "transformer_torch_training_parity_attempt_audit",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
+            "training_parity_matched",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
+            "blocked_pytorch_runtime",
         )
         self.assertIn(
             "runtime_report",
