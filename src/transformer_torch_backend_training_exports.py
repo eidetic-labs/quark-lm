@@ -113,6 +113,13 @@ from transformer_torch_training_replay_gate_validation import (
     TORCH_TRAINING_REPLAY_GATE_CHECKS,
     validate_torch_training_replay_parity_gate,
 )
+from transformer_torch_training_replay_gate_check_validation import (
+    BOOLEAN_REPLAY_GATE_CHECKS as TORCH_TRAINING_REPLAY_GATE_BOOLEAN_CHECKS,
+    REPLAY_CONTROL_COUNT_CHECK as TORCH_TRAINING_REPLAY_GATE_CONTROL_COUNT_CHECK,
+    REPLAY_PROBE_GATE_CHECKS as TORCH_TRAINING_REPLAY_GATE_PROBE_CHECKS,
+    STATUS_REPLAY_GATE_CHECKS as TORCH_TRAINING_REPLAY_GATE_STATUS_CHECKS,
+    validate_torch_training_replay_gate_check,
+)
 from transformer_torch_training_state import (
     TORCH_TRAINING_STATE_SCHEMA_VERSION,
     build_torch_training_state,
@@ -155,8 +162,12 @@ __all__ = [
     "TORCH_TRAINING_READINESS_SCHEMA_VERSION",
     "TORCH_TRAINING_READY_STATUS",
     "TORCH_TRAINING_REPLAY_BLOCKED_STATUS",
+    "TORCH_TRAINING_REPLAY_GATE_BOOLEAN_CHECKS",
     "TORCH_TRAINING_REPLAY_GATE_CHECKS",
+    "TORCH_TRAINING_REPLAY_GATE_CONTROL_COUNT_CHECK",
+    "TORCH_TRAINING_REPLAY_GATE_PROBE_CHECKS",
     "TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION",
+    "TORCH_TRAINING_REPLAY_GATE_STATUS_CHECKS",
     "TORCH_TRAINING_REPLAY_MATCHED_STATUS",
     "TORCH_TRAINING_REPLAY_PARITY_STATUS",
     "TORCH_TRAINING_REPLAY_PENDING_STATUS",
@@ -191,6 +202,7 @@ __all__ = [
     "validate_torch_training_candidate_routing",
     "validate_torch_training_parity_candidate",
     "validate_torch_training_readiness",
+    "validate_torch_training_replay_gate_check",
     "validate_torch_training_replay_parity_gate",
     "validate_torch_training_state_summary",
 ]

@@ -29,7 +29,6 @@ from transformer_torch_backend import (
     TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
     TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
-    TORCH_TRAINING_REPLAY_GATE_CHECKS,
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
     build_torch_runtime_report_hash,
     build_torch_training_attempt_payload_hash,
@@ -48,7 +47,6 @@ from transformer_torch_backend import (
     validate_torch_training_parity_attempt_audit_status,
     validate_torch_training_parity_candidate,
     validate_torch_training_readiness,
-    validate_torch_training_replay_parity_gate,
 )
 
 
@@ -116,14 +114,12 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         )
         self.assertTrue(callable(validate_torch_training_parity_candidate))
         self.assertTrue(callable(validate_torch_training_readiness))
-        self.assertTrue(callable(validate_torch_training_replay_parity_gate))
         self.assertIn("runtime_report", REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS)
         self.assertIn("backend.parity_status", TORCH_TRAINING_CANDIDATE_ROUTE_FIELDS)
         self.assertEqual(
             TORCH_TRAINING_CANDIDATE_RUNTIME_FIELDS,
             ("runtime", "runtime_report"),
         )
-        self.assertIn("replay_buffer", TORCH_TRAINING_REPLAY_GATE_CHECKS)
         self.assertIn(
             TORCH_TRAINING_READINESS_BASE_CHECKS
             + TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
