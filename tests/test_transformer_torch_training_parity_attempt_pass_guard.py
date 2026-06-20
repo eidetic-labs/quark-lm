@@ -36,7 +36,8 @@ class TransformerTorchTrainingParityAttemptPassGuardTests(unittest.TestCase):
     def test_validator_rejects_report_passed_replay_bypass(self) -> None:
         attempt = _attempt()
         attempt["runtime"]["parity_attempt_allowed"] = True
-        attempt["runtime"]["status"] = "passed"
+        attempt["runtime"]["passed"] = True
+        attempt["runtime"]["status"] = "ready_for_pytorch_parity"
         attempt["candidate"]["training_readiness_status"] = "ready"
         attempt["training_replay_parity_gate"]["status"] = (
             "training_replay_parity_pending"

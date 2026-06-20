@@ -18,6 +18,7 @@ def validate_torch_training_parity_attempt_audit_status(
     expected_status = resolve_torch_training_parity_attempt_status(
         runtime={
             "status": audit.get("runtime_status"),
+            "passed": audit.get("parity_attempt_allowed"),
             "parity_attempt_allowed": audit.get("parity_attempt_allowed"),
         },
         training_replay_parity_gate={
@@ -33,6 +34,7 @@ def validate_torch_training_parity_attempt_audit_status(
     expected_passed = resolve_torch_training_parity_attempt_passed(
         runtime={
             "status": audit.get("runtime_status"),
+            "passed": audit.get("parity_attempt_allowed"),
             "parity_attempt_allowed": audit.get("parity_attempt_allowed"),
         },
         training_replay_parity_gate={

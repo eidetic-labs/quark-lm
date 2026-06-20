@@ -13,6 +13,7 @@ from transformer_torch_training_parity_attempt import (
 )
 from transformer_torch_training_parity_attempt_status import (
     TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
     resolve_torch_training_parity_attempt_passed,
     resolve_torch_training_parity_attempt_status,
@@ -49,7 +50,7 @@ class TransformerTorchTrainingParityAttemptStatusTests(unittest.TestCase):
     def test_replay_gate_controls_status_before_report(self) -> None:
         self.assertEqual(
             _status(
-                runtime={"status": "passed", "parity_attempt_allowed": True},
+                runtime=_ready_runtime(),
                 gate={"status": "training_replay_parity_pending", "passed": False},
                 report={"passed": True},
             ),
@@ -57,7 +58,7 @@ class TransformerTorchTrainingParityAttemptStatusTests(unittest.TestCase):
         )
         self.assertFalse(
             _passed(
-                runtime={"status": "passed", "parity_attempt_allowed": True},
+                runtime=_ready_runtime(),
                 gate={"status": "training_replay_parity_pending", "passed": False},
                 report={"passed": True},
             )
@@ -66,7 +67,7 @@ class TransformerTorchTrainingParityAttemptStatusTests(unittest.TestCase):
     def test_report_failure_remains_pending_after_replay_match(self) -> None:
         self.assertEqual(
             _status(
-                runtime={"status": "passed", "parity_attempt_allowed": True},
+                runtime=_ready_runtime(),
                 gate={"status": "training_replay_parity_matched", "passed": True},
                 report={"passed": False},
             ),
@@ -74,14 +75,14 @@ class TransformerTorchTrainingParityAttemptStatusTests(unittest.TestCase):
         )
         self.assertFalse(
             _passed(
-                runtime={"status": "passed", "parity_attempt_allowed": True},
+                runtime=_ready_runtime(),
                 gate={"status": "training_replay_parity_matched", "passed": True},
                 report={"passed": False},
             )
         )
 
     def test_all_prerequisites_match(self) -> None:
-        runtime = {"status": "passed", "parity_attempt_allowed": True}
+        runtime = _ready_runtime()
         gate = {"status": "training_replay_parity_matched", "passed": True}
         report = {"passed": True}
 
@@ -90,6 +91,31 @@ class TransformerTorchTrainingParityAttemptStatusTests(unittest.TestCase):
             TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
         )
         self.assertTrue(_passed(runtime=runtime, gate=gate, report=report))
+
+    def test_runtime_status_must_be_ready_before_match(self) -> None:
+        runtime = {
+            "status": "blocked_test_double_runtime",
+            "passed": True,
+            "parity_attempt_allowed": True,
+        }
+        gate = {"status": "training_replay_parity_matched", "passed": True}
+        report = {"passed": True}
+
+        self.assertEqual(
+            _status(runtime=runtime, gate=gate, report=report),
+            "blocked_test_double_runtime",
+        )
+        self.assertFalse(_passed(runtime=runtime, gate=gate, report=report))
+
+    def test_replay_status_must_be_matched_before_match(self) -> None:
+        gate = {"status": "training_replay_parity_pending", "passed": True}
+        report = {"passed": True}
+
+        self.assertEqual(
+            _status(runtime=_ready_runtime(), gate=gate, report=report),
+            "training_replay_parity_pending",
+        )
+        self.assertFalse(_passed(runtime=_ready_runtime(), gate=gate, report=report))
 
     def test_resolver_matches_built_attempt_summary(self) -> None:
         attempt = build_torch_training_parity_attempt(
@@ -146,6 +172,14 @@ def _passed(
         training_replay_parity_gate=gate,
         training_parity_report=report,
     )
+
+
+def _ready_runtime() -> dict:
+    return {
+        "status": TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS,
+        "passed": True,
+        "parity_attempt_allowed": True,
+    }
 
 
 def _missing_importer(name: str) -> object:

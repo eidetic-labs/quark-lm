@@ -28,6 +28,7 @@ from transformer_torch_backend import (
     TORCH_TRAINING_READINESS_CHECK_CATALOGS,
     TORCH_TRAINING_PARITY_ATTEMPT_MATCHED_STATUS,
     TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
+    TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS,
     TORCH_TRAINING_READINESS_RUNTIME_CHECKS,
     REQUIRED_TORCH_TRAINING_ATTEMPT_ARTIFACTS,
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
@@ -143,6 +144,10 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertEqual(
             TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKED_FALLBACK_STATUS,
             "blocked_pytorch_runtime",
+        )
+        self.assertEqual(
+            TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_READY_STATUS,
+            "ready_for_pytorch_parity",
         )
         self.assertIn(
             "runtime_report",

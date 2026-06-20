@@ -130,7 +130,7 @@ def _valid_audit() -> dict:
 def _make_replay_pending(audit: dict) -> None:
     audit["attempt_status"] = "training_replay_parity_pending"
     audit["attempt_passed"] = False
-    audit["runtime_status"] = "passed"
+    audit["runtime_status"] = "ready_for_pytorch_parity"
     audit["parity_attempt_allowed"] = True
     audit["runtime_failed_checks"] = []
     audit["training_readiness_status"] = "ready"
@@ -148,7 +148,7 @@ def _make_replay_pending(audit: dict) -> None:
 def _make_complete(audit: dict) -> None:
     audit["attempt_status"] = "training_parity_matched"
     audit["attempt_passed"] = True
-    audit["runtime_status"] = "passed"
+    audit["runtime_status"] = "ready_for_pytorch_parity"
     audit["parity_attempt_allowed"] = True
     audit["runtime_failed_checks"] = []
     audit["training_readiness_status"] = "ready"

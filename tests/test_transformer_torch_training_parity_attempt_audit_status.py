@@ -36,7 +36,7 @@ class TransformerTorchTrainingParityAttemptAuditStatusTests(unittest.TestCase):
             {
                 "attempt_status": "training_replay_parity_pending",
                 "attempt_passed": False,
-                "runtime_status": "passed",
+                "runtime_status": "ready_for_pytorch_parity",
                 "parity_attempt_allowed": True,
                 "training_replay_parity_status": "training_replay_parity_pending",
                 "training_replay_parity_passed": False,
@@ -49,7 +49,7 @@ class TransformerTorchTrainingParityAttemptAuditStatusTests(unittest.TestCase):
             {
                 "attempt_status": "training_parity_matched",
                 "attempt_passed": True,
-                "runtime_status": "passed",
+                "runtime_status": "ready_for_pytorch_parity",
                 "parity_attempt_allowed": True,
                 "training_replay_parity_status": "training_replay_parity_matched",
                 "training_replay_parity_passed": True,
