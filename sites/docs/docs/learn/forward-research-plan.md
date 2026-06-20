@@ -243,8 +243,10 @@ buffer parity, replay update parity, final evaluation, and checkpoint
 compatibility together. The PyTorch candidate may move from pending to matched
 only when all checks pass, and a matched candidate still records replay-parity
 evidence rather than a promoted general training backend. The training parity
-report now includes this aggregate gate as a required PyTorch check. The gate is
-status-aware for replay buffer, update, final-evaluation, and checkpoint
+report now includes this aggregate gate as a required PyTorch check, and a
+PyTorch training-candidate kind cannot bypass those report checks through
+drifted backend metadata. The gate is status-aware for replay buffer, update,
+final-evaluation, and checkpoint
 probes, so `passed: true` cannot bypass the expected matched status or replay
 evidence. It is also proof-flag-aware: matched replay probes must expose their
 explicit parity proof flags before they can count. It is schema-aware as well:

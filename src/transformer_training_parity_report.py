@@ -18,6 +18,7 @@ from transformer_training_replay_gate_check import (
     build_training_replay_parity_gate_check,
 )
 from transformer_torch_runtime_report_check import build_torch_runtime_report_check
+from transformer_torch_training_candidate import TORCH_TRAINING_PARITY_CANDIDATE_KIND
 
 
 def build_training_parity_report(
@@ -32,7 +33,9 @@ def build_training_parity_report(
     actual = candidate.get("training_case", {})
     tolerance = fixture["tolerance"]
     checks = [_backend_metadata_check(candidate.get("backend"))]
-    if _candidate_backend_name(candidate) == PYTORCH_BACKEND:
+    if _candidate_kind(candidate) == TORCH_TRAINING_PARITY_CANDIDATE_KIND:
+        checks.append(_torch_candidate_backend_check(candidate.get("backend")))
+    if _requires_pytorch_checks(candidate):
         checks.append(
             build_training_replay_parity_gate_check(
                 candidate.get("training_replay_parity_gate")
@@ -131,6 +134,16 @@ def _backend_metadata_check(backend: Any) -> dict[str, Any]:
     }
 
 
+def _torch_candidate_backend_check(backend: Any) -> dict[str, Any]:
+    actual = backend.get("backend") if isinstance(backend, dict) else None
+    return {
+        "name": "pytorch_candidate_backend",
+        "passed": actual == PYTORCH_BACKEND,
+        "expected": PYTORCH_BACKEND,
+        "actual": actual,
+    }
+
+
 def _number_check(
     name: str,
     expected: float,
@@ -219,6 +232,18 @@ def _close_enough(
 def _candidate_backend_name(candidate: dict[str, Any]) -> str | None:
     backend = candidate.get("backend")
     return backend.get("backend") if isinstance(backend, dict) else None
+
+
+def _candidate_kind(candidate: dict[str, Any]) -> str | None:
+    kind = candidate.get("kind")
+    return kind if isinstance(kind, str) else None
+
+
+def _requires_pytorch_checks(candidate: dict[str, Any]) -> bool:
+    return (
+        _candidate_backend_name(candidate) == PYTORCH_BACKEND
+        or _candidate_kind(candidate) == TORCH_TRAINING_PARITY_CANDIDATE_KIND
+    )
 
 
 def _summary(checks: list[dict[str, Any]]) -> dict[str, Any]:

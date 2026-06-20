@@ -11,8 +11,15 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from support.char_model import char_model_fixture, context_and_target
 from support.torch_runtime_report import runtime, runtime_report
-from transformer_backend_policy import PYTORCH_BACKEND, transformer_backend_metadata
+from transformer_backend_policy import (
+    PYTORCH_BACKEND,
+    SCALAR_BACKEND,
+    transformer_backend_metadata,
+)
 from transformer_model import OptimizationConfig
+from transformer_torch_training_candidate import (
+    TORCH_TRAINING_PARITY_CANDIDATE_KIND,
+)
 from transformer_training_parity import (
     TRAINING_PARITY_FIXTURE_KIND,
     build_scalar_training_parity_fixture,
@@ -97,6 +104,26 @@ class TransformerTrainingParityTests(unittest.TestCase):
             "training_replay_parity_gate",
             report["summary"]["failed_checks"],
         )
+
+    def test_training_report_requires_pytorch_checks_for_candidate_kind(self) -> None:
+        fixture = _scalar_training_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate["kind"] = TORCH_TRAINING_PARITY_CANDIDATE_KIND
+        candidate["backend"] = transformer_backend_metadata(
+            active_backend=SCALAR_BACKEND,
+            seed=fixture["reference_backend"]["seed"],
+            tokenizer_type=fixture["tokenizer"]["tokenizer_type"],
+            corpus_hash=fixture["reference_backend"]["corpus_hash"],
+            parity_status="reference",
+        )
+        candidate.pop("training_replay_parity_gate")
+
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
+        failed = set(report["summary"]["failed_checks"])
+        self.assertFalse(report["passed"])
+        self.assertIn("pytorch_candidate_backend", failed)
+        self.assertIn("training_replay_parity_gate", failed)
 
     def test_training_report_fails_when_replay_gate_is_pending(self) -> None:
         fixture = _scalar_training_fixture()

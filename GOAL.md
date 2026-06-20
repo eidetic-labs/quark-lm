@@ -76,7 +76,8 @@ reference.
   gradients, replay buffers, replay updates, final evaluation, and checkpoint
   compatibility must all match before the candidate can move from pending to
   matched; training parity reports must include this gate, and matched still
-  does not mean promoted training.
+  does not mean promoted training. A PyTorch training-candidate kind must not
+  bypass required PyTorch report checks through drifted backend metadata.
 - Require aggregate replay checks to be status-aware: `passed: true` is not
   enough unless the probe also reports the expected matched status.
 - Require aggregate replay checks to be proof-flag-aware: each matched replay
