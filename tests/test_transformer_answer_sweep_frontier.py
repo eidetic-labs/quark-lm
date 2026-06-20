@@ -6,38 +6,11 @@ import unittest
 from pathlib import Path
 
 from support.commands import answer_sweep, parse_args
-from transformer_answer_sweep_report import (
-    build_answer_sweep_report,
-    trial_report_from_metrics,
-)
+from support.frontier_metrics import metrics_with_profile_coverage
+from transformer_answer_sweep_report import build_answer_sweep_report
 
 
 class TransformerAnswerSweepFrontierTest(unittest.TestCase):
-    def test_trial_report_compares_branch_evidence_to_frontier(self) -> None:
-        report = trial_report_from_metrics(
-            trial_id="trial-01",
-            run_path=Path("runs/trial-01"),
-            config={"embedding_dim": 8},
-            metrics=_metrics_with_profile_coverage("trial", {"qa": 0.125}),
-            frontier_metrics=_metrics_with_profile_coverage(
-                "frontier",
-                {"qa": 0.25},
-            ),
-        )
-
-        comparison = report["frontier_comparison"]
-        self.assertFalse(comparison["passed"])
-        self.assertEqual(comparison["frontier_run_id"], "frontier")
-        self.assertFalse(comparison["coverage_preserved"])
-        self.assertEqual(
-            comparison["coverage_diagnostics"]["worst_violation"]["profile"],
-            "qa",
-        )
-        self.assertEqual(
-            comparison["profile_regression_diagnostics"]["worst_profile"]["profile"],
-            "qa",
-        )
-
     def test_report_summary_fails_frontier_regressions(self) -> None:
         frontier_path = Path("runs/frontier/transformer_answer_metrics.json")
         report = build_answer_sweep_report(
@@ -94,7 +67,7 @@ class TransformerAnswerSweepFrontierTest(unittest.TestCase):
             trial_run = temp_path / "trial-01"
             trial_run.mkdir()
             (trial_run / "transformer_answer_metrics.json").write_text(
-                json.dumps(_metrics_with_profile_coverage("trial", {"qa": 0.125})),
+                json.dumps(metrics_with_profile_coverage("trial", {"qa": 0.125})),
                 encoding="utf-8",
             )
             source_report = temp_path / "source_sweep_report.json"
@@ -118,7 +91,7 @@ class TransformerAnswerSweepFrontierTest(unittest.TestCase):
             )
             frontier_path = temp_path / "frontier_metrics.json"
             frontier_path.write_text(
-                json.dumps(_metrics_with_profile_coverage("frontier", {"qa": 0.25})),
+                json.dumps(metrics_with_profile_coverage("frontier", {"qa": 0.25})),
                 encoding="utf-8",
             )
             run_dir = temp_path / "rebuilt-sweep"
@@ -143,46 +116,6 @@ class TransformerAnswerSweepFrontierTest(unittest.TestCase):
         self.assertEqual(report["summary"]["frontier_competitive_trials"], 0)
         self.assertEqual(report["summary"]["frontier_regressed_trials"], 1)
         self.assertEqual(saved["report_mode"], "existing_metrics_backfill")
-
-
-def _metrics_with_profile_coverage(
-    run_id: str,
-    coverage_by_profile: dict[str, float],
-) -> dict[str, object]:
-    return {
-        "run_id": run_id,
-        "direct_answer": {
-            "final": {
-                "branch_profiles": {
-                    profile: {
-                        "diversity": {
-                            "target_unique": 2,
-                            "predicted_unique": 1,
-                            "target_token_coverage": coverage,
-                            "dominant_predicted_rate": 1.0 - coverage,
-                            "collapsed": False,
-                        },
-                        "target_rank": {
-                            "top3_rate": coverage,
-                            "top5_rate": coverage,
-                            "avg": 2.0,
-                        },
-                    }
-                    for profile, coverage in coverage_by_profile.items()
-                },
-                "branch_target_coverage_by_profile": coverage_by_profile,
-                "branch_diversity_target": {
-                    "passed": False,
-                    "failed_profiles": len(coverage_by_profile),
-                    "passed_profiles": 0,
-                    "min_target_token_coverage": min(
-                        coverage_by_profile.values(),
-                    ),
-                    "root_cause": {"mode_counts": {"target_coverage_gap": 1}},
-                },
-            }
-        },
-    }
 
 
 if __name__ == "__main__":

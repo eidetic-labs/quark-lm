@@ -10,6 +10,9 @@ from branch_diversity_snapshot_coverage import (
     branch_diversity_snapshot_target_coverage_delta,
     branch_diversity_snapshot_target_coverage_diagnostics,
 )
+from branch_diversity_snapshot_stability import (
+    branch_diversity_snapshot_stability_diagnostics,
+)
 from branch_diversity_snapshots import branch_diversity_snapshot_score
 from transformer_branch_frontier_profile_diagnostics import (
     branch_frontier_profile_regression_diagnostics,
@@ -51,23 +54,30 @@ def compare_metrics_to_branch_frontier(
         snapshot,
         frontier_snapshot,
     )
+    stability_diagnostics = branch_diversity_snapshot_stability_diagnostics(
+        snapshot,
+        frontier_snapshot,
+    )
     snapshot_score = branch_diversity_snapshot_score(snapshot)
     frontier_score = branch_diversity_snapshot_score(frontier_snapshot)
     score_direction = _score_direction(snapshot_score, frontier_score)
     coverage_preserved = bool(coverage_diagnostics["preserved"])
+    stability_preserved = bool(stability_diagnostics["preserved"])
     score_preserved = score_direction >= 0
     return {
         "available": True,
-        "passed": coverage_preserved and score_preserved,
+        "passed": coverage_preserved and stability_preserved and score_preserved,
         "frontier_run_id": frontier_metrics.get("run_id"),
         "frontier_metrics_path": frontier_metrics.get("metrics_path"),
         "coverage_preserved": coverage_preserved,
+        "stability_preserved": stability_preserved,
         "score_preserved": score_preserved,
         "score_direction": score_direction,
         "snapshot_score": list(snapshot_score),
         "frontier_score": list(frontier_score),
         "coverage_diagnostics": coverage_diagnostics,
         "coverage_delta": coverage_delta,
+        "stability_diagnostics": stability_diagnostics,
         "snapshot_branch_diversity_passed": _branch_diversity_passed(snapshot),
         "frontier_branch_diversity_passed": _branch_diversity_passed(
             frontier_snapshot
