@@ -38,6 +38,9 @@ from transformer_torch_training_parity_attempt_audit_validation import (
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_STATUSES,
     validate_torch_training_parity_attempt_audit,
 )
+from transformer_torch_training_parity_attempt_audit_status import (
+    validate_torch_training_parity_attempt_audit_status,
+)
 from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_runtime_report_hash,
@@ -175,6 +178,7 @@ __all__ = [
     "torch_training_weights_from_state",
     "validate_torch_training_parity_attempt_requirements",
     "validate_torch_training_parity_attempt_audit",
+    "validate_torch_training_parity_attempt_audit_status",
     "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_backend_promotion_gate",
     "validate_torch_training_candidate_runtime_report",

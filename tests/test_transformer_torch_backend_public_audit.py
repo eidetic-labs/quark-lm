@@ -52,6 +52,7 @@ from transformer_torch_backend import (
     validate_torch_training_candidate_runtime_report,
     validate_torch_training_candidate_routing,
     validate_torch_training_parity_attempt_audit,
+    validate_torch_training_parity_attempt_audit_status,
     validate_torch_training_parity_attempt_requirements,
     validate_torch_training_parity_attempt_summaries,
     validate_torch_training_parity_candidate,
@@ -116,6 +117,9 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertTrue(callable(validate_torch_training_candidate_runtime_report))
         self.assertTrue(callable(validate_torch_training_candidate_routing))
         self.assertTrue(callable(validate_torch_training_parity_attempt_audit))
+        self.assertTrue(
+            callable(validate_torch_training_parity_attempt_audit_status)
+        )
         self.assertTrue(callable(validate_torch_training_parity_candidate))
         self.assertTrue(callable(validate_torch_training_readiness))
         self.assertTrue(callable(validate_torch_training_replay_parity_gate))
