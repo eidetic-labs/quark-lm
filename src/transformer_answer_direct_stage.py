@@ -149,6 +149,7 @@ def run_transformer_direct_answer_stage(
         generation_config=setup.generation_config,
         direct_answer_terminator=direct_setup.direct_answer_terminator,
         context_coverage=setup.context_coverage,
+        routing_repair_batch_evidence=loop_result.routing_repair_batch_evidence,
     )
     return TransformerDirectAnswerStageResult(
         model=direct_phase.model,

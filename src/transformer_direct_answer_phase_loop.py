@@ -7,6 +7,10 @@ from typing import Any, Callable
 from transformer_direct_answer_mode_dispatch import train_direct_answer_mode_step
 from transformer_direct_answer_phase_types import DirectAnswerLoopResult
 from transformer_direct_answer_update_guard import apply_direct_update_guard_probe
+from transformer_routing_repair_batch_evidence import (
+    record_routing_repair_batch_step,
+    routing_repair_batch_evidence_summary,
+)
 
 
 def run_direct_answer_training_loop(
@@ -37,6 +41,7 @@ def run_direct_answer_training_loop(
     apply_guard_probe: Callable[..., None] = apply_direct_update_guard_probe,
 ) -> DirectAnswerLoopResult:
     running_direct_loss = 0.0
+    routing_repair_batch_steps: list[dict[str, Any]] = []
     for direct_step in range(1, direct_steps_to_run + 1):
         example = direct_training_cursor.next()
         pre_update_model_payload: dict[str, Any] | None = None
@@ -46,6 +51,17 @@ def run_direct_answer_training_loop(
             pre_update_model_payload = model.to_dict(tokenizer)
             pre_update_optimizer_payload = optimizer.to_dict()
             pre_update_rng_state = direct_rng.getstate()
+        routing_repair_batch_step = record_routing_repair_batch_step(
+            args=args,
+            model=model,
+            tokenizer=tokenizer,
+            branch_examples=direct_training_pool,
+            rng=direct_rng,
+            direct_step=direct_step,
+            terminator=direct_answer_terminator,
+        )
+        if routing_repair_batch_step is not None:
+            routing_repair_batch_steps.append(routing_repair_batch_step)
 
         mode_step_result = train_mode_step(
             args=args,
@@ -111,4 +127,9 @@ def run_direct_answer_training_loop(
     return DirectAnswerLoopResult(
         last_snapshot=last_direct_snapshot,
         last_snapshot_step=last_direct_snapshot_step,
+        routing_repair_batch_evidence=routing_repair_batch_evidence_summary(
+            args,
+            routing_repair_batch_steps,
+            direct_baseline,
+        ),
     )

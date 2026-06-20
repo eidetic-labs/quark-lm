@@ -10,6 +10,7 @@ from typing import Any
 class DirectAnswerLoopResult:
     last_snapshot: dict[str, Any]
     last_snapshot_step: int
+    routing_repair_batch_evidence: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

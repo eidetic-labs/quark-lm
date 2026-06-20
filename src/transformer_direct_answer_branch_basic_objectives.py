@@ -10,6 +10,7 @@ from transformer_direct_answer_branch_basic_diversity_objectives import (
 )
 from transformer_direct_answer_branch_basic_target_objectives import (
     train_direct_answer_branch_hidden_projection_margin_unlikelihood,
+    train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "train_direct_answer_branch_collapse_unlikelihood",
     "train_direct_answer_branch_diversity_unlikelihood",
     "train_direct_answer_branch_hidden_projection_margin_unlikelihood",
+    "train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood",
     "train_direct_answer_branch_target_margin_unlikelihood",
     "train_direct_answer_branch_target_softmax_unlikelihood",
 ]

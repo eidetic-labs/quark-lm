@@ -59,6 +59,19 @@ class TransformerRoutingRepairBundleEvidenceTests(unittest.TestCase):
         )
         self.assertTrue(by_name["coverage_preserving_update_guard"]["passed"])
 
+    def test_bundle_checks_reject_missing_batch_evidence(self) -> None:
+        metrics = _metrics(
+            diversity_passed=True,
+            baseline_coverage=0.25,
+            final_coverage=0.5,
+        )
+        metrics["direct_answer"].pop("routing_repair_batch_evidence")
+
+        checks = routing_repair_bundle_checks(metrics)
+
+        by_name = {check["name"]: check for check in checks}
+        self.assertFalse(by_name["profile_balanced_branch_batches"]["passed"])
+
     def test_decision_records_bundle_evidence(self) -> None:
         metrics = _metrics(
             diversity_passed=False,
@@ -123,6 +136,7 @@ def _metrics(
         "backend": transformer_backend_metadata(seed=17, tokenizer_type="char"),
         "direct_answer": {
             "direct_answer_branch_context_gate": {"passed": True},
+            "routing_repair_batch_evidence": _routing_repair_batch_evidence(),
             "baseline": _snapshot(baseline_coverage, diversity_passed=True),
             "final": _snapshot(final_coverage, diversity_passed=diversity_passed),
         },
@@ -173,6 +187,33 @@ def _snapshot(coverage: float, *, diversity_passed: bool) -> dict[str, Any]:
             },
         },
         "evals": {"qa": {"count": 1, "exact": 1}},
+    }
+
+
+def _routing_repair_batch_evidence() -> dict[str, Any]:
+    return {
+        "bundle": PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+        "batch_builder": "profile-balanced-training-family-branch-batch",
+        "step_count": 1,
+        "branch_count": 3,
+        "profiles": ["glossary", "learning", "qa"],
+        "required_eval_profiles": {
+            "failed_profiles": ["glossary", "learning", "qa"],
+            "zero_coverage_profiles": ["learning"],
+            "buried_target_profiles": ["glossary", "qa"],
+        },
+        "profile_balanced_branch_batches": {
+            "name": "profile_balanced_branch_batches",
+            "passed": True,
+            "status": "passed",
+            "required_trainable_profiles": ["glossary", "learning", "qa"],
+            "covered_trainable_profiles": ["glossary", "learning", "qa"],
+            "missing_trainable_profiles": [],
+            "eval_only_profiles": [],
+        },
+        "steps": [],
+        "passed": True,
+        "status": "passed",
     }
 
 

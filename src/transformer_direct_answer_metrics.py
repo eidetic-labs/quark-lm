@@ -50,6 +50,7 @@ def build_direct_answer_metrics(
     direct_answer_terminator: str,
     context_coverage: dict[str, Any],
     last_direct_snapshot: dict[str, Any],
+    routing_repair_batch_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     baseline_floor_metrics = build_baseline_floor_metric_section(
         direct_answer_update_guard,
@@ -127,6 +128,7 @@ def build_direct_answer_metrics(
         "direct_answer_branch_snapshot_coverage_floor": (
             branch_diversity_snapshot_target_coverage_by_profile(direct_baseline)
         ),
+        "routing_repair_batch_evidence": routing_repair_batch_evidence,
         "direct_answer_require_branch_context_gate": (
             args.direct_answer_require_branch_context_gate
         ),

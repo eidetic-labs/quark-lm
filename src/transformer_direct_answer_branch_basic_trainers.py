@@ -7,6 +7,7 @@ from transformer_direct_answer_branch_basic_objectives import (
     train_direct_answer_branch_collapse_unlikelihood,
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_hidden_projection_margin_unlikelihood,
+    train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
 )
@@ -15,6 +16,7 @@ from transformer_direct_answer_repair_objectives import (
     train_direct_answer_branch_repair_unlikelihood,
 )
 from transformer_direct_answer_repairs import train_direct_answer_first_error_unlikelihood
+from transformer_routing_repair_bundle import PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
 
 
 def train_first_error_unlikelihood(step: BranchBasicModeStep) -> float:
@@ -149,7 +151,15 @@ def train_branch_target_margin(step: BranchBasicModeStep) -> float:
 
 def train_branch_hidden_projection_margin(step: BranchBasicModeStep) -> float:
     args = step.args
-    return train_direct_answer_branch_hidden_projection_margin_unlikelihood(
+    trainer = train_direct_answer_branch_hidden_projection_margin_unlikelihood
+    if (
+        getattr(args, "experiment_bundle", None)
+        == PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
+    ):
+        trainer = (
+            train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood
+        )
+    return trainer(
         step.model,
         step.tokenizer,
         step.example,

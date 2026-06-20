@@ -33,6 +33,7 @@ def complete_direct_answer_phase(
     generation_config: Any,
     direct_answer_terminator: str,
     context_coverage: dict[str, Any],
+    routing_repair_batch_evidence: dict[str, Any] | None = None,
     finalize_snapshots: Callable[..., Any] = finalize_direct_answer_snapshots,
     build_metrics: Callable[..., dict[str, Any]] = build_direct_answer_metrics,
 ) -> DirectAnswerPhaseResult:
@@ -114,6 +115,7 @@ def complete_direct_answer_phase(
         direct_answer_terminator=direct_answer_terminator,
         context_coverage=context_coverage,
         last_direct_snapshot=last_direct_snapshot,
+        routing_repair_batch_evidence=routing_repair_batch_evidence,
     )
     return DirectAnswerPhaseResult(
         model=model,

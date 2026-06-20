@@ -28,6 +28,7 @@ from transformer_direct_answer_branch_basic_objectives import (
     train_direct_answer_branch_collapse_unlikelihood,
     train_direct_answer_branch_diversity_unlikelihood,
     train_direct_answer_branch_hidden_projection_margin_unlikelihood,
+    train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood,
     train_direct_answer_branch_target_margin_unlikelihood,
     train_direct_answer_branch_target_softmax_unlikelihood,
 )
@@ -73,6 +74,9 @@ from transformer_direct_answer_evaluation import (
 from transformer_direct_answer_profiled_batches import (
     direct_answer_profiled_branch_batch,
     direct_answer_profiled_replay_records,
+)
+from transformer_direct_answer_profile_balanced_batches import (
+    direct_answer_profile_balanced_branch_batch,
 )
 from transformer_direct_answer_repair_discovery import (
     direct_answer_early_stop_error,
@@ -122,6 +126,7 @@ __all__ = [
     "direct_answer_generated_prefix_recovery",
     "direct_answer_hard_branch_contrast",
     "direct_answer_lesson",
+    "direct_answer_profile_balanced_branch_batch",
     "direct_answer_profiled_branch_batch",
     "direct_answer_profiled_replay_records",
     "direct_answer_repeat_loop_error",
@@ -147,6 +152,7 @@ __all__ = [
     "train_direct_answer_branch_coverage_binding_unlikelihood",
     "train_direct_answer_branch_diversity_unlikelihood",
     "train_direct_answer_branch_hidden_projection_margin_unlikelihood",
+    "train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood",
     "train_direct_answer_branch_output_binding_unlikelihood",
     "train_direct_answer_branch_rank_margin_unlikelihood",
     "train_direct_answer_branch_repair_unlikelihood",

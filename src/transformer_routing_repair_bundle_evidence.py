@@ -19,11 +19,13 @@ def routing_repair_bundle_checks(metrics: dict[str, Any]) -> list[dict[str, Any]
 
     if metrics.get("experiment_bundle") != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
+    direct_answer = _as_dict(metrics.get("direct_answer"))
     baseline, final = _direct_answer_snapshots(metrics)
     diversity = _as_dict(final.get("branch_diversity_target"))
     audit = _as_dict(final.get("branch_routing_audit"))
     representation = _as_dict(audit.get("representation"))
     logit_prior = _as_dict(audit.get("logit_prior"))
+    batch_evidence = _as_dict(direct_answer.get("routing_repair_batch_evidence"))
     coverage_delta = branch_diversity_snapshot_target_coverage_delta(final, baseline)
 
     hidden_pressure_count = _hidden_projection_pressure_count(logit_prior)
@@ -40,12 +42,13 @@ def routing_repair_bundle_checks(metrics: dict[str, Any]) -> list[dict[str, Any]
     return [
         promotion_check(
             "profile_balanced_branch_batches",
-            _profile_balanced_branch_batches_recorded(final, diversity),
+            _profile_balanced_branch_batches_recorded(batch_evidence),
             (
-                "Bundle A must record multi-target branch profiles before judging "
-                "routing-repair evidence."
+                "Bundle A must record profile-balanced training-family branch "
+                "batches before judging routing-repair evidence."
             ),
             {
+                "batch_evidence": batch_evidence,
                 "profile_count": len(_as_dict(final.get("branch_profiles"))),
                 "multi_target_profiles": diversity.get("multi_target_profiles", 0),
                 "failed_profiles": diversity.get("failed_profiles", 0),
@@ -121,12 +124,10 @@ def _direct_answer_snapshots(
 
 
 def _profile_balanced_branch_batches_recorded(
-    final: dict[str, Any],
-    diversity: dict[str, Any],
+    batch_evidence: dict[str, Any],
 ) -> bool:
-    branch_profiles = _as_dict(final.get("branch_profiles"))
-    multi_target_profiles = _as_int(diversity.get("multi_target_profiles"))
-    return bool(branch_profiles) and multi_target_profiles > 0
+    check = _as_dict(batch_evidence.get("profile_balanced_branch_batches"))
+    return check.get("passed") is True
 
 
 def _representation_separation_recorded(

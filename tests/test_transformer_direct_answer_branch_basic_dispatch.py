@@ -9,6 +9,7 @@ from transformer_direct_answer_branch_basic_dispatch import (
     BASIC_BRANCH_DIRECT_ANSWER_MODES,
     train_direct_answer_branch_basic_mode_step,
 )
+from transformer_routing_repair_bundle import PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE
 
 
 class TransformerDirectAnswerBranchBasicDispatchTests(unittest.TestCase):
@@ -77,15 +78,42 @@ class TransformerDirectAnswerBranchBasicDispatchTests(unittest.TestCase):
         margin.assert_called_once()
         self.assertEqual(margin.call_args.args[9], args.direct_answer_contrast_weight)
 
+    def test_bundle_hidden_projection_uses_profile_balanced_objective(self) -> None:
+        args = _args(
+            "branch-hidden-projection-margin-unlikelihood",
+            experiment_bundle=PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+        )
+
+        with (
+            patch(
+                "transformer_direct_answer_branch_basic_trainers.train_direct_answer_profile_balanced_branch_hidden_projection_margin_unlikelihood",
+                return_value=6.0,
+            ) as profile_balanced,
+            patch(
+                "transformer_direct_answer_branch_basic_trainers.train_direct_answer_branch_hidden_projection_margin_unlikelihood",
+                return_value=2.0,
+            ) as local_hidden,
+        ):
+            loss = _train(args)
+
+        self.assertEqual(loss, 6.0)
+        profile_balanced.assert_called_once()
+        local_hidden.assert_not_called()
+
     def test_mode_set_contains_basic_branch_modes(self) -> None:
         self.assertIn("branch-collapse-unlikelihood", BASIC_BRANCH_DIRECT_ANSWER_MODES)
         self.assertIn("periodic-branch-target-softmax-unlikelihood", BASIC_BRANCH_DIRECT_ANSWER_MODES)
         self.assertIn("branch-hidden-projection-margin-unlikelihood", BASIC_BRANCH_DIRECT_ANSWER_MODES)
 
 
-def _args(mode: str, interval: int = 2) -> Namespace:
+def _args(
+    mode: str,
+    interval: int = 2,
+    experiment_bundle: str | None = None,
+) -> Namespace:
     return Namespace(
         direct_answer_mode=mode,
+        experiment_bundle=experiment_bundle,
         direct_answer_learning_rate=0.1,
         direct_answer_negative_weight=0.2,
         direct_answer_positive_weight=0.3,

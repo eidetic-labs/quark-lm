@@ -8,6 +8,7 @@ from support.core import ANSWER_TERMINATOR, AnswerExample
 from support.direct_answer import (
     direct_answer_branch_batch,
     direct_answer_branch_diversity_batch,
+    direct_answer_profile_balanced_branch_batch,
     direct_answer_target_balanced_branch_batch,
     direct_answer_target_balanced_branch_diversity_batch,
 )
@@ -107,6 +108,38 @@ class TransformerBranchBatchTest(unittest.TestCase):
                 for _context, _target, predicted in batch
             },
             {"."},
+        )
+
+    def test_profile_balanced_branch_batch_covers_training_families(self) -> None:
+        self_example = AnswerExample(
+            prompt="q: self?\na:",
+            target=" near.",
+            source="qa:self",
+        )
+        glossary = AnswerExample(
+            prompt="q: glossary?\na:",
+            target=" green.",
+            source="fact:glossary",
+        )
+        fixture = branch_training_fixture(
+            seed=40,
+            extra_examples=[self_example, glossary],
+        )
+
+        batch = direct_answer_profile_balanced_branch_batch(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.examples + [self_example, glossary],
+            random.Random(11),
+            branch_position=1,
+            batch_size=2,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(len(batch), 4)
+        self.assertEqual(
+            {profile for _context, _target, _predicted, profile in batch},
+            {"glossary", "owner", "qa", "self"},
         )
 
 
