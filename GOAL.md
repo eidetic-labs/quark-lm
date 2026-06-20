@@ -182,6 +182,7 @@ run evidence live in the docs and shared state files.
 | Branch-diversity research | `sites/docs/docs/learn/branch-diversity-research.md` |
 | Implementation map | `sites/docs/docs/learn/research-implementation-map.md` |
 | Historical evidence archive | `sites/docs/docs/learn/historical-evidence.md` |
+| PyTorch parity phase audit | `PYTORCH_PARITY_PHASE_AUDIT.md` |
 | RC boundary | `RC_SPEC.md`, `RC_GAP_AUDIT.md`, `RC_CHECKLIST.md` |
 
 Current evidence summary:
