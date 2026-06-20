@@ -12,6 +12,9 @@ PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE = (
 PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE = (
     "profile-balanced-retention-rank-routing-repair"
 )
+PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE = (
+    "profile-balanced-rank-collapse-routing-repair"
+)
 PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE = (
     "profile-balanced-topk-routing-repair"
 )
@@ -24,6 +27,9 @@ PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE = (
 PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE = (
     "branch-profile-balanced-retention-rank-margin-unlikelihood"
 )
+PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE = (
+    "branch-profile-balanced-rank-collapse-unlikelihood"
+)
 PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE = (
     "branch-profile-balanced-topk-softmax-unlikelihood"
 )
@@ -31,6 +37,7 @@ EXPERIMENT_BUNDLES = (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
 )
 
@@ -41,6 +48,9 @@ _BUNDLE_MODES = {
     ),
     PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE: (
         PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE
+    ),
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE: (
+        PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE
     ),
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE: (
         PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE
@@ -75,6 +85,12 @@ def routing_repair_bundle_hypothesis(bundle: str | None) -> str | None:
                 "Profile-balanced top-k softmax pressure can convert lifted "
                 "branch targets into stronger target-token coverage under "
                 "coverage-preserving acceptance gates."
+            )
+        if bundle == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE:
+            return (
+                "Profile-balanced rank-margin pressure with explicit dominant-token "
+                "anti-collapse pressure can lift branch targets while reducing "
+                "winner-take-all profile collapse."
             )
         if bundle != PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
             return None
@@ -131,6 +147,23 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
                 (
                     "Reject retention-anchored rank movement when target coverage "
                     "and target-rank branch-diversity score remain unchanged."
+                ),
+            ),
+        )
+    if bundle == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE:
+        return _pressure_repair_gates(
+            _gate(
+                "rank_collapse_pressure",
+                (
+                    "Apply profile-balanced hard-negative rank-margin pressure "
+                    "with explicit batch-dominant anti-collapse pressure."
+                ),
+            ),
+            _gate(
+                "rank_collapse_pressure_requires_branch_response",
+                (
+                    "Reject rank-collapse movement when target coverage, target-rank, "
+                    "and collapse diagnostics remain unchanged."
                 ),
             ),
         )
@@ -233,6 +266,16 @@ def routing_repair_bundle_failure_criteria(bundle: str | None) -> list[str]:
             ),
             "Representation centroid distance or margin fails to improve.",
         ]
+    if bundle == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE:
+        return [
+            "Any profile drops below baseline target-token coverage.",
+            "Dominant predicted rate remains 1.0 across all measured profiles.",
+            (
+                "Rank-collapse pressure produces no target-rank, top-k, "
+                "coverage, or collapse response."
+            ),
+            "Representation centroid distance or margin fails to improve.",
+        ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
     return [
@@ -268,6 +311,17 @@ def routing_repair_bundle_notes(bundle: str | None) -> list[str]:
     if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
         return [
             "Experiment bundle: Bundle C, profile-balanced top-k routing repair.",
+            (
+                "This bundle is a planned gate contract; it does not promote "
+                "transformer language-model behavior."
+            ),
+        ]
+    if bundle == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE:
+        return [
+            (
+                "Experiment bundle: Bundle E, profile-balanced rank-collapse "
+                "routing repair."
+            ),
             (
                 "This bundle is a planned gate contract; it does not promote "
                 "transformer language-model behavior."

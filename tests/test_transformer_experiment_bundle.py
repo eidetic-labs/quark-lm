@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from transformer_cli import parse_args  # noqa: E402
 from transformer_experiment import (  # noqa: E402
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
@@ -70,6 +71,20 @@ class TransformerExperimentBundleTests(unittest.TestCase):
         self.assertEqual(
             args.experiment_bundle,
             PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+        )
+
+    def test_answer_train_accepts_profile_balanced_rank_collapse_bundle(self) -> None:
+        args = parse_args(
+            [
+                "answer-train",
+                "--experiment-bundle",
+                PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
+            ]
+        )
+
+        self.assertEqual(
+            args.experiment_bundle,
+            PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
         )
 
     def test_bundle_intent_adds_routing_repair_contract(self) -> None:
@@ -205,6 +220,43 @@ class TransformerExperimentBundleTests(unittest.TestCase):
             (
                 "Experiment bundle: Bundle D, retention-anchored "
                 "profile-balanced rank routing repair."
+            ),
+            intent["notes"],
+        )
+
+    def test_rank_collapse_bundle_intent_adds_rank_collapse_contract(self) -> None:
+        args = parse_args(
+            [
+                "answer-train",
+                "--run",
+                "runs/v0.122-rank-collapse-routing-repair",
+                "--direct-answer-steps",
+                "1",
+                "--direct-answer-mode",
+                "branch-profile-balanced-rank-collapse-unlikelihood",
+                "--experiment-bundle",
+                PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
+            ]
+        )
+
+        intent = transformer_experiment_intent(args)
+        gates = {gate["name"] for gate in intent["acceptance_gates"]}
+
+        self.assertIn("profile_balanced_branch_batches", gates)
+        self.assertIn("rank_collapse_pressure", gates)
+        self.assertIn("rank_collapse_pressure_requires_branch_response", gates)
+        self.assertIn("anti-collapse pressure", intent["hypothesis"])
+        self.assertIn(
+            (
+                "Rank-collapse pressure produces no target-rank, top-k, "
+                "coverage, or collapse response."
+            ),
+            intent["failure_criteria"],
+        )
+        self.assertIn(
+            (
+                "Experiment bundle: Bundle E, profile-balanced rank-collapse "
+                "routing repair."
             ),
             intent["notes"],
         )

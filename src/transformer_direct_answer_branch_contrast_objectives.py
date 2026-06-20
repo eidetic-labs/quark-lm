@@ -14,6 +14,7 @@ from transformer_direct_answer_branch_contrast_hard_objective import (
 from transformer_direct_answer_branch_ranking_objectives import (
     train_direct_answer_branch_rank_margin_unlikelihood,
     train_direct_answer_branch_topk_softmax_unlikelihood,
+    train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood,
     train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood,
     train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "train_direct_answer_branch_span_contrast_unlikelihood",
     "train_direct_answer_branch_topk_softmax_unlikelihood",
     "train_direct_answer_hard_branch_contrast_unlikelihood",
+    "train_direct_answer_profile_balanced_branch_rank_collapse_unlikelihood",
     "train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood",
     "train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood",
 ]

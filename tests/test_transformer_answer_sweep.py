@@ -14,6 +14,8 @@ from transformer_answer_sweep_report import (
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_MODE,
 )
@@ -48,7 +50,8 @@ class TransformerAnswerSweepTest(unittest.TestCase):
                 (
                     "experiment_bundle="
                     f"{PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE},"
-                    f"{PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE}"
+                    f"{PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE},"
+                    f"{PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE}"
                 ),
             ]
         )
@@ -61,6 +64,7 @@ class TransformerAnswerSweepTest(unittest.TestCase):
             [
                 PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+                PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
             ],
         )
         self.assertEqual(
@@ -68,6 +72,7 @@ class TransformerAnswerSweepTest(unittest.TestCase):
             [
                 PROFILE_BALANCED_ROUTING_REPAIR_MODE,
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+                PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
             ],
         )
         self.assertEqual(
@@ -75,6 +80,7 @@ class TransformerAnswerSweepTest(unittest.TestCase):
             [
                 PROFILE_BALANCED_ROUTING_REPAIR_MODE,
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+                PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
             ],
         )
 

@@ -11,11 +11,59 @@ from branch_diversity_snapshot_coverage import (
 from branch_diversity_snapshots import branch_diversity_snapshot_score_improved
 from constraint_first_report import promotion_check
 from transformer_routing_repair_bundle import (
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
 )
 
 
 def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
+    return _rank_like_routing_repair_checks(
+        metrics,
+        bundle_label="Bundle B",
+        pressure_name="rank_margin_pressure",
+        pressure_mode=PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+        pressure_rule=(
+            "Bundle B must apply profile-balanced hard-negative "
+            "rank-margin pressure for branch-routing failures."
+        ),
+        response_name="rank_pressure_requires_branch_response",
+        response_rule=(
+            "Bundle B must reject rank-margin movement when target coverage "
+            "and target-rank branch-diversity score remain unchanged."
+        ),
+    )
+
+
+def rank_collapse_routing_repair_checks(
+    metrics: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return _rank_like_routing_repair_checks(
+        metrics,
+        bundle_label="Bundle E",
+        pressure_name="rank_collapse_pressure",
+        pressure_mode=PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
+        pressure_rule=(
+            "Bundle E must apply profile-balanced rank-margin pressure with "
+            "batch-dominant anti-collapse pressure."
+        ),
+        response_name="rank_collapse_pressure_requires_branch_response",
+        response_rule=(
+            "Bundle E must reject rank-collapse movement when target coverage, "
+            "target-rank, and collapse diagnostics remain unchanged."
+        ),
+    )
+
+
+def _rank_like_routing_repair_checks(
+    metrics: dict[str, Any],
+    *,
+    bundle_label: str,
+    pressure_name: str,
+    pressure_mode: str,
+    pressure_rule: str,
+    response_name: str,
+    response_rule: str,
+) -> list[dict[str, Any]]:
     direct_answer = _as_dict(metrics.get("direct_answer"))
     baseline = _as_dict(direct_answer.get("baseline"))
     final = _as_dict(direct_answer.get("final"))
@@ -43,7 +91,7 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "profile_balanced_branch_batches",
             _profile_balanced_branch_batches_recorded(batch_evidence),
             (
-                "Bundle B must record profile-balanced training-family branch "
+                f"{bundle_label} must record profile-balanced training-family branch "
                 "batches before judging routing-repair evidence."
             ),
             {
@@ -54,12 +102,9 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             },
         ),
         promotion_check(
-            "rank_margin_pressure",
-            _rank_margin_pressure_configured(direct_answer),
-            (
-                "Bundle B must apply profile-balanced hard-negative "
-                "rank-margin pressure for branch-routing failures."
-            ),
+            pressure_name,
+            _rank_margin_pressure_configured(direct_answer, pressure_mode),
+            pressure_rule,
             {
                 "direct_answer_mode": direct_answer.get("direct_answer_mode"),
                 "direct_answer_contrast_weight": direct_answer.get(
@@ -76,7 +121,7 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "representation_separation_evidence",
             _representation_separation_recorded(final, representation),
             (
-                "Bundle B must record representation-separation evidence for "
+                f"{bundle_label} must record representation-separation evidence for "
                 "multi-target branch profiles."
             ),
             {
@@ -94,7 +139,7 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "coverage_preserving_update_guard",
             coverage_preserved,
             (
-                "Bundle B must reject updates that drop final target-token "
+                f"{bundle_label} must reject updates that drop final target-token "
                 "coverage below baseline coverage."
             ),
             coverage_delta,
@@ -102,16 +147,14 @@ def rank_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
         promotion_check(
             "branch_diversity_acceptance_gate",
             diversity_passed,
-            "Bundle B accepts only when branch-diversity evidence passes.",
+            f"{bundle_label} accepts only when branch-diversity evidence passes.",
             {"branch_diversity_target": diversity},
         ),
         promotion_check(
-            "rank_pressure_requires_branch_response",
-            _rank_margin_pressure_configured(direct_answer) and branch_responded,
-            (
-                "Bundle B must reject rank-margin movement when target coverage "
-                "and target-rank branch-diversity score remain unchanged."
-            ),
+            response_name,
+            _rank_margin_pressure_configured(direct_answer, pressure_mode)
+            and branch_responded,
+            response_rule,
             {
                 "coverage_delta": coverage_delta,
                 "branch_diversity_passed": diversity_passed,
@@ -138,10 +181,12 @@ def _representation_separation_recorded(
     return bool(recorded_profiles) and _as_int(representation.get("profile_count")) > 0
 
 
-def _rank_margin_pressure_configured(direct_answer: dict[str, Any]) -> bool:
+def _rank_margin_pressure_configured(
+    direct_answer: dict[str, Any],
+    pressure_mode: str,
+) -> bool:
     return (
-        direct_answer.get("direct_answer_mode")
-        == PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+        direct_answer.get("direct_answer_mode") == pressure_mode
         and _as_float(direct_answer.get("direct_answer_contrast_weight")) > 0.0
     )
 

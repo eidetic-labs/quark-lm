@@ -97,6 +97,7 @@ DIRECT_ANSWER_OBJECTIVE_MODES = [
     "branch-rank-margin-unlikelihood",
     "branch-balanced-rank-margin-unlikelihood",
     "branch-profile-balanced-rank-margin-unlikelihood",
+    "branch-profile-balanced-rank-collapse-unlikelihood",
     "branch-profile-balanced-retention-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",
     "branch-balanced-topk-softmax-unlikelihood",

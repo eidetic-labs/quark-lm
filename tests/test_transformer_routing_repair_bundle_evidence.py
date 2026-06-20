@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from transformer_backend_policy import transformer_backend_metadata  # noqa: E402
 from transformer_constraints import transformer_constraint_report  # noqa: E402
 from transformer_experiment import (  # noqa: E402
+    PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     TRAINING_DATA_DESCRIPTION,
     transformer_experiment_decision,
@@ -111,6 +112,23 @@ class TransformerRoutingRepairBundleEvidenceTests(unittest.TestCase):
             report["failed_constraints"],
         )
 
+    def test_rank_collapse_bundle_checks_use_rank_collapse_gate_names(self) -> None:
+        checks = routing_repair_bundle_checks(
+            _rank_collapse_metrics(
+                diversity_passed=False,
+                baseline_coverage=0.25,
+                final_coverage=0.25,
+            )
+        )
+
+        by_name = {check["name"]: check for check in checks}
+        self.assertIn("rank_collapse_pressure", by_name)
+        self.assertIn("rank_collapse_pressure_requires_branch_response", by_name)
+        self.assertTrue(by_name["rank_collapse_pressure"]["passed"])
+        self.assertFalse(
+            by_name["rank_collapse_pressure_requires_branch_response"]["passed"]
+        )
+
 
 def _metrics(
     *,
@@ -141,6 +159,27 @@ def _metrics(
             "final": _snapshot(final_coverage, diversity_passed=diversity_passed),
         },
     }
+
+
+def _rank_collapse_metrics(
+    *,
+    diversity_passed: bool,
+    baseline_coverage: float,
+    final_coverage: float,
+) -> dict[str, Any]:
+    metrics = _metrics(
+        diversity_passed=diversity_passed,
+        baseline_coverage=baseline_coverage,
+        final_coverage=final_coverage,
+    )
+    metrics["experiment_bundle"] = PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE
+    direct_answer = metrics["direct_answer"]
+    direct_answer["direct_answer_mode"] = (
+        "branch-profile-balanced-rank-collapse-unlikelihood"
+    )
+    direct_answer["direct_answer_contrast_weight"] = 1.0
+    direct_answer["direct_answer_hard_negatives"] = 4
+    return metrics
 
 
 def _snapshot(coverage: float, *, diversity_passed: bool) -> dict[str, Any]:
