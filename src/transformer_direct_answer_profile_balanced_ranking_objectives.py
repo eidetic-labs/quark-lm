@@ -176,6 +176,7 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
         candidate_count,
         params=params,
         target_floor_anchors=target_floor_anchors,
+        representation_weight=candidate_weight,
     )
 
 

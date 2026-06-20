@@ -8,6 +8,9 @@ from autograd import Scalar, zero_grad
 from replay_plan import BranchReplayRecord
 from transformer_lm_branch_retention_floor_loss import retention_floor_loss
 from transformer_lm_candidate_set_loss import candidate_set_target_loss
+from transformer_lm_target_floor_representation_loss import (
+    target_floor_representation_loss,
+)
 from transformer_lm_target_floor_topk_loss import target_floor_combined_topk_loss
 from transformer_math import softmax_scalars
 
@@ -25,6 +28,7 @@ def train_branch_retention_topk_softmax(
     candidate_count: int,
     params: list[Scalar] | None = None,
     target_floor_anchors: list[BranchReplayRecord] | None = None,
+    representation_weight: float = 0.0,
 ) -> float:
     """Apply top-k pressure and retention preservation in one optimizer step."""
 
@@ -50,6 +54,14 @@ def train_branch_retention_topk_softmax(
     )
     if target_floor_loss is not None:
         loss = loss + target_floor_loss
+    representation_loss = target_floor_representation_loss(
+        model,
+        branches,
+        target_floor_anchors or [],
+        representation_weight,
+    )
+    if representation_loss is not None:
+        loss = loss + representation_loss
     loss.backward()
     model.apply_gradients(params, learning_rate)
     return loss.data

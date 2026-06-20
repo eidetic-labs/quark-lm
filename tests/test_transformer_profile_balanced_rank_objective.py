@@ -69,6 +69,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             tuple[
                 list[tuple[list[int], int, int]],
                 list[tuple[list[int], int, int, str]],
+                dict[str, object],
             ]
         ] = []
         represented_target = fixture.tokenizer.stoi[fixture.near.target[1]]
@@ -82,9 +83,9 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             branches: list[tuple[list[int], int, int]],
             retention_anchors: list[tuple[list[int], int, int, str]],
             *_args: object,
-            **_kwargs: object,
+            **kwargs: object,
         ) -> float:
-            calls.append((branches, retention_anchors))
+            calls.append((branches, retention_anchors, kwargs))
             return 4.5
 
         fixture.model.predict = predict_represented_target
@@ -109,9 +110,10 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
 
         self.assertEqual(loss, 4.5)
         self.assertEqual(len(calls), 1)
-        topk_branches, retention_anchors = calls[0]
+        topk_branches, retention_anchors, kwargs = calls[0]
         self.assertEqual(len(topk_branches), 2)
         self.assertGreater(len(retention_anchors), 0)
+        self.assertEqual(kwargs["representation_weight"], 2.0)
         self.assertTrue(all(len(branch) == 3 for branch in topk_branches))
         self.assertTrue(all(len(branch) == 4 for branch in retention_anchors))
 
