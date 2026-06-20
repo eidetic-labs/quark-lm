@@ -22,10 +22,11 @@ from transformer_torch_training_readiness_validation import (
     validate_torch_training_readiness,
 )
 from transformer_torch_training_replay_parity_gate import (
-    TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
-    TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION,
     TORCH_TRAINING_REPLAY_MATCHED_STATUS,
     TORCH_TRAINING_REPLAY_PENDING_STATUS,
+)
+from transformer_torch_training_replay_gate_validation import (
+    validate_torch_training_replay_parity_gate,
 )
 
 
@@ -78,7 +79,9 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
     _validate_backend(candidate["backend"])
     _validate_runtime_report(candidate)
     validate_torch_training_readiness(candidate["training_readiness"])
-    _validate_replay_gate(candidate["training_replay_parity_gate"])
+    validate_torch_training_replay_parity_gate(
+        candidate["training_replay_parity_gate"]
+    )
     validate_torch_training_case(candidate["training_case"])
     _validate_routing(candidate)
 
@@ -98,45 +101,6 @@ def _validate_runtime_report(candidate: dict[str, Any]) -> None:
         return
     failures = check.get("failed_runtime_checks") or [check.get("error", "invalid")]
     raise ValueError(f"candidate.runtime_report.{failures[0]} is inconsistent")
-
-
-def _validate_replay_gate(gate: dict[str, Any]) -> None:
-    if gate.get("schema_version") != TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION:
-        raise ValueError("candidate.training_replay_parity_gate.schema_version")
-    if gate.get("status") not in {
-        TORCH_TRAINING_REPLAY_MATCHED_STATUS,
-        TORCH_TRAINING_REPLAY_PENDING_STATUS,
-        TORCH_TRAINING_REPLAY_BLOCKED_STATUS,
-    }:
-        raise ValueError("candidate.training_replay_parity_gate.status is invalid")
-    if not isinstance(gate.get("passed"), bool):
-        raise ValueError("candidate.training_replay_parity_gate.passed is invalid")
-    if gate.get("parity_status") not in {"matched", "pending", "failed"}:
-        raise ValueError("candidate.training_replay_parity_gate.parity_status")
-    _require_non_empty_string(gate, "implementation_status")
-    if gate.get("promoted_training_backend") is not False:
-        raise ValueError("candidate.training_replay_parity_gate must not promote")
-    if not isinstance(gate.get("checks"), list):
-        raise ValueError("candidate.training_replay_parity_gate.checks is invalid")
-    _validate_summary("candidate.training_replay_parity_gate", gate.get("summary"))
-    _require_non_empty_string(gate, "reason")
-    _validate_replay_gate_status(gate)
-
-
-def _validate_replay_gate_status(gate: dict[str, Any]) -> None:
-    if gate["passed"] is True:
-        if gate["status"] != TORCH_TRAINING_REPLAY_MATCHED_STATUS:
-            raise ValueError("candidate.training_replay_parity_gate.status")
-        if gate["parity_status"] != "matched":
-            raise ValueError("candidate.training_replay_parity_gate.parity_status")
-        if gate["summary"].get("failed_checks") != []:
-            raise ValueError("candidate.training_replay_parity_gate.failed_checks")
-    if gate["status"] == TORCH_TRAINING_REPLAY_BLOCKED_STATUS:
-        if gate["parity_status"] != "failed":
-            raise ValueError("candidate.training_replay_parity_gate.parity_status")
-    if gate["status"] == TORCH_TRAINING_REPLAY_PENDING_STATUS:
-        if gate["parity_status"] != "pending":
-            raise ValueError("candidate.training_replay_parity_gate.parity_status")
 
 
 def _validate_routing(candidate: dict[str, Any]) -> None:
@@ -177,15 +141,6 @@ def _routing(
         "backend.parity_status": parity_status,
         "training_case.status": training_case_status,
     }
-
-
-def _validate_summary(label: str, summary: Any) -> None:
-    if not isinstance(summary, dict):
-        raise ValueError(f"{label}.summary is invalid")
-    if not isinstance(summary.get("failed_checks"), list):
-        raise ValueError(f"{label}.summary.failed_checks is invalid")
-    if any(not isinstance(item, str) for item in summary["failed_checks"]):
-        raise ValueError(f"{label}.summary.failed_checks is invalid")
 
 
 def _require_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:
