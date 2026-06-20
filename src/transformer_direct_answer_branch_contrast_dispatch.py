@@ -25,6 +25,7 @@ from transformer_direct_answer_core import DirectAnswerLesson
 from transformer_direct_answer_branch_profile_balanced_adapters import (
     train_profile_balanced_branch_rank_margin,
     train_profile_balanced_branch_topk_softmax,
+    train_profile_balanced_retention_branch_rank_margin,
 )
 
 
@@ -33,6 +34,7 @@ BRANCH_CONTRAST_DIRECT_ANSWER_MODES = frozenset(
         "branch-rank-margin-unlikelihood",
         "branch-balanced-rank-margin-unlikelihood",
         "branch-profile-balanced-rank-margin-unlikelihood",
+        "branch-profile-balanced-retention-rank-margin-unlikelihood",
         "branch-topk-softmax-unlikelihood",
         "branch-balanced-topk-softmax-unlikelihood",
         "branch-profile-balanced-topk-softmax-unlikelihood",
@@ -79,6 +81,8 @@ def train_direct_answer_branch_contrast_mode_step(
     mode = args.direct_answer_mode
     if mode == "branch-profile-balanced-rank-margin-unlikelihood":
         return train_profile_balanced_branch_rank_margin(step)
+    if mode == "branch-profile-balanced-retention-rank-margin-unlikelihood":
+        return train_profile_balanced_retention_branch_rank_margin(step)
     if mode == "branch-profile-balanced-topk-softmax-unlikelihood":
         return train_profile_balanced_branch_topk_softmax(step)
     if mode in _RANK_MARGIN_MODES:

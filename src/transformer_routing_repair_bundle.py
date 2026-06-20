@@ -9,6 +9,9 @@ PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE = "profile-balanced-routing-repair"
 PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE = (
     "profile-balanced-rank-routing-repair"
 )
+PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE = (
+    "profile-balanced-retention-rank-routing-repair"
+)
 PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE = (
     "profile-balanced-topk-routing-repair"
 )
@@ -18,12 +21,16 @@ PROFILE_BALANCED_ROUTING_REPAIR_MODE = (
 PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE = (
     "branch-profile-balanced-rank-margin-unlikelihood"
 )
+PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE = (
+    "branch-profile-balanced-retention-rank-margin-unlikelihood"
+)
 PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE = (
     "branch-profile-balanced-topk-softmax-unlikelihood"
 )
 EXPERIMENT_BUNDLES = (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
 )
 
@@ -31,6 +38,9 @@ _BUNDLE_MODES = {
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE: PROFILE_BALANCED_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE: (
         PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+    ),
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE: (
+        PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE
     ),
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE: (
         PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE
@@ -54,6 +64,12 @@ def routing_repair_bundle_hypothesis(bundle: str | None) -> str | None:
     """Return the default hypothesis for a declared routing-repair bundle."""
 
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
+        if bundle == PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE:
+            return (
+                "Profile-balanced rank-margin pressure with training-family "
+                "retention anchors can improve residual branch routing while "
+                "preserving already represented profile targets."
+            )
         if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
             return (
                 "Profile-balanced top-k softmax pressure can convert lifted "
@@ -94,6 +110,30 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
                 ),
             ),
         )
+    if bundle == PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE:
+        return _pressure_repair_gates(
+            _gate(
+                "retention_rank_margin_pressure",
+                (
+                    "Apply profile-balanced hard-negative rank-margin pressure "
+                    "with training-family retention anchors."
+                ),
+            ),
+            _gate(
+                "retention_anchors_recorded",
+                (
+                    "Record retention-anchor attempts that preserve already "
+                    "represented training-family target tokens."
+                ),
+            ),
+            _gate(
+                "retention_rank_pressure_requires_branch_response",
+                (
+                    "Reject retention-anchored rank movement when target coverage "
+                    "and target-rank branch-diversity score remain unchanged."
+                ),
+            ),
+        )
     if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
         return _pressure_repair_gates(
             _gate(
@@ -106,8 +146,8 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
             _gate(
                 "topk_pressure_requires_branch_response",
                 (
-                    "Reject top-k softmax movement when target coverage and target-rank "
-                    "branch-diversity score remain unchanged."
+                    "Reject top-k softmax movement when target coverage and "
+                    "target-rank branch-diversity score remain unchanged."
                 ),
             ),
         )
@@ -166,14 +206,31 @@ def routing_repair_bundle_failure_criteria(bundle: str | None) -> list[str]:
         return [
             "Any profile drops below baseline target-token coverage.",
             "Dominant predicted rate remains 1.0 across all measured profiles.",
-            "Rank-margin pressure produces no target-rank, top-k, or coverage response.",
+            (
+                "Rank-margin pressure produces no target-rank, top-k, or "
+                "coverage response."
+            ),
+            "Representation centroid distance or margin fails to improve.",
+        ]
+    if bundle == PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE:
+        return [
+            "Any profile drops below baseline target-token coverage.",
+            "Dominant predicted rate remains 1.0 across all measured profiles.",
+            (
+                "Retention-anchored rank pressure produces no target-rank, "
+                "top-k, or coverage response."
+            ),
+            "Retention anchors fail to record preservation attempts.",
             "Representation centroid distance or margin fails to improve.",
         ]
     if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
         return [
             "Any profile drops below baseline target-token coverage.",
             "Dominant predicted rate remains 1.0 across all measured profiles.",
-            "Top-k softmax pressure produces no target-rank, top-k, or coverage response.",
+            (
+                "Top-k softmax pressure produces no target-rank, top-k, or "
+                "coverage response."
+            ),
             "Representation centroid distance or margin fails to improve.",
         ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
@@ -192,18 +249,38 @@ def routing_repair_bundle_notes(bundle: str | None) -> list[str]:
     if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
         return [
             "Experiment bundle: Bundle B, profile-balanced rank routing repair.",
-            "This bundle is a planned gate contract; it does not promote transformer language-model behavior.",
+            (
+                "This bundle is a planned gate contract; it does not promote "
+                "transformer language-model behavior."
+            ),
+        ]
+    if bundle == PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE:
+        return [
+            (
+                "Experiment bundle: Bundle D, retention-anchored "
+                "profile-balanced rank routing repair."
+            ),
+            (
+                "This bundle is a planned gate contract; it does not promote "
+                "transformer language-model behavior."
+            ),
         ]
     if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
         return [
             "Experiment bundle: Bundle C, profile-balanced top-k routing repair.",
-            "This bundle is a planned gate contract; it does not promote transformer language-model behavior.",
+            (
+                "This bundle is a planned gate contract; it does not promote "
+                "transformer language-model behavior."
+            ),
         ]
     if bundle != PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE:
         return []
     return [
         "Experiment bundle: Bundle A, profile-balanced routing repair.",
-        "This bundle is a planned gate contract; it does not promote transformer language-model behavior.",
+        (
+            "This bundle is a planned gate contract; it does not promote "
+            "transformer language-model behavior."
+        ),
     ]
 
 
@@ -213,7 +290,7 @@ def _gate(name: str, rule: str) -> dict[str, Any]:
 
 def _pressure_repair_gates(
     pressure_gate: dict[str, Any],
-    response_gate: dict[str, Any],
+    *extra_gates: dict[str, Any],
 ) -> list[dict[str, Any]]:
     return [
         _gate(
@@ -231,6 +308,7 @@ def _pressure_repair_gates(
                 "representations before accepting the repair."
             ),
         ),
+        *extra_gates[:-1],
         _gate(
             "coverage_preserving_update_guard",
             (
@@ -245,5 +323,5 @@ def _pressure_repair_gates(
                 "without retention, leakage, unknown-policy, or coverage regression."
             ),
         ),
-        response_gate,
+        *extra_gates[-1:],
     ]

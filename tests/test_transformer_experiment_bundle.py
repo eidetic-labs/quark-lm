@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from transformer_cli import parse_args  # noqa: E402
 from transformer_experiment import (  # noqa: E402
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     transformer_experiment_intent,
@@ -55,6 +56,20 @@ class TransformerExperimentBundleTests(unittest.TestCase):
         self.assertEqual(
             args.experiment_bundle,
             PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
+        )
+
+    def test_answer_train_accepts_profile_balanced_retention_rank_bundle(self) -> None:
+        args = parse_args(
+            [
+                "answer-train",
+                "--experiment-bundle",
+                PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+            ]
+        )
+
+        self.assertEqual(
+            args.experiment_bundle,
+            PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
         )
 
     def test_bundle_intent_adds_routing_repair_contract(self) -> None:
@@ -111,7 +126,10 @@ class TransformerExperimentBundleTests(unittest.TestCase):
         self.assertIn("rank_pressure_requires_branch_response", gates)
         self.assertIn("hard-negative rank-margin pressure", intent["hypothesis"])
         self.assertIn(
-            "Rank-margin pressure produces no target-rank, top-k, or coverage response.",
+            (
+                "Rank-margin pressure produces no target-rank, top-k, or "
+                "coverage response."
+            ),
             intent["failure_criteria"],
         )
         self.assertIn(
@@ -142,11 +160,52 @@ class TransformerExperimentBundleTests(unittest.TestCase):
         self.assertIn("topk_pressure_requires_branch_response", gates)
         self.assertIn("top-k softmax pressure", intent["hypothesis"])
         self.assertIn(
-            "Top-k softmax pressure produces no target-rank, top-k, or coverage response.",
+            (
+                "Top-k softmax pressure produces no target-rank, top-k, or "
+                "coverage response."
+            ),
             intent["failure_criteria"],
         )
         self.assertIn(
             "Experiment bundle: Bundle C, profile-balanced top-k routing repair.",
+            intent["notes"],
+        )
+
+    def test_retention_rank_bundle_intent_adds_retention_contract(self) -> None:
+        args = parse_args(
+            [
+                "answer-train",
+                "--run",
+                "runs/v0.119-retention-rank-routing-repair",
+                "--direct-answer-steps",
+                "1",
+                "--direct-answer-mode",
+                "branch-profile-balanced-retention-rank-margin-unlikelihood",
+                "--experiment-bundle",
+                PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+            ]
+        )
+
+        intent = transformer_experiment_intent(args)
+        gates = {gate["name"] for gate in intent["acceptance_gates"]}
+
+        self.assertIn("profile_balanced_branch_batches", gates)
+        self.assertIn("retention_rank_margin_pressure", gates)
+        self.assertIn("retention_anchors_recorded", gates)
+        self.assertIn(
+            "retention_rank_pressure_requires_branch_response",
+            gates,
+        )
+        self.assertIn("retention anchors", intent["hypothesis"])
+        self.assertIn(
+            "Retention anchors fail to record preservation attempts.",
+            intent["failure_criteria"],
+        )
+        self.assertIn(
+            (
+                "Experiment bundle: Bundle D, retention-anchored "
+                "profile-balanced rank routing repair."
+            ),
             intent["notes"],
         )
 

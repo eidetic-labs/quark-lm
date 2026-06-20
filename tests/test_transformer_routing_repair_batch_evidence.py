@@ -15,12 +15,14 @@ from support.core import ANSWER_TERMINATOR  # noqa: E402
 from transformer_routing_repair_batch_evidence import (  # noqa: E402
     ROUTING_REPAIR_BATCH_MODE,
     ROUTING_REPAIR_RANK_BATCH_MODE,
+    ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
     ROUTING_REPAIR_TOPK_BATCH_MODE,
     record_routing_repair_batch_step,
     routing_repair_batch_evidence_summary,
 )
 from transformer_routing_repair_bundle import (  # noqa: E402
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
 )
@@ -102,6 +104,46 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         assert summary is not None
         self.assertEqual(summary["bundle"], PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE)
         self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_TOPK_BATCH_MODE)
+
+    def test_records_retention_anchors_for_retention_rank_bundle(self) -> None:
+        fixture = branch_training_fixture(seed=40)
+        args = _args(
+            mode=ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
+            bundle=PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_BUNDLE,
+        )
+        represented_target = fixture.tokenizer.stoi[fixture.near.target[1]]
+
+        def predict_represented_target(_context: list[int]) -> list[float]:
+            probs = [0.0 for _token in fixture.tokenizer.tokens]
+            probs[represented_target] = 1.0
+            return probs
+
+        fixture.model.predict = predict_represented_target
+
+        record = record_routing_repair_batch_step(
+            args=args,
+            model=fixture.model,
+            tokenizer=fixture.tokenizer,
+            branch_examples=fixture.examples,
+            rng=random.Random(11),
+            direct_step=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertIsNotNone(record)
+        assert record is not None
+        self.assertGreater(record["retention_anchor_count"], 0)
+        self.assertTrue(record["retention_anchor_profile_counts"])
+
+        summary = routing_repair_batch_evidence_summary(
+            args,
+            [record],
+            _baseline(),
+        )
+
+        self.assertIsNotNone(summary)
+        assert summary is not None
+        self.assertGreater(summary["retention_anchor_count"], 0)
 
     def test_summary_covers_trainable_failed_profiles(self) -> None:
         fixture = branch_training_fixture(seed=40)

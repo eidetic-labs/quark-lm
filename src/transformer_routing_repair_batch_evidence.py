@@ -11,9 +11,13 @@ from transformer_direct_answer_profile_balanced_batches import (
     direct_answer_profile_balanced_branch_batch,
 )
 from transformer_direct_answer_profile_keys import trainable_eval_profile_keys
+from transformer_profile_balanced_retention_anchors import (
+    profile_balanced_retention_anchor_batch,
+)
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_ROUTING_REPAIR_MODE,
     routing_repair_bundle_supports_mode,
@@ -21,10 +25,14 @@ from transformer_routing_repair_bundle import (
 
 ROUTING_REPAIR_BATCH_MODE = PROFILE_BALANCED_ROUTING_REPAIR_MODE
 ROUTING_REPAIR_RANK_BATCH_MODE = PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE
+ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE = (
+    PROFILE_BALANCED_RETENTION_RANK_ROUTING_REPAIR_MODE
+)
 ROUTING_REPAIR_TOPK_BATCH_MODE = PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE
 ROUTING_REPAIR_BATCH_MODES = (
     ROUTING_REPAIR_BATCH_MODE,
     ROUTING_REPAIR_RANK_BATCH_MODE,
+    ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
     ROUTING_REPAIR_TOPK_BATCH_MODE,
 )
 
@@ -61,7 +69,21 @@ def record_routing_repair_batch_step(
         getattr(args, "direct_answer_branch_batch_size", 1),
         terminator,
     )
-    return _step_record(direct_step, branches)
+    retention_anchors = []
+    if (
+        getattr(args, "direct_answer_mode", None)
+        == ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE
+    ):
+        retention_anchors = profile_balanced_retention_anchor_batch(
+            model,
+            tokenizer,
+            branch_examples,
+            probe_rng,
+            getattr(args, "direct_answer_branch_position", 1),
+            getattr(args, "direct_answer_branch_batch_size", 1),
+            terminator,
+        )
+    return _step_record(direct_step, branches, retention_anchors)
 
 
 def routing_repair_batch_evidence_summary(
@@ -105,6 +127,9 @@ def routing_repair_batch_evidence_summary(
         "branch_count": sum(
             int(record.get("branch_count", 0)) for record in step_records
         ),
+        "retention_anchor_count": sum(
+            int(record.get("retention_anchor_count", 0)) for record in step_records
+        ),
         "profiles": covered_profiles,
         "required_eval_profiles": required,
         "profile_balanced_branch_batches": batch_check,
@@ -117,11 +142,13 @@ def routing_repair_batch_evidence_summary(
 def _step_record(
     direct_step: int,
     branches: list[Any],
+    retention_anchors: list[Any],
 ) -> dict[str, Any]:
     profiles: Counter[str] = Counter()
     targets: Counter[int] = Counter()
     predictions: Counter[int] = Counter()
     represented_targets: Counter[int] = Counter()
+    retention_profiles: Counter[str] = Counter()
     for branch in branches:
         _context, target, predicted, profile = branch_replay_parts(branch)
         profiles[profile] += 1
@@ -129,6 +156,9 @@ def _step_record(
         predictions[predicted] += 1
         if predicted == target:
             represented_targets[target] += 1
+    for anchor in retention_anchors:
+        _context, _target, _predicted, profile = branch_replay_parts(anchor)
+        retention_profiles[profile] += 1
     return {
         "step": direct_step,
         "branch_count": len(branches),
@@ -137,6 +167,8 @@ def _step_record(
         "target_count": len(targets),
         "predicted_count": len(predictions),
         "represented_target_count": len(represented_targets),
+        "retention_anchor_count": len(retention_anchors),
+        "retention_anchor_profile_counts": dict(sorted(retention_profiles.items())),
     }
 
 

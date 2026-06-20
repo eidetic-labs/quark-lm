@@ -30,7 +30,7 @@ class TransformerDirectAnswerBranchContrastDispatchTests(unittest.TestCase):
         )
         self.assertTrue(rank_margin.call_args.kwargs["balance_targets"])
 
-    def test_profile_balanced_rank_margin_routes_to_profile_balanced_objective(self) -> None:
+    def test_profile_balanced_rank_routes_to_objective(self) -> None:
         args = _args("branch-profile-balanced-rank-margin-unlikelihood")
 
         with patch(
@@ -61,6 +61,23 @@ class TransformerDirectAnswerBranchContrastDispatchTests(unittest.TestCase):
         profile_balanced_topk.assert_called_once()
         self.assertEqual(
             profile_balanced_topk.call_args.args[12],
+            args.direct_answer_hard_negatives,
+        )
+
+    def test_profile_balanced_retention_rank_routes_to_objective(self) -> None:
+        args = _args("branch-profile-balanced-retention-rank-margin-unlikelihood")
+
+        with patch(
+            "transformer_direct_answer_branch_profile_balanced_adapters."
+            "train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood",
+            return_value=1.9,
+        ) as retention_rank:
+            loss = _train(args)
+
+        self.assertEqual(loss, 1.9)
+        retention_rank.assert_called_once()
+        self.assertEqual(
+            retention_rank.call_args.args[12],
             args.direct_answer_hard_negatives,
         )
 
@@ -138,6 +155,10 @@ class TransformerDirectAnswerBranchContrastDispatchTests(unittest.TestCase):
         )
         self.assertIn(
             "branch-profile-balanced-topk-softmax-unlikelihood",
+            BRANCH_CONTRAST_DIRECT_ANSWER_MODES,
+        )
+        self.assertIn(
+            "branch-profile-balanced-retention-rank-margin-unlikelihood",
             BRANCH_CONTRAST_DIRECT_ANSWER_MODES,
         )
         self.assertIn(

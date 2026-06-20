@@ -9,6 +9,7 @@ from support.direct_answer import (
     direct_answer_lesson,
     train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood,
     train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood,
+    train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood,
 )
 
 
@@ -96,6 +97,59 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertEqual(len(calls[0]), 2)
         self.assertTrue(all(len(branch) == 3 for branch in calls[0]))
+
+    def test_retention_rank_margin_runs_rank_and_retention_steps(self) -> None:
+        fixture = branch_training_fixture(seed=52)
+        lesson = direct_answer_lesson(
+            fixture.tokenizer,
+            fixture.model.config.context_size,
+            fixture.near,
+            ANSWER_TERMINATOR,
+        )
+        rank_calls: list[list[tuple[list[int], int, int]]] = []
+        retention_calls: list[list[tuple[list[int], int, int, str]]] = []
+
+        def rank_step(
+            branches: list[tuple[list[int], int, int]],
+            *_args: object,
+            **_kwargs: object,
+        ) -> float:
+            rank_calls.append(branches)
+            return 6.0
+
+        def retention_step(
+            branches: list[tuple[list[int], int, int, str]],
+            *_args: object,
+            **_kwargs: object,
+        ) -> float:
+            retention_calls.append(branches)
+            return 2.0
+
+        fixture.model.train_step_with_branch_rank_margin = rank_step
+        fixture.model.train_step_with_branch_context_replay_coverage = retention_step
+
+        loss = train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.near,
+            fixture.examples,
+            lesson,
+            random.Random(15),
+            learning_rate=0.03,
+            negative_weight=1.0,
+            positive_weight=1.0,
+            margin_weight=2.0,
+            branch_position=1,
+            batch_size=2,
+            hard_negative_count=5,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertEqual(loss, 4.0)
+        self.assertEqual(len(rank_calls), 1)
+        self.assertEqual(len(retention_calls), 1)
+        self.assertTrue(all(len(branch) == 3 for branch in rank_calls[0]))
+        self.assertTrue(all(len(branch) == 4 for branch in retention_calls[0]))
 
 
 if __name__ == "__main__":
