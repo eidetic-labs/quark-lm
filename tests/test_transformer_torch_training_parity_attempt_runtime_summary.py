@@ -69,6 +69,41 @@ class TransformerTorchTrainingParityAttemptRuntimeSummaryTests(unittest.TestCase
         with self.assertRaisesRegex(ValueError, "runtime_report_sha256"):
             validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
 
+    def test_summary_validator_rejects_runtime_parity_flag_mismatch(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["runtime"]["parity_attempt_allowed"] = True
+
+        with self.assertRaisesRegex(ValueError, "runtime.parity_attempt_allowed"):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
+    def test_summary_validator_rejects_passed_runtime_with_failures(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["runtime"]["passed"] = True
+        artifacts["attempt"]["runtime"]["parity_attempt_allowed"] = True
+
+        with self.assertRaisesRegex(ValueError, "runtime.failed_checks"):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
+    def test_summary_validator_rejects_passed_replay_gate_with_failures(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["training_replay_parity_gate"]["passed"] = True
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "training_replay_parity_gate.failed_checks",
+        ):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
+    def test_summary_validator_rejects_passed_report_with_failures(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["training_parity_report"]["passed"] = True
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "training_parity_report.failed_checks",
+        ):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
     def test_artifact_set_rejects_stale_runtime_report_hash(self) -> None:
         artifacts = _artifacts()
         artifacts["attempt"]["runtime"]["runtime_report_sha256"] = "0" * 64

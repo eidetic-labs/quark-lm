@@ -39,6 +39,9 @@ def _validate_runtime_summary(runtime: dict[str, Any]) -> None:
     _require_bool(runtime, "runtime", "passed")
     _require_bool(runtime, "runtime", "parity_attempt_allowed")
     _require_string_list(runtime, "runtime", "failed_checks")
+    _reject_passed_summary_failures(runtime, "runtime")
+    if runtime["parity_attempt_allowed"] != runtime["passed"]:
+        raise ValueError("runtime.parity_attempt_allowed is inconsistent")
     for key in ("runtime_kind", "device", "dtype"):
         _require_non_empty_string(runtime, "runtime", key)
     _require_sha256(runtime, "runtime", "runtime_report_sha256")
@@ -60,12 +63,14 @@ def _validate_gate_summary(name: str, gate: dict[str, Any]) -> None:
     _require_non_empty_string(gate, name, "status")
     _require_bool(gate, name, "passed")
     _require_string_list(gate, name, "failed_checks")
+    _reject_passed_summary_failures(gate, name)
     _require_sha256(gate, name, "training_replay_parity_gate_sha256")
 
 
 def _validate_report_summary(report: dict[str, Any]) -> None:
     _require_bool(report, "training_parity_report", "passed")
     _require_string_list(report, "training_parity_report", "failed_checks")
+    _reject_passed_summary_failures(report, "training_parity_report")
     _require_sha256(
         report,
         "training_parity_report",
@@ -98,3 +103,10 @@ def _require_string_list(record: dict[str, Any], label: str, key: str) -> None:
         isinstance(item, str) for item in value
     ):
         raise ValueError(f"{label}.{key} is invalid")
+
+
+def _reject_passed_summary_failures(record: dict[str, Any], label: str) -> None:
+    if record["passed"] and record["failed_checks"]:
+        raise ValueError(
+            f"passed flag is inconsistent: {label}.failed_checks are inconsistent"
+        )
