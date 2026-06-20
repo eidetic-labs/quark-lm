@@ -12,6 +12,10 @@ from transformer_torch_training_parity_attempt_hashes import (
 from transformer_torch_training_parity_attempt_reader import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
 )
+from transformer_torch_training_parity_attempt_audit_schema import (
+    TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS,
+    validate_torch_training_parity_attempt_audit_keys,
+)
 from transformer_torch_training_parity_attempt_requirement_routing import (
     validate_torch_training_requirement_routing,
 )
@@ -40,29 +44,6 @@ TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS = (
     "training_replay_parity_gate",
     "training_parity_report",
 )
-TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS = (
-    "fixture_id",
-    "attempt_status",
-    "attempt_passed",
-    "runtime_status",
-    "parity_attempt_allowed",
-    "runtime_failed_checks",
-    "training_readiness_status",
-    "training_readiness_failed_checks",
-    "training_replay_parity_status",
-    "training_replay_parity_passed",
-    "training_replay_parity_failed_checks",
-    "training_report_passed",
-    "training_report_failed_checks",
-    "next_requirements_stage",
-    "next_requirements_status",
-    "next_actions",
-    "training_backend_promotion_status",
-    "promoted_training_backend",
-    "artifact_hash_algorithm",
-    "artifact_hashes",
-    "evidence_hashes",
-)
 
 
 def validate_torch_training_parity_attempt_audit(
@@ -85,8 +66,10 @@ def validate_torch_training_parity_attempt_audit(
     _require_bool(audit, "passed")
     if status == "artifact_set_valid":
         _validate_valid_audit(audit)
+        validate_torch_training_parity_attempt_audit_keys(audit)
         return
     _validate_invalid_audit(audit)
+    validate_torch_training_parity_attempt_audit_keys(audit)
 
 
 def _validate_valid_audit(audit: dict[str, Any]) -> None:
