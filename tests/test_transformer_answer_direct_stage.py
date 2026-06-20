@@ -24,12 +24,15 @@ class TransformerAnswerDirectStageTest(unittest.TestCase):
         self.assertEqual(stage_state.restore_calls, 1)
         self.assertEqual(recorder.model(), "restored-model")
         self.assertEqual(recorder.tokenizer(), "restored-tokenizer")
+        self.assertEqual(stage_state.optimizer, "restored-optimizer")
 
 
 class _FakeStageState:
     def __init__(self) -> None:
         self.model = "old-model"
         self.tokenizer = "old-tokenizer"
+        self.optimizer = "old-optimizer"
+        self.params = ["old-param"]
         self.restore_calls = 0
 
     def restore(
@@ -40,6 +43,8 @@ class _FakeStageState:
         self.restore_calls += 1
         self.model = model_payload["model"]
         self.tokenizer = "restored-tokenizer"
+        self.optimizer = optimizer_payload["optimizer"]
+        self.params = ["restored-param"]
 
 
 if __name__ == "__main__":

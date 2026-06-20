@@ -181,7 +181,13 @@ def restore_stage_state_and_rebind_recorder(
     snapshot_recorder: Any,
     model_payload: dict[str, Any],
     optimizer_payload: dict[str, Any],
-) -> None:
+) -> tuple[Any, Any, Any, Any]:
     stage_state.restore(model_payload, optimizer_payload)
     snapshot_recorder.model = lambda: stage_state.model
     snapshot_recorder.tokenizer = lambda: stage_state.tokenizer
+    return (
+        stage_state.model,
+        stage_state.tokenizer,
+        stage_state.optimizer,
+        stage_state.params,
+    )

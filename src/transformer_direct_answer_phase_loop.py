@@ -12,6 +12,10 @@ from transformer_routing_repair_batch_evidence import (
     routing_repair_batch_evidence_enabled,
     routing_repair_batch_evidence_summary,
 )
+from transformer_routing_repair_update_search import (
+    RoutingRepairUpdateSearchContext,
+    apply_routing_repair_update_search,
+)
 
 
 def run_direct_answer_training_loop(
@@ -48,19 +52,41 @@ def run_direct_answer_training_loop(
         direct_answer_baseline_floor_update_gate_active
         or routing_repair_guard_active
     )
+    current_state = {
+        "model": model,
+        "tokenizer": tokenizer,
+        "optimizer": optimizer,
+        "params": direct_params,
+    }
+
+    def restore_and_refresh_state(
+        model_payload: dict[str, Any],
+        optimizer_payload: dict[str, Any],
+    ) -> None:
+        restored = restore_direct_update_state(model_payload, optimizer_payload)
+        if _is_restored_state_tuple(restored):
+            (
+                current_state["model"],
+                current_state["tokenizer"],
+                current_state["optimizer"],
+                current_state["params"],
+            ) = restored
+
     for direct_step in range(1, direct_steps_to_run + 1):
         example = direct_training_cursor.next()
         pre_update_model_payload: dict[str, Any] | None = None
         pre_update_optimizer_payload: dict[str, Any] | None = None
         pre_update_rng_state = None
         if update_guard_probe_active:
-            pre_update_model_payload = model.to_dict(tokenizer)
-            pre_update_optimizer_payload = optimizer.to_dict()
+            pre_update_model_payload = current_state["model"].to_dict(
+                current_state["tokenizer"]
+            )
+            pre_update_optimizer_payload = current_state["optimizer"].to_dict()
             pre_update_rng_state = direct_rng.getstate()
         routing_repair_batch_step = record_routing_repair_batch_step(
             args=args,
-            model=model,
-            tokenizer=tokenizer,
+            model=current_state["model"],
+            tokenizer=current_state["tokenizer"],
             branch_examples=direct_training_pool,
             rng=direct_rng,
             direct_step=direct_step,
@@ -69,36 +95,66 @@ def run_direct_answer_training_loop(
         if routing_repair_batch_step is not None:
             routing_repair_batch_steps.append(routing_repair_batch_step)
 
-        mode_step_result = train_mode_step(
-            args=args,
-            model=model,
-            tokenizer=tokenizer,
-            example=example,
-            lesson=direct_lessons[example],
-            branch_examples=direct_training_pool,
-            rng=direct_rng,
-            direct_step=direct_step,
-            terminator=direct_answer_terminator,
-            params=direct_params,
-            baseline_floor_adaptive_updates_active=(
-                direct_answer_baseline_floor_adaptive_updates_active
-            ),
-            pre_update_model_payload=pre_update_model_payload,
-            pre_update_optimizer_payload=pre_update_optimizer_payload,
-            pre_update_rng_state=pre_update_rng_state,
-            train_adaptive_baseline_floor_update=(
-                lambda step, model_payload, optimizer_payload, rng_state: (
-                    train_adaptive_baseline_floor_update(
-                        example,
-                        step,
-                        model_payload,
-                        optimizer_payload,
-                        rng_state,
-                    )
+        train_adaptive_update = (
+            lambda step, model_payload, optimizer_payload, rng_state: (
+                train_adaptive_baseline_floor_update(
+                    example,
+                    step,
+                    model_payload,
+                    optimizer_payload,
+                    rng_state,
                 )
-            ),
-            train_baseline_anchored_prompt=train_baseline_anchored_prompt,
+            )
         )
+        if routing_repair_guard_active and _has_update_payloads(
+            pre_update_model_payload,
+            pre_update_optimizer_payload,
+        ):
+            mode_step_result = apply_routing_repair_update_search(
+                RoutingRepairUpdateSearchContext(
+                    args=args,
+                    direct_step=direct_step,
+                    example=example,
+                    lesson=direct_lessons[example],
+                    branch_examples=direct_training_pool,
+                    rng=direct_rng,
+                    terminator=direct_answer_terminator,
+                    direct_baseline=direct_baseline,
+                    direct_snapshot_recorder=direct_snapshot_recorder,
+                    direct_answer_update_guard=direct_answer_update_guard,
+                    model=lambda: current_state["model"],
+                    tokenizer=lambda: current_state["tokenizer"],
+                    params=lambda: current_state["params"],
+                    restore_state=restore_and_refresh_state,
+                    train_mode_step=train_mode_step,
+                    train_adaptive_baseline_floor_update=train_adaptive_update,
+                    train_baseline_anchored_prompt=train_baseline_anchored_prompt,
+                    pre_update_model_payload=pre_update_model_payload,
+                    pre_update_optimizer_payload=pre_update_optimizer_payload,
+                    pre_update_rng_state=pre_update_rng_state,
+                )
+            )
+        else:
+            mode_step_result = train_mode_step(
+                args=args,
+                model=current_state["model"],
+                tokenizer=current_state["tokenizer"],
+                example=example,
+                lesson=direct_lessons[example],
+                branch_examples=direct_training_pool,
+                rng=direct_rng,
+                direct_step=direct_step,
+                terminator=direct_answer_terminator,
+                params=current_state["params"],
+                baseline_floor_adaptive_updates_active=(
+                    direct_answer_baseline_floor_adaptive_updates_active
+                ),
+                pre_update_model_payload=pre_update_model_payload,
+                pre_update_optimizer_payload=pre_update_optimizer_payload,
+                pre_update_rng_state=pre_update_rng_state,
+                train_adaptive_baseline_floor_update=train_adaptive_update,
+                train_baseline_anchored_prompt=train_baseline_anchored_prompt,
+            )
         running_direct_loss += mode_step_result.loss
         if update_guard_probe_active and not mode_step_result.update_guard_applied:
             apply_guard_probe(
@@ -108,7 +164,7 @@ def run_direct_answer_training_loop(
                 direct_snapshot_recorder=direct_snapshot_recorder,
                 pre_update_model_payload=pre_update_model_payload,
                 pre_update_optimizer_payload=pre_update_optimizer_payload,
-                restore_direct_update_state=restore_direct_update_state,
+                restore_direct_update_state=restore_and_refresh_state,
             )
         if args.direct_answer_eval_every > 0 and (
             direct_step % args.direct_answer_eval_every == 0
@@ -121,9 +177,9 @@ def run_direct_answer_training_loop(
             last_direct_snapshot_step = direct_step
             best_direct_snapshot.record(
                 last_direct_snapshot,
-                model,
-                tokenizer,
-                optimizer,
+                current_state["model"],
+                current_state["tokenizer"],
+                current_state["optimizer"],
             )
             print(f"direct_answer_step={direct_step} train_loss={train_loss:.4f}")
             running_direct_loss = 0.0
@@ -136,3 +192,14 @@ def run_direct_answer_training_loop(
             direct_baseline,
         ),
     )
+
+
+def _has_update_payloads(
+    model_payload: dict[str, Any] | None,
+    optimizer_payload: dict[str, Any] | None,
+) -> bool:
+    return model_payload is not None and optimizer_payload is not None
+
+
+def _is_restored_state_tuple(value: Any) -> bool:
+    return isinstance(value, tuple) and len(value) == 4
