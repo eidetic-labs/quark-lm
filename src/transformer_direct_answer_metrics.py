@@ -144,6 +144,7 @@ def build_direct_answer_metrics(
                 direct_answer_restored_frontier_progress_snapshot
             ),
             frontier_progress_guard=direct_answer_frontier_progress_guard,
+            update_guard=direct_answer_update_guard,
         ),
         "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
         "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),

@@ -72,6 +72,28 @@ class TransformerDirectAnswerUpdateOutcomeTest(unittest.TestCase):
         self.assertTrue(outcome["accepted"])
         self.assertEqual(outcome["reason"], "best_branch_snapshot_restored")
 
+    def test_all_guarded_updates_rejected_reports_rejected_update(self) -> None:
+        outcome = direct_answer_weight_update_outcome(
+            direct_steps_to_run=8,
+            training_skipped=False,
+            skip_reason=None,
+            restored_best_branch_snapshot=False,
+            restored_frontier_progress_snapshot=False,
+            frontier_progress_guard={"active": True, "progress_preserved": True},
+            update_guard={
+                "attempted_updates": 8,
+                "accepted_steps": 0,
+                "rejected_steps": 8,
+                "frontier_update_guard_active": True,
+            },
+        )
+
+        self.assertEqual(outcome["status"], "rejected_guard_updates")
+        self.assertFalse(outcome["accepted"])
+        self.assertEqual(outcome["reason"], "all_guarded_updates_rejected")
+        self.assertEqual(outcome["guard"]["attempted_updates"], 8)
+        self.assertTrue(outcome["guard"]["frontier_update_guard_active"])
+
     def test_unrestored_direct_steps_report_accepted_update(self) -> None:
         outcome = direct_answer_weight_update_outcome(
             direct_steps_to_run=8,

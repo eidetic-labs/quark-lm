@@ -13,9 +13,11 @@ def direct_answer_weight_update_outcome(
     restored_best_branch_snapshot: bool,
     restored_frontier_progress_snapshot: bool,
     frontier_progress_guard: dict[str, Any],
+    update_guard: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Summarize whether direct-answer weights were accepted or restored."""
 
+    guard_summary = _guard_summary(update_guard)
     if training_skipped:
         return _outcome(
             status="skipped",
@@ -25,6 +27,7 @@ def direct_answer_weight_update_outcome(
             restored_best_branch_snapshot=restored_best_branch_snapshot,
             restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
             frontier_progress_guard=frontier_progress_guard,
+            guard_summary=guard_summary,
         )
     if direct_steps_to_run <= 0:
         return _outcome(
@@ -35,6 +38,7 @@ def direct_answer_weight_update_outcome(
             restored_best_branch_snapshot=restored_best_branch_snapshot,
             restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
             frontier_progress_guard=frontier_progress_guard,
+            guard_summary=guard_summary,
         )
     if restored_frontier_progress_snapshot:
         pre_restore = _as_dict(frontier_progress_guard.get("pre_restore"))
@@ -47,6 +51,18 @@ def direct_answer_weight_update_outcome(
             restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
             frontier_progress_guard=frontier_progress_guard,
             pre_restore_progress_preserved=pre_restore.get("progress_preserved"),
+            guard_summary=guard_summary,
+        )
+    if guard_summary["active"] and guard_summary["accepted_steps"] <= 0:
+        return _outcome(
+            status="rejected_guard_updates",
+            accepted=False,
+            reason="all_guarded_updates_rejected",
+            direct_steps_to_run=direct_steps_to_run,
+            restored_best_branch_snapshot=restored_best_branch_snapshot,
+            restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
+            frontier_progress_guard=frontier_progress_guard,
+            guard_summary=guard_summary,
         )
     if restored_best_branch_snapshot:
         return _outcome(
@@ -57,15 +73,17 @@ def direct_answer_weight_update_outcome(
             restored_best_branch_snapshot=restored_best_branch_snapshot,
             restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
             frontier_progress_guard=frontier_progress_guard,
+            guard_summary=guard_summary,
         )
     return _outcome(
         status="accepted",
         accepted=True,
-        reason="frontier_progress_preserved",
+        reason=_accepted_reason(guard_summary),
         direct_steps_to_run=direct_steps_to_run,
         restored_best_branch_snapshot=restored_best_branch_snapshot,
         restored_frontier_progress_snapshot=restored_frontier_progress_snapshot,
         frontier_progress_guard=frontier_progress_guard,
+        guard_summary=guard_summary,
     )
 
 
@@ -79,6 +97,7 @@ def _outcome(
     restored_frontier_progress_snapshot: bool,
     frontier_progress_guard: dict[str, Any],
     pre_restore_progress_preserved: Any = None,
+    guard_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     outcome = {
         "status": status,
@@ -98,8 +117,32 @@ def _outcome(
     }
     if pre_restore_progress_preserved is not None:
         outcome["pre_restore_progress_preserved"] = pre_restore_progress_preserved
+    if guard_summary is not None:
+        outcome["guard"] = guard_summary
     return outcome
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
+def _guard_summary(update_guard: dict[str, Any] | None) -> dict[str, Any]:
+    guard = _as_dict(update_guard)
+    attempted = int(guard.get("attempted_updates", 0))
+    accepted = int(guard.get("accepted_steps", 0))
+    rejected = int(guard.get("rejected_steps", 0))
+    return {
+        "active": attempted > 0,
+        "attempted_updates": attempted,
+        "accepted_steps": accepted,
+        "rejected_steps": rejected,
+        "frontier_update_guard_active": (
+            guard.get("frontier_update_guard_active") is True
+        ),
+    }
+
+
+def _accepted_reason(guard_summary: dict[str, Any]) -> str:
+    if guard_summary["active"]:
+        return "guarded_updates_accepted"
+    return "frontier_progress_preserved"

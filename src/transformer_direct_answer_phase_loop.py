@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from transformer_direct_answer_mode_dispatch import train_direct_answer_mode_step
+from transformer_direct_answer_frontier_update_guard import (
+    apply_direct_frontier_update_guard_probe,
+    direct_answer_frontier_update_guard_active,
+)
 from transformer_direct_answer_phase_types import DirectAnswerLoopResult
 from transformer_direct_answer_update_guard import apply_direct_update_guard_probe
 from transformer_routing_repair_batch_evidence import (
@@ -48,9 +52,15 @@ def run_direct_answer_training_loop(
     running_direct_loss = 0.0
     routing_repair_batch_steps: list[dict[str, Any]] = []
     routing_repair_guard_active = routing_repair_batch_evidence_enabled(args)
+    frontier_update_guard_active = (
+        direct_answer_frontier_update_guard_active(args)
+        and not direct_answer_baseline_floor_update_gate_active
+        and not routing_repair_guard_active
+    )
     update_guard_probe_active = (
         direct_answer_baseline_floor_update_gate_active
         or routing_repair_guard_active
+        or frontier_update_guard_active
     )
     current_state = {
         "model": model,
@@ -158,15 +168,31 @@ def run_direct_answer_training_loop(
             )
         running_direct_loss += mode_step_result.loss
         if update_guard_probe_active and not mode_step_result.update_guard_applied:
-            apply_guard_probe(
-                direct_answer_update_guard=direct_answer_update_guard,
-                direct_baseline=direct_baseline,
-                direct_step=direct_step,
-                direct_snapshot_recorder=direct_snapshot_recorder,
-                pre_update_model_payload=pre_update_model_payload,
-                pre_update_optimizer_payload=pre_update_optimizer_payload,
-                restore_direct_update_state=restore_and_refresh_state,
-            )
+            if frontier_update_guard_active:
+                apply_direct_frontier_update_guard_probe(
+                    direct_answer_update_guard=direct_answer_update_guard,
+                    direct_baseline=direct_baseline,
+                    direct_step=direct_step,
+                    direct_snapshot_recorder=direct_snapshot_recorder,
+                    frontier_metrics_path=getattr(
+                        args,
+                        "direct_answer_frontier_metrics",
+                        None,
+                    ),
+                    pre_update_model_payload=pre_update_model_payload,
+                    pre_update_optimizer_payload=pre_update_optimizer_payload,
+                    restore_direct_update_state=restore_and_refresh_state,
+                )
+            else:
+                apply_guard_probe(
+                    direct_answer_update_guard=direct_answer_update_guard,
+                    direct_baseline=direct_baseline,
+                    direct_step=direct_step,
+                    direct_snapshot_recorder=direct_snapshot_recorder,
+                    pre_update_model_payload=pre_update_model_payload,
+                    pre_update_optimizer_payload=pre_update_optimizer_payload,
+                    restore_direct_update_state=restore_and_refresh_state,
+                )
         if args.direct_answer_eval_every > 0 and (
             direct_step % args.direct_answer_eval_every == 0
         ):
