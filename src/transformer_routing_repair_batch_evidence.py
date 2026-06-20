@@ -79,10 +79,10 @@ def record_routing_repair_batch_step(
         repair_target_profiles=direct_answer_repair_target_profiles(args),
     )
     retention_anchors = []
-    if (
-        getattr(args, "direct_answer_mode", None)
-        == ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE
-    ):
+    if getattr(args, "direct_answer_mode", None) in {
+        ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
+        ROUTING_REPAIR_TOPK_BATCH_MODE,
+    }:
         retention_anchors = profile_balanced_retention_anchor_batch(
             model,
             tokenizer,

@@ -172,6 +172,7 @@ class TransformerExperimentBundleTests(unittest.TestCase):
 
         self.assertIn("profile_balanced_branch_batches", gates)
         self.assertIn("topk_softmax_pressure", gates)
+        self.assertIn("retention_anchors_recorded", gates)
         self.assertIn("topk_pressure_requires_branch_response", gates)
         self.assertIn("top-k softmax pressure", intent["hypothesis"])
         self.assertIn(

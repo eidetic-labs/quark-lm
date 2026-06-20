@@ -56,6 +56,7 @@ class TransformerRoutingRepairBundleTests(unittest.TestCase):
 
         self.assertIn("profile_balanced_branch_batches", names)
         self.assertIn("topk_softmax_pressure", names)
+        self.assertIn("retention_anchors_recorded", names)
         self.assertIn("representation_separation_evidence", names)
         self.assertIn("coverage_preserving_update_guard", names)
         self.assertIn("branch_diversity_acceptance_gate", names)

@@ -20,6 +20,9 @@ from transformer_lm_rank_collapse_objectives import (
 from transformer_lm_retention_rank_objectives import (
     TransformerRetentionRankObjectiveMixin,
 )
+from transformer_lm_retention_topk_objectives import (
+    TransformerRetentionTopKObjectiveMixin,
+)
 from transformer_lm_weights import TransformerWeightsMixin
 from transformer_math import matrix_to_scalars, vector_to_scalars
 from transformer_model import TransformerConfig, validate_transformer_config
@@ -37,6 +40,7 @@ class TinyTransformerLM(
     TransformerRankObjectiveMixin,
     TransformerRankCollapseObjectiveMixin,
     TransformerRetentionRankObjectiveMixin,
+    TransformerRetentionTopKObjectiveMixin,
     TransformerGenerationIOMixin,
 ):
     def __init__(self, config: TransformerConfig, weights: dict[str, Any]) -> None:

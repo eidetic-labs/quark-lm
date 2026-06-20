@@ -83,6 +83,14 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
             mode=ROUTING_REPAIR_TOPK_BATCH_MODE,
             bundle=PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
         )
+        represented_target = fixture.tokenizer.stoi[fixture.near.target[1]]
+
+        def predict_represented_target(_context: list[int]) -> list[float]:
+            probs = [0.0 for _token in fixture.tokenizer.tokens]
+            probs[represented_target] = 1.0
+            return probs
+
+        fixture.model.predict = predict_represented_target
 
         record = record_routing_repair_batch_step(
             args=args,
@@ -104,6 +112,7 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         assert summary is not None
         self.assertEqual(summary["bundle"], PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE)
         self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_TOPK_BATCH_MODE)
+        self.assertGreater(summary["retention_anchor_count"], 0)
 
     def test_records_retention_anchors_for_retention_rank_bundle(self) -> None:
         fixture = branch_training_fixture(seed=40)

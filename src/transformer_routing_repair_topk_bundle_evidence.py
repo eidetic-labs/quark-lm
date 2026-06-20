@@ -47,8 +47,9 @@ def topk_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
             "topk_softmax_pressure",
             _topk_pressure_configured(direct_answer),
             (
-                "Bundle C must apply profile-balanced hard-candidate "
-                "top-k softmax pressure for branch-routing failures."
+                "Bundle C must apply profile-balanced retention-anchored "
+                "hard-candidate top-k softmax pressure for branch-routing "
+                "failures."
             ),
             {
                 "direct_answer_mode": direct_answer.get("direct_answer_mode"),
@@ -58,6 +59,17 @@ def topk_routing_repair_checks(metrics: dict[str, Any]) -> list[dict[str, Any]]:
                 ),
                 "direct_answer_hard_negatives": direct_answer.get(
                     "direct_answer_hard_negatives",
+                    0,
+                ),
+            },
+        ),
+        promotion_check(
+            "retention_anchors_recorded",
+            _retention_anchors_recorded(batch_evidence),
+            "Bundle C must record retention-anchor preservation attempts.",
+            {
+                "retention_anchor_count": batch_evidence.get(
+                    "retention_anchor_count",
                     0,
                 ),
             },
@@ -125,6 +137,10 @@ def _topk_pressure_configured(direct_answer: dict[str, Any]) -> bool:
         and _as_float(direct_answer.get("direct_answer_contrast_weight")) > 0.0
         and _as_int(direct_answer.get("direct_answer_hard_negatives")) > 0
     )
+
+
+def _retention_anchors_recorded(batch_evidence: dict[str, Any]) -> bool:
+    return _as_int(batch_evidence.get("retention_anchor_count")) > 0
 
 
 def _branch_response_recorded(

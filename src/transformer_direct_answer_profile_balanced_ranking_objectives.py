@@ -22,6 +22,9 @@ from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
 )
+from transformer_profile_balanced_retention_anchors import (
+    profile_balanced_retention_anchor_batch,
+)
 
 
 def train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood(
@@ -139,8 +142,18 @@ def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
     )
     if not branches:
         return _fallback_loss(model, fallback_lesson, rng, learning_rate, params)
-    return model.train_step_with_branch_topk_softmax(
+    retention_anchors = profile_balanced_retention_anchor_batch(
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    return model.train_step_with_branch_retention_topk_softmax(
         unprofiled_branch_records(branches),
+        retention_anchors,
         learning_rate,
         negative_weight,
         positive_weight,

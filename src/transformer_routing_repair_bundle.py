@@ -173,8 +173,16 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
             _gate(
                 "topk_softmax_pressure",
                 (
-                    "Apply profile-balanced hard-candidate top-k softmax pressure "
-                    "across failed profile-family branch targets."
+                    "Apply profile-balanced retention-anchored hard-candidate "
+                    "top-k softmax pressure across failed profile-family branch "
+                    "targets."
+                ),
+            ),
+            _gate(
+                "retention_anchors_recorded",
+                (
+                    "Record retention-anchor attempts that preserve already "
+                    "represented profile targets."
                 ),
             ),
             _gate(

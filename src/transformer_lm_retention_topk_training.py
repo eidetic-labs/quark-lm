@@ -1,4 +1,4 @@
-"""Single-pass retention-anchored rank-margin training."""
+"""Single-pass retention-anchored top-k softmax training."""
 
 from __future__ import annotations
 
@@ -6,43 +6,36 @@ from typing import Any
 
 from autograd import Scalar, zero_grad
 from replay_plan import BranchReplayRecord
-from transformer_lm_branch_retention_floor_loss import (
-    retention_floor_loss,
-)
+from transformer_lm_branch_retention_floor_loss import retention_floor_loss
 from transformer_math import softmax_scalars
 
+TopKBranchRecord = tuple[list[int], int, int]
 
-RankBranchRecord = tuple[list[int], int, int]
 
-
-def train_branch_retention_rank_margin(
+def train_branch_retention_topk_softmax(
     model: Any,
-    branches: list[RankBranchRecord],
+    branches: list[TopKBranchRecord],
     retention_anchors: list[BranchReplayRecord],
     learning_rate: float,
     negative_weight: float,
     positive_weight: float,
-    margin_weight: float,
-    hard_negative_count: int,
+    candidate_weight: float,
+    candidate_count: int,
     params: list[Scalar] | None = None,
 ) -> float:
-    """Apply rank pressure and retention preservation in one optimizer step."""
+    """Apply top-k pressure and retention preservation in one optimizer step."""
 
     params = model.parameters() if params is None else params
     zero_grad(params)
-    loss = _rank_margin_loss(
+    loss = _topk_softmax_loss(
         model,
         branches,
         negative_weight,
         positive_weight,
-        margin_weight,
-        hard_negative_count,
+        candidate_weight,
+        candidate_count,
     )
-    anchor_loss = retention_floor_loss(
-        model,
-        retention_anchors,
-        margin_weight,
-    )
+    anchor_loss = retention_floor_loss(model, retention_anchors, candidate_weight)
     if anchor_loss is not None:
         loss = loss + anchor_loss
     loss.backward()
@@ -50,13 +43,13 @@ def train_branch_retention_rank_margin(
     return loss.data
 
 
-def _rank_margin_loss(
+def _topk_softmax_loss(
     model: Any,
-    branches: list[RankBranchRecord],
+    branches: list[TopKBranchRecord],
     negative_weight: float,
     positive_weight: float,
-    margin_weight: float,
-    hard_negative_count: int,
+    candidate_weight: float,
+    candidate_count: int,
 ) -> Scalar:
     loss = Scalar(0.0)
     for context, target, predicted in branches:
@@ -68,26 +61,26 @@ def _rank_margin_loss(
             loss = loss + (
                 -(Scalar(1.0) - probs[predicted] + 1e-12).log()
             ) * negative_weight
-        loss = loss + _hard_negative_margin_loss(
+        loss = loss + _candidate_loss(
             logits,
             target,
-            margin_weight,
-            hard_negative_count,
+            candidate_weight,
+            candidate_count,
             model.config.vocab_size,
         )
     return loss / max(len(branches), 1)
 
 
-def _hard_negative_margin_loss(
+def _candidate_loss(
     logits: list[Scalar],
     target: int,
-    margin_weight: float,
-    hard_negative_count: int,
+    candidate_weight: float,
+    candidate_count: int,
     vocab_size: int,
 ) -> Scalar:
-    if margin_weight <= 0.0:
+    if candidate_weight <= 0.0:
         return Scalar(0.0)
-    hard_negatives = [
+    hard_candidates = [
         index
         for index in sorted(
             range(vocab_size),
@@ -96,14 +89,11 @@ def _hard_negative_margin_loss(
         )
         if index != target
     ]
-    if hard_negative_count > 0:
-        hard_negatives = hard_negatives[:hard_negative_count]
-    if not hard_negatives:
+    if candidate_count > 0:
+        hard_candidates = hard_candidates[:candidate_count]
+    candidate_ids = [target, *hard_candidates]
+    if len(candidate_ids) <= 1:
         return Scalar(0.0)
-    target_logit = logits[target]
-    per_negative_weight = margin_weight / len(hard_negatives)
-    loss = Scalar(0.0)
-    for hard_negative in hard_negatives:
-        gap = logits[hard_negative] - target_logit + 1.0
-        loss = loss + (Scalar(1.0) + gap.exp()).log() * per_negative_weight
-    return loss
+    candidate_logits = [logits[candidate_id] for candidate_id in candidate_ids]
+    candidate_probs = softmax_scalars(candidate_logits)
+    return (-candidate_probs[0].log()) * candidate_weight

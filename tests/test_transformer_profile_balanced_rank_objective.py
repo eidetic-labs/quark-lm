@@ -65,17 +65,30 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             fixture.near,
             ANSWER_TERMINATOR,
         )
-        calls: list[list[tuple[list[int], int, int]]] = []
+        calls: list[
+            tuple[
+                list[tuple[list[int], int, int]],
+                list[tuple[list[int], int, int, str]],
+            ]
+        ] = []
+        represented_target = fixture.tokenizer.stoi[fixture.near.target[1]]
+
+        def predict_represented_target(_context: list[int]) -> list[float]:
+            probs = [0.0 for _token in fixture.tokenizer.tokens]
+            probs[represented_target] = 1.0
+            return probs
 
         def train_step(
             branches: list[tuple[list[int], int, int]],
+            retention_anchors: list[tuple[list[int], int, int, str]],
             *_args: object,
             **_kwargs: object,
         ) -> float:
-            calls.append(branches)
+            calls.append((branches, retention_anchors))
             return 4.5
 
-        fixture.model.train_step_with_branch_topk_softmax = train_step
+        fixture.model.predict = predict_represented_target
+        fixture.model.train_step_with_branch_retention_topk_softmax = train_step
 
         loss = train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
             fixture.model,
@@ -96,8 +109,11 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
 
         self.assertEqual(loss, 4.5)
         self.assertEqual(len(calls), 1)
-        self.assertEqual(len(calls[0]), 2)
-        self.assertTrue(all(len(branch) == 3 for branch in calls[0]))
+        topk_branches, retention_anchors = calls[0]
+        self.assertEqual(len(topk_branches), 2)
+        self.assertGreater(len(retention_anchors), 0)
+        self.assertTrue(all(len(branch) == 3 for branch in topk_branches))
+        self.assertTrue(all(len(branch) == 4 for branch in retention_anchors))
 
     def test_profile_balanced_rank_collapse_uses_profile_balanced_branches(
         self,

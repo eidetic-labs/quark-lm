@@ -21,9 +21,10 @@ class TransformerRoutingRepairTopkBundleEvidenceTests(unittest.TestCase):
         )
 
         by_name = {check["name"]: check for check in checks}
-        self.assertEqual(len(checks), 6)
+        self.assertEqual(len(checks), 7)
         self.assertTrue(by_name["profile_balanced_branch_batches"]["passed"])
         self.assertTrue(by_name["topk_softmax_pressure"]["passed"])
+        self.assertTrue(by_name["retention_anchors_recorded"]["passed"])
         self.assertTrue(by_name["coverage_preserving_update_guard"]["passed"])
         self.assertFalse(by_name["branch_diversity_acceptance_gate"]["passed"])
         self.assertFalse(
@@ -130,6 +131,7 @@ def _batch_evidence() -> dict[str, Any]:
         "batch_builder": "profile-balanced-training-family-branch-batch",
         "step_count": 1,
         "branch_count": 3,
+        "retention_anchor_count": 2,
         "profile_balanced_branch_batches": {
             "name": "profile_balanced_branch_batches",
             "passed": True,
