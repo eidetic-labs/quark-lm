@@ -6,6 +6,7 @@ from collections import Counter
 
 from autograd import Scalar, zero_grad
 from transformer_lm_hidden_contrast import pairwise_hidden_contrast_loss
+from transformer_lm_target_set_binding import bidirectional_target_binding_loss
 from transformer_math import linear_scalars, softmax_scalars
 
 
@@ -25,12 +26,15 @@ class TransformerRankCollapseObjectiveMixin:
         zero_grad(params)
         dominant_wrong = _dominant_wrong_prediction(branches)
         output_weights = self._output_weights_scalars()
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        branch_logits_by_target: list[tuple[list[Scalar], int]] = []
         hidden_by_target: list[tuple[list[Scalar], int]] = []
         loss = Scalar(0.0)
         for context, target, predicted in branches:
             hidden = self._final_hidden_scalars(context)
             logits = linear_scalars(hidden, output_weights, self.bout)
             probs = softmax_scalars(logits)
+            branch_logits_by_target.append((logits, target))
             hidden_by_target.append((hidden, target))
             if positive_weight > 0.0:
                 loss = loss + (-probs[target].log()) * positive_weight
@@ -61,6 +65,13 @@ class TransformerRankCollapseObjectiveMixin:
                     )
         loss = loss / max(len(branches), 1)
         if collapse_weight > 0.0:
+            loss = loss + (
+                bidirectional_target_binding_loss(
+                    branch_logits_by_target,
+                    branch_targets,
+                )
+                * collapse_weight
+            )
             loss = loss + (
                 pairwise_hidden_contrast_loss(
                     hidden_by_target,

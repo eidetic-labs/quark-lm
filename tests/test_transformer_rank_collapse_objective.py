@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 import unittest
 
+from support.branch_binding_metrics import average_target_context_ownership
 from support.branch_training import branch_training_fixture
 from support.core import ANSWER_TERMINATOR
 from support.direct_answer import (
@@ -90,6 +91,92 @@ class TransformerRankCollapseObjectiveTest(unittest.TestCase):
 
         self.assertGreater(_average_hidden_distance(fixture.model, branches), before)
 
+    def test_rank_collapse_objective_lifts_target_set_binding(self) -> None:
+        fixture = branch_training_fixture(seed=61)
+        batch = direct_answer_profile_balanced_branch_batch(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.examples,
+            random.Random(18),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+            min_targets_per_profile=2,
+        )
+        branches = [
+            (context, target, predicted)
+            for context, target, predicted, _profile in batch
+        ]
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        before = _restricted_target_probability(
+            fixture.model,
+            branches,
+            branch_targets,
+        )
+
+        for _ in range(24):
+            fixture.model.train_step_with_branch_rank_collapse_margin(
+                branches,
+                learning_rate=0.08,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                margin_weight=0.0,
+                collapse_weight=2.0,
+                hard_negative_count=0,
+            )
+
+        self.assertGreater(
+            _restricted_target_probability(
+                fixture.model,
+                branches,
+                branch_targets,
+            ),
+            before,
+        )
+
+    def test_rank_collapse_objective_lifts_target_context_ownership(self) -> None:
+        fixture = branch_training_fixture(seed=62)
+        batch = direct_answer_profile_balanced_branch_batch(
+            fixture.model,
+            fixture.tokenizer,
+            fixture.examples,
+            random.Random(19),
+            branch_position=1,
+            batch_size=3,
+            terminator=ANSWER_TERMINATOR,
+            min_targets_per_profile=2,
+        )
+        branches = [
+            (context, target, predicted)
+            for context, target, predicted, _profile in batch
+        ]
+        branch_targets = sorted({target for _context, target, _predicted in branches})
+        before = average_target_context_ownership(
+            fixture.model,
+            branches,
+            branch_targets,
+        )
+
+        for _ in range(24):
+            fixture.model.train_step_with_branch_rank_collapse_margin(
+                branches,
+                learning_rate=0.08,
+                negative_weight=0.0,
+                positive_weight=0.0,
+                margin_weight=0.0,
+                collapse_weight=2.0,
+                hard_negative_count=0,
+            )
+
+        self.assertGreater(
+            average_target_context_ownership(
+                fixture.model,
+                branches,
+                branch_targets,
+            ),
+            before,
+        )
+
 
 def _average_hidden_distance(
     model: object,
@@ -109,6 +196,19 @@ def _average_hidden_distance(
                 )
             )
     return sum(distances) / len(distances)
+
+
+def _restricted_target_probability(
+    model: object,
+    branches: list[tuple[list[int], int, int]],
+    branch_targets: list[int],
+) -> float:
+    total = 0.0
+    for context, target, _predicted in branches:
+        probs = model.predict(context)
+        denominator = sum(probs[branch_target] for branch_target in branch_targets)
+        total += probs[target] / denominator
+    return total / max(len(branches), 1)
 
 
 if __name__ == "__main__":

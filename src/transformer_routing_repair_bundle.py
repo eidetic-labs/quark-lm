@@ -88,9 +88,9 @@ def routing_repair_bundle_hypothesis(bundle: str | None) -> str | None:
             )
         if bundle == PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_BUNDLE:
             return (
-                "Profile-balanced rank-margin pressure with dominant-token and "
-                "hidden-state anti-collapse pressure can lift branch targets while "
-                "reducing winner-take-all profile collapse."
+                "Profile-balanced rank-margin pressure with target-set binding, "
+                "dominant-token, and hidden-state anti-collapse pressure can lift "
+                "branch targets while reducing winner-take-all profile collapse."
             )
         if bundle != PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
             return None
@@ -156,7 +156,8 @@ def routing_repair_bundle_gates(bundle: str | None) -> list[dict[str, Any]]:
                 "rank_collapse_pressure",
                 (
                     "Apply profile-balanced hard-negative rank-margin pressure "
-                    "with dominant-token and hidden-state anti-collapse pressure."
+                    "with target-set binding, dominant-token, and hidden-state "
+                    "anti-collapse pressure."
                 ),
             ),
             _gate(
