@@ -150,6 +150,10 @@ class TrainingRecipeTest(unittest.TestCase):
                 tokenizer_type="char",
             ),
             "direct_answer": {
+                "direct_answer_weight_update_outcome": {
+                    "status": "accepted",
+                    "accepted": True,
+                },
                 "direct_answer_branch_context_gate": {"passed": True},
                 "baseline": {"branch_target_coverage_by_profile": {"qa": 0.5}},
                 "final": {
@@ -182,6 +186,10 @@ class TrainingRecipeTest(unittest.TestCase):
                 tokenizer_type="char",
             ),
             "direct_answer": {
+                "direct_answer_weight_update_outcome": {
+                    "status": "accepted",
+                    "accepted": True,
+                },
                 "direct_answer_branch_context_gate": {"passed": True},
                 "baseline": {"branch_target_coverage_by_profile": {"qa": 1.0}},
                 "final": {

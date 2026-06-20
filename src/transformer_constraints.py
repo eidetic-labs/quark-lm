@@ -15,6 +15,9 @@ from transformer_backend_policy import (
 from transformer_frontier_reference_constraints import (
     direct_answer_frontier_reference_checks,
 )
+from transformer_direct_answer_update_outcome_constraints import (
+    direct_answer_update_outcome_check,
+)
 from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
 
 
@@ -97,6 +100,7 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
             direct_answer_present,
             "Reliable-answer promotion requires direct-answer evidence.",
         ),
+        direct_answer_update_outcome_check(direct_answer),
         promotion_check(
             "branch_context_gate",
             branch_gate.get("passed") is True,

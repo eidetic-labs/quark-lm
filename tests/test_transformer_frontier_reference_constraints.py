@@ -106,6 +106,10 @@ def _metrics(reference: dict[str, Any]) -> dict[str, Any]:
             tokenizer_type="char",
         ),
         "direct_answer": {
+            "direct_answer_weight_update_outcome": {
+                "status": "accepted",
+                "accepted": True,
+            },
             "direct_answer_branch_context_gate": {"passed": True},
             "direct_answer_frontier_reference": reference,
             "baseline": {"branch_target_coverage_by_profile": {"qa": 1.0}},
