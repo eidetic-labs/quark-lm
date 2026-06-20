@@ -13,6 +13,9 @@ from transformer_direct_answer_metric_sections import (
     build_baseline_floor_metric_section,
     build_memory_consolidation_metric_section,
 )
+from transformer_direct_answer_frontier_reference import (
+    build_direct_answer_frontier_reference,
+)
 from transformer_experiment import TRAINING_DATA_DESCRIPTION
 from transformer_model import GenerationConfig
 
@@ -127,6 +130,11 @@ def build_direct_answer_metrics(
         "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),
         "direct_answer_branch_snapshot_coverage_floor": (
             branch_diversity_snapshot_target_coverage_by_profile(direct_baseline)
+        ),
+        "direct_answer_frontier_reference": build_direct_answer_frontier_reference(
+            args=args,
+            direct_baseline=direct_baseline,
+            final_snapshot=last_direct_snapshot,
         ),
         "routing_repair_batch_evidence": routing_repair_batch_evidence,
         "direct_answer_require_branch_context_gate": (
