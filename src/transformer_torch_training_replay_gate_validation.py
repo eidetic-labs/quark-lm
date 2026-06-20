@@ -38,6 +38,8 @@ def validate_torch_training_replay_parity_gate(gate: dict[str, Any]) -> None:
 
     if not isinstance(gate, dict):
         raise ValueError("candidate.training_replay_parity_gate must be a dict")
+    if set(gate) != _GATE_KEYS:
+        raise ValueError("candidate.training_replay_parity_gate keys are inconsistent")
     if gate.get("schema_version") != TORCH_TRAINING_REPLAY_GATE_SCHEMA_VERSION:
         raise ValueError("candidate.training_replay_parity_gate.schema_version")
     checks = _validated_checks(gate)
@@ -77,6 +79,10 @@ def _validate_summary(
     summary = gate.get("summary")
     if not isinstance(summary, dict):
         raise ValueError("candidate.training_replay_parity_gate.summary is invalid")
+    if set(summary) != _SUMMARY_KEYS:
+        raise ValueError(
+            "candidate.training_replay_parity_gate.summary keys are inconsistent"
+        )
     failed = [check["name"] for check in checks if check["passed"] is not True]
     if not _matches_count(summary.get("check_count"), len(checks)):
         raise ValueError("candidate.training_replay_parity_gate.summary.check_count")
@@ -146,3 +152,21 @@ def _require_non_empty_string(record: dict[str, Any], key: str) -> None:
         raise ValueError(
             f"candidate.training_replay_parity_gate.{key} must be a non-empty string"
         )
+
+
+_GATE_KEYS = {
+    "schema_version",
+    "status",
+    "passed",
+    "parity_status",
+    "implementation_status",
+    "promoted_training_backend",
+    "checks",
+    "summary",
+    "reason",
+}
+_SUMMARY_KEYS = {
+    "check_count",
+    "passed_check_count",
+    "failed_checks",
+}

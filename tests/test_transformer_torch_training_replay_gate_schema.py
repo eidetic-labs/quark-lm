@@ -17,10 +17,25 @@ from transformer_torch_backend import (
     TORCH_RUNTIME_KIND_PYTORCH,
     TORCH_TRAINING_REPLAY_PENDING_STATUS,
     build_torch_training_replay_parity_gate,
+    validate_torch_training_replay_parity_gate,
 )
 
 
 class TransformerTorchTrainingReplayGateSchemaTests(unittest.TestCase):
+    def test_validator_rejects_extra_gate_key(self) -> None:
+        gate = _matched_gate()
+        gate["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "training_replay_parity_gate keys"):
+            validate_torch_training_replay_parity_gate(gate)
+
+    def test_validator_rejects_extra_summary_key(self) -> None:
+        gate = _matched_gate()
+        gate["summary"]["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "summary keys"):
+            validate_torch_training_replay_parity_gate(gate)
+
     def test_gate_rejects_replay_control_schema_mismatch(self) -> None:
         probes = _matching_probes()
         probes["accumulation_replay_control_probe"]["schema_version"] = 999
@@ -71,6 +86,14 @@ def _runtime() -> dict:
         "device": "cpu",
         "dtype": "float32",
     }
+
+
+def _matched_gate() -> dict:
+    return build_torch_training_replay_parity_gate(
+        runtime=_runtime(),
+        readiness={"status": "ready"},
+        probes=_matching_probes(),
+    )
 
 
 def _matching_probes() -> dict:
