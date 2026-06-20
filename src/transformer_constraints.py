@@ -12,6 +12,9 @@ from transformer_backend_policy import (
     PYTORCH_BACKEND,
     validate_transformer_backend_metadata,
 )
+from transformer_frontier_reference_constraints import (
+    direct_answer_frontier_reference_checks,
+)
 from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
 
 
@@ -113,6 +116,7 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
             coverage,
         ),
     ]
+    constraints.extend(direct_answer_frontier_reference_checks(direct_answer))
     constraints.extend(routing_repair_bundle_checks(metrics))
     quality_checks = [
         promotion_check(
