@@ -36,8 +36,16 @@ class TransformerTorchTrainingParityAttemptRuntimeSummaryTests(unittest.TestCase
             build_torch_runtime_report_hash(candidate["runtime_report"]),
         )
         self.assertEqual(
+            attempt["runtime"]["failed_checks"],
+            candidate["runtime_report"]["summary"]["failed_checks"],
+        )
+        self.assertEqual(
             attempt["candidate"]["candidate_sha256"],
             build_torch_training_attempt_payload_hash(candidate),
+        )
+        self.assertEqual(
+            attempt["candidate"]["training_readiness_failed_checks"],
+            candidate["training_readiness"]["summary"]["failed_checks"],
         )
         self.assertEqual(
             attempt["training_replay_parity_gate"][

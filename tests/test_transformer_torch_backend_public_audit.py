@@ -40,6 +40,7 @@ from transformer_torch_backend import (
     REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS,
     build_torch_runtime_report_hash,
     build_torch_training_attempt_payload_hash,
+    build_torch_training_parity_attempt_compact_requirements,
     build_torch_training_parity_attempt_hashes,
     build_torch_training_parity_attempt_audit,
     build_torch_training_parity_attempt_requirements,
@@ -105,6 +106,9 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
         self.assertTrue(callable(load_torch_training_parity_attempt_artifact_set))
         self.assertTrue(callable(build_torch_runtime_report_hash))
         self.assertTrue(callable(build_torch_training_attempt_payload_hash))
+        self.assertTrue(
+            callable(build_torch_training_parity_attempt_compact_requirements)
+        )
         self.assertTrue(callable(build_torch_training_parity_attempt_audit))
         self.assertTrue(callable(resolve_torch_training_parity_attempt_passed))
         self.assertTrue(callable(resolve_torch_training_parity_attempt_status))
@@ -208,6 +212,7 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
                 "status": "passed",
                 "passed": True,
                 "parity_attempt_allowed": True,
+                "failed_checks": [],
                 "runtime_kind": "pytorch",
                 "device": "cpu",
                 "dtype": "float64",
@@ -217,6 +222,7 @@ class TransformerTorchBackendPublicAuditTests(unittest.TestCase):
                 "implementation_status": "training_replay_parity_matched",
                 "parity_status": "matched",
                 "training_readiness_status": "ready",
+                "training_readiness_failed_checks": [],
                 "training_case_status": "computed",
                 "candidate_sha256": "b" * 64,
             },

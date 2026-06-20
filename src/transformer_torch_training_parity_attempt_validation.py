@@ -8,6 +8,9 @@ from corpus_artifacts import SCHEMA_VERSION
 from transformer_torch_training_attempt_boundary import (
     torch_training_attempt_boundary_failures,
 )
+from transformer_torch_training_parity_attempt_compact_requirements import (
+    build_torch_training_parity_attempt_compact_requirements,
+)
 from transformer_torch_training_parity_attempt_requirement_validation import (
     validate_torch_training_parity_attempt_requirements,
 )
@@ -21,7 +24,6 @@ from transformer_torch_training_parity_attempt_status import (
 from transformer_torch_training_promotion_gate_validation import (
     validate_torch_training_backend_promotion_gate,
 )
-from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
 
 
 TORCH_TRAINING_PARITY_ATTEMPT_KIND = "transformer_torch_training_parity_attempt"
@@ -99,44 +101,16 @@ def _validate_next_requirements(
     attempt: dict[str, Any],
 ) -> None:
     validate_torch_training_parity_attempt_requirements(requirements)
-    expected_stage, expected_status = _expected_next_requirement_state(attempt)
-    if requirements.get("stage") != expected_stage:
-        raise ValueError("next_requirements.stage is inconsistent")
-    if requirements.get("status") != expected_status:
-        raise ValueError("next_requirements.status is inconsistent")
-    for key, expected in _expected_next_requirement_refs(attempt).items():
+    expected_requirements = build_torch_training_parity_attempt_compact_requirements(
+        runtime=attempt["runtime"],
+        candidate=attempt["candidate"],
+        training_replay_parity_gate=attempt["training_replay_parity_gate"],
+        training_parity_report=attempt["training_parity_report"],
+    )
+    for key in _NEXT_REQUIREMENT_COMPARISON_ORDER:
+        expected = expected_requirements[key]
         if requirements.get(key) != expected:
             raise ValueError(f"next_requirements.{key} is inconsistent")
-
-
-def _expected_next_requirement_state(attempt: dict[str, Any]) -> tuple[str, str]:
-    if attempt["runtime"].get("parity_attempt_allowed") is not True:
-        return "runtime_preflight", "blocked"
-    readiness_status = attempt["candidate"].get("training_readiness_status")
-    if readiness_status != TORCH_TRAINING_READY_STATUS:
-        return (
-            "training_readiness",
-            "blocked" if readiness_status == "blocked" else "pending",
-        )
-    if attempt["training_replay_parity_gate"].get("passed") is not True:
-        return "training_replay_parity", "pending"
-    if attempt["training_parity_report"].get("passed") is True:
-        return "complete", "satisfied"
-    return "training_parity_report", "pending"
-
-
-def _expected_next_requirement_refs(attempt: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "runtime_status": attempt["runtime"].get("status"),
-        "parity_attempt_allowed": attempt["runtime"].get("parity_attempt_allowed"),
-        "training_readiness_status": attempt["candidate"].get(
-            "training_readiness_status"
-        ),
-        "training_replay_parity_status": attempt["training_replay_parity_gate"].get(
-            "status"
-        ),
-        "training_report_passed": attempt["training_parity_report"].get("passed"),
-    }
 
 
 def _validate_artifacts(artifacts: Any) -> None:
@@ -163,3 +137,18 @@ def _require_non_empty_string(record: dict[str, Any], key: str) -> None:
     value = record.get(key)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{key} must be a non-empty string")
+
+
+_NEXT_REQUIREMENT_COMPARISON_ORDER = (
+    "schema_version",
+    "kind",
+    "stage",
+    "status",
+    "runtime_status",
+    "parity_attempt_allowed",
+    "training_readiness_status",
+    "training_replay_parity_status",
+    "training_report_passed",
+    "primary_blockers",
+    "next_actions",
+)

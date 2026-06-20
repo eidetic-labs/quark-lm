@@ -20,6 +20,7 @@ def build_torch_attempt_runtime_summary(
         "status": runtime_report.get("status"),
         "passed": runtime_report.get("passed"),
         "parity_attempt_allowed": runtime_report.get("parity_attempt_allowed"),
+        "failed_checks": runtime_report.get("summary", {}).get("failed_checks", []),
         "runtime_kind": runtime.get("runtime_kind"),
         "device": runtime.get("device"),
         "dtype": runtime.get("dtype"),
@@ -33,11 +34,14 @@ def build_torch_attempt_candidate_summary(
     """Summarize candidate routing evidence with a full-payload hash."""
 
     backend = candidate.get("backend", {})
+    readiness = candidate.get("training_readiness", {})
     return {
         "implementation_status": candidate.get("implementation_status"),
         "parity_status": backend.get("parity_status"),
-        "training_readiness_status": candidate.get("training_readiness", {}).get(
-            "status"
+        "training_readiness_status": readiness.get("status"),
+        "training_readiness_failed_checks": readiness.get("summary", {}).get(
+            "failed_checks",
+            [],
         ),
         "training_case_status": candidate.get("training_case", {}).get("status"),
         "candidate_sha256": build_torch_training_attempt_payload_hash(

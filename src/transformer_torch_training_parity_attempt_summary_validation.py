@@ -38,6 +38,7 @@ def _validate_runtime_summary(runtime: dict[str, Any]) -> None:
     _require_non_empty_string(runtime, "runtime", "status")
     _require_bool(runtime, "runtime", "passed")
     _require_bool(runtime, "runtime", "parity_attempt_allowed")
+    _require_string_list(runtime, "runtime", "failed_checks")
     for key in ("runtime_kind", "device", "dtype"):
         _require_non_empty_string(runtime, "runtime", key)
     _require_sha256(runtime, "runtime", "runtime_report_sha256")
@@ -51,6 +52,7 @@ def _validate_candidate_summary(candidate: dict[str, Any]) -> None:
         "training_case_status",
     ):
         _require_non_empty_string(candidate, "candidate", key)
+    _require_string_list(candidate, "candidate", "training_readiness_failed_checks")
     _require_sha256(candidate, "candidate", "candidate_sha256")
 
 

@@ -44,6 +44,9 @@ from transformer_torch_training_parity_attempt_hashes import (
     build_torch_training_attempt_payload_hash,
     build_torch_training_parity_attempt_hashes,
 )
+from transformer_torch_training_parity_attempt_compact_requirements import (
+    build_torch_training_parity_attempt_compact_requirements,
+)
 from transformer_torch_training_parity_attempt_reader import (
     TORCH_TRAINING_PARITY_ATTEMPT_FILES,
     load_torch_training_parity_attempt_artifact_set,
@@ -157,6 +160,7 @@ __all__ = [
     "build_torch_training_initial_loss_probe",
     "build_torch_runtime_report_hash",
     "build_torch_training_attempt_payload_hash",
+    "build_torch_training_parity_attempt_compact_requirements",
     "build_torch_training_parity_attempt_audit",
     "build_torch_training_parity_attempt_hashes",
     "build_torch_training_parity_attempt_requirements",
