@@ -5,11 +5,14 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from transformer_backend_policy import (
-    PYTORCH_BACKEND,
-    validate_transformer_backend_metadata,
-)
 from transformer_training_parity_fixture import validate_training_parity_fixture
+from transformer_training_parity_report_backend import (
+    build_backend_metadata_check,
+    build_torch_candidate_backend_check,
+    candidate_backend_name,
+    is_torch_training_candidate,
+    requires_pytorch_checks,
+)
 from transformer_training_parity_schema import (
     TRAINING_PARITY_REPORT_KIND,
     TRAINING_PARITY_SCHEMA_VERSION,
@@ -18,7 +21,6 @@ from transformer_training_replay_gate_check import (
     build_training_replay_parity_gate_check,
 )
 from transformer_torch_runtime_report_check import build_torch_runtime_report_check
-from transformer_torch_training_candidate import TORCH_TRAINING_PARITY_CANDIDATE_KIND
 
 
 def build_training_parity_report(
@@ -32,10 +34,10 @@ def build_training_parity_report(
     expected = fixture["training_case"]
     actual = candidate.get("training_case", {})
     tolerance = fixture["tolerance"]
-    checks = [_backend_metadata_check(candidate.get("backend"))]
-    if _candidate_kind(candidate) == TORCH_TRAINING_PARITY_CANDIDATE_KIND:
-        checks.append(_torch_candidate_backend_check(candidate.get("backend")))
-    if _requires_pytorch_checks(candidate):
+    checks = [build_backend_metadata_check(candidate.get("backend"))]
+    if is_torch_training_candidate(candidate):
+        checks.append(build_torch_candidate_backend_check(candidate.get("backend")))
+    if requires_pytorch_checks(candidate):
         checks.append(
             build_training_replay_parity_gate_check(
                 candidate.get("training_replay_parity_gate")
@@ -100,47 +102,10 @@ def build_training_parity_report(
         "schema_version": TRAINING_PARITY_SCHEMA_VERSION,
         "kind": TRAINING_PARITY_REPORT_KIND,
         "fixture_id": fixture["fixture_id"],
-        "candidate_backend": _candidate_backend_name(candidate),
+        "candidate_backend": candidate_backend_name(candidate),
         "passed": all(check["passed"] for check in checks),
         "checks": checks,
         "summary": _summary(checks),
-    }
-
-
-def _backend_metadata_check(backend: Any) -> dict[str, Any]:
-    if not isinstance(backend, dict):
-        return {
-            "name": "backend_metadata",
-            "passed": False,
-            "error": "backend metadata is missing",
-        }
-    try:
-        validate_transformer_backend_metadata(
-            backend,
-            require_artifact_fields=backend.get("backend") == PYTORCH_BACKEND,
-        )
-    except ValueError as exc:
-        return {
-            "name": "backend_metadata",
-            "passed": False,
-            "backend": backend.get("backend"),
-            "error": str(exc),
-        }
-    return {
-        "name": "backend_metadata",
-        "passed": True,
-        "backend": backend.get("backend"),
-        "parity_status": backend.get("parity_status"),
-    }
-
-
-def _torch_candidate_backend_check(backend: Any) -> dict[str, Any]:
-    actual = backend.get("backend") if isinstance(backend, dict) else None
-    return {
-        "name": "pytorch_candidate_backend",
-        "passed": actual == PYTORCH_BACKEND,
-        "expected": PYTORCH_BACKEND,
-        "actual": actual,
     }
 
 
@@ -226,23 +191,6 @@ def _close_enough(
         actual,
         abs_tol=tolerance["absolute"],
         rel_tol=tolerance["relative"],
-    )
-
-
-def _candidate_backend_name(candidate: dict[str, Any]) -> str | None:
-    backend = candidate.get("backend")
-    return backend.get("backend") if isinstance(backend, dict) else None
-
-
-def _candidate_kind(candidate: dict[str, Any]) -> str | None:
-    kind = candidate.get("kind")
-    return kind if isinstance(kind, str) else None
-
-
-def _requires_pytorch_checks(candidate: dict[str, Any]) -> bool:
-    return (
-        _candidate_backend_name(candidate) == PYTORCH_BACKEND
-        or _candidate_kind(candidate) == TORCH_TRAINING_PARITY_CANDIDATE_KIND
     )
 
 
