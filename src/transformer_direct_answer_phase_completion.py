@@ -49,6 +49,8 @@ def complete_direct_answer_phase(
         best_snapshot=best_direct_snapshot,
         last_snapshot=last_direct_snapshot,
         last_snapshot_step=last_direct_snapshot_step,
+        frontier_metrics_path=getattr(args, "direct_answer_frontier_metrics", None),
+        frontier_baseline_snapshot=direct_baseline,
     )
     model = snapshot_finalization.model
     tokenizer = snapshot_finalization.tokenizer
@@ -103,6 +105,16 @@ def complete_direct_answer_phase(
         direct_answer_update_guard=direct_answer_update_guard,
         direct_answer_restored_best_branch_snapshot=(
             snapshot_finalization.restored_best_branch_snapshot
+        ),
+        direct_answer_restored_frontier_progress_snapshot=getattr(
+            snapshot_finalization,
+            "restored_frontier_progress_snapshot",
+            False,
+        ),
+        direct_answer_frontier_progress_guard=getattr(
+            snapshot_finalization,
+            "frontier_progress_guard",
+            {"active": False, "progress_preserved": True, "reason": "not_recorded"},
         ),
         best_direct_snapshot_step=best_direct_snapshot.step,
         best_direct_snapshot_score=best_direct_snapshot.score,

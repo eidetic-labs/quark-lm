@@ -42,6 +42,8 @@ def build_direct_answer_metrics(
     ],
     direct_answer_update_guard: dict[str, Any],
     direct_answer_restored_best_branch_snapshot: bool,
+    direct_answer_restored_frontier_progress_snapshot: bool,
+    direct_answer_frontier_progress_guard: dict[str, Any],
     best_direct_snapshot_step: int,
     best_direct_snapshot_score: tuple[Any, ...],
     direct_baseline: dict[str, Any],
@@ -126,6 +128,10 @@ def build_direct_answer_metrics(
         "direct_answer_restored_best_branch_snapshot": (
             direct_answer_restored_best_branch_snapshot
         ),
+        "direct_answer_restored_frontier_progress_snapshot": (
+            direct_answer_restored_frontier_progress_snapshot
+        ),
+        "direct_answer_frontier_progress_guard": direct_answer_frontier_progress_guard,
         "direct_answer_best_branch_snapshot_step": best_direct_snapshot_step,
         "direct_answer_best_branch_snapshot_score": list(best_direct_snapshot_score),
         "direct_answer_branch_snapshot_coverage_floor": (
