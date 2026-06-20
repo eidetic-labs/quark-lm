@@ -66,7 +66,7 @@ def validate_torch_training_parity_candidate(candidate: dict[str, Any]) -> None:
 
     if not isinstance(candidate, dict):
         raise ValueError("candidate must be a dict")
-    _require_keys(candidate, REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS)
+    _require_exact_keys(candidate, REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS)
     if (
         candidate.get("schema_version")
         != TORCH_TRAINING_PARITY_CANDIDATE_SCHEMA_VERSION
@@ -91,6 +91,12 @@ def _validate_backend(backend: dict[str, Any]) -> None:
     validate_transformer_backend_metadata(backend, require_artifact_fields=True)
     if backend.get("backend") != PYTORCH_BACKEND:
         raise ValueError("candidate.backend must be pytorch")
+
+
+def _require_exact_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:
+    if set(record) != set(keys):
+        _require_keys(record, keys)
+        raise ValueError("candidate keys are inconsistent")
 
 
 def _require_keys(record: dict[str, Any], keys: tuple[str, ...]) -> None:

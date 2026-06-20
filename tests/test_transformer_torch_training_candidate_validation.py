@@ -42,6 +42,13 @@ class TransformerTorchTrainingCandidateValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "candidate.runtime_report"):
             validate_torch_training_parity_candidate(candidate)
 
+    def test_validator_rejects_extra_candidate_key(self) -> None:
+        candidate = _candidate(importer=_missing_importer)
+        candidate["unvalidated_extra_field"] = "drift"
+
+        with self.assertRaisesRegex(ValueError, "candidate keys"):
+            validate_torch_training_parity_candidate(candidate)
+
     def test_validator_rejects_stale_backend_parity_status(self) -> None:
         candidate = _candidate(importer=_missing_importer)
         candidate["backend"]["parity_status"] = "pending"
