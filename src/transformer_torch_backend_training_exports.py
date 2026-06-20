@@ -39,6 +39,10 @@ from transformer_torch_training_parity_attempt_audit_validation import (
     TORCH_TRAINING_PARITY_ATTEMPT_INVALID_AUDIT_FORBIDDEN_FIELDS,
     validate_torch_training_parity_attempt_audit,
 )
+from transformer_torch_training_parity_attempt_artifact_set import (
+    REQUIRED_TORCH_TRAINING_ATTEMPT_ARTIFACTS,
+    validate_torch_training_parity_attempt_artifact_set,
+)
 from transformer_torch_training_parity_attempt_audit_status import (
     validate_torch_training_parity_attempt_audit_status,
 )
@@ -174,6 +178,7 @@ __all__ = [
     "TORCH_TRAINING_RUNTIME_INCOMPLETE_STATUS",
     "TORCH_TRAINING_STATE_SCHEMA_VERSION",
     "REQUIRED_TORCH_TRAINING_CANDIDATE_KEYS",
+    "REQUIRED_TORCH_TRAINING_ATTEMPT_ARTIFACTS",
     "build_torch_training_backend_promotion_gate",
     "build_torch_training_backward_probe",
     "build_torch_training_initial_loss_probe",
@@ -196,6 +201,7 @@ __all__ = [
     "validate_torch_training_parity_attempt_audit",
     "validate_torch_training_parity_attempt_audit_requirements",
     "validate_torch_training_parity_attempt_audit_status",
+    "validate_torch_training_parity_attempt_artifact_set",
     "validate_torch_training_parity_attempt_summaries",
     "validate_torch_training_backend_promotion_gate",
     "validate_torch_training_candidate_runtime_report",
