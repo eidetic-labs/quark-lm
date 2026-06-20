@@ -7,6 +7,9 @@ from typing import Any
 from transformer_torch_training_replay_parity_gate import (
     TORCH_TRAINING_REPLAY_MATCHED_STATUS,
 )
+from transformer_torch_training_replay_gate_validation import (
+    validate_torch_training_replay_parity_gate,
+)
 
 
 def build_training_replay_parity_gate_check(gate: Any) -> dict[str, Any]:
@@ -17,6 +20,14 @@ def build_training_replay_parity_gate_check(gate: Any) -> dict[str, Any]:
             "name": "training_replay_parity_gate",
             "passed": False,
             "error": "training replay parity gate is missing",
+        }
+    try:
+        validate_torch_training_replay_parity_gate(gate)
+    except ValueError as exc:
+        return {
+            "name": "training_replay_parity_gate",
+            "passed": False,
+            "error": str(exc),
         }
     summary = gate.get("summary")
     failed_checks = (

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from support.char_model import char_model_fixture, context_and_target
+from support.torch_replay_gate import matched_replay_gate, pending_replay_gate
 from support.torch_runtime_report import runtime, runtime_report
 from transformer_backend_policy import (
     PYTORCH_BACKEND,
@@ -128,7 +129,7 @@ class TransformerTrainingParityTests(unittest.TestCase):
     def test_training_report_fails_when_replay_gate_is_pending(self) -> None:
         fixture = _scalar_training_fixture()
         candidate = _matching_candidate(fixture)
-        candidate["training_replay_parity_gate"] = _pending_replay_gate()
+        candidate["training_replay_parity_gate"] = pending_replay_gate()
 
         report = build_training_parity_report(fixture=fixture, candidate=candidate)
 
@@ -139,6 +140,24 @@ class TransformerTrainingParityTests(unittest.TestCase):
             gate_check["failed_gate_checks"],
             ["replay_buffer"],
         )
+
+    def test_training_report_rejects_unvalidated_replay_gate_shape(self) -> None:
+        fixture = _scalar_training_fixture()
+        candidate = _matching_candidate(fixture)
+        candidate["training_replay_parity_gate"] = {
+            "status": "training_replay_parity_matched",
+            "passed": True,
+            "parity_status": "matched",
+            "promoted_training_backend": False,
+            "summary": {"failed_checks": []},
+        }
+
+        report = build_training_parity_report(fixture=fixture, candidate=candidate)
+
+        gate_check = report["checks"][1]
+        self.assertFalse(report["passed"])
+        self.assertEqual(gate_check["name"], "training_replay_parity_gate")
+        self.assertIn("schema_version", gate_check["error"])
 
     def test_training_report_requires_parity_attempt_runtime_evidence(
         self,
@@ -217,27 +236,7 @@ def _matching_candidate(fixture: dict) -> dict:
             fixture["optimizer_step_contract"]
         ),
         "training_case": copy.deepcopy(fixture["training_case"]),
-        "training_replay_parity_gate": _matched_replay_gate(),
-    }
-
-
-def _matched_replay_gate() -> dict:
-    return {
-        "status": "training_replay_parity_matched",
-        "passed": True,
-        "parity_status": "matched",
-        "promoted_training_backend": False,
-        "summary": {"failed_checks": []},
-    }
-
-
-def _pending_replay_gate() -> dict:
-    return {
-        "status": "training_replay_parity_pending",
-        "passed": False,
-        "parity_status": "pending",
-        "promoted_training_backend": False,
-        "summary": {"failed_checks": ["replay_buffer"]},
+        "training_replay_parity_gate": matched_replay_gate(),
     }
 
 
