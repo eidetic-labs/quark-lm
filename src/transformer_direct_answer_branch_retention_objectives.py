@@ -55,15 +55,6 @@ def train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood(
             params=params,
         )
 
-    rank_loss = model.train_step_with_branch_rank_margin(
-        unprofiled_branch_records(branches),
-        learning_rate,
-        negative_weight,
-        positive_weight,
-        margin_weight,
-        hard_negative_count,
-        params=params,
-    )
     retention_anchors = profile_balanced_retention_anchor_batch(
         model,
         tokenizer,
@@ -73,24 +64,13 @@ def train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood(
         batch_size,
         terminator,
     )
-    if not retention_anchors:
-        return rank_loss
-    retention_loss = model.train_step_with_branch_context_replay_coverage(
-        retention_anchors,
+    return model.train_step_with_branch_retention_rank_margin(
+        unprofiled_branch_records(branches),
         retention_anchors,
         learning_rate,
-        0.0,
+        negative_weight,
         positive_weight,
         margin_weight,
         hard_negative_count,
         params=params,
-        preserve_covered_targets=True,
-        balance_covered_target_anchors=True,
-        preserve_predicted_target_coverage=True,
-        profile_aware_targets=True,
-        balance_profile_target_shares=True,
-        floor_preservation_branches=retention_anchors,
-        floor_preservation_weight=margin_weight,
-        balance_floor_preservation_targets=True,
     )
-    return (rank_loss + retention_loss) / 2.0

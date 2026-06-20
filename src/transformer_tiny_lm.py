@@ -14,6 +14,9 @@ from transformer_lm_forward import TransformerForwardMixin
 from transformer_lm_generation import TransformerGenerationIOMixin
 from transformer_lm_objectives import TransformerObjectiveMixin
 from transformer_lm_rank_objectives import TransformerRankObjectiveMixin
+from transformer_lm_retention_rank_objectives import (
+    TransformerRetentionRankObjectiveMixin,
+)
 from transformer_lm_weights import TransformerWeightsMixin
 from transformer_math import matrix_to_scalars, vector_to_scalars
 from transformer_model import TransformerConfig, validate_transformer_config
@@ -29,6 +32,7 @@ class TinyTransformerLM(
     TransformerBranchBindingMixin,
     TransformerBranchContextMixin,
     TransformerRankObjectiveMixin,
+    TransformerRetentionRankObjectiveMixin,
     TransformerGenerationIOMixin,
 ):
     def __init__(self, config: TransformerConfig, weights: dict[str, Any]) -> None:

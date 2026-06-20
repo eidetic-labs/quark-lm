@@ -98,7 +98,7 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
         self.assertEqual(len(calls[0]), 2)
         self.assertTrue(all(len(branch) == 3 for branch in calls[0]))
 
-    def test_retention_rank_margin_runs_rank_and_retention_steps(self) -> None:
+    def test_retention_rank_margin_runs_single_combined_step(self) -> None:
         fixture = branch_training_fixture(seed=52)
         lesson = direct_answer_lesson(
             fixture.tokenizer,
@@ -106,27 +106,23 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
             fixture.near,
             ANSWER_TERMINATOR,
         )
-        rank_calls: list[list[tuple[list[int], int, int]]] = []
-        retention_calls: list[list[tuple[list[int], int, int, str]]] = []
+        calls: list[
+            tuple[
+                list[tuple[list[int], int, int]],
+                list[tuple[list[int], int, int, str]],
+            ]
+        ] = []
 
-        def rank_step(
+        def combined_step(
             branches: list[tuple[list[int], int, int]],
+            retention_anchors: list[tuple[list[int], int, int, str]],
             *_args: object,
             **_kwargs: object,
         ) -> float:
-            rank_calls.append(branches)
-            return 6.0
+            calls.append((branches, retention_anchors))
+            return 4.0
 
-        def retention_step(
-            branches: list[tuple[list[int], int, int, str]],
-            *_args: object,
-            **_kwargs: object,
-        ) -> float:
-            retention_calls.append(branches)
-            return 2.0
-
-        fixture.model.train_step_with_branch_rank_margin = rank_step
-        fixture.model.train_step_with_branch_context_replay_coverage = retention_step
+        fixture.model.train_step_with_branch_retention_rank_margin = combined_step
 
         loss = train_direct_answer_profile_balanced_retention_rank_margin_unlikelihood(
             fixture.model,
@@ -146,10 +142,10 @@ class TransformerProfileBalancedRankObjectiveTest(unittest.TestCase):
         )
 
         self.assertEqual(loss, 4.0)
-        self.assertEqual(len(rank_calls), 1)
-        self.assertEqual(len(retention_calls), 1)
-        self.assertTrue(all(len(branch) == 3 for branch in rank_calls[0]))
-        self.assertTrue(all(len(branch) == 4 for branch in retention_calls[0]))
+        self.assertEqual(len(calls), 1)
+        rank_branches, retention_anchors = calls[0]
+        self.assertTrue(all(len(branch) == 3 for branch in rank_branches))
+        self.assertTrue(all(len(branch) == 4 for branch in retention_anchors))
 
 
 if __name__ == "__main__":
