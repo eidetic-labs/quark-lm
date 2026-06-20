@@ -49,7 +49,10 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         self.assertEqual(guard["routing_repair_optimizer_nonzero_gradient_count"], 2)
 
     def test_accepts_preserved_coverage_without_response_as_neutral(self) -> None:
-        recorder = RoutingRepairRecorder([routing_repair_snapshot(0.5)])
+        recorder = RoutingRepairRecorder(
+            [routing_repair_snapshot(0.5)]
+            * len(ROUTING_REPAIR_LEARNING_RATE_SCALES)
+        )
         restores: list[tuple[dict, dict]] = []
         train_rates: list[float] = []
         guard = routing_repair_guard()
@@ -64,6 +67,18 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
         )
 
         self.assertTrue(result.update_guard_applied)
+        self.assertEqual(
+            train_rates,
+            [0.04, 0.02, 0.01, 0.005, 0.0025, 0.04],
+        )
+        self.assertEqual(
+            len(restores),
+            len(ROUTING_REPAIR_LEARNING_RATE_SCALES) + 1,
+        )
+        self.assertEqual(
+            guard["attempted_updates"],
+            len(ROUTING_REPAIR_LEARNING_RATE_SCALES),
+        )
         self.assertEqual(guard["accepted_steps"], 1)
         self.assertEqual(guard["rejected_steps"], 0)
         self.assertEqual(guard["routing_repair_neutral_update_acceptances"], 1)
@@ -72,6 +87,30 @@ class TransformerRoutingRepairUpdateSearchTests(unittest.TestCase):
             guard["accepted_update_shape_counts"],
             {ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE: 1},
         )
+
+    def test_prefers_later_branch_response_over_earlier_neutral(self) -> None:
+        recorder = RoutingRepairRecorder(
+            [routing_repair_snapshot(0.5), routing_repair_snapshot(0.75)]
+        )
+        restores: list[tuple[dict, dict]] = []
+        train_rates: list[float] = []
+        guard = routing_repair_guard()
+
+        result = apply_routing_repair_update_search(
+            routing_repair_context(
+                recorder=recorder,
+                guard=guard,
+                restores=restores,
+                train_rates=train_rates,
+            )
+        )
+
+        self.assertTrue(result.update_guard_applied)
+        self.assertEqual(train_rates, [0.04, 0.02])
+        self.assertEqual(guard["accepted_steps"], 1)
+        self.assertEqual(guard["routing_repair_branch_response_acceptances"], 1)
+        self.assertEqual(guard.get("routing_repair_neutral_update_acceptances", 0), 0)
+        self.assertEqual(guard["routing_repair_accepted_learning_rate_scale"], 0.5)
 
     def test_accepts_preserved_coverage_with_rank_response(self) -> None:
         recorder = RoutingRepairRecorder(

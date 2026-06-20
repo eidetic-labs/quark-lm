@@ -20,6 +20,10 @@ from transformer_direct_answer_update_guard import (
     record_direct_update_guard_acceptance,
     record_direct_update_guard_rejection_attempt,
 )
+from transformer_routing_repair_update_acceptance import (
+    RoutingRepairNeutralCandidate,
+    accept_branch_response_update,
+)
 from transformer_routing_repair_optimizer_diagnostics import (
     record_routing_repair_optimizer_probe,
 )
@@ -61,7 +65,7 @@ class RoutingRepairUpdateSearchContext:
 def apply_routing_repair_update_search(
     ctx: RoutingRepairUpdateSearchContext,
 ) -> DirectAnswerModeStepResult:
-    """Try bounded learning-rate scales and keep the first coverage-safe update."""
+    """Try bounded scales and prefer branch-response updates over neutral ones."""
 
     guard = ctx.direct_answer_update_guard
     guard["routing_repair_scaled_retry_active"] = True
@@ -70,6 +74,7 @@ def apply_routing_repair_update_search(
     )
     guard["checked_steps"] += 1
     last_loss = 0.0
+    neutral_candidate: RoutingRepairNeutralCandidate | None = None
     for learning_rate_scale in ROUTING_REPAIR_LEARNING_RATE_SCALES:
         ctx.restore_state(
             ctx.pre_update_model_payload,
@@ -99,27 +104,19 @@ def apply_routing_repair_update_search(
             ctx.direct_baseline,
         )
         if coverage_preserved and stability_preserved and branch_response:
-            _record_branch_response(guard, learning_rate_scale)
-            record_direct_update_guard_acceptance(
+            return accept_branch_response_update(
                 guard,
                 learning_rate_scale,
+                last_loss,
                 ROUTING_REPAIR_UPDATE_SHAPE,
             )
-            guard["routing_repair_accepted_learning_rate_scale"] = (
-                learning_rate_scale
-            )
-            return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
         if coverage_preserved and stability_preserved:
-            record_routing_repair_neutral_acceptance(guard, learning_rate_scale)
-            record_direct_update_guard_acceptance(
-                guard,
-                learning_rate_scale,
-                ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE,
-            )
-            guard["routing_repair_accepted_learning_rate_scale"] = (
-                learning_rate_scale
-            )
-            return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
+            if neutral_candidate is None:
+                neutral_candidate = RoutingRepairNeutralCandidate(
+                    learning_rate_scale,
+                    last_loss,
+                )
+            continue
         if coverage_preserved and not stability_preserved:
             _record_stability_rejection(guard, learning_rate_scale)
         record_direct_update_guard_rejection_attempt(
@@ -130,6 +127,8 @@ def apply_routing_repair_update_search(
             learning_rate_scale,
             ROUTING_REPAIR_UPDATE_SHAPE,
         )
+    if neutral_candidate is not None:
+        return _accept_deferred_neutral_update(ctx, neutral_candidate)
     guard["rejected_steps"] += 1
     ctx.restore_state(
         ctx.pre_update_model_payload,
@@ -138,6 +137,33 @@ def apply_routing_repair_update_search(
     _restore_rng(ctx.rng, ctx.pre_update_rng_state)
     guard["routing_repair_accepted_learning_rate_scale"] = None
     return DirectAnswerModeStepResult(last_loss, update_guard_applied=True)
+
+
+def _accept_deferred_neutral_update(
+    ctx: RoutingRepairUpdateSearchContext,
+    candidate: RoutingRepairNeutralCandidate,
+) -> DirectAnswerModeStepResult:
+    ctx.restore_state(
+        ctx.pre_update_model_payload,
+        ctx.pre_update_optimizer_payload,
+    )
+    _restore_rng(ctx.rng, ctx.pre_update_rng_state)
+    replay_result = _train_scaled_update(ctx, candidate.learning_rate_scale)
+    loss = float(replay_result.loss)
+    guard = ctx.direct_answer_update_guard
+    record_routing_repair_neutral_acceptance(
+        guard,
+        candidate.learning_rate_scale,
+    )
+    record_direct_update_guard_acceptance(
+        guard,
+        candidate.learning_rate_scale,
+        ROUTING_REPAIR_NEUTRAL_UPDATE_SHAPE,
+    )
+    guard["routing_repair_accepted_learning_rate_scale"] = (
+        candidate.learning_rate_scale
+    )
+    return DirectAnswerModeStepResult(loss, update_guard_applied=True)
 
 
 def _train_scaled_update(
@@ -197,18 +223,6 @@ def _branch_response_recorded(
         int(delta.get("improved_profile_count", 0)) > 0
         or branch_diversity_snapshot_score_improved(snapshot, baseline)
     )
-
-
-def _record_branch_response(
-    guard: dict[str, Any],
-    learning_rate_scale: float,
-) -> None:
-    guard["routing_repair_branch_response_acceptances"] = int(
-        guard.get("routing_repair_branch_response_acceptances", 0)
-    ) + 1
-    scales = guard.setdefault("routing_repair_branch_response_learning_rate_scales", [])
-    if isinstance(scales, list):
-        scales.append(learning_rate_scale)
 
 
 def _record_stability_rejection(
