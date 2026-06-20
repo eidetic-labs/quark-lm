@@ -42,6 +42,7 @@ def validate_torch_training_backend_promotion_gate(
     if not isinstance(gate.get("parity_evidence_matched"), bool):
         raise ValueError("training backend promotion gate parity status is invalid")
     _validate_checks(gate)
+    _validate_parity_evidence(gate)
     _validate_future_gates(gate)
     _validate_boundary(gate, closed_world_boundary)
 
@@ -66,6 +67,15 @@ def _validate_checks(gate: dict[str, Any]) -> None:
     ]
     if gate.get("blockers") != expected_blockers:
         raise ValueError("training backend promotion gate blockers are invalid")
+
+
+def _validate_parity_evidence(gate: dict[str, Any]) -> None:
+    check_status = {check["name"]: check["passed"] for check in gate["checks"]}
+    if (
+        gate["parity_evidence_matched"] is True
+        and check_status.get("training_parity_report") is not True
+    ):
+        raise ValueError("training backend promotion gate parity evidence is invalid")
 
 
 def _validate_future_gates(gate: dict[str, Any]) -> None:

@@ -75,9 +75,9 @@ class TransformerTorchTrainingParityAttemptArtifactSetTests(unittest.TestCase):
 
     def test_validator_rejects_promotion_gate_not_rebuilt_from_payloads(self) -> None:
         artifacts = _artifacts()
-        artifacts["attempt"]["training_backend_promotion_gate"][
-            "parity_evidence_matched"
-        ] = True
+        artifacts["attempt"]["training_backend_promotion_gate"]["checks"][0][
+            "reason"
+        ] = "stale reason"
 
         with self.assertRaisesRegex(ValueError, "training_backend_promotion_gate"):
             validate_torch_training_parity_attempt_artifact_set(artifacts)

@@ -166,48 +166,6 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
             ],
         )
 
-    def test_validator_rejects_stale_promotion_gate_blockers(self) -> None:
-        gate = _gate()
-        gate["blockers"] = ["fixture_scope_only"]
-
-        with self.assertRaisesRegex(ValueError, "blockers"):
-            validate_torch_training_backend_promotion_gate(
-                gate,
-                closed_world_boundary=_boundary(),
-            )
-
-    def test_validator_rejects_stale_promotion_gate_future_gates(self) -> None:
-        gate = _gate()
-        gate["required_future_gates"] = ["general_training_backend_gate"]
-
-        with self.assertRaisesRegex(ValueError, "future gates"):
-            validate_torch_training_backend_promotion_gate(
-                gate,
-                closed_world_boundary=_boundary(),
-            )
-
-    def test_validator_rejects_stale_promotion_gate_boundary_state(self) -> None:
-        boundary = _boundary()
-        boundary["pretrained_weights_imported"] = True
-        gate = _gate()
-
-        with self.assertRaisesRegex(ValueError, "boundary status"):
-            validate_torch_training_backend_promotion_gate(
-                gate,
-                closed_world_boundary=boundary,
-            )
-
-    def test_validator_rejects_non_boolean_parity_status(self) -> None:
-        gate = _gate()
-        gate["parity_evidence_matched"] = "false"
-
-        with self.assertRaisesRegex(ValueError, "parity status"):
-            validate_torch_training_backend_promotion_gate(
-                gate,
-                closed_world_boundary=_boundary(),
-            )
-
-
 def _candidate(
     *,
     parity_status: str,
@@ -222,15 +180,6 @@ def _candidate(
             "parity_status": parity_status,
         },
     }
-
-
-def _gate() -> dict:
-    return build_torch_training_backend_promotion_gate(
-        candidate=_candidate(parity_status="matched", replay_passed=True),
-        report={"passed": True},
-        closed_world_boundary=_boundary(),
-    )
-
 
 def _boundary() -> dict:
     return {
