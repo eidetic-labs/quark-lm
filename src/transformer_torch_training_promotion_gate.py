@@ -7,6 +7,9 @@ from typing import Any
 from transformer_torch_training_attempt_boundary import (
     torch_training_attempt_boundary_failures,
 )
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+)
 
 
 TORCH_TRAINING_BACKEND_PROMOTION_GATE_SCHEMA_VERSION = 1
@@ -86,6 +89,7 @@ def _parity_evidence_matched(
     return (
         report.get("passed") is True
         and replay_gate.get("passed") is True
+        and replay_gate.get("status") == TORCH_TRAINING_REPLAY_MATCHED_STATUS
         and replay_gate.get("parity_status") == "matched"
         and backend.get("parity_status") == "matched"
     )

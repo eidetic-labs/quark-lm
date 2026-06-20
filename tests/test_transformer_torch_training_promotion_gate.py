@@ -73,6 +73,23 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
             ],
         )
 
+    def test_stale_replay_status_does_not_match_parity_evidence(self) -> None:
+        gate = build_torch_training_backend_promotion_gate(
+            candidate=_candidate(
+                parity_status="matched",
+                replay_passed=True,
+                replay_status="training_replay_parity_pending",
+            ),
+            report={"passed": True},
+            closed_world_boundary=_boundary(),
+        )
+
+        self.assertFalse(gate["parity_evidence_matched"])
+        self.assertEqual(
+            gate["blockers"],
+            ["fixture_scope_only", "model_quality_gate"],
+        )
+
     def test_closed_world_boundary_violation_blocks_promotion(self) -> None:
         boundary = _boundary()
         boundary["pretrained_weights_imported"] = True
@@ -191,10 +208,16 @@ class TransformerTorchTrainingPromotionGateTests(unittest.TestCase):
             )
 
 
-def _candidate(*, parity_status: str, replay_passed: bool) -> dict:
+def _candidate(
+    *,
+    parity_status: str,
+    replay_passed: bool,
+    replay_status: str = "training_replay_parity_matched",
+) -> dict:
     return {
         "backend": {"parity_status": parity_status},
         "training_replay_parity_gate": {
+            "status": replay_status,
             "passed": replay_passed,
             "parity_status": parity_status,
         },
