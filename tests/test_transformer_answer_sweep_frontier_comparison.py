@@ -75,6 +75,54 @@ class TransformerAnswerSweepFrontierComparisonTest(unittest.TestCase):
             1,
         )
 
+    def test_trial_report_summarizes_direct_answer_frontier_reference(self) -> None:
+        metrics = metrics_with_profile_coverage("trial", {"qa": 0.25})
+        metrics["direct_answer"]["direct_answer_frontier_reference"] = {
+            "active": True,
+            "used_for_training": False,
+            "metrics_path": "runs/frontier/transformer_answer_metrics.json",
+            "frontier_run_id": "frontier",
+            "baseline_comparison": {
+                "available": True,
+                "passed": False,
+                "coverage_preserved": False,
+                "stability_preserved": False,
+                "score_preserved": False,
+                "stability_diagnostics": {
+                    "violating_profile_count": 1,
+                    "worst_violation": {"profile": "qa"},
+                },
+            },
+            "final_comparison": {
+                "available": True,
+                "passed": True,
+                "coverage_preserved": True,
+                "stability_preserved": True,
+                "score_preserved": True,
+                "stability_diagnostics": {
+                    "violating_profile_count": 0,
+                    "worst_violation": None,
+                },
+            },
+        }
+
+        report = trial_report_from_metrics(
+            trial_id="trial-01",
+            run_path=Path("runs/trial-01"),
+            config={"embedding_dim": 8},
+            metrics=metrics,
+        )
+
+        reference = report["direct_answer_frontier_reference"]
+        self.assertTrue(reference["active"])
+        self.assertFalse(reference["used_for_training"])
+        self.assertFalse(reference["baseline_comparison"]["passed"])
+        self.assertTrue(reference["final_comparison"]["passed"])
+        self.assertEqual(
+            reference["baseline_comparison"]["stability_violating_profile_count"],
+            1,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

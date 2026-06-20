@@ -9,6 +9,11 @@ from typing import Any
 from transformer_branch_frontier_comparison import (
     compare_metrics_to_branch_frontier,
 )
+from transformer_answer_sweep_frontier_reference import (
+    frontier_reference_active_count,
+    frontier_reference_evidence,
+    frontier_reference_training_use_count,
+)
 
 
 SWEEP_REPORT_KIND = "transformer_answer_sweep_report"
@@ -73,6 +78,9 @@ def trial_report_from_metrics(
         "quality_metrics_considered": promotion.get("quality_metrics_considered"),
         "direct_answer_branch_evidence": branch_evidence,
     }
+    frontier_reference = frontier_reference_evidence(metrics)
+    if frontier_reference is not None:
+        report["direct_answer_frontier_reference"] = frontier_reference
     frontier_comparison = compare_metrics_to_branch_frontier(
         metrics=metrics,
         frontier_metrics=frontier_metrics,
@@ -153,6 +161,12 @@ def _summary(trials: list[dict[str, Any]], dry_run: bool) -> dict[str, Any]:
             if trial.get("frontier_comparison", {}).get("passed") is True
         ),
         "frontier_regressed_trials": frontier_regressed_trials,
+        "frontier_reference_active_trials": frontier_reference_active_count(
+            completed
+        ),
+        "frontier_reference_training_use_trials": (
+            frontier_reference_training_use_count(completed)
+        ),
     }
 
 

@@ -41,6 +41,8 @@ class TransformerAnswerSweepFrontierTest(unittest.TestCase):
         self.assertFalse(report["summary"]["frontier_gate_passed"])
         self.assertEqual(report["summary"]["frontier_competitive_trials"], 1)
         self.assertEqual(report["summary"]["frontier_regressed_trials"], 1)
+        self.assertEqual(report["summary"]["frontier_reference_active_trials"], 0)
+        self.assertEqual(report["summary"]["frontier_reference_training_use_trials"], 0)
 
     def test_report_summary_passes_without_frontier_regressions(self) -> None:
         report = build_answer_sweep_report(
@@ -60,6 +62,33 @@ class TransformerAnswerSweepFrontierTest(unittest.TestCase):
         self.assertTrue(report["summary"]["passed"])
         self.assertTrue(report["summary"]["completed_all_trials"])
         self.assertTrue(report["summary"]["frontier_gate_passed"])
+
+    def test_report_summary_counts_frontier_reference_usage(self) -> None:
+        report = build_answer_sweep_report(
+            run_id="sweep",
+            axes={},
+            trials=[
+                {
+                    "status": "completed",
+                    "direct_answer_frontier_reference": {
+                        "active": True,
+                        "used_for_training": False,
+                    },
+                },
+                {
+                    "status": "completed",
+                    "direct_answer_frontier_reference": {
+                        "active": True,
+                        "used_for_training": True,
+                    },
+                },
+            ],
+            max_trials=2,
+            dry_run=False,
+        )
+
+        self.assertEqual(report["summary"]["frontier_reference_active_trials"], 2)
+        self.assertEqual(report["summary"]["frontier_reference_training_use_trials"], 1)
 
     def test_backfills_frontier_from_existing_metrics(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
