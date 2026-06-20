@@ -90,6 +90,18 @@ class TransformerTorchTrainingParityAttemptRequirementRoutingTests(
                 require_blockers=True,
             )
 
+    def test_runtime_preflight_rejects_extra_runtime_blockers(self) -> None:
+        with self.assertRaisesRegex(ValueError, "runtime blocker"):
+            validate_torch_training_requirement_routing(
+                stage="runtime_preflight",
+                status="blocked",
+                primary_blockers=["runtime_available", "dtype_available"],
+                next_actions=["install_real_pytorch_runtime"],
+                runtime_status="blocked_runtime_unavailable",
+                exact_actions=True,
+                require_blockers=True,
+            )
+
     def test_complete_routing_rejects_actions(self) -> None:
         with self.assertRaisesRegex(ValueError, "next_actions"):
             validate_torch_training_requirement_routing(

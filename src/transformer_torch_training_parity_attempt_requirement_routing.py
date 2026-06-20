@@ -114,7 +114,7 @@ def _validate_runtime_preflight_routing(
         require_blockers
         and expected_blocker is not None
         and primary_blockers is not None
-        and expected_blocker not in primary_blockers
+        and primary_blockers != [expected_blocker]
     ):
         raise ValueError(f"{blocker_error} runtime blocker is inconsistent")
 

@@ -48,6 +48,30 @@ class TransformerTorchTrainingParityAttemptRequirementBuilderTests(
         )
         validate_torch_training_parity_attempt_requirements(requirements)
 
+    def test_runtime_preflight_uses_status_blocker_over_noisy_failures(self) -> None:
+        requirements = build_torch_training_parity_attempt_requirements(
+            runtime_report={
+                "status": "blocked_runtime_unavailable",
+                "parity_attempt_allowed": False,
+                "summary": {
+                    "failed_checks": [
+                        "runtime_available",
+                        "runtime_kind",
+                        "dtype_available",
+                    ],
+                },
+            },
+            candidate={},
+            report={"passed": False},
+        )
+
+        self.assertEqual(requirements["primary_blockers"], ["runtime_available"])
+        self.assertEqual(
+            requirements["next_actions"],
+            ["install_real_pytorch_runtime"],
+        )
+        validate_torch_training_parity_attempt_requirements(requirements)
+
     def test_complete_attempt_is_typed(self) -> None:
         requirements = build_torch_training_parity_attempt_requirements(
             runtime_report={"status": "passed", "parity_attempt_allowed": True},

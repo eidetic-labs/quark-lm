@@ -128,6 +128,11 @@ def _requirements(
 
 
 def _runtime_blockers(runtime_report: dict[str, Any]) -> list[str]:
+    blocker = TORCH_TRAINING_PARITY_ATTEMPT_RUNTIME_BLOCKER_BY_STATUS.get(
+        runtime_report.get("status")
+    )
+    if blocker is not None:
+        return [blocker]
     blockers = _summary_failures(runtime_report)
     return blockers if blockers else ["parity_attempt_allowed"]
 

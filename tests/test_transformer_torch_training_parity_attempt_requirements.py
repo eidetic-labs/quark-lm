@@ -80,6 +80,16 @@ class TransformerTorchTrainingParityAttemptRequirementsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "runtime blocker"):
             validate_torch_training_parity_attempt_requirements(requirements)
 
+    def test_validator_rejects_extra_runtime_blockers(self) -> None:
+        requirements = _valid_requirements()
+        requirements["primary_blockers"] = [
+            "dtype_available",
+            "runtime_available",
+        ]
+
+        with self.assertRaisesRegex(ValueError, "runtime blocker"):
+            validate_torch_training_parity_attempt_requirements(requirements)
+
     def test_validator_rejects_stage_action_mismatch(self) -> None:
         requirements = _stage_requirements(
             stage="training_replay_parity",
