@@ -17,6 +17,7 @@ from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_experiment import TRANSFORMER_RECIPE_VERSION
 from transformer_objectives import DIRECT_ANSWER_OBJECTIVE_MODES
 from transformer_paths import DEFAULT_RUN_DIR
+from transformer_routing_repair_bundle import EXPERIMENT_BUNDLES
 
 
 def add_answer_train_parser(
@@ -206,6 +207,12 @@ def _add_direct_answer_options(answer_parser: argparse.ArgumentParser) -> None:
 
 def _add_experiment_options(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--experiment-version", default=TRANSFORMER_RECIPE_VERSION)
+    answer_parser.add_argument(
+        "--experiment-bundle",
+        choices=EXPERIMENT_BUNDLES,
+        default=None,
+        help="Declared experiment bundle that adds required acceptance gates.",
+    )
     answer_parser.add_argument("--experiment-hypothesis", default=None)
     answer_parser.add_argument(
         "--experiment-acceptance-gate",

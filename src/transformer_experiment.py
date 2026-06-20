@@ -35,11 +35,17 @@ from transformer_experiment_recipe import (
     transformer_training_recipe,
     transformer_training_recipe_id,
 )
+from transformer_routing_repair_bundle import (
+    EXPERIMENT_BUNDLES,
+    PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
+)
 from transformer_run_artifacts import TransformerRunArtifacts
 
 
 __all__ = [
+    "EXPERIMENT_BUNDLES",
     "PROFILE_AWARE_DIRECT_ANSWER_MODES",
+    "PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE",
     "PROFILE_SCALE_BRANCH_DIVERSITY_RECOVERY_FRONTIER_MODE",
     "PROFILE_SCALE_BRANCH_STABLE_COVERAGE_RECOVERY_FRONTIER_MODE",
     "PROFILE_SCALE_COLLAPSED_PROFILE_BINDING_FRONTIER_MODE",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_profile_scale_experiment_gates import profile_scale_experiment_gates
+from transformer_routing_repair_bundle import routing_repair_bundle_gates
 
 
 def parse_experiment_gate(raw_gate: str) -> dict[str, Any]:
@@ -82,6 +83,7 @@ def transformer_experiment_acceptance_gates(args: Any) -> list[dict[str, Any]]:
         gates.extend(
             profile_scale_experiment_gates(getattr(args, "direct_answer_mode", ""))
         )
+    gates.extend(routing_repair_bundle_gates(getattr(args, "experiment_bundle", None)))
     gates.extend(
         parse_experiment_gate(raw_gate)
         for raw_gate in (getattr(args, "experiment_acceptance_gate", None) or [])

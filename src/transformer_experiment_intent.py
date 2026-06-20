@@ -10,15 +10,26 @@ from transformer_experiment_constants import TRANSFORMER_RECIPE_VERSION
 from transformer_experiment_gates import transformer_experiment_acceptance_gates
 from transformer_experiment_modes import direct_answer_is_profile_aware
 from transformer_experiment_recipe import transformer_training_recipe_id
+from transformer_routing_repair_bundle import (
+    routing_repair_bundle_failure_criteria,
+    routing_repair_bundle_hypothesis,
+    routing_repair_bundle_notes,
+)
 from transformer_run_artifacts import TransformerRunArtifacts
 
 
 def transformer_experiment_intent(args: Any) -> dict[str, Any]:
-    hypothesis = getattr(args, "experiment_hypothesis", None) or (
-        "A tiny decoder-only transformer can improve corpus-derived answer "
-        "evidence under declared gates without leaving the closed-world data boundary."
+    bundle = getattr(args, "experiment_bundle", None)
+    hypothesis = (
+        getattr(args, "experiment_hypothesis", None)
+        or routing_repair_bundle_hypothesis(bundle)
+        or (
+            "A tiny decoder-only transformer can improve corpus-derived answer "
+            "evidence under declared gates without leaving the closed-world data boundary."
+        )
     )
     notes = list(getattr(args, "experiment_note", None) or [])
+    notes.extend(routing_repair_bundle_notes(bundle))
     notes.append("Eval probe paths are declared for measurement, not as hidden training data.")
     failure_criteria = [
         "Metrics omit baseline or final snapshots.",
@@ -30,6 +41,7 @@ def transformer_experiment_intent(args: Any) -> dict[str, Any]:
         "The deterministic closed-world verifier rejects the training plan.",
         "The constraint-first promotion gate rejects the run before quality metrics are eligible.",
     ]
+    failure_criteria.extend(routing_repair_bundle_failure_criteria(bundle))
     failure_criteria.extend(getattr(args, "experiment_failure_criterion", None) or [])
     artifacts = TransformerRunArtifacts.from_run(
         args.run,

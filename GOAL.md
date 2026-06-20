@@ -17,8 +17,35 @@ provenance, documentation, and this goal framework.
 
 ## Current Goal Phase
 
-Active phase: experimental PyTorch backend parity for the scalar transformer
-reference.
+Active phase: profile-balanced routing repair for the scalar transformer.
+
+This phase resumes model-quality work after the optional PyTorch parity
+evidence phase. The selected path is Bundle A from `RC_GAP_AUDIT.md`:
+profile-balanced routing repair with representation-separation acceptance
+checks. The first implementation slice is the machine-checkable experiment
+bundle contract behind `--experiment-bundle profile-balanced-routing-repair`.
+
+Current phase requirements:
+
+- Treat v0.115 as evidence that hidden-projection pressure is relevant but too
+  local when applied to one sampled branch batch.
+- Declare the routing-repair bundle before any v0.116-style training screen.
+- Require profile-balanced branch batches across failing multi-target profiles,
+  zero-coverage profiles, and buried-target profiles.
+- Require hidden-projection margin evidence across branch targets.
+- Require representation-separation evidence through target centroid distances
+  and centroid margins.
+- Preserve baseline target-token coverage profile by profile.
+- Reject hidden-advantage movement when target-token coverage does not respond.
+- Keep branch-diversity acceptance constraint-first: no retention, leakage,
+  unknown-policy, target-coverage, or docs/current-state regression.
+- Do not promote transformer language-model behavior until
+  `branch_diversity_target` passes or the residual gap is narrowed and explained
+  by a stronger screen.
+
+Recently closed phase: experimental PyTorch backend parity for the scalar
+transformer reference. The following backend guardrails remain active for future
+PyTorch work, but they are no longer the current goal-loop lane.
 
 - Preserve scalar Python as the auditable reference implementation.
 - Record backend policy, purity metadata, and parity status in transformer
@@ -166,7 +193,7 @@ reference.
   from a paired status-to-blocker map so remediation is tied to the failed
   runtime check that justifies it.
 - Treat focused backend parity tests, full Python discovery, docs builds, and
-  code-quality review as the evidence gate for this phase.
+  code-quality review as the evidence gate for that closed backend phase.
 
 ## Current Canonical Evidence
 
@@ -193,9 +220,10 @@ Current evidence summary:
 - v0.115 transformer posture: `10/11` constraints pass, but
   `branch_diversity_target` still blocks neural promotion; retrieval memory is
   exact but does not count as weight learning.
-- Current PyTorch backend posture: tiny CPU `float64` real-runtime training
-  replay parity matches scalar evidence, but PyTorch remains optional,
-  unpromoted, and not a general training backend.
+- Current PyTorch backend posture: optional, unpromoted, and not a general
+  training backend. The latest local runtime preflight is
+  `blocked_runtime_unavailable` because PyTorch is not installed; the written
+  attempt audit still passes as `artifact_set_valid`.
 - Next model direction: profile-balanced routing repair with
   representation-separation acceptance checks.
 
