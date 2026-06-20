@@ -113,6 +113,9 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         self.assertEqual(summary["bundle"], PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE)
         self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_TOPK_BATCH_MODE)
         self.assertGreater(summary["retention_anchor_count"], 0)
+        self.assertTrue(summary["target_floor_competitor_movement"]["available"])
+        assert record is not None
+        self.assertTrue(record["target_floor_competitor_summary"])
 
     def test_records_retention_anchors_for_retention_rank_bundle(self) -> None:
         fixture = branch_training_fixture(seed=40)

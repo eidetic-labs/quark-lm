@@ -5,9 +5,11 @@ from __future__ import annotations
 import random
 from typing import Any
 
+from transformer_branch_replay_competitor_diagnostics import (
+    branch_replay_competitor_movement,
+)
 from transformer_branch_replay_rank_diagnostics import (
     branch_replay_rank_movement,
-    branch_replay_rank_summary,
 )
 from transformer_direct_answer_profile_balanced_batches import (
     direct_answer_profile_balanced_branch_batch,
@@ -21,9 +23,6 @@ from transformer_profile_balanced_target_depth import (
     PROFILE_BALANCED_DEFAULT_MIN_TARGETS_PER_PROFILE,
     PROFILE_BALANCED_RANK_COLLAPSE_MIN_TARGETS_PER_PROFILE,
 )
-from transformer_profile_balanced_target_floor_anchors import (
-    profile_balanced_target_floor_anchors_from_examples,
-)
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_COLLAPSE_ROUTING_REPAIR_MODE,
@@ -35,6 +34,9 @@ from transformer_routing_repair_bundle import (
 )
 from transformer_routing_repair_batch_step_records import (
     routing_repair_batch_step_record,
+)
+from transformer_routing_repair_target_floor_evidence import (
+    routing_repair_target_floor_evidence,
 )
 
 ROUTING_REPAIR_BATCH_MODE = PROFILE_BALANCED_ROUTING_REPAIR_MODE
@@ -90,6 +92,7 @@ def record_routing_repair_batch_step(
     retention_anchors = []
     target_floor_anchors = []
     target_floor_rank_summary = None
+    target_floor_competitor_summary = None
     if getattr(args, "direct_answer_mode", None) in {
         ROUTING_REPAIR_RETENTION_RANK_BATCH_MODE,
         ROUTING_REPAIR_TOPK_BATCH_MODE,
@@ -105,20 +108,19 @@ def record_routing_repair_batch_step(
             terminator,
         )
     if getattr(args, "direct_answer_mode", None) == ROUTING_REPAIR_TOPK_BATCH_MODE:
-        target_floor_anchors = profile_balanced_target_floor_anchors_from_examples(
-            model,
-            tokenizer,
-            branch_examples,
-            probe_rng,
-            getattr(args, "direct_answer_branch_position", 1),
-            getattr(args, "direct_answer_branch_batch_size", 1),
-            terminator,
+        target_floor_evidence = routing_repair_target_floor_evidence(
+            model=model,
+            tokenizer=tokenizer,
+            branch_examples=branch_examples,
+            rng=probe_rng,
+            branch_position=getattr(args, "direct_answer_branch_position", 1),
+            batch_size=getattr(args, "direct_answer_branch_batch_size", 1),
+            terminator=terminator,
             repair_target_profiles=direct_answer_repair_target_profiles(args),
         )
-        target_floor_rank_summary = branch_replay_rank_summary(
-            model,
-            target_floor_anchors,
-        )
+        target_floor_anchors = target_floor_evidence.anchors
+        target_floor_rank_summary = target_floor_evidence.rank_summary
+        target_floor_competitor_summary = target_floor_evidence.competitor_summary
     return routing_repair_batch_step_record(
         direct_step,
         branches,
@@ -126,6 +128,7 @@ def record_routing_repair_batch_step(
         target_floor_anchors,
         target_depth,
         target_floor_rank_summary,
+        target_floor_competitor_summary,
     )
 
 
@@ -193,6 +196,9 @@ def routing_repair_batch_evidence_summary(
             int(record.get("target_floor_anchor_count", 0)) for record in step_records
         ),
         "target_floor_rank_movement": branch_replay_rank_movement(step_records),
+        "target_floor_competitor_movement": branch_replay_competitor_movement(
+            step_records
+        ),
         "profiles": covered_profiles,
         "required_eval_profiles": required,
         "profile_balanced_branch_batches": batch_check,
