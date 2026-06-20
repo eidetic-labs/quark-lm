@@ -12,6 +12,7 @@ from transformer_backend_policy import (
     PYTORCH_BACKEND,
     validate_transformer_backend_metadata,
 )
+from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
 
 
 def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
@@ -112,6 +113,7 @@ def transformer_constraint_report(metrics: dict[str, Any]) -> dict[str, Any]:
             coverage,
         ),
     ]
+    constraints.extend(routing_repair_bundle_checks(metrics))
     quality_checks = [
         promotion_check(
             "direct_greedy_exact",

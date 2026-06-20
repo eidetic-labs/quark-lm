@@ -185,6 +185,7 @@ def finalize_transformer_answer_run(
         "closed_world_verifier_path": str(verifier_path),
         "constraint_first_promotion_path": str(constraint_first_path),
         "experiment_intent_path": str(experiment_path),
+        "experiment_bundle": getattr(args, "experiment_bundle", None),
         "metrics_path": str(artifacts.metrics),
         "run_id": args.run.name,
         "pretrained_weights": False,

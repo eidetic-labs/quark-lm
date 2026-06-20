@@ -9,6 +9,7 @@ from transformer_backend_policy import (
     validate_transformer_backend_metadata,
 )
 from transformer_experiment_constants import TRAINING_DATA_DESCRIPTION
+from transformer_routing_repair_bundle_evidence import routing_repair_bundle_checks
 
 
 def transformer_experiment_decision(
@@ -63,6 +64,7 @@ def transformer_experiment_decision(
         backend_policy,
     ]
     _append_direct_answer_evidence(evidence, metrics.get("direct_answer"))
+    evidence.extend(routing_repair_bundle_checks(metrics))
     if constraint_gate.get("passed") is True:
         return (
             "promoted",
