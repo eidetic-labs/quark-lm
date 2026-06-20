@@ -10,6 +10,9 @@ from transformer_torch_training_replay_parity_gate import (
     TORCH_TRAINING_REPLAY_MATCHED_STATUS,
     TORCH_TRAINING_REPLAY_PENDING_STATUS,
 )
+from transformer_torch_training_replay_gate_check_validation import (
+    validate_torch_training_replay_gate_check,
+)
 
 
 TORCH_TRAINING_REPLAY_GATE_CHECKS = (
@@ -63,6 +66,7 @@ def _validated_checks(gate: dict[str, Any]) -> list[dict[str, Any]]:
             raise ValueError(
                 f"candidate.training_replay_parity_gate.checks.{name}.passed"
             )
+        validate_torch_training_replay_gate_check(check)
     return checks
 
 

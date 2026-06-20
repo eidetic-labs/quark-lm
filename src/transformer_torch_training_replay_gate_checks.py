@@ -68,6 +68,7 @@ def build_replay_probe_check(
 ) -> dict[str, Any]:
     actual_status = probe.get("status")
     schema_version = probe.get("schema_version")
+    probe_passed = bool(probe.get("passed"))
     proof_flags = {
         flag: probe.get(flag) is True
         for flag in required_proof_flags
@@ -75,11 +76,12 @@ def build_replay_probe_check(
     return {
         "name": name,
         "passed": (
-            bool(probe.get("passed"))
+            probe_passed
             and actual_status == expected_status
             and schema_version == expected_schema_version
             and all(proof_flags.values())
         ),
+        "probe_passed": probe_passed,
         "expected": expected_status,
         "status": actual_status,
         "schema_version": schema_version,
