@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from transformer_training_parity_report import build_training_parity_report
+from transformer_training_parity_report_validation import validate_training_parity_report
 from transformer_torch_training_parity_attempt_hashes import (
     TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM,
     build_torch_training_parity_attempt_hashes,
@@ -123,6 +124,7 @@ def _validate_summary(name: str, actual: Any, expected: dict[str, Any]) -> None:
 
 
 def _validate_report_payload(payloads: dict[str, dict[str, Any]]) -> None:
+    validate_training_parity_report(payloads["report"])
     expected = build_training_parity_report(
         fixture=payloads["fixture"],
         candidate=payloads["candidate"],

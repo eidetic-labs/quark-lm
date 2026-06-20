@@ -101,6 +101,16 @@ class TransformerTorchTrainingParityAttemptRuntimeSummaryTests(unittest.TestCase
         with self.assertRaisesRegex(ValueError, "training_parity_report"):
             validate_torch_training_parity_attempt_artifact_set(artifacts)
 
+    def test_artifact_set_rejects_malformed_report_payload(self) -> None:
+        artifacts = _artifacts()
+        artifacts["report"]["checks"][0]["passed"] = 1
+        artifacts["attempt"]["training_parity_report"][
+            "training_parity_report_sha256"
+        ] = build_torch_training_attempt_payload_hash(artifacts["report"])
+
+        with self.assertRaisesRegex(ValueError, "backend_metadata.passed"):
+            validate_torch_training_parity_attempt_artifact_set(artifacts)
+
 
 def _artifacts() -> dict:
     return copy.deepcopy(

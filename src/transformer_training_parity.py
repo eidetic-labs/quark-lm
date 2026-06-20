@@ -29,6 +29,7 @@ from transformer_training_parameter_manifest import (
     validate_training_parameter_manifest,
 )
 from transformer_training_parity_report import build_training_parity_report
+from transformer_training_parity_report_validation import validate_training_parity_report
 from transformer_training_parity_schema import (
     TRAINING_PARITY_FIXTURE_KIND,
     TRAINING_PARITY_REPORT_KIND,
@@ -57,4 +58,5 @@ __all__ = [
     "validate_optimizer_step_contract",
     "validate_training_parameter_manifest",
     "validate_training_parity_fixture",
+    "validate_training_parity_report",
 ]
