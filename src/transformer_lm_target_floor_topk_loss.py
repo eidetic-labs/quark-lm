@@ -78,7 +78,8 @@ def target_floor_combined_topk_loss(
             candidate_count,
             model.config.vocab_size,
         )
-        competitor_loss = competitor_loss + _competitor_unlikelihood_loss(
+        competitor_loss = competitor_loss + _competitor_pressure_loss(
+            logits,
             probs,
             target,
             competitor_weight,
@@ -97,7 +98,8 @@ def target_floor_combined_topk_loss(
     )
 
 
-def _competitor_unlikelihood_loss(
+def _competitor_pressure_loss(
+    logits: list[Scalar],
     probs: list[Scalar],
     target: int,
     competitor_weight: float,
@@ -107,7 +109,26 @@ def _competitor_unlikelihood_loss(
     competitor = _top_competitor_id(probs, target)
     if competitor is None:
         return Scalar(0.0)
-    return (-(Scalar(1.0) - probs[competitor] + 1e-12).log()) * competitor_weight
+    return (
+        _competitor_unlikelihood_loss(probs, competitor)
+        + _competitor_margin_loss(logits, target, competitor)
+    ) * competitor_weight
+
+
+def _competitor_unlikelihood_loss(
+    probs: list[Scalar],
+    competitor: int,
+) -> Scalar:
+    return -(Scalar(1.0) - probs[competitor] + 1e-12).log()
+
+
+def _competitor_margin_loss(
+    logits: list[Scalar],
+    target: int,
+    competitor: int,
+) -> Scalar:
+    gap = logits[competitor] - logits[target] + 1.0
+    return (Scalar(1.0) + gap.exp()).log()
 
 
 def _top_competitor_id(probs: list[Scalar], target: int) -> int | None:

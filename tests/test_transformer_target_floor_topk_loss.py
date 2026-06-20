@@ -119,6 +119,7 @@ class TransformerTargetFloorTopKLossTests(unittest.TestCase):
         assert plain is not None
         assert with_competitor is not None
         self.assertGreater(with_competitor.data, plain.data)
+        self.assertGreater(with_competitor.data - plain.data, 4.0)
 
 
 class _FakeConfig:
