@@ -4,6 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from transformer_torch_training_readiness import TORCH_TRAINING_READY_STATUS
+from transformer_torch_training_replay_parity_gate import (
+    TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+)
+
+
+_MATCHED_CANDIDATE_ROUTE = {
+    "implementation_status": TORCH_TRAINING_REPLAY_MATCHED_STATUS,
+    "parity_status": "matched",
+    "training_case_status": "matched",
+}
+
 
 def validate_torch_training_parity_attempt_summaries(
     attempt: dict[str, Any],
@@ -56,6 +68,8 @@ def _validate_candidate_summary(candidate: dict[str, Any]) -> None:
     ):
         _require_non_empty_string(candidate, "candidate", key)
     _require_string_list(candidate, "candidate", "training_readiness_failed_checks")
+    _reject_ready_candidate_readiness_failures(candidate)
+    _reject_matched_candidate_route_mismatch(candidate)
     _require_sha256(candidate, "candidate", "candidate_sha256")
 
 
@@ -109,4 +123,27 @@ def _reject_passed_summary_failures(record: dict[str, Any], label: str) -> None:
     if record["passed"] and record["failed_checks"]:
         raise ValueError(
             f"passed flag is inconsistent: {label}.failed_checks are inconsistent"
+        )
+
+
+def _reject_ready_candidate_readiness_failures(candidate: dict[str, Any]) -> None:
+    if (
+        candidate["training_readiness_status"] == TORCH_TRAINING_READY_STATUS
+        and candidate["training_readiness_failed_checks"]
+    ):
+        raise ValueError("candidate.training_readiness_failed_checks are inconsistent")
+
+
+def _reject_matched_candidate_route_mismatch(candidate: dict[str, Any]) -> None:
+    matched_fields = [
+        key
+        for key, expected in _MATCHED_CANDIDATE_ROUTE.items()
+        if candidate[key] == expected
+    ]
+    if matched_fields and any(
+        candidate[key] != expected
+        for key, expected in _MATCHED_CANDIDATE_ROUTE.items()
+    ):
+        raise ValueError(
+            f"candidate.{matched_fields[0]} is inconsistent with matched route"
         )

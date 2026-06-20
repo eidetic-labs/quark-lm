@@ -99,7 +99,7 @@ class TransformerTorchBackendPublicRequirementsTests(unittest.TestCase):
                 "parity_status": "matched",
                 "training_readiness_status": "ready",
                 "training_readiness_failed_checks": [],
-                "training_case_status": "computed",
+                "training_case_status": "matched",
                 "candidate_sha256": "b" * 64,
             },
             "training_replay_parity_gate": {

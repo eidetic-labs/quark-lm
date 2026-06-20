@@ -104,6 +104,34 @@ class TransformerTorchTrainingParityAttemptRuntimeSummaryTests(unittest.TestCase
         ):
             validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
 
+    def test_summary_validator_rejects_ready_candidate_with_failures(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["candidate"]["training_readiness_status"] = "ready"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "candidate.training_readiness_failed_checks",
+        ):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
+    def test_summary_validator_rejects_matched_parity_route_mismatch(self) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["candidate"]["parity_status"] = "matched"
+
+        with self.assertRaisesRegex(ValueError, "candidate.parity_status"):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
+    def test_summary_validator_rejects_matched_implementation_route_mismatch(
+        self,
+    ) -> None:
+        artifacts = _artifacts()
+        artifacts["attempt"]["candidate"][
+            "implementation_status"
+        ] = "training_replay_parity_matched"
+
+        with self.assertRaisesRegex(ValueError, "candidate.implementation_status"):
+            validate_torch_training_parity_attempt_summaries(artifacts["attempt"])
+
     def test_artifact_set_rejects_stale_runtime_report_hash(self) -> None:
         artifacts = _artifacts()
         artifacts["attempt"]["runtime"]["runtime_report_sha256"] = "0" * 64
