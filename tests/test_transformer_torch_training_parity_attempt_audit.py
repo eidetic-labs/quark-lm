@@ -22,6 +22,9 @@ from transformer_torch_training_parity_attempt_audit_validation import (
     TORCH_TRAINING_PARITY_ATTEMPT_AUDIT_EVIDENCE_HASH_KEYS,
     validate_torch_training_parity_attempt_audit,
 )
+from transformer_torch_training_promotion_gate import (
+    TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
+)
 
 
 class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
@@ -188,7 +191,7 @@ def _valid_audit() -> dict:
         "next_requirements_stage": "runtime_preflight",
         "next_requirements_status": "blocked",
         "next_actions": ["install_real_pytorch_runtime"],
-        "training_backend_promotion_status": "not_promoted",
+        "training_backend_promotion_status": TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
         "promoted_training_backend": False,
         "artifact_hash_algorithm": "sha256-json-v1",
         "artifact_hashes": {
