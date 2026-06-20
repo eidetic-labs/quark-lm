@@ -42,6 +42,18 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
         self.assertEqual(audit["attempt_status"], written["status"])
         self.assertEqual(audit["attempt_passed"], written["passed"])
         self.assertEqual(
+            audit["runtime_failed_checks"],
+            written["runtime"]["failed_checks"],
+        )
+        self.assertEqual(
+            audit["training_readiness_status"],
+            written["candidate"]["training_readiness_status"],
+        )
+        self.assertEqual(
+            audit["training_readiness_failed_checks"],
+            written["candidate"]["training_readiness_failed_checks"],
+        )
+        self.assertEqual(
             audit["training_replay_parity_status"],
             written["training_replay_parity_gate"]["status"],
         )
@@ -50,8 +62,16 @@ class TransformerTorchTrainingParityAttemptAuditTests(unittest.TestCase):
             written["training_replay_parity_gate"]["passed"],
         )
         self.assertEqual(
+            audit["training_replay_parity_failed_checks"],
+            written["training_replay_parity_gate"]["failed_checks"],
+        )
+        self.assertEqual(
             audit["training_report_passed"],
             written["training_parity_report"]["passed"],
+        )
+        self.assertEqual(
+            audit["training_report_failed_checks"],
+            written["training_parity_report"]["failed_checks"],
         )
         self.assertEqual(
             audit["next_requirements_stage"],
@@ -214,9 +234,14 @@ def _valid_audit() -> dict:
         "attempt_passed": False,
         "runtime_status": "blocked_runtime_unavailable",
         "parity_attempt_allowed": False,
+        "runtime_failed_checks": ["runtime_available"],
+        "training_readiness_status": "blocked",
+        "training_readiness_failed_checks": ["runtime_available"],
         "training_replay_parity_status": "training_replay_parity_pending",
         "training_replay_parity_passed": False,
+        "training_replay_parity_failed_checks": ["runtime_available"],
         "training_report_passed": False,
+        "training_report_failed_checks": ["runtime_report"],
         "next_requirements_stage": "runtime_preflight",
         "next_requirements_status": "blocked",
         "next_actions": ["install_real_pytorch_runtime"],

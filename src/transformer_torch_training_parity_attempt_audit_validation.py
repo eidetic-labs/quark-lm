@@ -18,6 +18,9 @@ from transformer_torch_training_parity_attempt_requirement_routing import (
 from transformer_torch_training_parity_attempt_audit_status import (
     validate_torch_training_parity_attempt_audit_status,
 )
+from transformer_torch_training_parity_attempt_audit_requirements import (
+    validate_torch_training_parity_attempt_audit_requirements,
+)
 from transformer_torch_training_promotion_gate import (
     TORCH_TRAINING_BACKEND_NOT_PROMOTED_STATUS,
 )
@@ -69,6 +72,7 @@ def _validate_valid_audit(audit: dict[str, Any]) -> None:
         "fixture_id",
         "attempt_status",
         "runtime_status",
+        "training_readiness_status",
         "training_replay_parity_status",
         "next_requirements_stage",
         "next_requirements_status",
@@ -79,7 +83,15 @@ def _validate_valid_audit(audit: dict[str, Any]) -> None:
     _require_bool(audit, "parity_attempt_allowed")
     _require_bool(audit, "training_replay_parity_passed")
     _require_bool(audit, "training_report_passed")
+    for key in (
+        "runtime_failed_checks",
+        "training_readiness_failed_checks",
+        "training_replay_parity_failed_checks",
+        "training_report_failed_checks",
+    ):
+        _require_string_list(audit, key)
     validate_torch_training_parity_attempt_audit_status(audit)
+    validate_torch_training_parity_attempt_audit_requirements(audit)
     if audit.get("promoted_training_backend") is not False:
         raise ValueError("audit.promoted_training_backend must be false")
     if audit.get("artifact_hash_algorithm") != TORCH_TRAINING_ATTEMPT_HASH_ALGORITHM:

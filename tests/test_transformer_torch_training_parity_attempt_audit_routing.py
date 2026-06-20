@@ -99,9 +99,14 @@ def _valid_audit() -> dict:
         "attempt_passed": False,
         "runtime_status": "blocked_runtime_unavailable",
         "parity_attempt_allowed": False,
+        "runtime_failed_checks": ["runtime_available"],
+        "training_readiness_status": "blocked",
+        "training_readiness_failed_checks": ["runtime_available"],
         "training_replay_parity_status": "training_replay_parity_pending",
         "training_replay_parity_passed": False,
+        "training_replay_parity_failed_checks": ["runtime_available"],
         "training_report_passed": False,
+        "training_report_failed_checks": ["runtime_report"],
         "next_requirements_stage": "runtime_preflight",
         "next_requirements_status": "blocked",
         "next_actions": ["install_real_pytorch_runtime"],
@@ -127,9 +132,14 @@ def _make_replay_pending(audit: dict) -> None:
     audit["attempt_passed"] = False
     audit["runtime_status"] = "passed"
     audit["parity_attempt_allowed"] = True
+    audit["runtime_failed_checks"] = []
+    audit["training_readiness_status"] = "ready"
+    audit["training_readiness_failed_checks"] = []
     audit["training_replay_parity_status"] = "training_replay_parity_pending"
     audit["training_replay_parity_passed"] = False
+    audit["training_replay_parity_failed_checks"] = ["replay_buffer"]
     audit["training_report_passed"] = False
+    audit["training_report_failed_checks"] = []
     audit["next_requirements_stage"] = "training_replay_parity"
     audit["next_requirements_status"] = "pending"
     audit["next_actions"] = ["resolve_replay_gate:replay_buffer"]
@@ -140,9 +150,14 @@ def _make_complete(audit: dict) -> None:
     audit["attempt_passed"] = True
     audit["runtime_status"] = "passed"
     audit["parity_attempt_allowed"] = True
+    audit["runtime_failed_checks"] = []
+    audit["training_readiness_status"] = "ready"
+    audit["training_readiness_failed_checks"] = []
     audit["training_replay_parity_status"] = "training_replay_parity_matched"
     audit["training_replay_parity_passed"] = True
+    audit["training_replay_parity_failed_checks"] = []
     audit["training_report_passed"] = True
+    audit["training_report_failed_checks"] = []
     audit["next_requirements_stage"] = "complete"
     audit["next_requirements_status"] = "satisfied"
     audit["next_actions"] = []

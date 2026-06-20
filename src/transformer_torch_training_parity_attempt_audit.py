@@ -39,6 +39,7 @@ def _valid_audit(output_dir: Path, attempt: dict[str, Any]) -> dict[str, Any]:
     next_requirements = attempt["next_requirements"]
     promotion_gate = attempt["training_backend_promotion_gate"]
     runtime = attempt["runtime"]
+    candidate = attempt["candidate"]
     replay_gate = attempt["training_replay_parity_gate"]
     report = attempt["training_parity_report"]
     return {
@@ -50,9 +51,16 @@ def _valid_audit(output_dir: Path, attempt: dict[str, Any]) -> dict[str, Any]:
         "attempt_passed": attempt["passed"],
         "runtime_status": runtime["status"],
         "parity_attempt_allowed": runtime["parity_attempt_allowed"],
+        "runtime_failed_checks": list(runtime["failed_checks"]),
+        "training_readiness_status": candidate["training_readiness_status"],
+        "training_readiness_failed_checks": list(
+            candidate["training_readiness_failed_checks"]
+        ),
         "training_replay_parity_status": replay_gate["status"],
         "training_replay_parity_passed": replay_gate["passed"],
+        "training_replay_parity_failed_checks": list(replay_gate["failed_checks"]),
         "training_report_passed": report["passed"],
+        "training_report_failed_checks": list(report["failed_checks"]),
         "next_requirements_stage": next_requirements["stage"],
         "next_requirements_status": next_requirements["status"],
         "next_actions": list(next_requirements["next_actions"]),
