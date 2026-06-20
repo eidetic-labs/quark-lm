@@ -25,7 +25,6 @@ from transformer_direct_answer_branch_contrast_span_objective import (
 from transformer_direct_answer_branch_ranking_objectives import (
     train_direct_answer_branch_rank_margin_unlikelihood,
     train_direct_answer_branch_topk_softmax_unlikelihood,
-    train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood,
 )
 from transformer_direct_answer_core import DirectAnswerLesson
 from transformer_direct_answer_repair_objectives import (
@@ -121,29 +120,6 @@ def train_branch_rank_margin(
         step.terminator,
         step.params,
         balance_targets=balance_targets,
-    )
-
-
-def train_profile_balanced_branch_rank_margin(
-    step: BranchContrastModeStep,
-) -> float:
-    args = step.args
-    return train_direct_answer_profile_balanced_branch_rank_margin_unlikelihood(
-        step.model,
-        step.tokenizer,
-        step.example,
-        step.branch_examples,
-        step.lesson,
-        step.rng,
-        args.direct_answer_learning_rate,
-        args.direct_answer_negative_weight,
-        args.direct_answer_positive_weight,
-        args.direct_answer_contrast_weight,
-        args.direct_answer_branch_position,
-        args.direct_answer_branch_batch_size,
-        args.direct_answer_hard_negatives,
-        step.terminator,
-        step.params,
     )
 
 

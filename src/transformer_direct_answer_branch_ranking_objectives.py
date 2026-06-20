@@ -162,6 +162,51 @@ def train_direct_answer_branch_topk_softmax_unlikelihood(
     )
 
 
+def train_direct_answer_profile_balanced_branch_topk_softmax_unlikelihood(
+    model: Any,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    branch_examples: list[AnswerExample],
+    fallback_lesson: DirectAnswerLesson,
+    rng: random.Random,
+    learning_rate: float,
+    negative_weight: float,
+    positive_weight: float,
+    candidate_weight: float,
+    branch_position: int,
+    batch_size: int,
+    candidate_count: int,
+    terminator: str = ANSWER_TERMINATOR,
+    params: list[Scalar] | None = None,
+) -> float:
+    branches = direct_answer_profile_balanced_branch_batch(
+        model,
+        tokenizer,
+        branch_examples,
+        rng,
+        branch_position,
+        batch_size,
+        terminator,
+    )
+    if not branches:
+        return train_direct_answer_lesson(
+            model,
+            fallback_lesson,
+            rng,
+            learning_rate,
+            params=params,
+        )
+    return model.train_step_with_branch_topk_softmax(
+        unprofiled_branch_records(branches),
+        learning_rate,
+        negative_weight,
+        positive_weight,
+        candidate_weight,
+        candidate_count,
+        params=params,
+    )
+
+
 def _branch_diversity_batch(
     model: Any,
     tokenizer: CharTokenizer,

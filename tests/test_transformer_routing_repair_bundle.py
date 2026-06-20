@@ -5,6 +5,8 @@ import unittest
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+    PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
     routing_repair_bundle_mode,
     routing_repair_bundle_supports_mode,
@@ -42,6 +44,20 @@ class TransformerRoutingRepairBundleTests(unittest.TestCase):
         self.assertIn("rank_pressure_requires_branch_response", names)
         self.assertTrue(all(gate["required"] for gate in gates))
 
+    def test_topk_bundle_declares_required_gates(self) -> None:
+        gates = routing_repair_bundle_gates(
+            PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE
+        )
+        names = {gate["name"] for gate in gates}
+
+        self.assertIn("profile_balanced_branch_batches", names)
+        self.assertIn("topk_softmax_pressure", names)
+        self.assertIn("representation_separation_evidence", names)
+        self.assertIn("coverage_preserving_update_guard", names)
+        self.assertIn("branch_diversity_acceptance_gate", names)
+        self.assertIn("topk_pressure_requires_branch_response", names)
+        self.assertTrue(all(gate["required"] for gate in gates))
+
     def test_rank_bundle_binds_profile_balanced_rank_mode(self) -> None:
         self.assertEqual(
             routing_repair_bundle_mode(PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE),
@@ -51,6 +67,18 @@ class TransformerRoutingRepairBundleTests(unittest.TestCase):
             routing_repair_bundle_supports_mode(
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
                 PROFILE_BALANCED_RANK_ROUTING_REPAIR_MODE,
+            )
+        )
+
+    def test_topk_bundle_binds_profile_balanced_topk_mode(self) -> None:
+        self.assertEqual(
+            routing_repair_bundle_mode(PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE),
+            PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
+        )
+        self.assertTrue(
+            routing_repair_bundle_supports_mode(
+                PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
+                PROFILE_BALANCED_TOPK_ROUTING_REPAIR_MODE,
             )
         )
 

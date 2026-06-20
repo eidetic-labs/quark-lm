@@ -15,11 +15,13 @@ from support.core import ANSWER_TERMINATOR  # noqa: E402
 from transformer_routing_repair_batch_evidence import (  # noqa: E402
     ROUTING_REPAIR_BATCH_MODE,
     ROUTING_REPAIR_RANK_BATCH_MODE,
+    ROUTING_REPAIR_TOPK_BATCH_MODE,
     record_routing_repair_batch_step,
     routing_repair_batch_evidence_summary,
 )
 from transformer_routing_repair_bundle import (  # noqa: E402
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
 )
 
@@ -72,6 +74,34 @@ class TransformerRoutingRepairBatchEvidenceTests(unittest.TestCase):
         assert summary is not None
         self.assertEqual(summary["bundle"], PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE)
         self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_RANK_BATCH_MODE)
+
+    def test_records_profile_balanced_topk_bundle_batch(self) -> None:
+        fixture = branch_training_fixture(seed=40)
+        args = _args(
+            mode=ROUTING_REPAIR_TOPK_BATCH_MODE,
+            bundle=PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
+        )
+
+        record = record_routing_repair_batch_step(
+            args=args,
+            model=fixture.model,
+            tokenizer=fixture.tokenizer,
+            branch_examples=fixture.examples,
+            rng=random.Random(11),
+            direct_step=1,
+            terminator=ANSWER_TERMINATOR,
+        )
+
+        self.assertIsNotNone(record)
+        summary = routing_repair_batch_evidence_summary(
+            args,
+            [record] if record is not None else [],
+            _baseline(),
+        )
+        self.assertIsNotNone(summary)
+        assert summary is not None
+        self.assertEqual(summary["bundle"], PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE)
+        self.assertEqual(summary["direct_answer_mode"], ROUTING_REPAIR_TOPK_BATCH_MODE)
 
     def test_summary_covers_trainable_failed_profiles(self) -> None:
         fixture = branch_training_fixture(seed=40)

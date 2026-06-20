@@ -92,6 +92,7 @@ DIRECT_ANSWER_MODE_CASES = (
     "branch-profile-balanced-rank-margin-unlikelihood",
     "branch-topk-softmax-unlikelihood",
     "branch-balanced-topk-softmax-unlikelihood",
+    "branch-profile-balanced-topk-softmax-unlikelihood",
     "periodic-branch-representation-contrast-unlikelihood",
     "branch-span-repair-unlikelihood",
     "periodic-branch-span-repair-unlikelihood",

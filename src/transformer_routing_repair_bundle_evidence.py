@@ -10,8 +10,10 @@ from branch_diversity_snapshot_coverage import (
 )
 from constraint_first_report import promotion_check
 from transformer_routing_repair_rank_bundle_evidence import rank_routing_repair_checks
+from transformer_routing_repair_topk_bundle_evidence import topk_routing_repair_checks
 from transformer_routing_repair_bundle import (
     PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+    PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
 )
 
@@ -23,10 +25,13 @@ def routing_repair_bundle_checks(metrics: dict[str, Any]) -> list[dict[str, Any]
     if bundle not in {
         PROFILE_BALANCED_ROUTING_REPAIR_BUNDLE,
         PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE,
+        PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE,
     }:
         return []
     if bundle == PROFILE_BALANCED_RANK_ROUTING_REPAIR_BUNDLE:
         return rank_routing_repair_checks(metrics)
+    if bundle == PROFILE_BALANCED_TOPK_ROUTING_REPAIR_BUNDLE:
+        return topk_routing_repair_checks(metrics)
     return _hidden_projection_routing_repair_checks(metrics)
 
 

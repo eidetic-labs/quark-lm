@@ -12,7 +12,6 @@ from tokenizer import CharTokenizer
 from transformer_direct_answer_branch_contrast_adapters import (
     BranchContrastModeStep,
     train_branch_contrast,
-    train_profile_balanced_branch_rank_margin,
     train_branch_rank_margin,
     train_branch_repair,
     train_branch_representation_contrast,
@@ -23,6 +22,10 @@ from transformer_direct_answer_branch_contrast_adapters import (
     train_hard_branch_contrast,
 )
 from transformer_direct_answer_core import DirectAnswerLesson
+from transformer_direct_answer_branch_profile_balanced_adapters import (
+    train_profile_balanced_branch_rank_margin,
+    train_profile_balanced_branch_topk_softmax,
+)
 
 
 BRANCH_CONTRAST_DIRECT_ANSWER_MODES = frozenset(
@@ -32,6 +35,7 @@ BRANCH_CONTRAST_DIRECT_ANSWER_MODES = frozenset(
         "branch-profile-balanced-rank-margin-unlikelihood",
         "branch-topk-softmax-unlikelihood",
         "branch-balanced-topk-softmax-unlikelihood",
+        "branch-profile-balanced-topk-softmax-unlikelihood",
         "periodic-branch-representation-contrast-unlikelihood",
         "branch-span-repair-unlikelihood",
         "periodic-branch-span-repair-unlikelihood",
@@ -75,6 +79,8 @@ def train_direct_answer_branch_contrast_mode_step(
     mode = args.direct_answer_mode
     if mode == "branch-profile-balanced-rank-margin-unlikelihood":
         return train_profile_balanced_branch_rank_margin(step)
+    if mode == "branch-profile-balanced-topk-softmax-unlikelihood":
+        return train_profile_balanced_branch_topk_softmax(step)
     if mode in _RANK_MARGIN_MODES:
         return train_branch_rank_margin(
             step,
