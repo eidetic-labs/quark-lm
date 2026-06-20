@@ -111,8 +111,17 @@ def _completion_status(trials: list[dict[str, Any]]) -> str:
 
 def _summary(trials: list[dict[str, Any]], dry_run: bool) -> dict[str, Any]:
     completed = [trial for trial in trials if trial.get("status") == "completed"]
+    completed_all_trials = len(completed) == len(trials)
+    frontier_regressed_trials = _frontier_regressed_trial_count(completed)
+    frontier_gate_passed = frontier_regressed_trials == 0
     return {
-        "passed": (len(completed) == len(trials)) if not dry_run else True,
+        "passed": (
+            completed_all_trials and frontier_gate_passed
+        )
+        if not dry_run
+        else True,
+        "completed_all_trials": completed_all_trials,
+        "frontier_gate_passed": frontier_gate_passed,
         "completed_trials": len(completed),
         "planned_trials": len(trials),
         "dry_run": dry_run,
@@ -143,13 +152,17 @@ def _summary(trials: list[dict[str, Any]], dry_run: bool) -> dict[str, Any]:
             for trial in completed
             if trial.get("frontier_comparison", {}).get("passed") is True
         ),
-        "frontier_regressed_trials": sum(
-            1
-            for trial in completed
-            if trial.get("frontier_comparison", {}).get("available") is True
-            and trial.get("frontier_comparison", {}).get("passed") is False
-        ),
+        "frontier_regressed_trials": frontier_regressed_trials,
     }
+
+
+def _frontier_regressed_trial_count(trials: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for trial in trials
+        if trial.get("frontier_comparison", {}).get("available") is True
+        and trial.get("frontier_comparison", {}).get("passed") is False
+    )
 
 
 def _branch_evidence(metrics: dict[str, Any]) -> dict[str, Any]:
