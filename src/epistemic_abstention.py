@@ -24,6 +24,29 @@ ABSTAIN_TARGET = " unknown."
 # which carries no leading space, so the abstention token is stored without one.
 ABSTAIN_COMPLETION = "unknown."
 
+# Ledgered abstention calibration. The decision is pure argmin over the per-type
+# candidate menu -- the model "abstains" when ``" unknown."`` is the lowest-NLL
+# choice (or the greedy completion is ``"unknown."``) -- i.e. margin 0.0: no
+# confidence band beyond winning the ranking is required. This constant is the
+# calibration knob: raising it would require the abstain option to beat the best
+# concrete answer by a margin (trading recall for precision). Changing it is a
+# deliberate, reviewed decision -- pinned by tests/test_abstention_ledger.py and
+# emitted into eval provenance so any recalibration is auditable.
+ABSTENTION_MARGIN = 0.0
+ABSTENTION_DECISION = "argmin_nll_over_per_type_menu_or_greedy_completion"
+
+
+def abstention_ledger() -> dict[str, Any]:
+    """The pinned abstention decision contract -- the closed-world thesis's
+    load-bearing definition -- emitted into eval provenance for auditability."""
+
+    return {
+        "target": ABSTAIN_TARGET,
+        "completion": ABSTAIN_COMPLETION,
+        "decision": ABSTENTION_DECISION,
+        "margin": ABSTENTION_MARGIN,
+    }
+
 
 def _should_abstain(record: dict) -> bool:
     """A record is out-of-corpus when its gold target is the abstain string."""

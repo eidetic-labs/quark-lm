@@ -20,6 +20,7 @@ from typing import Any
 
 from answer_candidates import candidates_by_type
 from corpus_responder import DEFAULT_TRAIN_TEXT, CorpusResponder
+from epistemic_abstention import abstention_ledger
 from epistemic_report import epistemic_report
 from probes import summarize
 from transformer_eval import (
@@ -67,6 +68,7 @@ def run_epistemic_eval(
         "seed": getattr(model.config, "seed", None),
         "dtype": "float64",
         "candidate_menus": "per_type" if menus is not None else "global_pool",
+        "abstention_rule": abstention_ledger(),
         **(provenance or {}),
     }
     return epistemic_report(
