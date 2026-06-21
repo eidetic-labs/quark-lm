@@ -81,6 +81,33 @@ def train_answer_char(
     context = make_context(context_ids, model.config.context_size, tokenizer.pad_id)
     return model.train_step(context, target_ids[position], learning_rate)
 
+def train_answer_char_all_positions(
+    model: Any,
+    tokenizer: CharTokenizer,
+    example: AnswerExample,
+    learning_rate: float,
+) -> float:
+    """Train on every target position in one backward (dense next-token signal).
+
+    ``train_answer_char`` samples a single random target position per call, so a
+    target of length n receives roughly 1/n of the available gradient signal per
+    step. This accumulates the teacher-forced loss across all target positions
+    into one backward pass, giving the full per-token signal each step.
+    """
+    target_ids = tokenizer.encode(example.target)
+    if not target_ids:
+        return 0.0
+    params = model.parameters()
+    zero_grad(params)
+    loss = Scalar(0.0)
+    for position in range(len(target_ids)):
+        loss = loss + answer_char_loss_scalars(model, tokenizer, example, position)
+    loss = loss / len(target_ids)
+    loss.backward()
+    model.apply_gradients(params, learning_rate)
+    return loss.data
+
+
 def train_answer_mixed_step(
     model: Any,
     tokenizer: CharTokenizer,
