@@ -17,6 +17,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from answer_candidates import candidates_by_type
 from corpus_responder import CorpusResponder
 from epistemic_report import epistemic_report
 from probes import summarize
@@ -41,14 +42,22 @@ def run_epistemic_eval(
     """Score the probes with an in-memory model and return the epistemic report."""
 
     probe_records = load_probe_records(probe_paths)
-    candidates = eval_candidates_from_records(probe_records)
+    # De-contaminated per-type menus from the corpus answer space when a responder
+    # is available; otherwise fall back to the legacy global candidate pool.
+    menus = (
+        candidates_by_type(responder)
+        if isinstance(responder, CorpusResponder)
+        else None
+    )
+    candidates = None if menus is not None else eval_candidates_from_records(probe_records)
     scored_by_set = score_transformer_evals(
         model,
         tokenizer,
         probe_records,
         max_new_chars,
         generation_config or GenerationConfig(),
-        candidates,
+        candidates=candidates,
+        menus=menus,
     )
     evals = {name: summarize(records) for name, records in scored_by_set.items()}
     return epistemic_report(evals, scored_by_set, tokenizer.vocab_size, responder)

@@ -32,14 +32,17 @@ def epistemic_report(
     learning = nll_vs_random(evals, vocab_size)
     abstention = abstention_metrics(scored_by_set)
     calibration = expected_calibration_error(scored_by_set)
-    pool_size = _candidate_pool_size(scored_by_set)
-    chance_accuracy = (1.0 / pool_size) if pool_size else None
+    pools = _candidate_pools_by_type(scored_by_set)
+    chance_by_type = {answer_type: 1.0 / size for answer_type, size in pools.items()}
+    mean_chance = (
+        sum(chance_by_type.values()) / len(chance_by_type) if chance_by_type else None
+    )
 
     report: dict[str, Any] = {
         "nll_vs_random": learning,
         "abstention": abstention,
         "calibration": calibration,
-        "candidate_pool": {"size": pool_size, "chance_accuracy": chance_accuracy},
+        "candidate_pool": {"by_type": pools, "chance_by_type": chance_by_type},
     }
     oracle = None
     if responder is not None:
@@ -60,24 +63,26 @@ def epistemic_report(
             if oracle is not None
             else None
         ),
-        "candidate_pool_size": pool_size,
-        "chance_accuracy": chance_accuracy,
+        "candidate_pool_by_type": pools,
+        "mean_chance_accuracy": mean_chance,
     }
     return report
 
 
-def _candidate_pool_size(scored_by_set: dict[str, list[dict[str, Any]]]) -> int:
-    """Number of candidates each probe was ranked against (0 if unscored).
+def _candidate_pools_by_type(scored_by_set: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
+    """Menu size per answer type (the de-contaminated per-type candidate pools).
 
-    Surfaced alongside chance_accuracy = 1/size so a candidate-ranking number is
-    never read without its closed-menu context. NOTE: today this is the global
-    pooled menu (union of all eval-set targets) -- inflated; per-type menus are the
-    de-contamination follow-up.
+    With per-type menus each question is ranked only against its type's answers +
+    the abstain token, so chance = 1/size is reported per type rather than as one
+    inflated global pool. Records without an answer_type bucket under "all".
     """
 
+    pools: dict[str, int] = {}
     for records in scored_by_set.values():
         for record in records:
             scores = record.get("candidate_scores")
-            if scores:
-                return len(scores)
-    return 0
+            if not scores:
+                continue
+            answer_type = record.get("answer_type") or "all"
+            pools.setdefault(answer_type, len(scores))
+    return pools

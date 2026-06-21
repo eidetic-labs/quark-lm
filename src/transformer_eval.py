@@ -7,6 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from answer_candidates import answer_type_for, menu_for
 from neural_char_metrics import continuation_nll
 from probes import read_jsonl, summarize
 from transformer_model import GenerationConfig
@@ -35,6 +36,7 @@ def score_transformer_records(
     max_new_chars: int,
     generation_config: GenerationConfig,
     candidates: list[str] | None = None,
+    menus: dict[str, list[str]] | None = None,
 ) -> list[dict[str, Any]]:
     scored: list[dict[str, Any]] = []
     for record in records:
@@ -44,9 +46,13 @@ def score_transformer_records(
             max_new_chars,
             generation_config,
         )
+        # Per-type menu (de-contaminated) when provided; else the legacy global pool.
+        record_candidates = (
+            menu_for(record["prompt"], menus) if menus is not None else candidates
+        )
         candidate_scores = []
         predicted_candidate = None
-        if candidates is not None:
+        if record_candidates is not None:
             candidate_scores = [
                 {
                     "target": candidate,
@@ -57,7 +63,7 @@ def score_transformer_records(
                         candidate,
                     ),
                 }
-                for candidate in candidates
+                for candidate in record_candidates
             ]
             predicted_candidate = min(
                 candidate_scores,
@@ -69,6 +75,7 @@ def score_transformer_records(
                 "id": record["id"],
                 "prompt": record["prompt"],
                 "target": target,
+                "answer_type": answer_type_for(record["prompt"]),
                 "completion": generation["text"],
                 "generation_trace": generation["trace"],
                 "generation_cache": generation["cache"],
@@ -95,7 +102,8 @@ def score_transformer_evals(
     probe_records: dict[str, list[dict[str, Any]]],
     max_new_chars: int,
     generation_config: GenerationConfig,
-    candidates: list[str],
+    candidates: list[str] | None = None,
+    menus: dict[str, list[str]] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     return {
         name: score_transformer_records(
@@ -105,6 +113,7 @@ def score_transformer_evals(
             max_new_chars,
             generation_config,
             candidates=candidates,
+            menus=menus,
         )
         for name, records in sorted(probe_records.items())
     }
