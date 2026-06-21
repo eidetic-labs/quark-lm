@@ -18,7 +18,10 @@ from typing import Any
 
 from neural_char_ops import make_context
 from transformer_torch_runtime import configure_torch_runtime
-from transformer_torch_training_loss import build_torch_training_logits
+from transformer_torch_training_loss import (
+    build_torch_training_logits,
+    build_torch_training_loss_tensor,
+)
 from transformer_torch_training_state import build_torch_training_state
 
 
@@ -135,3 +138,74 @@ def train_torch_contrast(
         optimizer.step()
         losses.append(float(total.detach().cpu()))
     return state, losses
+
+
+def train_torch_answer_mixed(
+    *,
+    fixture: dict[str, Any],
+    tokenizer: Any,
+    examples: list[tuple[list[int], int]],
+    contrast_pairs: list[tuple[Any, Any]],
+    steps: int,
+    learning_rate: float,
+    contrast_weight: float,
+    torch: Any,
+    runtime: dict[str, Any] | None = None,
+    seed: int | None = None,
+) -> tuple[dict[str, Any], list[float]]:
+    """Joint next-token + entity-paired contrast objective on shared weights.
+
+    Each step adds a next-token loss (learn the admitted facts) and a
+    contrast-weighted entity-paired loss (owner prefers its concrete answer; the
+    entity-swapped non-owner prefers the abstain token), so one model both learns
+    facts and acquires entity-conditioned abstention. NaN/Inf-guarded: the contrast
+    term is a difference of sequence NLLs, where float underflow could silently flip
+    a sign -- fail loud rather than train on garbage.
+    """
+
+    if not examples:
+        raise ValueError("examples must be non-empty")
+    runtime = runtime or {"dtype": "float64", "device": "cpu"}
+    configure_torch_runtime(torch, runtime, seed=seed)
+    state = build_torch_training_state(fixture=fixture, torch=torch, runtime=runtime)
+    params = [parameter["tensor"] for parameter in state["parameters"]]
+    config = fixture["optimizer_config"]
+    optimizer = torch.optim.AdamW(
+        params,
+        lr=learning_rate,
+        betas=(config["beta1"], config["beta2"]),
+        eps=config["epsilon"],
+        weight_decay=config["weight_decay"],
+    )
+    clip = config.get("gradient_clip", 0.0)
+
+    losses: list[float] = []
+    for step in range(steps):
+        context, target = examples[step % len(examples)]
+        optimizer.zero_grad()
+        total = build_torch_training_loss_tensor(
+            fixture=fixture, state=state, torch=torch, runtime=runtime,
+            context=context, target=target,
+        )
+        if contrast_pairs and contrast_weight > 0.0:
+            in_example, ooc_example = contrast_pairs[step % len(contrast_pairs)]
+            concrete = tokenizer.encode(in_example.target)
+            abstain = tokenizer.encode(ooc_example.target)
+            in_loss = torch_answer_choice_loss(
+                fixture=fixture, state=state, prompt_ids=tokenizer.encode(in_example.prompt),
+                candidate_token_lists=[concrete, abstain], torch=torch, runtime=runtime,
+            )
+            ooc_loss = torch_answer_choice_loss(
+                fixture=fixture, state=state, prompt_ids=tokenizer.encode(ooc_example.prompt),
+                candidate_token_lists=[abstain, concrete], torch=torch, runtime=runtime,
+            )
+            total = total + contrast_weight * (in_loss + ooc_loss)
+        if not bool(torch.isfinite(total).all()):
+            raise FloatingPointError(f"non-finite training loss at step {step}")
+        total.backward()
+        if clip and clip > 0.0:
+            torch.nn.utils.clip_grad_value_(params, clip)
+        optimizer.step()
+        losses.append(float(total.detach().cpu()))
+    return state, losses
+

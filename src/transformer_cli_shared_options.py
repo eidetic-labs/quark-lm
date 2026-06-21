@@ -114,6 +114,16 @@ def add_optimizer_options(
                 "engine; 'pytorch' is the validated performance backend (requires torch)."
             ),
         )
+        parser.add_argument(
+            "--contrast-weight",
+            type=float,
+            default=0.0,
+            help=(
+                "Weight of the entity-paired contrast objective added to the next-token "
+                "loss (pytorch backend only). 0 disables it; >0 trains entity-conditioned "
+                "abstention jointly with fact learning."
+            ),
+        )
 
 
 def add_tokenizer_options(parser: argparse.ArgumentParser) -> None:

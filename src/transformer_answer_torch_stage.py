@@ -11,13 +11,16 @@ finalization / eval pipeline scores it exactly like a scalar-trained model.
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from typing import Any
 
+from answer_contrast_pairs import build_contrast_pairs
 from answer_model import AnswerExample
 from neural_char_ops import make_context
 from tokenizer import CharTokenizer
 from transformer_tiny_lm import TinyTransformerLM
+from transformer_torch_contrast import train_torch_answer_mixed
 from transformer_torch_training_loop import torch_trained_weights, train_torch_lm
 from transformer_training_parity_fixture import build_scalar_training_parity_fixture
 
@@ -73,17 +76,35 @@ def train_core_answer_stage_torch(
         steps=1,  # the parity scalar-train is unused here; torch trains below
         corpus_hash="answer-train-torch",
     )
-    state, losses = train_torch_lm(
-        fixture=fixture,
-        examples=pairs,
-        steps=args.steps,
-        learning_rate=args.learning_rate,
-        torch=torch,
-        runtime=RUNTIME,
-        seed=getattr(args, "seed", None),
-    )
+    contrast_weight = float(getattr(args, "contrast_weight", 0.0) or 0.0)
+    if contrast_weight > 0.0:
+        grammar = json.loads((args.corpus_dir / "grammar.json").read_text(encoding="utf-8"))
+        contrast_pairs = build_contrast_pairs(grammar)
+        state, losses = train_torch_answer_mixed(
+            fixture=fixture,
+            tokenizer=tokenizer,
+            examples=pairs,
+            contrast_pairs=contrast_pairs,
+            steps=args.steps,
+            learning_rate=args.learning_rate,
+            contrast_weight=contrast_weight,
+            torch=torch,
+            runtime=RUNTIME,
+            seed=getattr(args, "seed", None),
+        )
+    else:
+        state, losses = train_torch_lm(
+            fixture=fixture,
+            examples=pairs,
+            steps=args.steps,
+            learning_rate=args.learning_rate,
+            torch=torch,
+            runtime=RUNTIME,
+            seed=getattr(args, "seed", None),
+        )
+    objective = "next-token+contrast" if contrast_weight > 0.0 else "next-token"
     print(
-        f"torch backend: trained {args.steps} steps over {len(pairs)} pairs "
+        f"torch backend ({objective}): trained {args.steps} steps over {len(pairs)} pairs "
         f"train_loss {losses[0]:.4f} -> {losses[-1]:.4f}"
     )
     weights = torch_trained_weights(fixture=fixture, state=state)

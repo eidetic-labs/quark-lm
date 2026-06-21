@@ -19,7 +19,11 @@ from answer_examples import AnswerExample
 from neural_char_ops import make_context
 from support.core import CharTokenizer, OptimizationConfig, TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
-from transformer_torch_contrast import torch_answer_sequence_loss, train_torch_contrast
+from transformer_torch_contrast import (
+    torch_answer_sequence_loss,
+    train_torch_answer_mixed,
+    train_torch_contrast,
+)
 from transformer_training_parity_fixture import build_scalar_training_parity_fixture
 
 RUNTIME = {"dtype": "float64", "device": "cpu"}
@@ -84,6 +88,35 @@ class TorchContrastSignFlipTest(unittest.TestCase):
         for in_example, ooc_example in PAIRS:
             self.assertGreater(margin(in_example.prompt, in_example.target), 0.0)
             self.assertLess(margin(ooc_example.prompt, in_example.target), 0.0)
+
+    def test_mixed_objective_trains_and_stays_finite(self) -> None:
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(ALL_TEXT)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size, context_size=16, embedding_dim=8,
+            feedforward_dim=16, seed=11,
+        )
+        model = TinyTransformerLM.init_random(config)
+        examples = []
+        for in_example, _ooc in PAIRS:
+            ids = list(tokenizer.encode(in_example.prompt))
+            for target_id in tokenizer.encode(in_example.target):
+                examples.append((make_context(ids, 16, tokenizer.pad_id), target_id))
+                ids.append(target_id)
+        c0, t0 = examples[0]
+        fixture = build_scalar_training_parity_fixture(
+            fixture_id="mixed", model=model, tokenizer=tokenizer, context=c0, target=t0,
+            optimizer_config=OptimizationConfig(optimizer="adamw", gradient_accumulation_steps=1, weight_decay=0.0),
+            learning_rate=0.02, steps=1, corpus_hash="x",
+        )
+        state, losses = train_torch_answer_mixed(
+            fixture=fixture, tokenizer=tokenizer, examples=examples, contrast_pairs=PAIRS,
+            steps=40, learning_rate=0.02, contrast_weight=1.0, torch=torch, runtime=RUNTIME,
+        )
+        # The joint next-token + contrast objective optimizes and never goes non-finite.
+        self.assertEqual(len(losses), 40)
+        self.assertLess(losses[-1], losses[0])
+        self.assertTrue(all(value == value for value in losses))
 
 
 if __name__ == "__main__":
