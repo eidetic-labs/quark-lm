@@ -13,12 +13,13 @@ epistemic spine (epistemic_report). Self-contained: run with
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
 from answer_candidates import candidates_by_type
-from corpus_responder import CorpusResponder
+from corpus_responder import DEFAULT_TRAIN_TEXT, CorpusResponder
 from epistemic_report import epistemic_report
 from probes import summarize
 from transformer_eval import (
@@ -38,6 +39,7 @@ def run_epistemic_eval(
     max_new_chars: int = 64,
     generation_config: GenerationConfig | None = None,
     responder: Any | None = None,
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Score the probes with an in-memory model and return the epistemic report."""
 
@@ -60,7 +62,16 @@ def run_epistemic_eval(
         menus=menus,
     )
     evals = {name: summarize(records) for name, records in scored_by_set.items()}
-    return epistemic_report(evals, scored_by_set, tokenizer.vocab_size, responder)
+    eval_provenance = {
+        "vocab_size": tokenizer.vocab_size,
+        "seed": getattr(model.config, "seed", None),
+        "dtype": "float64",
+        "candidate_menus": "per_type" if menus is not None else "global_pool",
+        **(provenance or {}),
+    }
+    return epistemic_report(
+        evals, scored_by_set, tokenizer.vocab_size, responder, provenance=eval_provenance
+    )
 
 
 def run_from_checkpoint(
@@ -73,21 +84,22 @@ def run_from_checkpoint(
     """Load a checkpoint, build the corpus oracle if available, run the report."""
 
     model, tokenizer = TinyTransformerLM.load(Path(checkpoint))
+    train_path = Path(train_text) if train_text is not None else DEFAULT_TRAIN_TEXT
     responder = None
+    corpus_sha256 = None
     try:
-        responder = (
-            CorpusResponder.load_train_text(Path(train_text))
-            if train_text is not None
-            else CorpusResponder.load_train_text()
-        )
+        text = train_path.read_text(encoding="utf-8")
+        responder = CorpusResponder.train_from_text(text)
+        corpus_sha256 = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
     except Exception:
-        responder = None  # oracle is optional; report still computes the rest
+        responder = None  # oracle + per-type menus are optional; rest still computes
     return run_epistemic_eval(
         model=model,
         tokenizer=tokenizer,
         probe_paths=[Path(path) for path in probe_paths],
         max_new_chars=max_new_chars,
         responder=responder,
+        provenance={"corpus_sha256": corpus_sha256, "train_text": str(train_path)},
     )
 
 

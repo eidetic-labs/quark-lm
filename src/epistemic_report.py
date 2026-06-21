@@ -26,6 +26,7 @@ def epistemic_report(
     scored_by_set: dict[str, list[dict[str, Any]]],
     vocab_size: int,
     responder: Any | None = None,
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compute all epistemic metrics and a flat headline summary."""
 
@@ -37,12 +38,18 @@ def epistemic_report(
     mean_chance = (
         sum(chance_by_type.values()) / len(chance_by_type) if chance_by_type else None
     )
+    # Menu-free correctness anchor: free-generation exact match, which a closed
+    # candidate menu cannot inflate. Aggregated over all scored probes.
+    total_count = sum(int(summary.get("count", 0)) for summary in evals.values())
+    total_exact = sum(int(summary.get("exact", 0)) for summary in evals.values())
+    generation_exact_rate = (total_exact / total_count) if total_count else None
 
     report: dict[str, Any] = {
         "nll_vs_random": learning,
         "abstention": abstention,
         "calibration": calibration,
         "candidate_pool": {"by_type": pools, "chance_by_type": chance_by_type},
+        "provenance": provenance or {},
     }
     oracle = None
     if responder is not None:
@@ -54,6 +61,7 @@ def epistemic_report(
         "learned_all": overall.get("learned_all"),
         "learned_any": overall.get("learned_any"),
         "mean_nll_reduction": overall.get("mean_reduction"),
+        "generation_exact_rate": generation_exact_rate,
         "abstention_f1": abstention.get("f1"),
         "abstention_precision": abstention.get("precision"),
         "abstention_recall": abstention.get("recall"),
