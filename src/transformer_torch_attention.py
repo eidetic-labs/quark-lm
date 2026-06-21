@@ -73,9 +73,10 @@ def _attention_head(
         ]
     )
     weights = torch.softmax(scores, dim=0)
-    return [
-        torch.stack(
-            [weights[past] * v[past][dim] for past in range(position + 1)]
-        ).sum()
-        for dim in range(start, end)
-    ]
+    # Value aggregation as one (P)x(P, head_dim) matmul instead of head_dim*P scalar
+    # nodes; weights @ values sums over past in the same order, so it is bit-exact at
+    # float64 and within the validated parity band on device. 1D@2D keeps the
+    # dependency-free parity double (which implements only vector@matrix) compatible.
+    values = torch.stack([v[past][start:end] for past in range(position + 1)])
+    attended = weights @ values
+    return [attended[dim] for dim in range(head_dim)]
