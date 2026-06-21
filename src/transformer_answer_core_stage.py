@@ -9,7 +9,11 @@ from typing import Any
 
 from answer_model import AnswerExample
 from tokenizer import CharTokenizer
-from transformer_answer_training_steps import train_answer_char, train_answer_mixed_step
+from transformer_answer_training_steps import (
+    train_answer_char,
+    train_answer_char_all_positions,
+    train_answer_mixed_step,
+)
 from transformer_training import LossAccumulator, ShuffledTrainingCursor
 
 AnswerSnapshot = Callable[
@@ -54,7 +58,12 @@ def train_core_answer_stage(
                 step_result["choice_candidate_count"],
             )
         else:
-            loss = train_answer_char(model, tokenizer, example, rng, args.learning_rate)
+            if getattr(args, "answer_all_positions", False):
+                loss = train_answer_char_all_positions(
+                    model, tokenizer, example, args.learning_rate
+                )
+            else:
+                loss = train_answer_char(model, tokenizer, example, rng, args.learning_rate)
             loss_accumulator.add(loss)
         if args.eval_every > 0 and step % args.eval_every == 0:
             averages = loss_accumulator.average(
