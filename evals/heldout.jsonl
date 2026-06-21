@@ -1,8 +1,8 @@
-{"id": "heldout-ivy-map-place", "prompt": "question: where is ivy's map?\nanswer:", "target": " on the shelf."}
-{"id": "heldout-ivy-map-color", "prompt": "question: what color is ivy's map?\nanswer:", "target": " green."}
-{"id": "heldout-omar-pen-place", "prompt": "question: where is omar's pen?\nanswer:", "target": " in the box."}
-{"id": "heldout-omar-pen-color", "prompt": "question: what color is omar's pen?\nanswer:", "target": " blue."}
-{"id": "heldout-nina-hat-place", "prompt": "question: where is nina's hat?\nanswer:", "target": " under the table."}
-{"id": "heldout-nina-hat-color", "prompt": "question: what color is nina's hat?\nanswer:", "target": " yellow."}
-{"id": "heldout-eli-lamp-place", "prompt": "question: where is eli's lamp?\nanswer:", "target": " near the door."}
-{"id": "heldout-eli-lamp-color", "prompt": "question: what color is eli's lamp?\nanswer:", "target": " red."}
+{"id": "heldout-ivy-map-place", "prompt": "question: where is ivy's map?\nanswer:", "target": " unknown."}
+{"id": "heldout-ivy-map-color", "prompt": "question: what color is ivy's map?\nanswer:", "target": " unknown."}
+{"id": "heldout-omar-pen-place", "prompt": "question: where is omar's pen?\nanswer:", "target": " unknown."}
+{"id": "heldout-omar-pen-color", "prompt": "question: what color is omar's pen?\nanswer:", "target": " unknown."}
+{"id": "heldout-nina-hat-place", "prompt": "question: where is nina's hat?\nanswer:", "target": " unknown."}
+{"id": "heldout-nina-hat-color", "prompt": "question: what color is nina's hat?\nanswer:", "target": " unknown."}
+{"id": "heldout-eli-lamp-place", "prompt": "question: where is eli's lamp?\nanswer:", "target": " unknown."}
+{"id": "heldout-eli-lamp-color", "prompt": "question: what color is eli's lamp?\nanswer:", "target": " unknown."}

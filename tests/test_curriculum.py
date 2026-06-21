@@ -22,8 +22,10 @@ class CurriculumTest(unittest.TestCase):
         curriculum = build_curriculum(seed=3)
         self.assertIn("glossary:", curriculum.train_text)
         self.assertIn("question: where is mia's ball?", curriculum.train_text)
-        self.assertIn("fact: ivy's map is on the shelf.", curriculum.train_text)
-        self.assertIn("fact: the map belongs to ivy.", curriculum.train_text)
+        # ivy-map is a withheld fact (fact-level held-out partition): its fact prose
+        # is fully absent from the corpus so the model must abstain on it.
+        self.assertNotIn("fact: ivy's map is on the shelf.", curriculum.train_text)
+        self.assertNotIn("fact: the map belongs to ivy.", curriculum.train_text)
         self.assertIn("event: I learned something new: teacher's tree is near the garden.", curriculum.train_text)
         self.assertIn("event: now teacher's tree is part of my training data.", curriculum.train_text)
         self.assertIn("event: I learned something new: child's bag is near the shelf.", curriculum.train_text)

@@ -92,8 +92,14 @@ def sentence_lines(
 def story_lines(grammar: dict[str, Any], admitted_facts: list[dict[str, Any]]) -> list[str]:
     lines = ["stories:"]
     qa_lesson_ids = set(grammar.get("qa_lesson_ids", []))
+    withheld_ids = set(grammar.get("withheld_fact_ids", []))
     admitted_ids = {fact["id"] for fact in admitted_facts}
     for fact in [*grammar["story_facts"], *admitted_facts]:
+        # Withheld facts are fully excluded from the corpus prose (and therefore from
+        # the parsed training examples + the oracle), so the model is never admitted
+        # them and must abstain -- the genuine fact-level closed-world boundary.
+        if fact["id"] in withheld_ids:
+            continue
         person = fact["person"]
         obj = fact["object"]
         color = fact["color"]

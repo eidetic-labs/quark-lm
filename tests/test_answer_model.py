@@ -28,12 +28,14 @@ class AnswerModelTest(unittest.TestCase):
         examples = examples_from_sources(curriculum.train_text, grammar, glossary)
         pairs = {(example.prompt, example.target) for example in examples}
 
-        self.assertIn(("fact place ivy map\nanswer:", " on the shelf."), pairs)
-        self.assertIn(("tell me the place of ivy map\nanswer:", " on the shelf."), pairs)
-        self.assertIn(("fact color ivy map\nanswer:", " green."), pairs)
-        self.assertIn(("which color belongs to ivy map\nanswer:", " green."), pairs)
-        self.assertIn(("fact owner map\nanswer:", " ivy."), pairs)
-        self.assertIn(("which person has map\nanswer:", " ivy."), pairs)
+        # ivy-map is a withheld fact: fully absent from training (no fact/bridge/qa
+        # examples), so the model is never admitted it and must abstain.
+        self.assertNotIn(("fact place ivy map\nanswer:", " on the shelf."), pairs)
+        self.assertNotIn(("tell me the place of ivy map\nanswer:", " on the shelf."), pairs)
+        self.assertNotIn(("fact color ivy map\nanswer:", " green."), pairs)
+        self.assertNotIn(("which color belongs to ivy map\nanswer:", " green."), pairs)
+        self.assertNotIn(("fact owner map\nanswer:", " ivy."), pairs)
+        self.assertNotIn(("which person has map\nanswer:", " ivy."), pairs)
         self.assertNotIn(("question: where is ivy's map?\nanswer:", " on the shelf."), pairs)
         self.assertNotIn(("question: who has the map?\nanswer:", " ivy."), pairs)
         self.assertNotIn(("ask: color for ivy map\nanswer:", " green."), pairs)

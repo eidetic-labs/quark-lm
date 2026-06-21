@@ -55,15 +55,19 @@ class MemoryRetrievalTest(unittest.TestCase):
     def test_closed_world_memory_answers_owner_and_paraphrase_without_weights(self) -> None:
         index = ClosedWorldMemoryIndex.from_corpus(ROOT / "corpus")
 
-        owner = index.answer_prompt("question: who has the map?\nanswer:")
-        paraphrase = index.answer_prompt("tell me the place of ivy map\nanswer:")
+        owner = index.answer_prompt("question: who has the ball?\nanswer:")
+        paraphrase = index.answer_prompt("tell me the place of mia ball\nanswer:")
         unknown = index.answer_prompt("question: who has the water?\nanswer:")
+        withheld = index.answer_prompt("question: who has the map?\nanswer:")
 
-        self.assertEqual(owner["answer"], " ivy.")
+        self.assertEqual(owner["answer"], " mia.")
         self.assertEqual(owner["memory_card"]["source"], "corpus:grammar:story_facts")
-        self.assertEqual(paraphrase["answer"], " on the shelf.")
+        self.assertEqual(paraphrase["answer"], " under the box.")
         self.assertFalse(unknown["retrieved"])
         self.assertEqual(unknown["answer"], " unknown.")
+        # ivy-map is withheld: not retrievable from memory either (consistent withhold).
+        self.assertFalse(withheld["retrieved"])
+        self.assertEqual(withheld["answer"], " unknown.")
 
     def test_retrieval_report_is_corpus_only_and_tracks_consolidation_surface(self) -> None:
         report = build_retrieval_memory_report(ROOT / "corpus")

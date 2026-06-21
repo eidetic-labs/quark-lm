@@ -146,8 +146,14 @@ def build_memory_cards(corpus_dir: Path = DEFAULT_CORPUS_DIR) -> list[MemoryCard
     grammar = read_json(corpus_dir / "grammar.json")
     glossary = read_json(corpus_dir / "glossary.json")
     admissions = read_jsonl(corpus_dir / "admissions.jsonl")
+    withheld_ids = set(grammar.get("withheld_fact_ids", []))
     cards: list[MemoryCard] = []
     for fact in grammar.get("story_facts", []):
+        # Withheld facts are never admitted, so they must not be retrievable from
+        # memory either -- otherwise the model could answer a withheld fact via the
+        # retrieval path, defeating the fact-level closed-world boundary.
+        if fact["id"] in withheld_ids:
+            continue
         cards.extend(fact_memory_cards(fact, "corpus:grammar:story_facts"))
     for fact in admissions:
         cards.extend(fact_memory_cards(fact, "corpus:admissions"))

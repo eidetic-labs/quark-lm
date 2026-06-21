@@ -21,17 +21,19 @@ class RespondTest(unittest.TestCase):
             responder.answer_prompt("question: where is mia's ball?\nanswer:"),
             " under the box.",
         )
+        # ivy-map is a withheld fact (never admitted): the closed-world responder
+        # must abstain on its place, color, and owner.
         self.assertEqual(
             responder.answer_prompt("question: what color is ivy's map?\nanswer:"),
-            " green.",
+            " unknown.",
         )
         self.assertEqual(
             responder.answer_prompt("ask: place for ivy map\nanswer:"),
-            " on the shelf.",
+            " unknown.",
         )
         self.assertEqual(
             responder.answer_prompt("question: who has the map?\nanswer:"),
-            " ivy.",
+            " unknown.",
         )
         self.assertEqual(
             responder.answer_prompt("question: where is teacher's tree?\nanswer:"),

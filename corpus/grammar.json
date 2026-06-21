@@ -109,6 +109,7 @@
   ],
   "qa_lesson_ids": ["mia-ball", "noah-cup", "ava-book", "leo-key"],
   "heldout_probe_ids": ["ivy-map", "omar-pen", "nina-hat", "eli-lamp"],
+  "withheld_fact_ids": ["ivy-map", "omar-pen", "nina-hat", "eli-lamp"],
   "unknown_facts": [
     {"id": "unknown-noah-ball", "person": "noah", "object": "ball"},
     {"id": "unknown-mia-cup", "person": "mia", "object": "cup"},

@@ -2,9 +2,9 @@
 {"id": "owner-known-cup", "prompt": "question: who has the cup?\nanswer:", "target": " noah."}
 {"id": "owner-known-book", "prompt": "question: who has the book?\nanswer:", "target": " ava."}
 {"id": "owner-known-key", "prompt": "question: who has the key?\nanswer:", "target": " leo."}
-{"id": "owner-heldout-map", "prompt": "question: who has the map?\nanswer:", "target": " ivy."}
-{"id": "owner-heldout-pen", "prompt": "question: who has the pen?\nanswer:", "target": " omar."}
-{"id": "owner-heldout-hat", "prompt": "question: who has the hat?\nanswer:", "target": " nina."}
-{"id": "owner-heldout-lamp", "prompt": "question: who has the lamp?\nanswer:", "target": " eli."}
+{"id": "owner-heldout-map", "prompt": "question: who has the map?\nanswer:", "target": " unknown."}
+{"id": "owner-heldout-pen", "prompt": "question: who has the pen?\nanswer:", "target": " unknown."}
+{"id": "owner-heldout-hat", "prompt": "question: who has the hat?\nanswer:", "target": " unknown."}
+{"id": "owner-heldout-lamp", "prompt": "question: who has the lamp?\nanswer:", "target": " unknown."}
 {"id": "owner-unknown-water", "prompt": "question: who has the water?\nanswer:", "target": " unknown."}
 {"id": "owner-unknown-plant", "prompt": "question: who has the plant?\nanswer:", "target": " unknown."}
