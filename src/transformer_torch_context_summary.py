@@ -33,7 +33,7 @@ def torch_add_final_context_summaries(
         )
     if config.get("use_prompt_position_projection"):
         hidden = _add_prompt_position_projection(
-            hidden, x, context, weights, config, torch
+            hidden, x, context, weights, config, torch, runtime
         )
     if config.get("use_prompt_attention_summary"):
         hidden = _add_prompt_attention_summary(
@@ -70,25 +70,28 @@ def _add_prompt_position_projection(
     weights: dict[str, Any],
     config: dict[str, Any],
     torch: Any,
+    runtime: dict[str, Any],
 ) -> Any:
     prompt_positions = _prompt_positions(x, context, config["context_size"] - 1)
     if not prompt_positions:
         return hidden
-    projected = []
-    bias = weights["prompt_position_projection_b"]
-    for output_dim, bias_value in enumerate(bias):
-        total = torch.stack(
-            [
-                row[input_dim]
-                * weights["prompt_position_projection_w"][position][input_dim][
-                    output_dim
-                ]
-                for position, row in prompt_positions
-                for input_dim in range(config["embedding_dim"])
-            ]
-        ).sum()
-        projected.append(total / len(prompt_positions) + bias_value)
-    return hidden + torch.stack(projected) * config["prompt_position_projection_scale"]
+    # Per-position matmul + accumulate. This replaces a triple Python loop that built
+    # ~positions*embedding_dim*output_dim scalar-mul graph nodes per forward (the
+    # profiled hot spot) with one (E)x(E,O) matmul per prompt position; same math, so
+    # it stays within the validated parity band and rank-invariance contract. Uses the
+    # `@` op (not einsum) so the dependency-free parity test double also supports it.
+    weight = weights["prompt_position_projection_w"]
+    contributions = [
+        row @ torch_tensor(torch, weight[position], runtime)
+        for position, row in prompt_positions
+    ]
+    total = contributions[0]
+    for contribution in contributions[1:]:
+        total = total + contribution
+    projected = total / len(prompt_positions) + torch_tensor(
+        torch, weights["prompt_position_projection_b"], runtime
+    )
+    return hidden + projected * config["prompt_position_projection_scale"]
 
 
 def _add_prompt_attention_summary(
