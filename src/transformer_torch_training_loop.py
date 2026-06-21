@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from transformer_tiny_lm import TinyTransformerLM
+from transformer_torch_runtime import configure_torch_runtime
 from transformer_torch_training_loss import build_torch_training_loss_tensor
 from transformer_torch_training_state import (
     build_torch_training_state,
@@ -32,12 +33,14 @@ def train_torch_lm(
     learning_rate: float,
     torch: Any,
     runtime: dict[str, Any] | None = None,
+    seed: int | None = None,
 ) -> tuple[dict[str, Any], list[float]]:
     """Train torch tensors over (context, target) examples; return state + losses."""
 
     if not examples:
         raise ValueError("examples must be non-empty")
     runtime = runtime or {"dtype": "float64", "device": "cpu"}
+    configure_torch_runtime(torch, runtime, seed=seed)
     state = build_torch_training_state(fixture=fixture, torch=torch, runtime=runtime)
     params = [parameter["tensor"] for parameter in state["parameters"]]
 

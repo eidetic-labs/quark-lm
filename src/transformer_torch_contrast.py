@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any
 
 from neural_char_ops import make_context
+from transformer_torch_runtime import configure_torch_runtime
 from transformer_torch_training_loss import build_torch_training_logits
 from transformer_torch_training_state import build_torch_training_state
 
@@ -85,6 +86,7 @@ def train_torch_contrast(
     learning_rate: float,
     torch: Any,
     runtime: dict[str, Any] | None = None,
+    seed: int | None = None,
 ) -> tuple[dict[str, Any], list[float]]:
     """Train the entity-paired contrast over (in_example, ooc_example) pairs.
 
@@ -96,6 +98,7 @@ def train_torch_contrast(
     if not pairs:
         raise ValueError("pairs must be non-empty")
     runtime = runtime or {"dtype": "float64", "device": "cpu"}
+    configure_torch_runtime(torch, runtime, seed=seed)
     state = build_torch_training_state(fixture=fixture, torch=torch, runtime=runtime)
     params = [parameter["tensor"] for parameter in state["parameters"]]
     config = fixture["optimizer_config"]

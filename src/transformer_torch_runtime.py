@@ -12,6 +12,7 @@ TorchImporter = Callable[[str], Any]
 TORCH_RUNTIME_KIND_PYTORCH = "pytorch"
 TORCH_RUNTIME_KIND_TEST_DOUBLE = "test_double"
 TORCH_RUNTIME_KIND_UNAVAILABLE = "unavailable"
+ALLOWED_DTYPES = frozenset({"float64", "float32", "bfloat16", "float16"})
 
 
 def torch_runtime_status(
@@ -52,6 +53,43 @@ def torch_runtime_status(
         "dtype_available": hasattr(torch, requested_dtype),
         "error": None,
     }
+
+
+def configure_torch_runtime(
+    torch: Any, runtime: dict[str, Any], *, seed: int | None = None
+) -> None:
+    """Validate runtime, disable TF32, and optionally seed the torch RNG.
+
+    The determinism floor (Phase 0): reproducibility is a closed-world pillar and
+    breaks silently on GPU (TF32 matmuls blow any float32 parity tolerance) or
+    under unseeded torch randomness. This is a no-op for the current float64/CPU
+    path -- today's training draws no torch randomness -- so it preserves bit-exact
+    scalar parity while establishing the floor for the float32/on-device backend.
+    """
+
+    dtype = runtime.get("dtype")
+    if dtype not in ALLOWED_DTYPES or not hasattr(torch, dtype):
+        raise ValueError(f"unsupported runtime dtype: {dtype!r}")
+    device = runtime.get("device")
+    try:
+        torch.device(device)
+    except (RuntimeError, TypeError, ValueError) as exc:
+        raise ValueError(f"unsupported runtime device: {device!r}") from exc
+    _disable_tf32(torch)
+    if seed is not None:
+        torch.manual_seed(seed)
+
+
+def _disable_tf32(torch: Any) -> None:
+    """Force full-precision float32 matmuls so the parity band is meaningful on GPU."""
+
+    backends = getattr(torch, "backends", None)
+    matmul = getattr(getattr(backends, "cuda", None), "matmul", None)
+    if matmul is not None and hasattr(matmul, "allow_tf32"):
+        matmul.allow_tf32 = False
+    cudnn = getattr(backends, "cudnn", None)
+    if cudnn is not None and hasattr(cudnn, "allow_tf32"):
+        cudnn.allow_tf32 = False
 
 
 def _available_devices(torch: Any) -> list[str]:

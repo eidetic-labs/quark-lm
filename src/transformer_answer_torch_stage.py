@@ -80,6 +80,7 @@ def train_core_answer_stage_torch(
         learning_rate=args.learning_rate,
         torch=torch,
         runtime=RUNTIME,
+        seed=getattr(args, "seed", None),
     )
     print(
         f"torch backend: trained {args.steps} steps over {len(pairs)} pairs "
