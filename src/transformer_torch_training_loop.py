@@ -16,6 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from transformer_best_checkpoint import BestCheckpointTracker
 from transformer_optimizer import scheduled_learning_rate
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_runtime import (
@@ -41,12 +42,17 @@ def train_torch_lm(
     runtime: dict[str, Any] | None = None,
     seed: int | None = None,
     shuffle_each_epoch: bool = False,
+    validation: list[tuple[list[int], int]] | None = None,
+    eval_every: int = 0,
 ) -> tuple[dict[str, Any], list[float]]:
     """Train torch tensors over (context, target) examples; return state + losses.
 
     shuffle_each_epoch reshuffles the example order at each epoch boundary
-    (deterministically, keyed by seed+epoch). Default off preserves the fixed
-    cyclic order, so the validated single-example parity contract is unchanged.
+    (deterministically, keyed by seed+epoch). When a validation slice and
+    eval_every>0 are supplied, the loop evaluates mean validation loss every
+    eval_every micro-steps and restores the best (lowest) checkpoint at the end
+    (state['best_validation_loss']/'best_step'). Both default off, so the
+    validated single-example parity contract is unchanged.
     """
 
     if not examples:
@@ -67,6 +73,7 @@ def train_torch_lm(
     clip = config.get("gradient_clip", 0.0)
 
     accumulator = TorchGradAccumulator(config.get("gradient_accumulation_steps", 1))
+    tracker = BestCheckpointTracker() if validation and eval_every > 0 else None
     order = list(range(len(examples)))
     losses: list[float] = []
     grad_norms: list[float] = []
@@ -105,6 +112,19 @@ def train_torch_lm(
             )
             optimizer.step()
         losses.append(float(loss.detach().cpu()))
+        if tracker is not None and (step + 1) % eval_every == 0:
+            with torch.no_grad():
+                validation_loss = sum(
+                    eval_torch_loss(
+                        fixture=fixture, state=state, context=eval_context,
+                        target=eval_target, torch=torch, runtime=runtime,
+                    )
+                    for eval_context, eval_target in validation
+                ) / len(validation)
+            tracker.consider(step + 1, validation_loss, params)
+    if tracker is not None and tracker.restore(params):
+        state["best_validation_loss"] = tracker.best_loss
+        state["best_step"] = tracker.best_step
     state["grad_norms"] = grad_norms
     state["applied_updates"] = applied_updates
     return state, losses

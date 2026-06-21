@@ -272,6 +272,37 @@ class TorchTrainingLoopTest(unittest.TestCase):
         self.assertEqual(state["applied_updates"], 4)
         self.assertAlmostEqual(final, fixture["training_case"]["final_loss"], delta=1e-6)
 
+    def test_best_checkpoint_selection_records_and_restores(self) -> None:
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abcabc\n", seed=7)
+        examples = [context_and_target(ids, config, tokenizer, index=i) for i in (2, 3, 4)]
+        ctx0, tgt0 = examples[0]
+        fixture = _fixture(model, tokenizer, ctx0, tgt0, steps=10, learning_rate=0.05)
+        state, _losses = train_torch_lm(
+            fixture=fixture, examples=examples, steps=10, learning_rate=0.05,
+            torch=torch, runtime=RUNTIME, validation=examples, eval_every=2,
+        )
+        # A best checkpoint was recorded and its weights restored, so the model's
+        # current validation loss equals the recorded best (selection + restore).
+        self.assertIn("best_validation_loss", state)
+        current = sum(
+            eval_torch_loss(fixture=fixture, state=state, context=c, target=t, torch=torch, runtime=RUNTIME)
+            for c, t in examples
+        ) / len(examples)
+        self.assertAlmostEqual(current, state["best_validation_loss"], delta=1e-9)
+
+    def test_no_validation_leaves_state_without_best_checkpoint(self) -> None:
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abcabc\n", seed=7)
+        examples = [context_and_target(ids, config, tokenizer, index=i) for i in (2, 3, 4)]
+        ctx0, tgt0 = examples[0]
+        fixture = _fixture(model, tokenizer, ctx0, tgt0, steps=4, learning_rate=0.05)
+        state, _losses = train_torch_lm(
+            fixture=fixture, examples=examples, steps=4, learning_rate=0.05, torch=torch, runtime=RUNTIME,
+        )
+        # Default off: no validation slice -> no best-checkpoint bookkeeping added.
+        self.assertNotIn("best_validation_loss", state)
+
 
 if __name__ == "__main__":
     unittest.main()
