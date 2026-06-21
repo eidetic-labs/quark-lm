@@ -38,6 +38,7 @@ def add_answer_train_arguments(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--steps", type=int, default=400)
     answer_parser.add_argument("--learning-rate", type=float, default=0.04)
     answer_parser.add_argument("--answer-all-positions", action="store_true", help="Train every target position per step (dense next-token signal).")
+    answer_parser.add_argument("--augment-unknown", action="store_true", help="Add out-of-corpus -> unknown answer examples to teach abstention.")
     answer_parser.add_argument("--target-loss-weight", type=float, default=1.0)
     answer_parser.add_argument("--choice-loss-weight", type=float, default=0.0)
     answer_parser.add_argument(

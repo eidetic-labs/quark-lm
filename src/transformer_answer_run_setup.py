@@ -92,7 +92,11 @@ def prepare_transformer_answer_run(
 ) -> TransformerAnswerRunSetup:
     ensure_curriculum(args.train_text, args.valid)
     train_text = args.train_text.read_text(encoding="utf-8")
-    examples = load_training_examples(args.train_text, args.corpus_dir)
+    examples = load_training_examples(
+        args.train_text,
+        args.corpus_dir,
+        augment_unknown=getattr(args, "augment_unknown", False),
+    )
     tokenizer = training_tokenizer(
         args,
         train_text,

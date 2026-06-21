@@ -7,14 +7,22 @@ from dataclasses import asdict
 from pathlib import Path
 
 from answer_examples import AnswerExample, examples_from_sources
+from answer_unknown_augmentation import augment_unknown_examples
 from curriculum import read_json
 
 
-def load_training_examples(train_text_path: Path, corpus_dir: Path) -> list[AnswerExample]:
+def load_training_examples(
+    train_text_path: Path,
+    corpus_dir: Path,
+    augment_unknown: bool = False,
+) -> list[AnswerExample]:
     grammar = read_json(corpus_dir / "grammar.json")
     glossary = read_json(corpus_dir / "glossary.json")
     train_text = train_text_path.read_text(encoding="utf-8")
-    return examples_from_sources(train_text, grammar, glossary)
+    examples = examples_from_sources(train_text, grammar, glossary)
+    if augment_unknown:
+        examples = examples + augment_unknown_examples(grammar)
+    return examples
 
 
 def write_lessons(examples: list[AnswerExample], path: Path) -> None:
