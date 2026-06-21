@@ -193,6 +193,85 @@ class TorchTrainingLoopTest(unittest.TestCase):
         # final loss differs from the fixed cyclic order (the reshuffle has effect).
         self.assertNotAlmostEqual(final_loss(shuffle=True), final_loss(shuffle=False), places=9)
 
+    def test_grad_accumulation_matches_scalar_and_counts_updates(self) -> None:
+        torch = _torch_or_skip(self)
+
+        def run(*, steps: int, accum: int):
+            tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
+            context, target = context_and_target(ids, config, tokenizer)
+            fixture = build_scalar_training_parity_fixture(
+                fixture_id="accum", model=model, tokenizer=tokenizer, context=context, target=target,
+                optimizer_config=OptimizationConfig(
+                    optimizer="adamw", gradient_accumulation_steps=accum, weight_decay=0.0,
+                ),
+                learning_rate=0.05, steps=steps, corpus_hash="x",
+            )
+            state, _losses = train_torch_lm(
+                fixture=fixture, examples=[(context, target)], steps=steps,
+                learning_rate=0.05, torch=torch, runtime=RUNTIME,
+            )
+            final = eval_torch_loss(
+                fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME,
+            )
+            return final, state["applied_updates"], fixture["training_case"]["final_loss"]
+
+        # N=2 over 6 micro-steps -> 3 applied updates, mean-reduced, matching the
+        # scalar (which accumulates N=2 and keys LR on the applied-update count).
+        final, updates, scalar_final = run(steps=6, accum=2)
+        self.assertEqual(updates, 3)
+        self.assertAlmostEqual(final, scalar_final, delta=1e-6)
+        # 5 micro-steps, N=2 -> 2 applied updates; the trailing partial window is
+        # left unapplied, exactly as the scalar never flushes a partial.
+        final5, updates5, scalar_final5 = run(steps=5, accum=2)
+        self.assertEqual(updates5, 2)
+        self.assertAlmostEqual(final5, scalar_final5, delta=1e-6)
+
+    def test_grad_accumulation_with_uniform_weight_decay_matches_scalar(self) -> None:
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
+        context, target = context_and_target(ids, config, tokenizer)
+        fixture = build_scalar_training_parity_fixture(
+            fixture_id="accum-wd", model=model, tokenizer=tokenizer, context=context, target=target,
+            optimizer_config=OptimizationConfig(
+                optimizer="adamw", gradient_accumulation_steps=2, weight_decay=0.01,
+            ),
+            learning_rate=0.05, steps=6, corpus_hash="x",
+        )
+        state, _losses = train_torch_lm(
+            fixture=fixture, examples=[(context, target)], steps=6,
+            learning_rate=0.05, torch=torch, runtime=RUNTIME,
+        )
+        final = eval_torch_loss(
+            fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME,
+        )
+        # Uniform (single-group) weight decay composes with accumulation at parity.
+        self.assertAlmostEqual(final, fixture["training_case"]["final_loss"], delta=1e-6)
+
+    def test_grad_accumulation_lr_keyed_on_applied_updates(self) -> None:
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
+        context, target = context_and_target(ids, config, tokenizer)
+        fixture = build_scalar_training_parity_fixture(
+            fixture_id="accum-warmup", model=model, tokenizer=tokenizer, context=context, target=target,
+            optimizer_config=OptimizationConfig(
+                optimizer="adamw", gradient_accumulation_steps=2, weight_decay=0.0, warmup_steps=3,
+            ),
+            learning_rate=0.1, steps=8, corpus_hash="x",
+        )
+        state, _losses = train_torch_lm(
+            fixture=fixture, examples=[(context, target)], steps=8,
+            learning_rate=0.1, torch=torch, runtime=RUNTIME,
+        )
+        final = eval_torch_loss(
+            fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME,
+        )
+        # Warmup ramps over the first 3 APPLIED updates (4 total for 8 micro-steps
+        # at N=2). Parity holds only if the torch loop keys the schedule on the
+        # applied-update count, not the micro-step -- a micro-step keying breaks
+        # this match (the discriminating test for the LR-keying contract).
+        self.assertEqual(state["applied_updates"], 4)
+        self.assertAlmostEqual(final, fixture["training_case"]["final_loss"], delta=1e-6)
+
 
 if __name__ == "__main__":
     unittest.main()

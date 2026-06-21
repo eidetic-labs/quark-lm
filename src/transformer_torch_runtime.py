@@ -96,6 +96,52 @@ def epoch_shuffle_order(count: int, seed: int | None, epoch: int) -> list[int]:
     return order
 
 
+class TorchGradAccumulator:
+    """Sum-then-mean gradient accumulator mirroring ScalarOptimizer.apply.
+
+    Each micro-step's already-clipped gradients are cloned and summed; once
+    ``accumulation_steps`` micro-steps have accrued (``ready``), ``drain_into``
+    writes the MEAN back onto each parameter's ``.grad`` -- divisor = the count
+    actually accrued, matching the scalar's ``value / pending_accumulation``
+    (transformer_optimizer.py:96-99) -- and resets. A trailing partial window is
+    left unapplied, exactly as the scalar never flushes a partial.
+
+    At ``accumulation_steps=1`` this is a bit-for-bit identity in float64 (the
+    buffer holds one grad and ``/1.0`` is exact), so the validated single-example
+    parity contract is preserved. A clone+detach is mandatory: ``.grad`` is
+    overwritten by the next backward. Params whose grad is ``None`` buffer as
+    ``None`` and stay ``None`` on drain, matching torch's skip-None-grad step.
+    """
+
+    def __init__(self, accumulation_steps: int) -> None:
+        self.accumulation_steps = max(1, int(accumulation_steps))
+        self._buffer: list[Any] | None = None
+        self._pending = 0
+
+    def add(self, params: list[Any]) -> None:
+        incoming = [None if p.grad is None else p.grad.detach().clone() for p in params]
+        if self._buffer is None:
+            self._buffer = incoming
+        else:
+            self._buffer = [
+                summed if new is None else new if summed is None else summed + new
+                for summed, new in zip(self._buffer, incoming)
+            ]
+        self._pending += 1
+
+    @property
+    def ready(self) -> bool:
+        return self._pending >= self.accumulation_steps
+
+    def drain_into(self, params: list[Any]) -> None:
+        """Write the mean of the accumulated grads back onto .grad, then reset."""
+
+        for parameter, summed in zip(params, self._buffer or []):
+            parameter.grad = None if summed is None else summed / self._pending
+        self._buffer = None
+        self._pending = 0
+
+
 def grad_global_norm(params: list[Any], torch: Any) -> float:
     """Global L2 norm over all parameter gradients (0.0 when no grads are set).
 

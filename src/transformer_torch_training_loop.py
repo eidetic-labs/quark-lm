@@ -19,6 +19,7 @@ from typing import Any
 from transformer_optimizer import scheduled_learning_rate
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_runtime import (
+    TorchGradAccumulator,
     configure_torch_runtime,
     epoch_shuffle_order,
     grad_global_norm,
@@ -65,9 +66,11 @@ def train_torch_lm(
     )
     clip = config.get("gradient_clip", 0.0)
 
+    accumulator = TorchGradAccumulator(config.get("gradient_accumulation_steps", 1))
     order = list(range(len(examples)))
     losses: list[float] = []
     grad_norms: list[float] = []
+    applied_updates = 0
     for step in range(steps):
         position = step % len(examples)
         if shuffle_each_epoch and position == 0:
@@ -86,15 +89,24 @@ def train_torch_lm(
         grad_norms.append(grad_global_norm(params, torch))
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
-        optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
-            learning_rate, step + 1,
-            warmup_steps=config.get("warmup_steps", 0),
-            decay_steps=config.get("decay_steps", 0),
-            min_learning_rate=config.get("min_learning_rate", 0.0),
-        )
-        optimizer.step()
+        # Accumulate clipped grads; apply the mean only at each Nth micro-step,
+        # keying the LR schedule on the applied-update count -- mirrors the scalar
+        # ScalarOptimizer.apply (sum clipped, mean by pending, LR on update_count).
+        # A trailing partial window is left unapplied; N=1 collapses to a step.
+        accumulator.add(params)
+        if accumulator.ready:
+            accumulator.drain_into(params)
+            applied_updates += 1
+            optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
+                learning_rate, applied_updates,
+                warmup_steps=config.get("warmup_steps", 0),
+                decay_steps=config.get("decay_steps", 0),
+                min_learning_rate=config.get("min_learning_rate", 0.0),
+            )
+            optimizer.step()
         losses.append(float(loss.detach().cpu()))
     state["grad_norms"] = grad_norms
+    state["applied_updates"] = applied_updates
     return state, losses
 
 
