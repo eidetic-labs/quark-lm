@@ -33,10 +33,12 @@ class TransformerDefaultTrainingPolicyTest(unittest.TestCase):
         # (3) no frontier-metrics guard.
         self.assertIsNone(getattr(args, "direct_answer_frontier_metrics", None))
 
-    def test_answer_all_positions_is_opt_in(self) -> None:
-        self.assertFalse(parse_args(["answer-train"]).answer_all_positions)
-        self.assertTrue(
-            parse_args(["answer-train", "--answer-all-positions"]).answer_all_positions
+    def test_answer_all_positions_is_default_on(self) -> None:
+        # Dense per-token signal is the default; --no-answer-all-positions is the
+        # escape hatch back to single-position sampling.
+        self.assertTrue(parse_args(["answer-train"]).answer_all_positions)
+        self.assertFalse(
+            parse_args(["answer-train", "--no-answer-all-positions"]).answer_all_positions
         )
 
 
