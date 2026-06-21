@@ -226,7 +226,7 @@ class TorchTrainingLoopTest(unittest.TestCase):
         self.assertEqual(updates5, 2)
         self.assertAlmostEqual(final5, scalar_final5, delta=1e-6)
 
-    def test_grad_accumulation_with_uniform_weight_decay_matches_scalar(self) -> None:
+    def test_grad_accumulation_with_weight_decay_exclusion_matches_scalar(self) -> None:
         torch = _torch_or_skip(self)
         tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
         context, target = context_and_target(ids, config, tokenizer)
@@ -244,7 +244,9 @@ class TorchTrainingLoopTest(unittest.TestCase):
         final = eval_torch_loss(
             fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME,
         )
-        # Uniform (single-group) weight decay composes with accumulation at parity.
+        # weight_decay>0 engages embedding/bias exclusion in BOTH engines (the
+        # fixture supplies the scalar no_decay mask; the torch loop splits groups),
+        # and accumulation composes with the exclusion at parity.
         self.assertAlmostEqual(final, fixture["training_case"]["final_loss"], delta=1e-6)
 
     def test_grad_accumulation_lr_keyed_on_applied_updates(self) -> None:

@@ -32,6 +32,7 @@ from transformer_model import (
     transformer_config_from_args,
     transformer_run_metadata,
 )
+from transformer_no_decay_mask import model_no_decay_mask
 from transformer_optimizer import load_optimizer_state, save_optimizer_state
 from transformer_paths import DEFAULT_PROBES
 from transformer_training_tokenizer import (
@@ -82,9 +83,11 @@ def train_transformer_command(args: argparse.Namespace, model_cls: Any) -> dict[
     train_ids = tokenizer.encode(train_text)
     valid_ids = tokenizer.encode(valid_text)
     model, resume_metadata = initialize_transformer_for_training_command(args, tokenizer, model_cls)
+    optimizer_config = optimization_config_from_args(args)
     optimizer = load_optimizer_state(
         args.resume_optimizer,
-        optimization_config_from_args(args),
+        optimizer_config,
+        no_decay_mask=model_no_decay_mask(model) if optimizer_config.weight_decay > 0.0 else None,
     )
     model.active_optimizer = optimizer
     rng = random.Random(args.seed)

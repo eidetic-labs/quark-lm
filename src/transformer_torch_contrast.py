@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any
 
 from neural_char_ops import make_context
+from transformer_no_decay_mask import build_two_group_adamw
 from transformer_optimizer import scheduled_learning_rate
 from transformer_torch_runtime import (
     configure_torch_runtime,
@@ -110,12 +111,13 @@ def train_torch_contrast(
     state = build_torch_training_state(fixture=fixture, torch=torch, runtime=runtime)
     params = [parameter["tensor"] for parameter in state["parameters"]]
     config = fixture["optimizer_config"]
-    optimizer = torch.optim.AdamW(
-        params,
-        lr=learning_rate,
+    optimizer = build_two_group_adamw(
+        state["parameters"],
+        learning_rate=learning_rate,
+        weight_decay=config["weight_decay"],
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
-        weight_decay=config["weight_decay"],
+        torch=torch,
     )
     clip = config.get("gradient_clip", 0.0)
 
@@ -176,12 +178,13 @@ def train_torch_answer_mixed(
     state = build_torch_training_state(fixture=fixture, torch=torch, runtime=runtime)
     params = [parameter["tensor"] for parameter in state["parameters"]]
     config = fixture["optimizer_config"]
-    optimizer = torch.optim.AdamW(
-        params,
-        lr=learning_rate,
+    optimizer = build_two_group_adamw(
+        state["parameters"],
+        learning_rate=learning_rate,
+        weight_decay=config["weight_decay"],
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
-        weight_decay=config["weight_decay"],
+        torch=torch,
     )
     clip = config.get("gradient_clip", 0.0)
 
@@ -217,12 +220,14 @@ def train_torch_answer_mixed(
         grad_norms.append(grad_global_norm(params, torch))
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
-        optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
+        learning_rate_now = scheduled_learning_rate(
             learning_rate, step + 1,
             warmup_steps=config.get("warmup_steps", 0),
             decay_steps=config.get("decay_steps", 0),
             min_learning_rate=config.get("min_learning_rate", 0.0),
         )
+        for group in optimizer.param_groups:
+            group["lr"] = learning_rate_now
         optimizer.step()
         losses.append(float(total.detach().cpu()))
     state["grad_norms"] = grad_norms

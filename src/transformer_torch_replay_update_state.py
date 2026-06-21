@@ -134,6 +134,11 @@ def _build_adamw_optimizer(
     contract: dict[str, Any],
 ) -> Any:
     config = contract["adamw"]
+    # NOTE: single-group AdamW on purpose. This experimental replay path compares
+    # an order-sensitive parameter signature; the weight-decay two-group split
+    # (transformer_no_decay_mask) reorders params and breaks that signature. The
+    # replay is exercised at weight_decay=0 (the split would be inert anyway), so
+    # exclusion is intentionally not applied here. See #29 / the design review.
     return torch.optim.AdamW(
         [parameter["tensor"] for parameter in state["parameters"]],
         lr=contract["base_learning_rate"],

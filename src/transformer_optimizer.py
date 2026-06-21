@@ -46,6 +46,7 @@ class ScalarOptimizer:
         second_moment: list[float] | None = None,
         gradient_buffer: list[float] | None = None,
         pending_accumulation: int = 0,
+        no_decay_mask: list[bool] | None = None,
     ) -> None:
         self.config = config or OptimizationConfig()
         self.update_count = update_count
@@ -53,6 +54,9 @@ class ScalarOptimizer:
         self.second_moment = second_moment or []
         self.gradient_buffer = gradient_buffer or []
         self.pending_accumulation = pending_accumulation
+        # Per-element weight-decay exclusion (True == skip decay), aligned with the
+        # flat params order. Empty => uniform decay (the pre-exclusion behavior).
+        self.no_decay_mask = no_decay_mask or []
         self.last_apply_evidence: dict[str, Any] | None = None
         validate_optimization_config(self.config)
 
@@ -67,6 +71,10 @@ class ScalarOptimizer:
         )
 
     def apply(self, params: list[Scalar], base_learning_rate: float) -> float:
+        if self.no_decay_mask and len(self.no_decay_mask) != len(params):
+            raise ValueError(
+                f"no_decay_mask length {len(self.no_decay_mask)} != param count {len(params)}"
+            )
         self._ensure_slots(len(params))
         buffer_before = list(self.gradient_buffer)
         update_count_before = self.update_count
@@ -136,14 +144,23 @@ class ScalarOptimizer:
             return parameter.grad
         return max(min(parameter.grad, clip), -clip)
 
+    def _decays(self, index: int) -> bool:
+        """Whether the parameter at ``index`` is subject to weight decay.
+
+        Empty mask (the default) => every parameter decays (the uniform,
+        pre-exclusion path), so weight_decay=0 / no-mask runs are bit-exact.
+        """
+
+        return not self.no_decay_mask or not self.no_decay_mask[index]
+
     def _apply_sgd(
         self,
         params: list[Scalar],
         grads: list[float],
         learning_rate: float,
     ) -> None:
-        for parameter, grad in zip(params, grads):
-            if self.config.weight_decay > 0.0:
+        for index, (parameter, grad) in enumerate(zip(params, grads)):
+            if self.config.weight_decay > 0.0 and self._decays(index):
                 grad += self.config.weight_decay * parameter.data
             parameter.data -= learning_rate * grad
 
@@ -164,7 +181,7 @@ class ScalarOptimizer:
             )
             first_unbiased = self.first_moment[index] / beta1_correction
             second_unbiased = self.second_moment[index] / beta2_correction
-            if self.config.weight_decay > 0.0:
+            if self.config.weight_decay > 0.0 and self._decays(index):
                 parameter.data -= learning_rate * self.config.weight_decay * parameter.data
             parameter.data -= (
                 learning_rate
@@ -182,6 +199,7 @@ class ScalarOptimizer:
             "second_moment": self.second_moment,
             "gradient_buffer": self.gradient_buffer,
             "pending_accumulation": self.pending_accumulation,
+            "no_decay_mask": self.no_decay_mask,
         }
 
     @classmethod
@@ -193,6 +211,7 @@ class ScalarOptimizer:
             second_moment=[float(value) for value in payload.get("second_moment", [])],
             gradient_buffer=[float(value) for value in payload.get("gradient_buffer", [])],
             pending_accumulation=int(payload.get("pending_accumulation", 0)),
+            no_decay_mask=[bool(value) for value in payload.get("no_decay_mask", [])],
         )
 
     def summary(self) -> dict[str, Any]:
@@ -217,13 +236,20 @@ class ScalarOptimizer:
 def load_optimizer_state(
     path: Path | None,
     config: OptimizationConfig,
+    no_decay_mask: list[bool] | None = None,
 ) -> ScalarOptimizer:
     if path is None:
-        return ScalarOptimizer(config)
+        return ScalarOptimizer(config, no_decay_mask=no_decay_mask)
     with path.open("r", encoding="utf-8") as handle:
         optimizer = ScalarOptimizer.from_dict(json.load(handle))
     if asdict(optimizer.config) != asdict(config):
         raise ValueError("resume optimizer config does not match requested optimizer config")
+    if no_decay_mask:
+        # Repopulate the authoritative mask on resume: old/mask-less checkpoints
+        # would otherwise silently revert to uniform decay under weight_decay>0.
+        if optimizer.no_decay_mask and optimizer.no_decay_mask != no_decay_mask:
+            raise ValueError("resume optimizer no_decay_mask does not match recomputed mask")
+        optimizer.no_decay_mask = no_decay_mask
     return optimizer
 
 

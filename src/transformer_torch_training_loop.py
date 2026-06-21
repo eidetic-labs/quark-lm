@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from transformer_best_checkpoint import BestCheckpointTracker
+from transformer_no_decay_mask import build_two_group_adamw
 from transformer_optimizer import scheduled_learning_rate
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_runtime import (
@@ -63,12 +64,13 @@ def train_torch_lm(
     params = [parameter["tensor"] for parameter in state["parameters"]]
 
     config = fixture["optimizer_config"]
-    optimizer = torch.optim.AdamW(
-        params,
-        lr=learning_rate,
+    optimizer = build_two_group_adamw(
+        state["parameters"],
+        learning_rate=learning_rate,
+        weight_decay=config["weight_decay"],
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
-        weight_decay=config["weight_decay"],
+        torch=torch,
     )
     clip = config.get("gradient_clip", 0.0)
 
@@ -104,12 +106,14 @@ def train_torch_lm(
         if accumulator.ready:
             accumulator.drain_into(params)
             applied_updates += 1
-            optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
+            learning_rate_now = scheduled_learning_rate(
                 learning_rate, applied_updates,
                 warmup_steps=config.get("warmup_steps", 0),
                 decay_steps=config.get("decay_steps", 0),
                 min_learning_rate=config.get("min_learning_rate", 0.0),
             )
+            for group in optimizer.param_groups:
+                group["lr"] = learning_rate_now
             optimizer.step()
         losses.append(float(loss.detach().cpu()))
         if tracker is not None and (step + 1) % eval_every == 0:

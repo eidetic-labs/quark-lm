@@ -35,6 +35,7 @@ from transformer_model import (
     generation_config_from_args,
     optimization_config_from_args,
 )
+from transformer_no_decay_mask import model_no_decay_mask
 from transformer_optimizer import ScalarOptimizer, load_optimizer_state
 from transformer_text_commands import ensure_curriculum
 from transformer_training import JsonlHistoryWriter
@@ -105,9 +106,11 @@ def prepare_transformer_answer_run(
     )
     training_pool = answer_training_pool(examples)
     model, resume_metadata = initialize_transformer_for_training_fn(args, tokenizer)
+    optimizer_config = optimization_config_from_args(args)
     optimizer = load_optimizer_state(
         args.resume_optimizer,
-        optimization_config_from_args(args),
+        optimizer_config,
+        no_decay_mask=model_no_decay_mask(model) if optimizer_config.weight_decay > 0.0 else None,
     )
     model.active_optimizer = optimizer
     generation_config = generation_config_from_args(args)

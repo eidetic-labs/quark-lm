@@ -11,6 +11,7 @@ from transformer_model import (
     TRANSFORMER_ARCHITECTURE,
     OptimizationConfig,
 )
+from transformer_no_decay_mask import build_no_decay_mask
 from transformer_optimizer import ScalarOptimizer
 from transformer_optimizer_step_contract import (
     build_optimizer_step_contract,
@@ -59,7 +60,14 @@ def build_scalar_training_parity_fixture(
         model_config=model_config,
     )
     trained_model, _tokenizer = type(model).from_dict(initial_payload)
-    optimizer = ScalarOptimizer(optimizer_config)
+    optimizer = ScalarOptimizer(
+        optimizer_config,
+        no_decay_mask=(
+            build_no_decay_mask(parameter_manifest)
+            if optimizer_config.weight_decay > 0.0
+            else None
+        ),
+    )
     trained_model.active_optimizer = optimizer
     initial_logits = trained_model._forward_floats(context)
     initial_loss = trained_model.nll(context, target)
