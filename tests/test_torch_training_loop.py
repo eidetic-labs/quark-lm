@@ -17,6 +17,7 @@ from support.core import OptimizationConfig
 from transformer_training_parity_fixture import build_scalar_training_parity_fixture
 from transformer_torch_training_loop import (
     eval_torch_loss,
+    save_torch_checkpoint,
     train_torch_lm,
 )
 from transformer_torch_training_state import build_torch_training_state
@@ -93,6 +94,39 @@ class TorchTrainingLoopTest(unittest.TestCase):
         ) / len(examples)
 
         self.assertLess(after, before)
+
+    def test_torch_checkpoint_round_trips_to_scalar_model(self) -> None:
+        import tempfile
+        from pathlib import Path
+
+        from transformer_tiny_lm import TinyTransformerLM
+
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
+        context, target = context_and_target(ids, config, tokenizer)
+        fixture = _fixture(model, tokenizer, context, target, steps=5, learning_rate=0.05)
+
+        state, _losses = train_torch_lm(
+            fixture=fixture,
+            examples=[(context, target)],
+            steps=5,
+            learning_rate=0.05,
+            torch=torch,
+            runtime=RUNTIME,
+        )
+        torch_loss = eval_torch_loss(
+            fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "torch_answer.json"
+            save_torch_checkpoint(path, fixture=fixture, state=state, tokenizer=tokenizer)
+            reloaded, reloaded_tokenizer = TinyTransformerLM.load(path)
+
+        # The torch-trained checkpoint loads as a normal model and the scalar
+        # forward scores it identically to the torch state -> the spine can read it.
+        self.assertIsNotNone(reloaded_tokenizer)
+        self.assertAlmostEqual(reloaded.nll(context, target), torch_loss, delta=1e-6)
 
 
 if __name__ == "__main__":

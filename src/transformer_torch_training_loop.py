@@ -13,9 +13,10 @@ build_torch_training_state, build_torch_training_loss_tensor, torch.optim.AdamW.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
-from transformer_torch_tensor_ops import torch_to_list
+from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_training_loss import build_torch_training_loss_tensor
 from transformer_torch_training_state import (
     build_torch_training_state,
@@ -95,11 +96,35 @@ def torch_trained_weights(*, fixture: dict[str, Any], state: dict[str, Any]) -> 
     return _serialize(weights)
 
 
+def save_torch_checkpoint(
+    path: Path | str,
+    *,
+    fixture: dict[str, Any],
+    state: dict[str, Any],
+    tokenizer: Any,
+    metadata: dict[str, Any] | None = None,
+) -> Path:
+    """Write torch-trained weights as a standard checkpoint the eval/spine reads.
+
+    The torch tensors are exported to the scalar weight tree and saved via the
+    normal TinyTransformerLM checkpoint format, so a torch-trained model loads
+    and scores identically to a scalar-trained one (no separate eval path).
+    """
+
+    weights = torch_trained_weights(fixture=fixture, state=state)
+    model, _ = TinyTransformerLM.from_dict(
+        {"config": fixture["model_config"], "weights": weights}
+    )
+    destination = Path(path)
+    model.save(destination, tokenizer=tokenizer, metadata=metadata)
+    return destination
+
+
 def _serialize(value: Any) -> Any:
     if isinstance(value, dict):
         return {key: _serialize(item) for key, item in value.items()}
     if isinstance(value, list):
         return [_serialize(item) for item in value]
     if hasattr(value, "detach"):
-        return torch_to_list(value)
+        return value.detach().cpu().tolist()
     return value
