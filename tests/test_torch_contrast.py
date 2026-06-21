@@ -117,6 +117,9 @@ class TorchContrastSignFlipTest(unittest.TestCase):
         self.assertEqual(len(losses), 40)
         self.assertLess(losses[-1], losses[0])
         self.assertTrue(all(value == value for value in losses))
+        # Update-health telemetry recorded per step (Phase 4 cross-cutting invariant).
+        self.assertEqual(len(state["grad_norms"]), 40)
+        self.assertTrue(all(value == value and value >= 0.0 for value in state["grad_norms"]))
 
 
 if __name__ == "__main__":

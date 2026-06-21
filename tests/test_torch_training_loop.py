@@ -152,6 +152,27 @@ class TorchTrainingLoopTest(unittest.TestCase):
         # Warmup ramps the LR from ~0, so the trajectory differs from constant LR.
         self.assertGreater(abs(final_loss(0) - final_loss(6)), 1e-4)
 
+    def test_grad_norms_recorded_and_finite(self) -> None:
+        import math
+
+        torch = _torch_or_skip(self)
+        tokenizer, ids, config, model = char_model_fixture("abcabc\n", seed=7)
+        examples = [context_and_target(ids, config, tokenizer, index=i) for i in (2, 3, 4)]
+        ctx0, tgt0 = examples[0]
+        fixture = _fixture(model, tokenizer, ctx0, tgt0, steps=6, learning_rate=0.05)
+
+        state, _losses = train_torch_lm(
+            fixture=fixture, examples=examples, steps=6, learning_rate=0.05,
+            torch=torch, runtime=RUNTIME,
+        )
+
+        norms = state["grad_norms"]
+        # One pre-clip gradient norm per update, all finite and non-negative; a
+        # learning model has at least one nonzero gradient (dead-gradient guard).
+        self.assertEqual(len(norms), 6)
+        self.assertTrue(all(math.isfinite(value) and value >= 0.0 for value in norms))
+        self.assertGreater(max(norms), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -80,6 +80,29 @@ def configure_torch_runtime(
         torch.manual_seed(seed)
 
 
+def grad_global_norm(params: list[Any], torch: Any) -> float:
+    """Global L2 norm over all parameter gradients (0.0 when no grads are set).
+
+    Update-health telemetry: a norm trending to 0 means dead gradients (the model
+    has stopped learning); a norm exploding means an unstable step. Recorded per
+    update so capacity scaling (Phase 6) can diagnose a tier that won't train
+    instead of guessing. Observation-only -- reads .grad, never mutates it -- and
+    measured pre-clip (raw gradient health, before any clip masks an explosion),
+    so scalar parity is untouched.
+    """
+
+    total: Any = None
+    for parameter in params:
+        grad = getattr(parameter, "grad", None)
+        if grad is None:
+            continue
+        squared = (grad.detach() ** 2).sum()
+        total = squared if total is None else total + squared
+    if total is None:
+        return 0.0
+    return float(total.sqrt().cpu())
+
+
 def _disable_tf32(torch: Any) -> None:
     """Force full-precision float32 matmuls so the parity band is meaningful on GPU."""
 

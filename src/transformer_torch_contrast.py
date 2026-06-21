@@ -18,7 +18,7 @@ from typing import Any
 
 from neural_char_ops import make_context
 from transformer_optimizer import scheduled_learning_rate
-from transformer_torch_runtime import configure_torch_runtime
+from transformer_torch_runtime import configure_torch_runtime, grad_global_norm
 from transformer_torch_training_loss import (
     build_torch_training_logits,
     build_torch_training_loss_tensor,
@@ -181,6 +181,7 @@ def train_torch_answer_mixed(
     clip = config.get("gradient_clip", 0.0)
 
     losses: list[float] = []
+    grad_norms: list[float] = []
     for step in range(steps):
         context, target = examples[step % len(examples)]
         optimizer.zero_grad()
@@ -204,6 +205,7 @@ def train_torch_answer_mixed(
         if not bool(torch.isfinite(total).all()):
             raise FloatingPointError(f"non-finite training loss at step {step}")
         total.backward()
+        grad_norms.append(grad_global_norm(params, torch))
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
         optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
@@ -214,5 +216,6 @@ def train_torch_answer_mixed(
         )
         optimizer.step()
         losses.append(float(total.detach().cpu()))
+    state["grad_norms"] = grad_norms
     return state, losses
 

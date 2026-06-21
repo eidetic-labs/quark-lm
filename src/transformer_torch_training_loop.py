@@ -18,7 +18,7 @@ from typing import Any
 
 from transformer_optimizer import scheduled_learning_rate
 from transformer_tiny_lm import TinyTransformerLM
-from transformer_torch_runtime import configure_torch_runtime
+from transformer_torch_runtime import configure_torch_runtime, grad_global_norm
 from transformer_torch_training_loss import build_torch_training_loss_tensor
 from transformer_torch_training_state import (
     build_torch_training_state,
@@ -56,6 +56,7 @@ def train_torch_lm(
     clip = config.get("gradient_clip", 0.0)
 
     losses: list[float] = []
+    grad_norms: list[float] = []
     for step in range(steps):
         context, target = examples[step % len(examples)]
         optimizer.zero_grad()
@@ -68,6 +69,7 @@ def train_torch_lm(
             target=target,
         )
         loss.backward()
+        grad_norms.append(grad_global_norm(params, torch))
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
         optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
@@ -78,6 +80,7 @@ def train_torch_lm(
         )
         optimizer.step()
         losses.append(float(loss.detach().cpu()))
+    state["grad_norms"] = grad_norms
     return state, losses
 
 
