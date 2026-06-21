@@ -73,11 +73,22 @@ def torch_training_weights_from_state(
     fixture: dict[str, Any],
     state: dict[str, Any],
 ) -> dict[str, Any]:
-    """Overlay trainable tensors onto the fixture's initial weight tree."""
+    """Overlay trainable tensors onto the fixture's initial weight tree.
 
+    The trainable tensors are persistent leaf objects updated in place by the
+    optimizer, so the overlaid tree is built once and cached on the state: every
+    forward reads the current tensor values through the same tree. This avoids a
+    full deepcopy of the weight tree on every training step, which dominated
+    runtime for large configs (e.g. context-size-48 prompt-position projection).
+    """
+
+    cached = state.get("weight_tree")
+    if cached is not None:
+        return cached
     weights = copy.deepcopy(fixture["initial_weights"])
     for parameter in state["parameters"]:
         _assign_weight(weights, parameter["name"], parameter["tensor"])
+    state["weight_tree"] = weights
     return weights
 
 
