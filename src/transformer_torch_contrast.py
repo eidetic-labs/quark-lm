@@ -18,7 +18,11 @@ from typing import Any
 
 from neural_char_ops import make_context
 from transformer_optimizer import scheduled_learning_rate
-from transformer_torch_runtime import configure_torch_runtime, grad_global_norm
+from transformer_torch_runtime import (
+    configure_torch_runtime,
+    epoch_shuffle_order,
+    grad_global_norm,
+)
 from transformer_torch_training_loss import (
     build_torch_training_logits,
     build_torch_training_loss_tensor,
@@ -153,6 +157,7 @@ def train_torch_answer_mixed(
     torch: Any,
     runtime: dict[str, Any] | None = None,
     seed: int | None = None,
+    shuffle_each_epoch: bool = False,
 ) -> tuple[dict[str, Any], list[float]]:
     """Joint next-token + entity-paired contrast objective on shared weights.
 
@@ -180,10 +185,14 @@ def train_torch_answer_mixed(
     )
     clip = config.get("gradient_clip", 0.0)
 
+    order = list(range(len(examples)))
     losses: list[float] = []
     grad_norms: list[float] = []
     for step in range(steps):
-        context, target = examples[step % len(examples)]
+        position = step % len(examples)
+        if shuffle_each_epoch and position == 0:
+            order = epoch_shuffle_order(len(examples), seed, step // len(examples))
+        context, target = examples[order[position]]
         optimizer.zero_grad()
         total = build_torch_training_loss_tensor(
             fixture=fixture, state=state, torch=torch, runtime=runtime,

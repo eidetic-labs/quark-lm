@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from importlib import import_module
 from typing import Any, Callable
 
@@ -78,6 +79,21 @@ def configure_torch_runtime(
     _disable_tf32(torch)
     if seed is not None:
         torch.manual_seed(seed)
+
+
+def epoch_shuffle_order(count: int, seed: int | None, epoch: int) -> list[int]:
+    """Deterministic per-epoch permutation of example indices.
+
+    Keyed by (seed + epoch) so each pass over the data sees a fresh but fully
+    reproducible order -- breaks the fixed cyclic correlation of `step % len`
+    that can let AdamW lock onto a phase across epochs, without sacrificing
+    determinism (a closed-world pillar). seed=None pins to a fixed base so runs
+    stay repeatable.
+    """
+
+    order = list(range(count))
+    random.Random((seed if seed is not None else 0) + epoch).shuffle(order)
+    return order
 
 
 def grad_global_norm(params: list[Any], torch: Any) -> float:

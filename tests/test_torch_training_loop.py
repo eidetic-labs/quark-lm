@@ -173,6 +173,26 @@ class TorchTrainingLoopTest(unittest.TestCase):
         self.assertTrue(all(math.isfinite(value) and value >= 0.0 for value in norms))
         self.assertGreater(max(norms), 0.0)
 
+    def test_per_epoch_reshuffle_is_deterministic_and_changes_trajectory(self) -> None:
+        torch = _torch_or_skip(self)
+
+        def final_loss(*, shuffle: bool) -> float:
+            tokenizer, ids, config, model = char_model_fixture("abcabc\n", seed=7)
+            examples = [context_and_target(ids, config, tokenizer, index=i) for i in (2, 3, 4)]
+            ctx0, tgt0 = examples[0]
+            fixture = _fixture(model, tokenizer, ctx0, tgt0, steps=12, learning_rate=0.05)
+            _state, losses = train_torch_lm(
+                fixture=fixture, examples=examples, steps=12, learning_rate=0.05,
+                torch=torch, runtime=RUNTIME, seed=5, shuffle_each_epoch=shuffle,
+            )
+            return losses[-1]
+
+        # Deterministic: same seed -> same per-epoch permutations -> identical result.
+        self.assertEqual(final_loss(shuffle=True), final_loss(shuffle=True))
+        # Reshuffling the order across epochs changes the AdamW trajectory, so the
+        # final loss differs from the fixed cyclic order (the reshuffle has effect).
+        self.assertNotAlmostEqual(final_loss(shuffle=True), final_loss(shuffle=False), places=9)
+
 
 if __name__ == "__main__":
     unittest.main()
