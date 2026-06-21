@@ -92,7 +92,7 @@ def add_generation_sampling_options(parser: argparse.ArgumentParser) -> None:
 
 
 def add_optimizer_options(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--optimizer", choices=["sgd", "adamw"], default="sgd")
+    parser.add_argument("--optimizer", choices=["sgd", "adamw"], default="adamw")
     parser.add_argument("--gradient-clip", type=float, default=5.0)
     parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--adam-beta1", type=float, default=0.9)

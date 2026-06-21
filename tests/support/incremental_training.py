@@ -43,6 +43,10 @@ def train_args(
         str(steps),
         "--learning-rate",
         "0.08",
+        # Pin sgd so these guarded-update fixtures stay deterministic and
+        # decoupled from the default optimizer (now adamw).
+        "--optimizer",
+        "sgd",
         "--eval-every",
         "0",
         "--valid-limit",

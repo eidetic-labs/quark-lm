@@ -24,14 +24,18 @@ def validate_torch_training_case(case: dict[str, Any]) -> None:
 
 
 def _validate_case_keys(case: dict[str, Any]) -> None:
-    expected = (
-        _MATCHED_CASE_KEYS if case.get("status") == "matched" else _BASE_CASE_KEYS
-    )
-    if set(case) != expected:
-        missing = expected - set(case)
-        if missing:
-            field = sorted(missing)[0]
-            raise ValueError(f"candidate.training_case.{field} is missing")
+    if case.get("status") == "matched":
+        required = _MATCHED_CASE_KEYS
+        allowed = _MATCHED_CASE_KEYS | _MATCHED_EVIDENCE_KEYS
+    else:
+        required = _BASE_CASE_KEYS
+        allowed = _BASE_CASE_KEYS
+    keys = set(case)
+    missing = required - keys
+    if missing:
+        field = sorted(missing)[0]
+        raise ValueError(f"candidate.training_case.{field} is missing")
+    if keys - allowed:
         raise ValueError("candidate.training_case keys are inconsistent")
 
 
@@ -94,4 +98,20 @@ _BASE_CASE_KEYS = {
 _MATCHED_CASE_KEYS = _BASE_CASE_KEYS | {
     "evidence_source",
     "promoted_training_backend",
+}
+# A matched case also carries the scalar training evidence that the parity
+# report compares against (transformer_training_parity_report.py): initial/final
+# logits and loss, per-step records, optimizer state, and parameter signatures.
+# These are optional known fields — present in the real replay-matched builder,
+# absent in a minimal matched stub — and are distinct from unknown drift keys,
+# which remain rejected.
+_MATCHED_EVIDENCE_KEYS = {
+    "initial_logits",
+    "initial_loss",
+    "final_logits",
+    "final_loss",
+    "step_records",
+    "optimizer_state",
+    "parameter_signature",
+    "trainable_parameter_signature",
 }

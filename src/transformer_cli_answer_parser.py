@@ -119,7 +119,7 @@ def _add_direct_answer_options(answer_parser: argparse.ArgumentParser) -> None:
         default=0,
         help="Continue training transformer weights for greedy answer completion.",
     )
-    answer_parser.add_argument("--direct-answer-learning-rate", type=float, default=0.035)
+    answer_parser.add_argument("--direct-answer-learning-rate", type=float, default=0.08)
     answer_parser.add_argument("--direct-answer-eval-every", type=int, default=200)
     answer_parser.add_argument("--direct-answer-max-new-chars", type=int, default=96)
     answer_parser.add_argument(
