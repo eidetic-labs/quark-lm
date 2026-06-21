@@ -128,6 +128,30 @@ class TorchTrainingLoopTest(unittest.TestCase):
         self.assertIsNotNone(reloaded_tokenizer)
         self.assertAlmostEqual(reloaded.nll(context, target), torch_loss, delta=1e-6)
 
+    def test_lr_warmup_changes_torch_training(self) -> None:
+        torch = _torch_or_skip(self)
+
+        def final_loss(warmup_steps: int) -> float:
+            tokenizer, ids, config, model = char_model_fixture("abcabc\n", seed=7)
+            examples = [context_and_target(ids, config, tokenizer, index=i) for i in (2, 3, 4)]
+            ctx0, tgt0 = examples[0]
+            fixture = build_scalar_training_parity_fixture(
+                fixture_id="warmup", model=model, tokenizer=tokenizer, context=ctx0, target=tgt0,
+                optimizer_config=OptimizationConfig(
+                    optimizer="adamw", gradient_accumulation_steps=1, weight_decay=0.0,
+                    warmup_steps=warmup_steps,
+                ),
+                learning_rate=0.1, steps=8, corpus_hash="x",
+            )
+            _state, losses = train_torch_lm(
+                fixture=fixture, examples=examples, steps=8, learning_rate=0.1,
+                torch=torch, runtime=RUNTIME,
+            )
+            return losses[-1]
+
+        # Warmup ramps the LR from ~0, so the trajectory differs from constant LR.
+        self.assertGreater(abs(final_loss(0) - final_loss(6)), 1e-4)
+
 
 if __name__ == "__main__":
     unittest.main()

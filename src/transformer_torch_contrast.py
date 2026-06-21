@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any
 
 from neural_char_ops import make_context
+from transformer_optimizer import scheduled_learning_rate
 from transformer_torch_runtime import configure_torch_runtime
 from transformer_torch_training_loss import (
     build_torch_training_logits,
@@ -205,6 +206,12 @@ def train_torch_answer_mixed(
         total.backward()
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
+        optimizer.param_groups[0]["lr"] = scheduled_learning_rate(
+            learning_rate, step + 1,
+            warmup_steps=config.get("warmup_steps", 0),
+            decay_steps=config.get("decay_steps", 0),
+            min_learning_rate=config.get("min_learning_rate", 0.0),
+        )
         optimizer.step()
         losses.append(float(total.detach().cpu()))
     return state, losses

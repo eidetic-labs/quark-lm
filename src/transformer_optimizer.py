@@ -13,6 +13,30 @@ from transformer_optimizer_gradient_evidence import (
 )
 
 
+def scheduled_learning_rate(
+    base_learning_rate: float,
+    step: int,
+    *,
+    warmup_steps: int,
+    decay_steps: int,
+    min_learning_rate: float,
+) -> float:
+    """Warmup-then-linear-decay LR schedule shared by the scalar and torch trainers.
+
+    Extracted so the torch loops honor the exact same schedule as the canonical
+    ScalarOptimizer (parity holds at every step, not just for constant-LR runs).
+    """
+
+    learning_rate = base_learning_rate
+    if warmup_steps > 0:
+        learning_rate *= min(1.0, step / warmup_steps)
+    if decay_steps > 0 and step > warmup_steps:
+        decay_step = min(step - warmup_steps, decay_steps)
+        decay_fraction = decay_step / decay_steps
+        learning_rate = learning_rate - (learning_rate - min_learning_rate) * decay_fraction
+    return max(learning_rate, min_learning_rate)
+
+
 class ScalarOptimizer:
     def __init__(
         self,
@@ -34,16 +58,13 @@ class ScalarOptimizer:
 
     def effective_learning_rate(self, base_learning_rate: float, next_step: int | None = None) -> float:
         step = self.update_count + 1 if next_step is None else next_step
-        learning_rate = base_learning_rate
-        if self.config.warmup_steps > 0:
-            learning_rate *= min(1.0, step / self.config.warmup_steps)
-        if self.config.decay_steps > 0 and step > self.config.warmup_steps:
-            decay_step = min(step - self.config.warmup_steps, self.config.decay_steps)
-            decay_fraction = decay_step / self.config.decay_steps
-            learning_rate = learning_rate - (
-                learning_rate - self.config.min_learning_rate
-            ) * decay_fraction
-        return max(learning_rate, self.config.min_learning_rate)
+        return scheduled_learning_rate(
+            base_learning_rate,
+            step,
+            warmup_steps=self.config.warmup_steps,
+            decay_steps=self.config.decay_steps,
+            min_learning_rate=self.config.min_learning_rate,
+        )
 
     def apply(self, params: list[Scalar], base_learning_rate: float) -> float:
         self._ensure_slots(len(params))
