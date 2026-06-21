@@ -62,7 +62,7 @@ def add_answer_train_arguments(answer_parser: argparse.ArgumentParser) -> None:
     answer_parser.add_argument("--eval-every", type=int, default=100)
     answer_parser.add_argument("--max-new-chars", type=int, default=48)
     add_generation_sampling_options(answer_parser)
-    add_optimizer_options(answer_parser)
+    add_optimizer_options(answer_parser, include_backend=True)
     answer_parser.add_argument("--resume-checkpoint", type=Path, default=None)
     answer_parser.add_argument("--resume-optimizer", type=Path, default=None)
     answer_parser.add_argument(

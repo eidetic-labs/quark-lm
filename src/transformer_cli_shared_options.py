@@ -91,7 +91,9 @@ def add_generation_sampling_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--use-kv-cache", action="store_true")
 
 
-def add_optimizer_options(parser: argparse.ArgumentParser) -> None:
+def add_optimizer_options(
+    parser: argparse.ArgumentParser, *, include_backend: bool = False
+) -> None:
     parser.add_argument("--optimizer", choices=["sgd", "adamw"], default="adamw")
     parser.add_argument("--gradient-clip", type=float, default=5.0)
     parser.add_argument("--weight-decay", type=float, default=0.0)
@@ -102,6 +104,16 @@ def add_optimizer_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--decay-steps", type=int, default=0)
     parser.add_argument("--min-learning-rate", type=float, default=0.0)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
+    if include_backend:
+        parser.add_argument(
+            "--backend",
+            choices=["scalar_python", "pytorch"],
+            default="scalar_python",
+            help=(
+                "Training backend. 'scalar_python' is the canonical, audited reference "
+                "engine; 'pytorch' is the validated performance backend (requires torch)."
+            ),
+        )
 
 
 def add_tokenizer_options(parser: argparse.ArgumentParser) -> None:

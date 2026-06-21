@@ -12,6 +12,7 @@ from transformer_answer_core_stage import train_core_answer_stage
 from transformer_answer_direct_stage import run_transformer_direct_answer_stage
 from transformer_answer_run_completion import complete_transformer_answer_training_run
 from transformer_answer_run_setup import prepare_transformer_answer_run
+from transformer_answer_torch_stage import train_core_answer_stage_torch
 from transformer_answer_training_snapshots import build_answer_training_snapshot_callback
 
 
@@ -40,20 +41,31 @@ def train_transformer_answers_command(
         model=lambda: model,
         tokenizer=lambda: tokenizer,
     )
-    baseline, last_snapshot = train_core_answer_stage(
-        args,
-        model,
-        tokenizer,
-        setup.training_pool,
-        setup.rng,
-        setup.training_candidates,
-        snapshot,
-    )
+    backend = getattr(args, "backend", "scalar_python")
+    if backend == "pytorch":
+        # Canonical scalar engine stays the audited reference; this trains the
+        # same from-scratch init on the validated torch backend, then hands the
+        # trained model to the unchanged completion/eval pipeline.
+        baseline = snapshot(0, None, None, None, None)
+        model = train_core_answer_stage_torch(
+            args, model, tokenizer, setup.training_pool, setup.optimizer.config
+        )
+        last_snapshot = snapshot(args.steps, None, None, None, None)
+    else:
+        baseline, last_snapshot = train_core_answer_stage(
+            args,
+            model,
+            tokenizer,
+            setup.training_pool,
+            setup.rng,
+            setup.training_candidates,
+            snapshot,
+        )
 
     post_direct_candidate_snapshot: dict[str, Any] | None = None
     post_direct_candidate_snapshot_skipped = False
     direct_answer_metrics: dict[str, Any] | None = None
-    if args.direct_answer_steps > 0:
+    if args.direct_answer_steps > 0 and backend != "pytorch":
         direct_result = run_transformer_direct_answer_stage(
             args=args,
             model_class=model_class,
