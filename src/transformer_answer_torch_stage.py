@@ -11,6 +11,7 @@ finalization / eval pipeline scores it exactly like a scalar-trained model.
 from __future__ import annotations
 
 import argparse
+import random
 from typing import Any
 
 from answer_model import AnswerExample
@@ -56,6 +57,9 @@ def train_core_answer_stage_torch(
     )
     if not pairs:
         raise ValueError("answer training pool produced no (context, target) pairs")
+    # The torch loop cycles examples sequentially; shuffle (seeded) so a bounded
+    # step budget samples the whole corpus instead of only its first lessons.
+    random.Random(getattr(args, "seed", 0)).shuffle(pairs)
 
     first_context, first_target = pairs[0]
     fixture = build_scalar_training_parity_fixture(
