@@ -8,6 +8,12 @@ from answer_examples import AnswerExample
 def answer_training_pool(examples: list[AnswerExample]) -> list[AnswerExample]:
     pool: list[AnswerExample] = []
     for example in examples:
+        if example.source.startswith("augmented:"):
+            # Augmented out-of-corpus examples are broad-coverage but share one
+            # target (" unknown."); keep them at weight 1 so they don't dominate
+            # the single most-frequent target and cause over-abstention.
+            pool.append(example)
+            continue
         repeats = 1
         if example.target != " unknown.":
             repeats += 1
