@@ -150,3 +150,35 @@ def train_answer_mixed_step(
         "choice_loss": choice_loss_value,
         "choice_candidate_count": float(choice_candidate_count),
     }
+
+
+def train_answer_contrast_pair(
+    model: Any,
+    tokenizer: CharTokenizer,
+    in_example: AnswerExample,
+    ooc_example: AnswerExample,
+    learning_rate: float,
+    rng: random.Random,
+    max_chars: int = 0,
+) -> float:
+    """Entity-paired symmetric contrast for closed-world abstention.
+
+    The owner prompt prefers its concrete answer over " unknown."; the
+    entity-swapped non-owner prompt prefers " unknown." over that same concrete
+    answer. The two prompts differ ONLY in the person, so the preference can only
+    flip via the entity tokens -- this trains per-entity conditioning rather than
+    shifting the marginal frequency of " unknown." (the failure of plain volume
+    augmentation). Reuses the candidate-ranking choice loss, one backward.
+    """
+    params = model.parameters()
+    zero_grad(params)
+    in_loss, _ = answer_choice_loss_scalars(
+        model, tokenizer, in_example, [ooc_example.target], rng, 1, max_chars
+    )
+    ooc_loss, _ = answer_choice_loss_scalars(
+        model, tokenizer, ooc_example, [in_example.target], rng, 1, max_chars
+    )
+    total = in_loss + ooc_loss
+    total.backward()
+    model.apply_gradients(params, learning_rate)
+    return total.data
