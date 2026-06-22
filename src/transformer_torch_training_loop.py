@@ -33,6 +33,35 @@ from transformer_torch_training_state import (
 )
 
 
+def _batch_loss(
+    *,
+    fixture: dict[str, Any],
+    state: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+    batch: list[tuple[list[int], int]],
+) -> Any:
+    """Mean next-token loss over a batch.
+
+    A 1-example batch returns the raw loss with no stack/divide, so batch_size=1
+    is bit-exact with the unbatched loop. For B>1 the batch-mean reorders the sum
+    (a genuine numerics change validated under the tolerance contract, not 1e-6).
+    """
+
+    if len(batch) == 1:
+        context, target = batch[0]
+        return build_torch_training_loss_tensor(
+            fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
+        )
+    per_example = [
+        build_torch_training_loss_tensor(
+            fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
+        )
+        for context, target in batch
+    ]
+    return torch.stack(per_example).sum() / len(per_example)
+
+
 def train_torch_lm(
     *,
     fixture: dict[str, Any],
@@ -45,6 +74,7 @@ def train_torch_lm(
     shuffle_each_epoch: bool = False,
     validation: list[tuple[list[int], int]] | None = None,
     eval_every: int = 0,
+    batch_size: int = 1,
 ) -> tuple[dict[str, Any], list[float]]:
     """Train torch tensors over (context, target) examples; return state + losses.
 
@@ -77,24 +107,26 @@ def train_torch_lm(
 
     accumulator = TorchGradAccumulator(config.get("gradient_accumulation_steps", 1))
     tracker = BestCheckpointTracker() if validation and eval_every > 0 else None
-    order = list(range(len(examples)))
+    examples_count = len(examples)
+    order = list(range(examples_count))
+    current_epoch = -1
     losses: list[float] = []
     grad_norms: list[float] = []
     applied_updates = 0
     for step in range(steps):
-        position = step % len(examples)
-        if shuffle_each_epoch and position == 0:
-            order = epoch_shuffle_order(len(examples), seed, step // len(examples))
-        context, target = examples[order[position]]
+        # Disjoint batches of batch_size, advancing through the (optionally
+        # reshuffled-per-epoch) order. At batch_size=1 this reduces to the prior
+        # `position = step % len` / reshuffle-at-position-0 path exactly.
+        epoch = (step * batch_size) // examples_count
+        if shuffle_each_epoch and epoch != current_epoch:
+            order = epoch_shuffle_order(examples_count, seed, epoch)
+            current_epoch = epoch
+        batch = [
+            examples[order[(step * batch_size + offset) % examples_count]]
+            for offset in range(batch_size)
+        ]
         optimizer.zero_grad()
-        loss = build_torch_training_loss_tensor(
-            fixture=fixture,
-            state=state,
-            torch=torch,
-            runtime=runtime,
-            context=context,
-            target=target,
-        )
+        loss = _batch_loss(fixture=fixture, state=state, torch=torch, runtime=runtime, batch=batch)
         loss.backward()
         grad_norms.append(grad_global_norm(params, torch))
         if clip and clip > 0.0:

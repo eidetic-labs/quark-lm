@@ -305,6 +305,28 @@ class TorchTrainingLoopTest(unittest.TestCase):
         # Default off: no validation slice -> no best-checkpoint bookkeeping added.
         self.assertNotIn("best_validation_loss", state)
 
+    def test_batch_of_identical_examples_matches_single(self) -> None:
+        torch = _torch_or_skip(self)
+
+        def final(*, batch_size: int, copies: int) -> float:
+            tokenizer, ids, config, model = char_model_fixture("abc abc\n", seed=53)
+            context, target = context_and_target(ids, config, tokenizer)
+            fixture = _fixture(model, tokenizer, context, target, steps=5, learning_rate=0.05)
+            state, _losses = train_torch_lm(
+                fixture=fixture, examples=[(context, target)] * copies, steps=5,
+                learning_rate=0.05, torch=torch, runtime=RUNTIME, batch_size=batch_size,
+            )
+            return eval_torch_loss(
+                fixture=fixture, state=state, context=context, target=target, torch=torch, runtime=RUNTIME,
+            )
+
+        # A 2-example batch of identical examples has batch-mean loss == the single
+        # loss, so the updates match the unbatched single-example run. (batch_size=1
+        # bit-exactness vs the scalar reference is covered by the parity test above.)
+        self.assertAlmostEqual(
+            final(batch_size=2, copies=2), final(batch_size=1, copies=1), delta=1e-9
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
