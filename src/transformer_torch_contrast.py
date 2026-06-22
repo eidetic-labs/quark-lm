@@ -139,6 +139,8 @@ def train_torch_contrast(
             candidate_token_lists=[abstain, concrete], torch=torch, runtime=runtime,
         )
         total = in_loss + ooc_loss
+        if not bool(torch.isfinite(total).all()):
+            raise FloatingPointError(f"non-finite contrast loss at step {step}")
         total.backward()
         if clip and clip > 0.0:
             torch.nn.utils.clip_grad_value_(params, clip)
