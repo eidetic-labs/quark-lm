@@ -26,7 +26,11 @@ from transformer_torch_runtime import (
     epoch_shuffle_order,
     grad_global_norm,
 )
-from transformer_torch_training_loss import build_torch_training_loss_tensor
+from transformer_torch_profile_support import batched_forward_unsupported_reason
+from transformer_torch_training_loss import (
+    build_torch_batched_loss_tensor,
+    build_torch_training_loss_tensor,
+)
 from transformer_torch_training_state import (
     build_torch_training_state,
     torch_training_weights_from_state,
@@ -52,6 +56,18 @@ def _batch_loss(
         context, target = batch[0]
         return build_torch_training_loss_tensor(
             fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
+        )
+    # Opt-in single-pass batched loss for B>1: only when use_batched_forward is set
+    # AND the profile is batched-supported. Flag-off (default) and batch_size==1 keep
+    # the byte-for-byte per-example stack-sum path below.
+    if runtime.get("use_batched_forward") and (
+        batched_forward_unsupported_reason(fixture["model_config"]) is None
+    ):
+        contexts = [context for context, _ in batch]
+        targets = [target for _, target in batch]
+        return build_torch_batched_loss_tensor(
+            fixture=fixture, state=state, torch=torch, runtime=runtime,
+            contexts=contexts, targets=targets,
         )
     per_example = [
         build_torch_training_loss_tensor(
