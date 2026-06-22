@@ -11,9 +11,13 @@ facts are excluded: they are the held-out boundary (measured), not trained.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 from answer_examples import AnswerExample
+
+# scorer(non_owner_prompt, concrete_answer) -> float; higher == HARDER negative
+# (the model more wrongly prefers the concrete answer for this non-owner).
+HardNegativeScorer = Callable[[str, str], float]
 
 
 def _qa_prompt(person: str, obj: str, kind: str) -> str:
@@ -24,8 +28,18 @@ def _qa_prompt(person: str, obj: str, kind: str) -> str:
 
 def build_contrast_pairs(
     grammar: dict[str, Any],
+    *,
+    hard_negative_scorer: HardNegativeScorer | None = None,
 ) -> list[tuple[AnswerExample, AnswerExample]]:
-    """Entity-paired (admitted-fact, entity-swapped out-of-corpus) contrast pairs."""
+    """Entity-paired (admitted-fact, entity-swapped out-of-corpus) contrast pairs.
+
+    By default the non-owner is the first eligible person (deterministic). With a
+    hard_negative_scorer, the HARDEST eligible non-owner is chosen instead -- the
+    one the model most wrongly prefers the concrete answer for -- which sharpens
+    the contrast margin. Selection only ranks the already-eligible (leakage-safe)
+    non-owners, so the partition guarantees are unchanged; scorer=None is
+    byte-for-byte identical to the prior behavior.
+    """
 
     story_facts = grammar.get("story_facts", [])
     withheld = set(grammar.get("withheld_fact_ids", []))
@@ -40,12 +54,17 @@ def build_contrast_pairs(
         if fact["id"] in withheld:
             continue
         owner, obj = fact["person"], fact["object"]
-        non_owner = next(
-            (p for p in persons if p != owner and (p, obj) not in excluded), None
-        )
-        if non_owner is None:
+        eligible = [p for p in persons if p != owner and (p, obj) not in excluded]
+        if not eligible:
             continue
         place = f"{fact['relation']} the {fact['container']}"
+        if hard_negative_scorer is None:
+            non_owner = eligible[0]
+        else:
+            non_owner = max(
+                eligible,
+                key=lambda person: hard_negative_scorer(_qa_prompt(person, obj, "place"), f" {place}."),
+            )
         for kind, answer in (("place", place), ("color", fact["color"])):
             pairs.append(
                 (
