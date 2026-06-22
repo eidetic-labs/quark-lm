@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from transformer_torch_batched_block import torch_batched_logits
+from transformer_torch_batched_block import batched_logits_fn
 from transformer_torch_minimal_block import torch_minimal_logits
 from transformer_torch_profile_support import batched_forward_unsupported_reason
 from transformer_torch_training_state import torch_training_weights_from_state
@@ -31,7 +31,7 @@ def build_torch_training_logits(
         "model_config": fixture["model_config"],
     }
     if _use_batched(runtime, fixture["model_config"]):
-        return torch_batched_logits([context], forward_fixture, torch, runtime)[0]
+        return batched_logits_fn(torch, runtime)([context], forward_fixture, torch, runtime)[0]
     return torch_minimal_logits(context, forward_fixture, torch, runtime)
 
 
@@ -55,7 +55,7 @@ def build_torch_batched_loss_tensor(
         "weights": torch_training_weights_from_state(fixture=fixture, state=state),
         "model_config": fixture["model_config"],
     }
-    logits = torch_batched_logits(contexts, forward_fixture, torch, runtime)
+    logits = batched_logits_fn(torch, runtime)(contexts, forward_fixture, torch, runtime)
     probabilities = torch.softmax(logits, dim=1)
     target_index = torch.tensor(targets, dtype=torch.long, device=runtime["device"])
     chosen = probabilities.gather(1, target_index.unsqueeze(1)).squeeze(1)

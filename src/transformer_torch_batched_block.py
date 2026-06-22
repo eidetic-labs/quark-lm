@@ -44,6 +44,28 @@ def torch_batched_logits(
     return torch_linear(final_hidden, output_weights, weights["bout"], torch, runtime)
 
 
+_COMPILED_BATCHED_LOGITS = None
+
+
+def batched_logits_fn(torch: Any, runtime: dict[str, Any]) -> Any:
+    """``torch_batched_logits``, optionally torch.compile'd via runtime['use_compile'].
+
+    Device-agnostic: torch.compile targets the CUDA/MPS/CPU backend transparently,
+    and the compiled graph is built once and reused. Default off returns the eager
+    function unchanged. Only the tensorized batched path is compiled (the
+    per-position Python builder graph-breaks with no benefit); since the batched
+    path is never reached under the fake-torch double, torch.compile is never
+    invoked there.
+    """
+
+    if not runtime.get("use_compile"):
+        return torch_batched_logits
+    global _COMPILED_BATCHED_LOGITS
+    if _COMPILED_BATCHED_LOGITS is None:
+        _COMPILED_BATCHED_LOGITS = torch.compile(torch_batched_logits)
+    return _COMPILED_BATCHED_LOGITS
+
+
 def _forward_full_block(x, block, config, torch, runtime):
     attended = _attention(x, block, config, torch, runtime)
     return _feed_forward(attended, block, config, torch, runtime)
