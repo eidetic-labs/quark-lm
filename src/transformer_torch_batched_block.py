@@ -30,7 +30,15 @@ def torch_batched_logits(
     position_embeddings = torch_tensor(torch, weights["position_embeddings"], runtime)
     context_size = config["context_size"]
     idx = torch.tensor(contexts, dtype=torch.long, device=runtime["device"])
-    x = token_embeddings[idx] + position_embeddings[:context_size].unsqueeze(0)
+    # Phase 2: drop the learned pos-embed addend under use_absolute_rope for
+    # self-consistency with the Tier-1/scalar engines. This batched path is
+    # UNREACHABLE under the flag (batched_forward_unsupported_reason returns non-None,
+    # and test_batched_fails_closed_under_absolute_rope is the tripwire), so this branch
+    # is defense-in-depth only -- abs_positions are NOT wired into the (B,C,D) RoPE here.
+    if config.get("use_absolute_rope"):
+        x = token_embeddings[idx]
+    else:
+        x = token_embeddings[idx] + position_embeddings[:context_size].unsqueeze(0)
     blocks = [weights] + list(weights.get("extra_layers", []))
     for block in blocks[:-1]:
         x = _forward_full_block(x, block, config, torch, runtime)

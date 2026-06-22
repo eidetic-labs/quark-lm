@@ -42,7 +42,11 @@ class AnswerTorchStageTest(unittest.TestCase):
         pairs = build_torch_answer_training_pairs([example], tokenizer, 8, tokenizer.pad_id)
         target_ids = tokenizer.encode("cd")
         self.assertEqual(len(pairs), len(target_ids))
-        self.assertEqual([target for _context, target in pairs], target_ids)
+        self.assertEqual([target for _context, _abs, target in pairs], target_ids)
+        # Phase 2: pairs are (context, abs_positions, target) triples; the middle element
+        # is each window's absolute stream positions.
+        first_context, first_abs, _first_target = pairs[0]
+        self.assertEqual(len(first_abs), len(first_context))
         # the second context must include the first emitted target char (teacher forcing)
         self.assertIn(target_ids[0], pairs[1][0])
 
@@ -54,7 +58,7 @@ class AnswerTorchStageTest(unittest.TestCase):
         )
         model = TinyTransformerLM.init_random(config)
         pairs = build_torch_answer_training_pairs(POOL, tokenizer, 8, tokenizer.pad_id)
-        sample_context, sample_target = pairs[0]
+        sample_context, _sample_abs, sample_target = pairs[0]
         before = model.nll(sample_context, sample_target)
 
         args = argparse.Namespace(learning_rate=0.05, steps=40)

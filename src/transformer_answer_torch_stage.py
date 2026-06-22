@@ -17,7 +17,7 @@ from typing import Any
 
 from answer_contrast_pairs import build_contrast_pairs
 from answer_model import AnswerExample
-from neural_char_ops import make_context
+from neural_char_ops import make_context_positioned
 from tokenizer import CharTokenizer
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_contrast import train_torch_answer_mixed
@@ -32,14 +32,20 @@ def build_torch_answer_training_pairs(
     tokenizer: CharTokenizer,
     context_size: int,
     pad_id: int,
-) -> list[tuple[list[int], int]]:
-    """Decompose answer examples into all-position teacher-forced (context, target) pairs."""
+) -> list[tuple[list[int], list[int], int]]:
+    """Decompose answer examples into all-position teacher-forced triples.
 
-    pairs: list[tuple[list[int], int]] = []
+    Phase 2: each pair carries its window's ABSOLUTE stream positions as the middle
+    element -- (context, abs_positions, target) -- so the torch training path can key
+    RoPE absolutely (Fix A: carry the triple, never reconstruct from the window).
+    """
+
+    pairs: list[tuple[list[int], list[int], int]] = []
     for example in examples:
         ids = list(tokenizer.encode(example.prompt))
         for target_id in tokenizer.encode(example.target):
-            pairs.append((make_context(ids, context_size, pad_id), target_id))
+            context, abs_positions = make_context_positioned(ids, context_size, pad_id)
+            pairs.append((context, abs_positions, target_id))
             ids.append(target_id)
     return pairs
 
@@ -64,7 +70,7 @@ def train_core_answer_stage_torch(
     # step budget samples the whole corpus instead of only its first lessons.
     random.Random(getattr(args, "seed", 0)).shuffle(pairs)
 
-    first_context, first_target = pairs[0]
+    first_context, _first_abs, first_target = pairs[0]
     fixture = build_scalar_training_parity_fixture(
         fixture_id="answer-train-torch",
         model=model,

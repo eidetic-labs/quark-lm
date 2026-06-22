@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from neural_char_ops import make_context
+from neural_char_ops import make_context_positioned
 from transformer_no_decay_mask import build_two_group_adamw
 from transformer_optimizer import scheduled_learning_rate
 from transformer_torch_runtime import (
@@ -29,6 +29,22 @@ from transformer_torch_training_loss import (
     build_torch_training_loss_tensor,
 )
 from transformer_torch_training_state import build_torch_training_state
+
+
+def _example_parts(example: tuple) -> tuple[list[int], list[int] | None, int]:
+    """Return (context, abs_positions_or_None, target) for a 2- or 3-tuple example.
+
+    Phase 2 made the canonical example a triple carrying its window's absolute stream
+    positions. A legacy 2-tuple (the byte-exact flag-OFF A/B baseline harness) carries
+    no positions, so abs_positions is None and the next-token term slot-keys -- correct
+    when use_absolute_rope is off, and crashed by the consumption-site guard when on.
+    """
+
+    if len(example) == 3:
+        context, abs_positions, target = example
+        return context, abs_positions, target
+    context, target = example
+    return context, None, target
 
 
 def torch_answer_sequence_loss(
@@ -50,9 +66,16 @@ def torch_answer_sequence_loss(
     ids = list(prompt_ids)
     total = torch.tensor(0.0, dtype=dtype, device=runtime["device"])
     for target_id in target_ids:
-        context = make_context(ids, context_size, pad_id)
+        # Phase 2: build the ABSOLUTE stream positions for this window and thread them via
+        # a per-call dict(runtime) COPY made INSIDE the loop -- never mutate the shared
+        # runtime (that would trip the runtime-report parity check and could leak
+        # positions across the two entity-paired contrast contexts, which carry
+        # independent prompt streams -> independent ids -> independent abs_positions).
+        context, abs_positions = make_context_positioned(ids, context_size, pad_id)
+        step_runtime = dict(runtime)
+        step_runtime["abs_positions"] = abs_positions
         logits = build_torch_training_logits(
-            fixture=fixture, state=state, torch=torch, runtime=runtime, context=context
+            fixture=fixture, state=state, torch=torch, runtime=step_runtime, context=context
         )
         probabilities = torch.softmax(logits, dim=0)
         total = total + -torch.log(probabilities[target_id])
@@ -154,7 +177,7 @@ def train_torch_answer_mixed(
     *,
     fixture: dict[str, Any],
     tokenizer: Any,
-    examples: list[tuple[list[int], int]],
+    examples: list[tuple],
     contrast_pairs: list[tuple[Any, Any]],
     steps: int,
     learning_rate: float,
@@ -199,10 +222,22 @@ def train_torch_answer_mixed(
         position = step % len(examples)
         if shuffle_each_epoch and position == 0:
             order = epoch_shuffle_order(len(examples), seed, step // len(examples))
-        context, target = examples[order[position]]
+        # Phase 2 (R-A): this next-token term calls build_torch_training_loss_tensor
+        # DIRECTLY -- it does NOT route through _batch_loss (that serves only
+        # train_torch_lm, the contrast-OFF path the retrain never hits). So abs_positions
+        # must be threaded HERE, via a per-call dict(runtime) COPY, or the fact-learning
+        # objective trains slot-keyed while contrast/eval/generation key absolute. A
+        # Phase-2 triple (context, abs_positions, target) threads positions; a legacy
+        # 2-tuple (the byte-exact flag-OFF A/B baseline harness) carries no positions and
+        # slot-keys. Under use_absolute_rope a 2-tuple here would slot-key -> the
+        # fail-closed guard at the consumption site crashes it rather than miskey silently.
+        context, abs_positions, target = _example_parts(examples[order[position]])
+        step_runtime = dict(runtime)
+        if abs_positions is not None:
+            step_runtime["abs_positions"] = abs_positions
         optimizer.zero_grad()
         total = build_torch_training_loss_tensor(
-            fixture=fixture, state=state, torch=torch, runtime=runtime,
+            fixture=fixture, state=state, torch=torch, runtime=step_runtime,
             context=context, target=target,
         )
         if contrast_pairs and contrast_weight > 0.0:

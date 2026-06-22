@@ -43,6 +43,16 @@ def kv_cache_contract_violation(config: dict[str, Any]) -> str | None:
     for flag, reason in _UNIMPLEMENTED.items():
         if config.get(flag):
             return reason
+    if config.get("use_absolute_rope") and not config.get("use_rotary_positions"):
+        # Phase 2 (R-B): under use_absolute_rope the learned position_embeddings addend is
+        # dropped, so RoPE is the ONLY positional source. Without use_rotary_positions the
+        # model has NO positional signal at all -- a position-blind config whose accuracy
+        # collapse would be misread as a thesis failure. Reject it structurally.
+        return (
+            "use_absolute_rope drops the learned position-embedding addend, so RoPE is the "
+            "sole positional source -- it requires use_rotary_positions=True, else the model "
+            "is position-blind (no pos-embed AND no RoPE)"
+        )
     if config.get("sliding_window_size") is not None:
         return "sliding-window attention is not yet implemented (Phase 4)"
     if _evicting_window_with_projection(config):

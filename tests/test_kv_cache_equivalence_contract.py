@@ -99,10 +99,21 @@ class KvCacheContractTest(unittest.TestCase):
 
     def test_absolute_rope_constructs(self) -> None:
         # Phase 1 is built: use_absolute_rope no longer fails closed at construction.
+        # Phase 2 (R-B): use_absolute_rope drops the learned pos-embed addend, so RoPE is
+        # the sole positional source -- it REQUIRES use_rotary_positions=True, else the
+        # config is position-blind and refused.
         tokenizer = CharTokenizer.train(CORPUS)
-        model = _model(tokenizer, use_absolute_rope=True)  # must not raise
+        model = _model(
+            tokenizer, use_absolute_rope=True, use_rotary_positions=True
+        )  # must not raise
         self.assertTrue(model.config.use_absolute_rope)
-        self.assertIsNone(kv_cache_contract_violation({"use_absolute_rope": True}))
+        self.assertIsNone(
+            kv_cache_contract_violation(
+                {"use_absolute_rope": True, "use_rotary_positions": True}
+            )
+        )
+        # Position-blind config (absolute RoPE, no RoPE) is refused structurally.
+        self.assertIsNotNone(kv_cache_contract_violation({"use_absolute_rope": True}))
 
     def test_sliding_window_fails_closed(self) -> None:
         tokenizer = CharTokenizer.train(CORPUS)

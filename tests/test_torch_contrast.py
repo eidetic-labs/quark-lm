@@ -16,7 +16,7 @@ from importlib import import_module
 
 import support  # noqa: F401  (inserts src/ onto sys.path)
 from answer_examples import AnswerExample
-from neural_char_ops import make_context
+from neural_char_ops import make_context, make_context_positioned
 from support.core import CharTokenizer, OptimizationConfig, TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_contrast import (
@@ -101,9 +101,10 @@ class TorchContrastSignFlipTest(unittest.TestCase):
         for in_example, _ooc in PAIRS:
             ids = list(tokenizer.encode(in_example.prompt))
             for target_id in tokenizer.encode(in_example.target):
-                examples.append((make_context(ids, 16, tokenizer.pad_id), target_id))
+                context, abs_positions = make_context_positioned(ids, 16, tokenizer.pad_id)
+                examples.append((context, abs_positions, target_id))
                 ids.append(target_id)
-        c0, t0 = examples[0]
+        c0, _a0, t0 = examples[0]
         fixture = build_scalar_training_parity_fixture(
             fixture_id="mixed", model=model, tokenizer=tokenizer, context=c0, target=t0,
             optimizer_config=OptimizationConfig(optimizer="adamw", gradient_accumulation_steps=1, weight_decay=0.0),

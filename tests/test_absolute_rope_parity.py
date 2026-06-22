@@ -23,25 +23,42 @@ green), so run with ``PYTHONPATH=src:tests .venv/bin/python -m unittest``.
 
 from __future__ import annotations
 
+import json
 import math
+import tempfile
 import unittest
 from dataclasses import asdict
 from importlib import import_module
+from pathlib import Path
 
 import support  # noqa: F401  (puts src/ on sys.path)
+import transformer_torch_contrast as contrast_module
+from answer_examples import AnswerExample
 from neural_char_ops import (
     POSITION_PAD_SENTINEL,
     make_context,
     make_context_positioned,
 )
 from tokenizer import CharTokenizer
-from transformer_model import GenerationConfig, TransformerConfig
+from transformer_model import GenerationConfig, OptimizationConfig, TransformerConfig
 from transformer_parity_contract import assert_numeric_parity, assert_rank_invariant
 from transformer_tiny_lm import TinyTransformerLM
 from transformer_torch_attention import _apply_rotary_row, torch_apply_rotary
+from transformer_torch_contrast import (
+    torch_answer_choice_loss,
+    torch_answer_sequence_loss,
+    train_torch_answer_mixed,
+)
 from transformer_torch_minimal_block import torch_minimal_logits
 from transformer_torch_minimal_forward import torch_minimal_parity_outputs
 from transformer_torch_profile_support import batched_forward_unsupported_reason
+from transformer_torch_training_loop import save_torch_checkpoint
+from transformer_torch_training_loss import (
+    build_torch_training_logits,
+    build_torch_training_loss_tensor,
+)
+from transformer_torch_training_state import build_torch_training_state
+from transformer_training_parity_fixture import build_scalar_training_parity_fixture
 
 CORPUS = "mia ball box red cup noah shelf ava leo book\n"
 
@@ -58,6 +75,20 @@ def _model(tokenizer: CharTokenizer, **overrides) -> TinyTransformerLM:
     )
     defaults.update(overrides)
     return TinyTransformerLM.init_random(TransformerConfig(**defaults))
+
+
+def _zero_position_embeddings(model: TinyTransformerLM) -> None:
+    """Zero the learned position_embeddings so a flag-OFF model adds no positional addend.
+
+    Phase 2 drops the learned pos-embed addend under use_absolute_rope, so an ON forward
+    no longer equals an OFF forward that still adds the table. Zeroing the OFF table
+    re-grounds the comparison: OFF-zeroed contributes token embeddings only, exactly like
+    the ON arm, isolating the RoPE keying as the sole remaining difference.
+    """
+
+    for row in model.position_embeddings:
+        for scalar in row:
+            scalar.data = 0.0
 
 
 def _torch_or_skip(test_case: unittest.TestCase):
@@ -141,10 +172,15 @@ class AbsoluteRopeScalarTest(unittest.TestCase):
         return tokenizer.decode(generated), token_ids
 
     def test_unpadded_window_flag_on_equals_off_f64(self) -> None:
-        # Contiguous (all-real) window: absolute positions == enumerate, so flag-on
-        # must equal flag-off at f64 1e-6 with identical rank order.
+        # Contiguous (all-real) window: absolute positions == enumerate. Phase 2 drops the
+        # learned pos-embed addend under the flag, so flag-on no longer equals a flag-off
+        # that STILL adds pos-embed. Re-ground: zero the OFF model's position_embeddings so
+        # OFF also contributes no positional addend, then ON (token-only + absolute RoPE)
+        # must equal OFF-zeroed (token-only + slot RoPE == absolute RoPE on a contiguous
+        # window) at f64 1e-6 with identical rank order.
         tokenizer = CharTokenizer.train(CORPUS)
         off = _model(tokenizer)
+        _zero_position_embeddings(off)
         on = _model(tokenizer, use_absolute_rope=True)
         ids = tokenizer.encode("mia ball box red cup")  # >= context_size 6
         context, positions = make_context_positioned(ids, 6, tokenizer.pad_id)
@@ -258,6 +294,8 @@ class AbsoluteRopeScalarTest(unittest.TestCase):
             use_absolute_rope=True,
         )
         self.assertEqual(off.config.embedding_dim // off.config.attention_heads, 3)
+        # Phase 2: re-ground ON==OFF-zeroed (OFF still adds pos-embed otherwise).
+        _zero_position_embeddings(off)
         ids = tokenizer.encode("mia ball box red cup")
         context, positions = make_context_positioned(ids, 6, tokenizer.pad_id)
         off_logits = off._forward_floats(context)
@@ -278,7 +316,12 @@ class AbsoluteRopeScalarTest(unittest.TestCase):
         on = _model(tokenizer, num_layers=2, use_absolute_rope=True)
         ids = tokenizer.encode("mia ball box red cup")
         context, positions = make_context_positioned(ids, 6, tokenizer.pad_id)
-        off_logits = off._forward_floats(context)
+        # Phase 2: re-ground the unpadded ON==OFF on a SEPARATE pos-embed-zeroed OFF model
+        # (token-only + slot RoPE == ON's token-only + absolute RoPE on a contiguous
+        # window). The original `off` stays intact for the byte-exact padded check below.
+        off_zeroed = _model(tokenizer, num_layers=2)
+        _zero_position_embeddings(off_zeroed)
+        off_logits = off_zeroed._forward_floats(context)
         on_logits = on._forward_floats(context, positions)
         assert_numeric_parity(off_logits, on_logits, dtype="float64")
         assert_rank_invariant(off_logits, on_logits)
@@ -404,6 +447,281 @@ class AbsoluteRopeTorchTest(unittest.TestCase):
                 [float(v) for v in rotated[0].detach().cpu().tolist()],
                 [float(v) for v in row.detach().cpu().tolist()],
             )
+
+
+CONTRAST_PAIRS = [
+    (AnswerExample("mia ball", " a", "f"), AnswerExample("noah ball", " u", "o")),
+    (AnswerExample("noah cup", " b", "f"), AnswerExample("mia cup", " u", "o")),
+]
+CONTRAST_TEXT = (
+    "".join(e.prompt + e.target for pair in CONTRAST_PAIRS for e in pair) + "\n"
+)
+
+
+def _abs_fixture(model: TinyTransformerLM, tokenizer: CharTokenizer) -> dict:
+    """A training-parity fixture carrying the tokenizer summary the training path reads."""
+
+    context = make_context(tokenizer.encode("mia ball"), model.config.context_size, tokenizer.pad_id)
+    fixture = build_scalar_training_parity_fixture(
+        fixture_id="abs-train",
+        model=model,
+        tokenizer=tokenizer,
+        context=context,
+        target=tokenizer.encode(" a")[0],
+        optimizer_config=OptimizationConfig(
+            optimizer="adamw", gradient_accumulation_steps=1, weight_decay=0.0
+        ),
+        learning_rate=0.02,
+        steps=1,
+        corpus_hash="abs",
+    )
+    fixture["tokenizer"] = {
+        "tokenizer_type": getattr(tokenizer, "tokenizer_type", "char"),
+        "vocab_size": tokenizer.vocab_size,
+        "pad_id": tokenizer.pad_id,
+        "tokens": list(getattr(tokenizer, "tokens", [])),
+    }
+    return fixture
+
+
+class AbsoluteRopePhase2TrainingTest(unittest.TestCase):
+    """Phase 2: the torch TRAINING path keys RoPE absolutely (not slot-keyed).
+
+    Driven through the REAL training entry (build_torch_training_logits /
+    torch_answer_sequence_loss / train_torch_answer_mixed), NOT the test-only
+    _torch_logits helper -- the helper injects abs_positions directly and so cannot prove
+    the training context-build threads them.
+    """
+
+    def test_torch_training_path_keys_absolute_not_slot(self) -> None:
+        # R-A guard. On a PADDED context (left-pad -> absolute != enumerate), the training
+        # path's logits must equal the scalar ABSOLUTE reference and DIFFER from the scalar
+        # SLOT-keyed reference. If the training path slot-keyed, it would match the latter.
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CORPUS)
+        model = _model(tokenizer, use_absolute_rope=True)  # _model sets use_rotary_positions
+        fixture = _abs_fixture(model, tokenizer)
+        state = build_torch_training_state(fixture=fixture, torch=torch, runtime=CPU64)
+        ids = tokenizer.encode("mia")  # short -> heavy left-pad
+        context, abs_positions = make_context_positioned(ids, 6, tokenizer.pad_id)
+        self.assertIn(POSITION_PAD_SENTINEL, abs_positions)  # genuinely padded
+
+        step_runtime = dict(CPU64)
+        step_runtime["abs_positions"] = abs_positions
+        training_logits = build_torch_training_logits(
+            fixture=fixture, state=state, torch=torch, runtime=step_runtime, context=context
+        )
+        training_vals = [float(v) for v in training_logits.detach().cpu().tolist()]
+
+        scalar_absolute = model._forward_floats(context, abs_positions)
+        scalar_slot = model._forward_floats(context, list(range(6)))  # enumerate keying
+        assert_numeric_parity(scalar_absolute, training_vals, dtype="float64")
+        # And the slot-keyed scalar reference is genuinely DIFFERENT on this padded window,
+        # so the parity above is load-bearing (not a degenerate equality).
+        max_slot_gap = max(abs(a - b) for a, b in zip(scalar_slot, training_vals))
+        self.assertGreater(max_slot_gap, 1e-9)
+
+    def test_next_token_term_uses_absolute(self) -> None:
+        # R-A's specific missed site: the next-token term of train_torch_answer_mixed calls
+        # build_torch_training_loss_tensor DIRECTLY (bypassing _batch_loss). A few steps on
+        # a left-padded triple must NOT raise the fail-closed guard, and the loss tensor at
+        # a padded context must equal the scalar ABSOLUTE reference loss (not slot-keyed).
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CONTRAST_TEXT)
+        context_size = 12  # > prompt length so the early windows carry left-pad
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size, context_size=context_size, embedding_dim=4,
+            feedforward_dim=8, seed=11, use_rotary_positions=True, use_absolute_rope=True,
+        )
+        model = TinyTransformerLM.init_random(config)
+        fixture = _abs_fixture(model, tokenizer)
+        # Build left-padded triples for the next-token term.
+        examples = []
+        for in_example, _ooc in CONTRAST_PAIRS:
+            tids = list(tokenizer.encode(in_example.prompt))
+            for target_id in tokenizer.encode(in_example.target):
+                context, abs_positions = make_context_positioned(tids, context_size, tokenizer.pad_id)
+                examples.append((context, abs_positions, target_id))
+                tids.append(target_id)
+        # The first emitted window is genuinely left-padded (absolute != enumerate).
+        self.assertIn(POSITION_PAD_SENTINEL, examples[0][1])
+
+        # A few steps train without tripping the fail-closed guard (proves abs_positions
+        # are threaded at the direct build_torch_training_loss_tensor call site).
+        state, losses = train_torch_answer_mixed(
+            fixture=fixture, tokenizer=tokenizer, examples=examples,
+            contrast_pairs=CONTRAST_PAIRS, steps=4, learning_rate=0.02, contrast_weight=1.0,
+            torch=torch, runtime=CPU64,
+        )
+        self.assertEqual(len(losses), 4)
+        self.assertTrue(all(value == value for value in losses))  # all finite
+
+        # The next-token loss at a padded context, threaded with abs_positions, equals the
+        # scalar ABSOLUTE reference loss; a slot-keyed forward would not.
+        untrained = build_torch_training_state(fixture=fixture, torch=torch, runtime=CPU64)
+        context, abs_positions, target = examples[0]
+        step_runtime = dict(CPU64)
+        step_runtime["abs_positions"] = abs_positions
+        torch_loss = float(
+            build_torch_training_loss_tensor(
+                fixture=fixture, state=untrained, torch=torch, runtime=step_runtime,
+                context=context, target=target,
+            ).detach().cpu()
+        )
+        scalar_loss = model.nll(context, target, abs_positions)
+        self.assertAlmostEqual(torch_loss, scalar_loss, delta=1e-6)
+
+    def test_both_contrast_contexts_get_independent_absolute_positions(self) -> None:
+        # Spy on make_context_positioned within the contrast objective: both the owner
+        # (in_example) and the entity-swapped non-owner (ooc_example) prompt streams must
+        # produce their OWN abs_positions (correct length, derived from their own ids), and
+        # the SHARED runtime dict must be byte-identical before and after (no mutation --
+        # the per-call copy lives inside the per-target loop).
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CONTRAST_TEXT)
+        config = TransformerConfig(
+            vocab_size=tokenizer.vocab_size, context_size=8, embedding_dim=4,
+            feedforward_dim=8, seed=11, use_rotary_positions=True, use_absolute_rope=True,
+        )
+        model = TinyTransformerLM.init_random(config)
+        fixture = _abs_fixture(model, tokenizer)
+        state = build_torch_training_state(fixture=fixture, torch=torch, runtime=CPU64)
+
+        in_example, ooc_example = CONTRAST_PAIRS[0]
+        seen: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
+        original = contrast_module.make_context_positioned
+
+        def spy(ids, context_size, pad_id):
+            context, positions = original(ids, context_size, pad_id)
+            seen.append((tuple(ids), tuple(positions)))
+            return context, positions
+
+        shared_runtime = dict(CPU64)
+        before = dict(shared_runtime)
+        contrast_module.make_context_positioned = spy
+        try:
+            torch_answer_choice_loss(
+                fixture=fixture, state=state, prompt_ids=tokenizer.encode(in_example.prompt),
+                candidate_token_lists=[tokenizer.encode(in_example.target), tokenizer.encode(ooc_example.target)],
+                torch=torch, runtime=shared_runtime,
+            )
+            torch_answer_choice_loss(
+                fixture=fixture, state=state, prompt_ids=tokenizer.encode(ooc_example.prompt),
+                candidate_token_lists=[tokenizer.encode(ooc_example.target), tokenizer.encode(in_example.target)],
+                torch=torch, runtime=shared_runtime,
+            )
+        finally:
+            contrast_module.make_context_positioned = original
+
+        self.assertTrue(seen)
+        # Every produced positions list has length context_size (8).
+        for _ids, positions in seen:
+            self.assertEqual(len(positions), 8)
+        # The owner and non-owner prompts have DIFFERENT entities, so at least two distinct
+        # id-streams were observed (independent prompt streams -> independent positions).
+        distinct_streams = {ids for ids, _positions in seen}
+        self.assertGreaterEqual(len(distinct_streams), 2)
+        # The shared runtime dict was NOT mutated (per-call dict(runtime) copy discipline;
+        # pins the runtime-report parity check).
+        self.assertEqual(shared_runtime, before)
+        self.assertNotIn("abs_positions", shared_runtime)
+
+    def test_scalar_equals_torch_training_path_under_flag_padded(self) -> None:
+        # scalar _forward_floats(context, positions) == torch TRAINING-path logits at f64 on
+        # a PADDED window (drop-posembed parity through the real training entry).
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CORPUS)
+        model = _model(tokenizer, use_absolute_rope=True)
+        fixture = _abs_fixture(model, tokenizer)
+        state = build_torch_training_state(fixture=fixture, torch=torch, runtime=CPU64)
+        ids = tokenizer.encode("noah")  # short -> left-pad
+        context, abs_positions = make_context_positioned(ids, 6, tokenizer.pad_id)
+        self.assertIn(POSITION_PAD_SENTINEL, abs_positions)
+        step_runtime = dict(CPU64)
+        step_runtime["abs_positions"] = abs_positions
+        torch_vals = [
+            float(v)
+            for v in build_torch_training_logits(
+                fixture=fixture, state=state, torch=torch, runtime=step_runtime, context=context
+            ).detach().cpu().tolist()
+        ]
+        scalar = model._forward_floats(context, abs_positions)
+        assert_numeric_parity(scalar, torch_vals, dtype="float64")
+        assert_rank_invariant(scalar, torch_vals)
+
+    def test_fail_closed_guard_raises_without_abs_positions(self) -> None:
+        # R-C: torch_minimal_logits under use_absolute_rope with a runtime MISSING
+        # abs_positions must RAISE (a missed training site crashes, not silently
+        # slot-keys). OFF (no flag) with the same missing-positions runtime is fine.
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CORPUS)
+        model = _model(tokenizer, use_absolute_rope=True)
+        fixture = _fixture(model)
+        context = make_context(tokenizer.encode("mia"), 6, tokenizer.pad_id)
+        with self.assertRaises(ValueError):
+            torch_minimal_logits(context, fixture, torch, dict(CPU64))  # no abs_positions
+
+        off_model = _model(tokenizer)  # flag off
+        off_fixture = _fixture(off_model)
+        torch_minimal_logits(context, off_fixture, torch, dict(CPU64))  # must not raise
+
+    def test_checkpoint_loads_and_round_trips_flag(self) -> None:
+        # Format stays quarklm-transformer-v2, position_embeddings key present + correct
+        # shape, use_absolute_rope round-trips True; and an OFF-trained checkpoint loads
+        # into an ON model (A/B contract) and replays.
+        torch = _torch_or_skip(self)
+        tokenizer = CharTokenizer.train(CORPUS)
+        model = _model(tokenizer, use_absolute_rope=True)
+        fixture = _abs_fixture(model, tokenizer)
+        ids = tokenizer.encode("mia")
+        context, abs_positions = make_context_positioned(ids, 6, tokenizer.pad_id)
+        state = build_torch_training_state(fixture=fixture, torch=torch, runtime=CPU64)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "abs_answer.json"
+            save_torch_checkpoint(path, fixture=fixture, state=state, tokenizer=tokenizer)
+            payload = json.loads(path.read_text())
+            self.assertEqual(payload["checkpoint_format"], "quarklm-transformer-v2")
+            self.assertIn("position_embeddings", payload["weights"])
+            self.assertEqual(len(payload["weights"]["position_embeddings"]), 6)  # context_size rows
+            self.assertTrue(payload["config"]["use_absolute_rope"])
+            reloaded, reloaded_tokenizer = TinyTransformerLM.load(path)
+            self.assertIsNotNone(reloaded_tokenizer)
+            self.assertTrue(reloaded.config.use_absolute_rope)
+            # Reloaded ON model replays RoPE-only at f64 vs the original ON forward.
+            assert_numeric_parity(
+                model._forward_floats(context, abs_positions),
+                reloaded._forward_floats(context, abs_positions),
+                dtype="float64",
+            )
+
+        # An OFF checkpoint loads into an ON model (A/B footgun documented in the plan):
+        # from_dict honors the saved config, so an OFF ckpt reconstructs an OFF model.
+        off_model = _model(tokenizer)
+        payload_off = off_model.to_dict(tokenizer)
+        reloaded_off, _tok = TinyTransformerLM.from_dict(payload_off)
+        self.assertFalse(reloaded_off.config.use_absolute_rope)
+
+    def test_use_rotary_positions_guard_rejects_position_blind_config(self) -> None:
+        # R-B at config level: use_absolute_rope=True WITHOUT use_rotary_positions=True is a
+        # position-blind config (no pos-embed AND no RoPE) and must be refused at
+        # construction; with use_rotary_positions=True it constructs.
+        tokenizer = CharTokenizer.train(CORPUS)
+        with self.assertRaises(ValueError):
+            TinyTransformerLM.init_random(
+                TransformerConfig(
+                    vocab_size=tokenizer.vocab_size, context_size=6, embedding_dim=4,
+                    feedforward_dim=8, attention_heads=2, seed=7,
+                    use_absolute_rope=True, use_rotary_positions=False,
+                )
+            )
+        TinyTransformerLM.init_random(
+            TransformerConfig(
+                vocab_size=tokenizer.vocab_size, context_size=6, embedding_dim=4,
+                feedforward_dim=8, attention_heads=2, seed=7,
+                use_absolute_rope=True, use_rotary_positions=True,
+            )
+        )  # must not raise
 
 
 if __name__ == "__main__":

@@ -36,34 +36,55 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
             )
-        # token + position EMBEDDING loops stay slot-keyed (enumerate); Phase 1 changes
-        # only RoPE keying. ``positions`` is the absolute stream index per slot and is
-        # threaded into the blocks, where it is consumed at the RoPE site only when
-        # ``use_absolute_rope`` is on (otherwise dropped -> byte-identical flag-off).
+        # Phase 2: under ``use_absolute_rope`` the LEARNED position_embeddings addend is
+        # dropped (RoPE becomes the sole positional source); the OFF arm is the verbatim
+        # pre-Phase-2 expression so flag-off stays byte-exact. Structural two-branch
+        # if/else (NOT ``+ 0.0``, which would add a phantom Scalar(0.0) autograd node and
+        # could perturb the f64 1e-6 band). ``positions`` is the absolute stream index per
+        # slot, threaded into the blocks where the RoPE site consumes it under the flag.
+        add_pos = not self.config.use_absolute_rope
         if self.freeze_lower_layers_for_updates and self.config.num_layers > 1:
             float_blocks = [self._block_to_floats(block) for block in self.blocks[:-1]]
             token_embeddings = matrix_to_floats(self.token_embeddings)
             position_embeddings = matrix_to_floats(self.position_embeddings)
-            x_float = [
-                [
-                    token_embeddings[token_id][dim] + position_embeddings[position][dim]
-                    for dim in range(self.config.embedding_dim)
+            if add_pos:
+                x_float = [
+                    [
+                        token_embeddings[token_id][dim] + position_embeddings[position][dim]
+                        for dim in range(self.config.embedding_dim)
+                    ]
+                    for position, token_id in enumerate(context)
                 ]
-                for position, token_id in enumerate(context)
-            ]
+            else:
+                x_float = [
+                    [
+                        token_embeddings[token_id][dim]
+                        for dim in range(self.config.embedding_dim)
+                    ]
+                    for position, token_id in enumerate(context)
+                ]
             for block in float_blocks:
                 x_float = self._forward_full_block_floats(x_float, block, positions)
             x = matrix_to_scalars(x_float)
             return self._finalize_hidden_scalars(
                 self._forward_final_block_scalars(x, self.blocks[-1], context, positions)
             )
-        x = [
-            [
-                self.token_embeddings[token_id][dim] + self.position_embeddings[position][dim]
-                for dim in range(self.config.embedding_dim)
+        if add_pos:
+            x = [
+                [
+                    self.token_embeddings[token_id][dim] + self.position_embeddings[position][dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
             ]
-            for position, token_id in enumerate(context)
-        ]
+        else:
+            x = [
+                [
+                    self.token_embeddings[token_id][dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
+            ]
         if self.config.num_layers == 1:
             return self._finalize_hidden_scalars(
                 self._forward_final_block_scalars(x, self.blocks[0], context, positions)
@@ -93,13 +114,25 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
             )
         token_embeddings = matrix_to_floats(self.token_embeddings)
         position_embeddings = matrix_to_floats(self.position_embeddings)
-        x = [
-            [
-                token_embeddings[token_id][dim] + position_embeddings[position][dim]
-                for dim in range(self.config.embedding_dim)
+        # Phase 2: drop the learned pos-embed addend under use_absolute_rope (RoPE is the
+        # sole positional source); OFF arm is the verbatim original expression.
+        add_pos = not self.config.use_absolute_rope
+        if add_pos:
+            x = [
+                [
+                    token_embeddings[token_id][dim] + position_embeddings[position][dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
             ]
-            for position, token_id in enumerate(context)
-        ]
+        else:
+            x = [
+                [
+                    token_embeddings[token_id][dim]
+                    for dim in range(self.config.embedding_dim)
+                ]
+                for position, token_id in enumerate(context)
+            ]
         float_blocks = [self._block_to_floats(block) for block in self.blocks]
         if self.config.num_layers == 1:
             return self._finalize_hidden_floats(

@@ -22,12 +22,19 @@ def torch_minimal_logits(
     config = fixture["model_config"]
     token_embeddings = torch_tensor(torch, weights["token_embeddings"], runtime)
     position_embeddings = torch_tensor(torch, weights["position_embeddings"], runtime)
-    x = torch.stack(
-        [
-            token_embeddings[token_id] + position_embeddings[position]
-            for position, token_id in enumerate(context)
-        ]
-    )
+    # Phase 2: under use_absolute_rope the learned position_embeddings addend is dropped
+    # (RoPE is the sole positional source); the OFF arm is the verbatim pre-Phase-2
+    # expression so flag-off is byte-identical. The position_embeddings tensor is still
+    # materialized (minimal diff + format stability), just unread under the flag.
+    if config.get("use_absolute_rope"):
+        x = torch.stack([token_embeddings[token_id] for token_id in context])
+    else:
+        x = torch.stack(
+            [
+                token_embeddings[token_id] + position_embeddings[position]
+                for position, token_id in enumerate(context)
+            ]
+        )
     blocks = _transformer_blocks(weights)
     for block in blocks[:-1]:
         x = _forward_full_block(x, block, config, torch, runtime)
@@ -127,7 +134,20 @@ def _attention_projections(
     if config.get("use_rotary_positions"):
         # Consumption gated on use_absolute_rope: absent the flag, positions are
         # dropped -> slot-keyed (enumerate), byte-identical to the pre-absolute path.
-        positions = runtime.get("abs_positions") if config.get("use_absolute_rope") else None
+        # Phase 2 FAIL-CLOSED guard (R-C): under the flag the pos-embed addend is gone,
+        # so RoPE is the ONLY positional signal -- a missing abs_positions would silently
+        # slot-key (enumerate on None at attention.py), wasting a retrain. Crash instead,
+        # so any training site that failed to thread positions is caught loudly.
+        if config.get("use_absolute_rope"):
+            positions = runtime.get("abs_positions")
+            if positions is None:
+                raise ValueError(
+                    "use_absolute_rope set but runtime['abs_positions'] missing -> "
+                    "would silently slot-key; training/forward site failed to thread "
+                    "positions"
+                )
+        else:
+            positions = None
         q = torch_apply_rotary(q, config, torch, positions)
         k = torch_apply_rotary(k, config, torch, positions)
     return q, k, v

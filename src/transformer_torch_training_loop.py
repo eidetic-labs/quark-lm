@@ -43,9 +43,14 @@ def _batch_loss(
     state: dict[str, Any],
     torch: Any,
     runtime: dict[str, Any],
-    batch: list[tuple[list[int], int]],
+    batch: list[tuple],
 ) -> Any:
     """Mean next-token loss over a batch.
+
+    Phase 2: batch items may be (context, target) or (context, abs_positions, target);
+    this contrast-OFF path slot-keys by design and ignores abs_positions. Under
+    use_absolute_rope the fail-closed guard at the consumption site crashes any
+    unthreaded call rather than silently slot-keying.
 
     A 1-example batch returns the raw loss with no stack/divide, so batch_size=1
     is bit-exact with the unbatched loop. For B>1 the batch-mean reorders the sum
@@ -53,7 +58,7 @@ def _batch_loss(
     """
 
     if len(batch) == 1:
-        context, target = batch[0]
+        context, target = _context_target(batch[0])
         return build_torch_training_loss_tensor(
             fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
         )
@@ -63,32 +68,50 @@ def _batch_loss(
     if runtime.get("use_batched_forward") and (
         batched_forward_unsupported_reason(fixture["model_config"]) is None
     ):
-        contexts = [context for context, _ in batch]
-        targets = [target for _, target in batch]
+        contexts = [_context_target(example)[0] for example in batch]
+        targets = [_context_target(example)[1] for example in batch]
         return build_torch_batched_loss_tensor(
             fixture=fixture, state=state, torch=torch, runtime=runtime,
             contexts=contexts, targets=targets,
         )
     per_example = [
         build_torch_training_loss_tensor(
-            fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
+            fixture=fixture, state=state, torch=torch, runtime=runtime,
+            context=_context_target(example)[0], target=_context_target(example)[1],
         )
-        for context, target in batch
+        for example in batch
     ]
     return torch.stack(per_example).sum() / len(per_example)
+
+
+def _context_target(example: tuple) -> tuple[list[int], int]:
+    """Unpack (context, target) or (context, abs_positions, target).
+
+    Phase 2 made the canonical contrast-path example a triple carrying its window's
+    absolute positions. The contrast-OFF next-token loop (train_torch_lm) slot-keys by
+    design and ignores abs_positions, so it accepts BOTH shapes: legacy 2-tuples and the
+    triple. Under use_absolute_rope a 2-tuple here would slot-key, but the fail-closed
+    guard at the consumption site crashes that path rather than silently miskeying.
+    """
+
+    if len(example) == 3:
+        context, _abs_positions, target = example
+        return context, target
+    context, target = example
+    return context, target
 
 
 def train_torch_lm(
     *,
     fixture: dict[str, Any],
-    examples: list[tuple[list[int], int]],
+    examples: list[tuple],
     steps: int,
     learning_rate: float,
     torch: Any,
     runtime: dict[str, Any] | None = None,
     seed: int | None = None,
     shuffle_each_epoch: bool = False,
-    validation: list[tuple[list[int], int]] | None = None,
+    validation: list[tuple] | None = None,
     eval_every: int = 0,
     batch_size: int = 1,
 ) -> tuple[dict[str, Any], list[float]]:
@@ -169,10 +192,11 @@ def train_torch_lm(
             with torch.no_grad():
                 validation_loss = sum(
                     eval_torch_loss(
-                        fixture=fixture, state=state, context=eval_context,
-                        target=eval_target, torch=torch, runtime=runtime,
+                        fixture=fixture, state=state,
+                        context=_context_target(example)[0],
+                        target=_context_target(example)[1], torch=torch, runtime=runtime,
                     )
-                    for eval_context, eval_target in validation
+                    for example in validation
                 ) / len(validation)
             tracker.consider(step + 1, validation_loss, params)
     if tracker is not None and tracker.restore(params):
