@@ -22,13 +22,19 @@ def torch_causal_attention(
     config: dict[str, Any],
     torch: Any,
     position: int | None = None,
+    runtime: dict[str, Any] | None = None,
 ) -> Any:
     if position is None:
         position = config["context_size"] - 1
     head_dim = config["embedding_dim"] // config["attention_heads"]
+    # Opt-in (runtime['use_sdpa']) device-agnostic fused attention. Default off ->
+    # the hand-rolled head, so the existing parity + the fake-torch double (which
+    # lacks F.scaled_dot_product_attention) are untouched. SDPA computes the same
+    # softmax((q.k)*scale).v and is validated within the parity band on real torch.
+    head_fn = _attention_head_sdpa if (runtime and runtime.get("use_sdpa")) else _attention_head
     attended = []
     for head in range(config["attention_heads"]):
-        attended.extend(_attention_head(q, k, v, position, head, head_dim, torch))
+        attended.extend(head_fn(q, k, v, position, head, head_dim, torch))
     return torch.stack(attended)
 
 
@@ -80,3 +86,31 @@ def _attention_head(
     values = torch.stack([v[past][start:end] for past in range(position + 1)])
     attended = weights @ values
     return [attended[dim] for dim in range(head_dim)]
+
+
+def _attention_head_sdpa(
+    q: Any,
+    k: Any,
+    v: Any,
+    position: int,
+    head: int,
+    head_dim: int,
+    torch: Any,
+) -> list[Any]:
+    """Single-query attention via F.scaled_dot_product_attention (device-agnostic).
+
+    Same math as ``_attention_head`` -- softmax((q.k)*scale) over the past 0..position,
+    weighted-sum of values -- but routed through the fused kernel (FlashAttention on
+    CUDA, accelerated paths on MPS). Explicit scale = 1/sqrt(head_dim) matches the
+    hand-rolled head exactly, so float64 output agrees within the parity band.
+    """
+
+    start = head * head_dim
+    end = start + head_dim
+    query = torch.stack([q[position][start:end]])
+    keys = torch.stack([k[past][start:end] for past in range(position + 1)])
+    values = torch.stack([v[past][start:end] for past in range(position + 1)])
+    attended = torch.nn.functional.scaled_dot_product_attention(
+        query, keys, values, scale=1.0 / math.sqrt(head_dim)
+    )
+    return [attended[0][dim] for dim in range(head_dim)]

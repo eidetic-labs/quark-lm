@@ -141,7 +141,7 @@ def _attention_hidden_at_position(
     torch: Any,
     runtime: dict[str, Any],
 ) -> Any:
-    attended = torch_causal_attention(q, k, v, config, torch, position)
+    attended = torch_causal_attention(q, k, v, config, torch, position, runtime)
     projected = torch_linear(attended, block["wo"], block["bo"], torch, runtime)
     return x[position] + projected
 
