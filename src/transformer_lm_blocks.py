@@ -23,14 +23,16 @@ class TransformerBlockMixin(
         self,
         x: list[list[Scalar]],
         block: dict[str, Any],
+        positions: list[int] | None = None,
     ) -> list[list[Scalar]]:
         attention_input = self._attention_input_scalars(x, block)
         q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
         if self.config.use_rotary_positions:
-            q = self._apply_rotary_scalars(q)
-            k = self._apply_rotary_scalars(k)
+            pos = positions if self.config.use_absolute_rope else None
+            q = self._apply_rotary_scalars(q, pos)
+            k = self._apply_rotary_scalars(k, pos)
         outputs = []
         for position in range(self.config.context_size):
             attended = self._causal_attention_scalars(q, k, v, position)
@@ -47,14 +49,16 @@ class TransformerBlockMixin(
         x: list[list[float]],
         block: dict[str, Any],
         context: list[int],
+        positions: list[int] | None = None,
     ) -> list[float]:
         attention_input = self._attention_input_floats(x, block)
         q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
         if self.config.use_rotary_positions:
-            q = self._apply_rotary_floats(q)
-            k = self._apply_rotary_floats(k)
+            pos = positions if self.config.use_absolute_rope else None
+            q = self._apply_rotary_floats(q, pos)
+            k = self._apply_rotary_floats(k, pos)
         last_position = self.config.context_size - 1
         attended = self._causal_attention_floats(q, k, v, last_position)
         projected = linear_floats(attended, block["wo"], block["bo"])
@@ -74,14 +78,16 @@ class TransformerBlockMixin(
         self,
         x: list[list[float]],
         block: dict[str, Any],
+        positions: list[int] | None = None,
     ) -> list[list[float]]:
         attention_input = self._attention_input_floats(x, block)
         q = [linear_floats(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_floats(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_floats(row, block["wv"], block["bv"]) for row in attention_input]
         if self.config.use_rotary_positions:
-            q = self._apply_rotary_floats(q)
-            k = self._apply_rotary_floats(k)
+            pos = positions if self.config.use_absolute_rope else None
+            q = self._apply_rotary_floats(q, pos)
+            k = self._apply_rotary_floats(k, pos)
         outputs = []
         for position in range(self.config.context_size):
             attended = self._causal_attention_floats(q, k, v, position)

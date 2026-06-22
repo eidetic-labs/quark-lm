@@ -13,11 +13,15 @@ from transformer_math import (
 
 
 class TransformerObjectiveMixin:
-    def predict(self, context: list[int]) -> list[float]:
-        return softmax_floats(self._forward_floats(context))
+    def predict(
+        self, context: list[int], positions: list[int] | None = None
+    ) -> list[float]:
+        return softmax_floats(self._forward_floats(context, positions))
 
-    def nll(self, context: list[int], target: int) -> float:
-        probs = self.predict(context)
+    def nll(
+        self, context: list[int], target: int, positions: list[int] | None = None
+    ) -> float:
+        probs = self.predict(context, positions)
         return -math.log(max(probs[target], 1e-12))
 
     def apply_gradients(
@@ -39,10 +43,11 @@ class TransformerObjectiveMixin:
         target: int,
         learning_rate: float,
         params: list[Scalar] | None = None,
+        positions: list[int] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
-        loss = cross_entropy_scalars(self._forward_scalars(context), target)
+        loss = cross_entropy_scalars(self._forward_scalars(context, positions), target)
         loss.backward()
         self.apply_gradients(params, learning_rate)
         return loss.data
@@ -55,10 +60,11 @@ class TransformerObjectiveMixin:
         learning_rate: float,
         negative_weight: float,
         params: list[Scalar] | None = None,
+        positions: list[int] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
-        probs = softmax_scalars(self._forward_scalars(context))
+        probs = softmax_scalars(self._forward_scalars(context, positions))
         loss = -probs[target].log()
         if negative != target and negative_weight > 0.0:
             loss = loss + (-(Scalar(1.0) - probs[negative] + 1e-12).log()) * negative_weight
@@ -77,15 +83,19 @@ class TransformerObjectiveMixin:
         negative_weight: float,
         positive_weight: float,
         params: list[Scalar] | None = None,
+        positions: list[int] | None = None,
+        positive_positions: list[int] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
-        probs = softmax_scalars(self._forward_scalars(context))
+        probs = softmax_scalars(self._forward_scalars(context, positions))
         loss = -probs[target].log()
         if negative != target and negative_weight > 0.0:
             loss = loss + (-(Scalar(1.0) - probs[negative] + 1e-12).log()) * negative_weight
         if positive_weight > 0.0:
-            positive_probs = softmax_scalars(self._forward_scalars(positive_context))
+            positive_probs = softmax_scalars(
+                self._forward_scalars(positive_context, positive_positions)
+            )
             loss = loss + (-positive_probs[positive_target].log()) * positive_weight
         loss.backward()
         self.apply_gradients(params, learning_rate)
@@ -101,15 +111,19 @@ class TransformerObjectiveMixin:
         negative_weight: float,
         contrast_weight: float,
         params: list[Scalar] | None = None,
+        positions: list[int] | None = None,
+        contrast_positions: list[int] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
-        probs = softmax_scalars(self._forward_scalars(context))
+        probs = softmax_scalars(self._forward_scalars(context, positions))
         loss = -probs[target].log()
         if contrast_target != target and negative_weight > 0.0:
             loss = loss + (-(Scalar(1.0) - probs[contrast_target] + 1e-12).log()) * negative_weight
         if contrast_weight > 0.0:
-            contrast_probs = softmax_scalars(self._forward_scalars(contrast_context))
+            contrast_probs = softmax_scalars(
+                self._forward_scalars(contrast_context, contrast_positions)
+            )
             loss = loss + (-contrast_probs[contrast_target].log()) * contrast_weight
             if target != contrast_target and negative_weight > 0.0:
                 loss = loss + (
@@ -126,13 +140,15 @@ class TransformerObjectiveMixin:
         negative_weight: float,
         positive_weight: float,
         params: list[Scalar] | None = None,
+        branch_positions: list[list[int] | None] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
         branch_targets = sorted({target for _context, target in branches})
         loss = Scalar(0.0)
-        for context, target in branches:
-            probs = softmax_scalars(self._forward_scalars(context))
+        for index, (context, target) in enumerate(branches):
+            positions = None if branch_positions is None else branch_positions[index]
+            probs = softmax_scalars(self._forward_scalars(context, positions))
             if positive_weight > 0.0:
                 loss = loss + (-probs[target].log()) * positive_weight
             negatives = [
@@ -159,13 +175,15 @@ class TransformerObjectiveMixin:
         positive_weight: float,
         contrast_weight: float,
         params: list[Scalar] | None = None,
+        branch_positions: list[list[int] | None] | None = None,
     ) -> float:
         params = self.parameters() if params is None else params
         zero_grad(params)
         branch_targets = sorted({target for _context, target, _predicted in branches})
         loss = Scalar(0.0)
-        for context, target, predicted in branches:
-            probs = softmax_scalars(self._forward_scalars(context))
+        for index, (context, target, predicted) in enumerate(branches):
+            positions = None if branch_positions is None else branch_positions[index]
+            probs = softmax_scalars(self._forward_scalars(context, positions))
             if positive_weight > 0.0:
                 loss = loss + (-probs[target].log()) * positive_weight
             if negative_weight > 0.0 and predicted != target:

@@ -125,8 +125,11 @@ def _attention_projections(
     k = _project_rows(attention_input, block, "wk", "bk", torch, runtime)
     v = _project_rows(attention_input, block, "wv", "bv", torch, runtime)
     if config.get("use_rotary_positions"):
-        q = torch_apply_rotary(q, config, torch)
-        k = torch_apply_rotary(k, config, torch)
+        # Consumption gated on use_absolute_rope: absent the flag, positions are
+        # dropped -> slot-keyed (enumerate), byte-identical to the pre-absolute path.
+        positions = runtime.get("abs_positions") if config.get("use_absolute_rope") else None
+        q = torch_apply_rotary(q, config, torch, positions)
+        k = torch_apply_rotary(k, config, torch, positions)
     return q, k, v
 
 

@@ -20,18 +20,26 @@ from transformer_math import (
 
 
 class TransformerForwardMixin(TransformerContextSummaryMixin):
-    def _forward_scalars(self, context: list[int]) -> list[Scalar]:
+    def _forward_scalars(
+        self, context: list[int], positions: list[int] | None = None
+    ) -> list[Scalar]:
         return linear_scalars(
-            self._final_hidden_scalars(context),
+            self._final_hidden_scalars(context, positions),
             self._output_weights_scalars(),
             self.bout,
         )
 
-    def _final_hidden_scalars(self, context: list[int]) -> list[Scalar]:
+    def _final_hidden_scalars(
+        self, context: list[int], positions: list[int] | None = None
+    ) -> list[Scalar]:
         if len(context) != self.config.context_size:
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
             )
+        # token + position EMBEDDING loops stay slot-keyed (enumerate); Phase 1 changes
+        # only RoPE keying. ``positions`` is the absolute stream index per slot and is
+        # threaded into the blocks, where it is consumed at the RoPE site only when
+        # ``use_absolute_rope`` is on (otherwise dropped -> byte-identical flag-off).
         if self.freeze_lower_layers_for_updates and self.config.num_layers > 1:
             float_blocks = [self._block_to_floats(block) for block in self.blocks[:-1]]
             token_embeddings = matrix_to_floats(self.token_embeddings)
@@ -44,10 +52,10 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
                 for position, token_id in enumerate(context)
             ]
             for block in float_blocks:
-                x_float = self._forward_full_block_floats(x_float, block)
+                x_float = self._forward_full_block_floats(x_float, block, positions)
             x = matrix_to_scalars(x_float)
             return self._finalize_hidden_scalars(
-                self._forward_final_block_scalars(x, self.blocks[-1], context)
+                self._forward_final_block_scalars(x, self.blocks[-1], context, positions)
             )
         x = [
             [
@@ -58,23 +66,27 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
         ]
         if self.config.num_layers == 1:
             return self._finalize_hidden_scalars(
-                self._forward_final_block_scalars(x, self.blocks[0], context)
+                self._forward_final_block_scalars(x, self.blocks[0], context, positions)
             )
         else:
             for block in self.blocks[:-1]:
-                x = self._forward_full_block_scalars(x, block)
+                x = self._forward_full_block_scalars(x, block, positions)
             return self._finalize_hidden_scalars(
-                self._forward_final_block_scalars(x, self.blocks[-1], context)
+                self._forward_final_block_scalars(x, self.blocks[-1], context, positions)
             )
 
-    def _forward_floats(self, context: list[int]) -> list[float]:
+    def _forward_floats(
+        self, context: list[int], positions: list[int] | None = None
+    ) -> list[float]:
         return linear_floats(
-            self.final_hidden(context),
+            self.final_hidden(context, positions),
             self._output_weights_floats(),
             vector_to_floats(self.bout),
         )
 
-    def final_hidden(self, context: list[int]) -> list[float]:
+    def final_hidden(
+        self, context: list[int], positions: list[int] | None = None
+    ) -> list[float]:
         if len(context) != self.config.context_size:
             raise ValueError(
                 f"context must have {self.config.context_size} ids, got {len(context)}"
@@ -91,13 +103,13 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
         float_blocks = [self._block_to_floats(block) for block in self.blocks]
         if self.config.num_layers == 1:
             return self._finalize_hidden_floats(
-                self._forward_final_block_floats(x, float_blocks[0], context)
+                self._forward_final_block_floats(x, float_blocks[0], context, positions)
             )
         else:
             for block in float_blocks[:-1]:
-                x = self._forward_full_block_floats(x, block)
+                x = self._forward_full_block_floats(x, block, positions)
             return self._finalize_hidden_floats(
-                self._forward_final_block_floats(x, float_blocks[-1], context)
+                self._forward_final_block_floats(x, float_blocks[-1], context, positions)
             )
 
     def _finalize_hidden_scalars(self, hidden: list[Scalar]) -> list[Scalar]:
@@ -137,14 +149,16 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
         x: list[list[Scalar]],
         block: dict[str, Any],
         context: list[int],
+        positions: list[int] | None = None,
     ) -> list[Scalar]:
         attention_input = self._attention_input_scalars(x, block)
         q = [linear_scalars(row, block["wq"], block["bq"]) for row in attention_input]
         k = [linear_scalars(row, block["wk"], block["bk"]) for row in attention_input]
         v = [linear_scalars(row, block["wv"], block["bv"]) for row in attention_input]
         if self.config.use_rotary_positions:
-            q = self._apply_rotary_scalars(q)
-            k = self._apply_rotary_scalars(k)
+            pos = positions if self.config.use_absolute_rope else None
+            q = self._apply_rotary_scalars(q, pos)
+            k = self._apply_rotary_scalars(k, pos)
         last_position = self.config.context_size - 1
         attended = self._causal_attention_scalars(q, k, v, last_position)
         projected = linear_scalars(attended, block["wo"], block["bo"])

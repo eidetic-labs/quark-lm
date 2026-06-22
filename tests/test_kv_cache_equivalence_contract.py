@@ -34,7 +34,6 @@ from transformer_tiny_lm import TinyTransformerLM
 
 CORPUS = "mia ball box red cup noah shelf\n"
 UNBUILT_FLAGS = (
-    "use_absolute_rope",
     "use_all_positions_causal",
     "kv_cache_stores_summary_state",
 )
@@ -97,6 +96,13 @@ class KvCacheContractTest(unittest.TestCase):
         for flag in UNBUILT_FLAGS:
             with self.assertRaises(ValueError, msg=f"{flag} should fail closed"):
                 _model(tokenizer, **{flag: True})
+
+    def test_absolute_rope_constructs(self) -> None:
+        # Phase 1 is built: use_absolute_rope no longer fails closed at construction.
+        tokenizer = CharTokenizer.train(CORPUS)
+        model = _model(tokenizer, use_absolute_rope=True)  # must not raise
+        self.assertTrue(model.config.use_absolute_rope)
+        self.assertIsNone(kv_cache_contract_violation({"use_absolute_rope": True}))
 
     def test_sliding_window_fails_closed(self) -> None:
         tokenizer = CharTokenizer.train(CORPUS)

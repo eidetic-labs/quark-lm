@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from neural_char_ops import make_context_positioned
 from transformer_model import GenerationConfig
 from transformer_sampling import generation_distribution
 from transformer_torch_minimal_block import torch_minimal_logits
@@ -98,12 +99,22 @@ def _generation_case(
         False,
     )
     cache_events: list[dict[str, Any]] = []
+    # Per-step runtime carries abs_positions; copy so the caller's runtime dict stays
+    # pristine (the runtime-report parity check compares it by equality).
+    step_runtime = dict(runtime)
     for _step in range(case["max_new_chars"]):
-        context = _make_context(
+        # Single source of truth for the window + each slot's ABSOLUTE stream index
+        # (shared with the scalar generation boundary; removes the duplicate window
+        # builder's drift risk). The window content is byte-identical to the old
+        # _make_context, so flag-off stays byte-exact; runtime['abs_positions'] is
+        # consumed at the RoPE site only when use_absolute_rope is on.
+        context, abs_positions = make_context_positioned(
             ids,
             fixture["model_config"]["context_size"],
             fixture["tokenizer"]["pad_id"],
         )
+        assert len(abs_positions) == fixture["model_config"]["context_size"]
+        step_runtime["abs_positions"] = abs_positions
         if cache_enabled:
             cache_events.append(
                 {
@@ -115,7 +126,9 @@ def _generation_case(
                 }
             )
         probs = torch_to_list(
-            torch.softmax(torch_minimal_logits(context, fixture, torch, runtime), dim=0)
+            torch.softmax(
+                torch_minimal_logits(context, fixture, torch, step_runtime), dim=0
+            )
         )
         filtered = generation_distribution(probs, generated, config)
         next_id = max(range(len(filtered)), key=lambda index: filtered[index])
@@ -132,12 +145,6 @@ def _generation_case(
             "events": cache_events,
         },
     }
-
-
-def _make_context(ids: list[int], context_size: int, pad_id: int) -> list[int]:
-    if len(ids) >= context_size:
-        return ids[-context_size:]
-    return [pad_id] * (context_size - len(ids)) + ids
 
 
 def _decode(token_ids: list[int], tokenizer: dict[str, Any]) -> str:

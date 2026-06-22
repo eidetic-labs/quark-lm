@@ -7,7 +7,7 @@ from typing import Any
 
 from answer_model import AnswerExample
 from autograd import Scalar, zero_grad
-from neural_char_ops import make_context
+from neural_char_ops import make_context_positioned
 from tokenizer import CharTokenizer
 from transformer_direct_answer_core import answer_sequence_loss_scalars
 from transformer_math import cross_entropy_scalars
@@ -22,8 +22,12 @@ def answer_char_loss_scalars(
     prompt_ids = tokenizer.encode(example.prompt)
     target_ids = tokenizer.encode(example.target)
     context_ids = [*prompt_ids, *target_ids[:position]]
-    context = make_context(context_ids, model.config.context_size, tokenizer.pad_id)
-    return cross_entropy_scalars(model._forward_scalars(context), target_ids[position])
+    context, positions = make_context_positioned(
+        context_ids, model.config.context_size, tokenizer.pad_id
+    )
+    return cross_entropy_scalars(
+        model._forward_scalars(context, positions), target_ids[position]
+    )
 
 def sampled_choice_candidates(
     target: str,
@@ -78,8 +82,12 @@ def train_answer_char(
     target_ids = tokenizer.encode(example.target)
     position = rng.randrange(len(target_ids))
     context_ids = [*prompt_ids, *target_ids[:position]]
-    context = make_context(context_ids, model.config.context_size, tokenizer.pad_id)
-    return model.train_step(context, target_ids[position], learning_rate)
+    context, positions = make_context_positioned(
+        context_ids, model.config.context_size, tokenizer.pad_id
+    )
+    return model.train_step(
+        context, target_ids[position], learning_rate, positions=positions
+    )
 
 def train_answer_char_all_positions(
     model: Any,

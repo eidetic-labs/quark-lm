@@ -6,7 +6,7 @@ from typing import Any
 
 from answer_model import AnswerExample
 from autograd import Scalar
-from neural_char_ops import make_context
+from neural_char_ops import make_context, make_context_positioned
 from tokenizer import CharTokenizer
 from transformer_direct_modes import ANSWER_TERMINATOR
 from transformer_math import cross_entropy_scalars
@@ -22,8 +22,10 @@ def answer_sequence_nll(
     ids = prompt_ids[:]
     total = 0.0
     for target_id in target_ids:
-        context = make_context(ids, model.config.context_size, tokenizer.pad_id)
-        total += model.nll(context, target_id)
+        context, positions = make_context_positioned(
+            ids, model.config.context_size, tokenizer.pad_id
+        )
+        total += model.nll(context, target_id, positions)
         ids.append(target_id)
     return total / max(len(target_ids), 1)
 
@@ -42,8 +44,12 @@ def answer_sequence_loss_scalars(
     ids = prompt_ids[:]
     total = Scalar(0.0)
     for target_id in target_ids:
-        context = make_context(ids, model.config.context_size, tokenizer.pad_id)
-        total = total + cross_entropy_scalars(model._forward_scalars(context), target_id)
+        context, positions = make_context_positioned(
+            ids, model.config.context_size, tokenizer.pad_id
+        )
+        total = total + cross_entropy_scalars(
+            model._forward_scalars(context, positions), target_id
+        )
         ids.append(target_id)
     return total / max(len(target_ids), 1)
 

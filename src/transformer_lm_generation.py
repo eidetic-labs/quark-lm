@@ -8,7 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from neural_char_ops import make_context
+from neural_char_ops import make_context_positioned
 from tokenizer import CharTokenizer
 from tokenizer_io import tokenizer_from_dict
 from transformer_checkpoint import load_checkpoint_payload
@@ -69,7 +69,14 @@ class TransformerGenerationIOMixin:
         cache_enabled = config.use_kv_cache or self.config.use_kv_cache_path
         cache_events: list[dict[str, Any]] = []
         for _ in range(max_new_chars):
-            context = make_context(ids, self.config.context_size, tokenizer.pad_id)
+            # Single source of truth for the right-anchored window + each slot's
+            # ABSOLUTE stream index. The window content is byte-identical to
+            # make_context, so flag-off (positions dropped at the gated RoPE site)
+            # stays byte-exact; flag-on keys RoPE by absolute position.
+            context, positions = make_context_positioned(
+                ids, self.config.context_size, tokenizer.pad_id
+            )
+            assert len(positions) == self.config.context_size
             if cache_enabled:
                 cache_events.append(
                     {
@@ -78,7 +85,7 @@ class TransformerGenerationIOMixin:
                         "sliding_window": len(ids) > self.config.context_size,
                     }
                 )
-            probs = self.predict(context)
+            probs = self.predict(context, positions)
             filtered_probs = generation_distribution(
                 probs,
                 generated,

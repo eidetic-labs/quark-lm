@@ -23,7 +23,6 @@ from typing import Any
 # Flags whose forward/cache path is not yet implemented. Removed per phase as each
 # lands with scalar+torch parity. Until then, enabling the flag fails closed.
 _UNIMPLEMENTED: dict[str, str] = {
-    "use_absolute_rope": "absolute-keyed RoPE is not yet implemented (Phase 1)",
     "kv_cache_stores_summary_state": (
         "the regime-aware append-valid KV cache is not yet implemented (Phase 3)"
     ),

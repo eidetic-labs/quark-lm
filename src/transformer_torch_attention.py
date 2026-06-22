@@ -6,11 +6,18 @@ import math
 from typing import Any
 
 
-def torch_apply_rotary(rows: Any, config: dict[str, Any], torch: Any) -> Any:
+def torch_apply_rotary(
+    rows: Any,
+    config: dict[str, Any],
+    torch: Any,
+    positions: list[int] | None = None,
+) -> Any:
     return torch.stack(
         [
-            _apply_rotary_row(row, position, config, torch)
-            for position, row in enumerate(rows)
+            _apply_rotary_row(
+                row, i if positions is None else positions[i], config, torch
+            )
+            for i, row in enumerate(rows)
         ]
     )
 
@@ -50,9 +57,16 @@ def _apply_rotary_row(
         start = head * head_dim
         for offset in range(0, head_dim - 1, 2):
             index = start + offset
-            angle = position / (10000.0 ** (offset / max(head_dim, 1)))
-            cos_value = math.cos(angle)
-            sin_value = math.sin(angle)
+            # position < 0 is a left-pad sentinel: rotate by the IDENTITY using
+            # hard-coded host-float constants (NOT trig) so the pad row passes
+            # through bit-exactly on f32/MPS. cos/sin stay host float64 scalars
+            # multiplied into the (f32/MPS) row -> device-safe.
+            if position < 0:
+                cos_value, sin_value = 1.0, 0.0
+            else:
+                angle = position / (10000.0 ** (offset / max(head_dim, 1)))
+                cos_value = math.cos(angle)
+                sin_value = math.sin(angle)
             left = row[index]
             right = row[index + 1]
             output[index] = left * cos_value - right * sin_value
