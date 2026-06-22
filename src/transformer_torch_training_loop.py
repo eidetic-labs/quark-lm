@@ -71,6 +71,7 @@ def train_torch_lm(
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
         torch=torch,
+        device=runtime["device"],
     )
     clip = config.get("gradient_clip", 0.0)
 

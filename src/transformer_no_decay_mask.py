@@ -64,6 +64,20 @@ def model_no_decay_mask(model: Any) -> list[bool]:
     return build_no_decay_mask(manifest)
 
 
+def adamw_device_kwargs(device: str) -> dict[str, Any]:
+    """Device-aware AdamW kernel selection (feature-complete on GPU/NPU/CPU).
+
+    The fused AdamW kernel is CUDA-only and raises on CPU/MPS, so it is enabled
+    only on CUDA. CPU/MPS (and any other device, e.g. an NPU backend) use torch's
+    default path -- which the parity tests validate -- so the default behavior is
+    unchanged. Pure + testable without a GPU.
+    """
+
+    if device == "cuda":
+        return {"fused": True}
+    return {}
+
+
 def build_two_group_adamw(
     parameter_entries: list[dict[str, Any]],
     *,
@@ -72,6 +86,7 @@ def build_two_group_adamw(
     betas: tuple[float, float],
     eps: float,
     torch: Any,
+    device: str = "cpu",
 ) -> Any:
     """Build a torch AdamW that excludes the no-decay tensors from weight decay.
 
@@ -79,7 +94,7 @@ def build_two_group_adamw(
     group and a no-decay group via the SAME ``is_no_decay`` predicate the scalar
     mask uses, so the two backends exclude identical tensors. At weight_decay=0
     the split is numerically inert (both groups decay nothing), preserving the
-    pre-exclusion behavior.
+    pre-exclusion behavior. ``device`` selects the fused kernel on CUDA only.
     """
 
     decay = [e["tensor"] for e in parameter_entries if not is_no_decay(e["name"], e["shape"])]
@@ -87,4 +102,6 @@ def build_two_group_adamw(
     groups = [{"params": decay, "weight_decay": weight_decay}]
     if no_decay:
         groups.append({"params": no_decay, "weight_decay": 0.0})
-    return torch.optim.AdamW(groups, lr=learning_rate, betas=betas, eps=eps)
+    return torch.optim.AdamW(
+        groups, lr=learning_rate, betas=betas, eps=eps, **adamw_device_kwargs(device)
+    )

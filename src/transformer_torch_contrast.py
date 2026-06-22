@@ -118,6 +118,7 @@ def train_torch_contrast(
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
         torch=torch,
+        device=runtime["device"],
     )
     clip = config.get("gradient_clip", 0.0)
 
@@ -187,6 +188,7 @@ def train_torch_answer_mixed(
         betas=(config["beta1"], config["beta2"]),
         eps=config["epsilon"],
         torch=torch,
+        device=runtime["device"],
     )
     clip = config.get("gradient_clip", 0.0)
 
