@@ -22,6 +22,64 @@ def torch_apply_rotary(
     )
 
 
+class TorchLayer0KVCache:
+    """Torch mirror of transformer_kv_cache.Layer0KVCache (LAYER 0 ONLY).
+
+    Stores the rotated-K and raw-V row TENSORS keyed by absolute position; serves them
+    back in ascending-slot order so the value aggregation order matches the recompute.
+    Write gated on a non-negative position (a pad row is never cached). Lives in the
+    runtime dict under ``runtime['kv_cache']`` and is reset per decode call.
+
+    The write-once invariant holds for layer 0 only under absolute RoPE (pos-embed
+    dropped). The caller passes this cache to LAYER 0 only; upper layers recompute.
+    """
+
+    LAYER_INDEX = 0
+
+    def __init__(self) -> None:
+        self._keys: dict[int, Any] = {}
+        self._values: dict[int, Any] = {}
+        self.hits = 0
+        self.writes = 0
+        self.pad_skips = 0
+
+    def reset(self) -> None:
+        self._keys.clear()
+        self._values.clear()
+        self.hits = 0
+        self.writes = 0
+        self.pad_skips = 0
+
+    def store(self, position: int, key_row: Any, value_row: Any) -> None:
+        if position < 0:
+            self.pad_skips += 1
+            return
+        self._keys[position] = key_row
+        self._values[position] = value_row
+        self.writes += 1
+
+    def assemble(self, positions, compute_row, torch):
+        """Return stacked (keys, values) tensors for ``positions`` in the given order.
+
+        ``positions`` is ascending by slot; cached non-pad rows are served (a hit), any
+        other slot is recomputed via ``compute_row(slot_index)``. Stacking preserves the
+        ascending order so the SDPA / hand-rolled value sum matches the recompute.
+        """
+
+        key_rows = []
+        value_rows = []
+        for slot_index, position in enumerate(positions):
+            if position >= 0 and position in self._keys:
+                key_rows.append(self._keys[position])
+                value_rows.append(self._values[position])
+                self.hits += 1
+            else:
+                key_row, value_row = compute_row(slot_index)
+                key_rows.append(key_row)
+                value_rows.append(value_row)
+        return torch.stack(key_rows), torch.stack(value_rows)
+
+
 def torch_causal_attention(
     q: Any,
     k: Any,

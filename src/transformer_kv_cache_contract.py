@@ -23,9 +23,10 @@ from typing import Any
 # Flags whose forward/cache path is not yet implemented. Removed per phase as each
 # lands with scalar+torch parity. Until then, enabling the flag fails closed.
 _UNIMPLEMENTED: dict[str, str] = {
-    "kv_cache_stores_summary_state": (
-        "the regime-aware append-valid KV cache is not yet implemented (Phase 3)"
-    ),
+    # Phase 3 landed: the regime-aware append-valid KV cache (layer-0-only, default-off,
+    # scalar-canonical, bit-exact vs the right-anchored recompute) is built and
+    # parity-verified, so kv_cache_stores_summary_state no longer fails closed --
+    # mirroring how Phase 1/2 removed use_absolute_rope as it landed.
     "use_all_positions_causal": (
         "all-positions causal-LM training is not yet implemented (Phase 5)"
     ),

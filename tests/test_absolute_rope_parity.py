@@ -350,9 +350,12 @@ class AbsoluteRopeScalarTest(unittest.TestCase):
         seen: list[tuple[list[int], list[int] | None]] = []
         original_predict = model.predict
 
-        def spy_predict(context, positions=None):
+        def spy_predict(context, positions=None, cache=None):
+            # Phase 3 added the optional ``cache`` param to predict; mirror the live
+            # signature so generate_with_trace's call (context, positions, kv_cache)
+            # binds. The flag-off generation here passes cache=None.
             seen.append((list(context), None if positions is None else list(positions)))
-            return original_predict(context, positions)
+            return original_predict(context, positions, cache)
 
         model.predict = spy_predict  # type: ignore[method-assign]
         model.generate_with_trace(tokenizer, "mia", 3, GenerationConfig())

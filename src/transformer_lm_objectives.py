@@ -14,9 +14,15 @@ from transformer_math import (
 
 class TransformerObjectiveMixin:
     def predict(
-        self, context: list[int], positions: list[int] | None = None
+        self,
+        context: list[int],
+        positions: list[int] | None = None,
+        cache=None,
     ) -> list[float]:
-        return softmax_floats(self._forward_floats(context, positions))
+        # ``cache`` (a Layer0KVCache) is the optional Phase-3 decode KV cache. None (the
+        # default, every training/eval call) is byte-identical to the prior path; the
+        # cache is threaded only by the decode loop when the path is enabled.
+        return softmax_floats(self._forward_floats(context, positions, cache))
 
     def nll(
         self, context: list[int], target: int, positions: list[int] | None = None

@@ -10,6 +10,7 @@ from typing import Any
 
 from neural_char_ops import make_context_positioned
 from tokenizer import CharTokenizer
+from transformer_kv_cache import Layer0KVCache
 from tokenizer_io import tokenizer_from_dict
 from transformer_checkpoint import load_checkpoint_payload
 from transformer_math import (
@@ -68,6 +69,10 @@ class TransformerGenerationIOMixin:
         trace: list[dict[str, Any]] = []
         cache_enabled = config.use_kv_cache or self.config.use_kv_cache_path
         cache_events: list[dict[str, Any]] = []
+        # The Phase-3 layer-0-only append-valid KV cache. A fresh instance per call
+        # (reset between calls); None when the path is disabled so predict runs the
+        # exact pre-Phase-3 forward byte-for-byte. Threaded ONLY into predict.
+        kv_cache = Layer0KVCache() if cache_enabled else None
         for _ in range(max_new_chars):
             # Single source of truth for the right-anchored window + each slot's
             # ABSOLUTE stream index. The window content is byte-identical to
@@ -85,7 +90,7 @@ class TransformerGenerationIOMixin:
                         "sliding_window": len(ids) > self.config.context_size,
                     }
                 )
-            probs = self.predict(context, positions)
+            probs = self.predict(context, positions, kv_cache)
             filtered_probs = generation_distribution(
                 probs,
                 generated,
@@ -134,6 +139,9 @@ class TransformerGenerationIOMixin:
                 "enabled": cache_enabled,
                 "mode": "rolling-context-kv-aware" if cache_enabled else "disabled",
                 "events": cache_events,
+                "hits": kv_cache.hits if kv_cache is not None else 0,
+                "writes": kv_cache.writes if kv_cache is not None else 0,
+                "pad_skips": kv_cache.pad_skips if kv_cache is not None else 0,
             },
         }
 

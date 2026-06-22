@@ -33,10 +33,10 @@ from transformer_model import GenerationConfig, TransformerConfig
 from transformer_tiny_lm import TinyTransformerLM
 
 CORPUS = "mia ball box red cup noah shelf\n"
-UNBUILT_FLAGS = (
-    "use_all_positions_causal",
-    "kv_cache_stores_summary_state",
-)
+# Phase 3 landed: kv_cache_stores_summary_state is removed from the fail-closed set in
+# the SAME change as its removal from transformer_kv_cache_contract._UNIMPLEMENTED.
+# use_all_positions_causal (Phase 5) still fails closed.
+UNBUILT_FLAGS = ("use_all_positions_causal",)
 
 
 def _model(tokenizer: CharTokenizer, **overrides) -> TinyTransformerLM:
@@ -66,6 +66,9 @@ def _randomize_position_projection(model: TinyTransformerLM, seed: int) -> None:
 
 class KvCacheContractTest(unittest.TestCase):
     def test_kv_cache_stub_matches_uncached(self) -> None:
+        # Phase 3: the cache is real now (not a telemetry stub). Tighten the anchor from
+        # token-only equality to PER-STEP probability equality at f64 1e-6 -- a sub-argmax
+        # perturbation that a token-only check would miss now fails this gate.
         tokenizer = CharTokenizer.train(CORPUS)
         model = _model(tokenizer)
         cached = model.generate_with_trace(
@@ -79,6 +82,16 @@ class KvCacheContractTest(unittest.TestCase):
             [step["token_id"] for step in cached["trace"]],
             [step["token_id"] for step in uncached["trace"]],
         )
+        for cached_step, uncached_step in zip(cached["trace"], uncached["trace"]):
+            for cached_top, uncached_top in zip(
+                cached_step["top_tokens"], uncached_step["top_tokens"]
+            ):
+                self.assertEqual(cached_top["token_id"], uncached_top["token_id"])
+                self.assertAlmostEqual(
+                    cached_top["raw_probability"],
+                    uncached_top["raw_probability"],
+                    delta=1e-6,
+                )
 
     def test_position_projection_summand_present_and_nonzero(self) -> None:
         tokenizer = CharTokenizer.train(CORPUS)

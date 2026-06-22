@@ -97,16 +97,22 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
             )
 
     def _forward_floats(
-        self, context: list[int], positions: list[int] | None = None
+        self,
+        context: list[int],
+        positions: list[int] | None = None,
+        cache: Any | None = None,
     ) -> list[float]:
         return linear_floats(
-            self.final_hidden(context, positions),
+            self.final_hidden(context, positions, cache),
             self._output_weights_floats(),
             vector_to_floats(self.bout),
         )
 
     def final_hidden(
-        self, context: list[int], positions: list[int] | None = None
+        self,
+        context: list[int],
+        positions: list[int] | None = None,
+        cache: Any | None = None,
     ) -> list[float]:
         if len(context) != self.config.context_size:
             raise ValueError(
@@ -135,12 +141,20 @@ class TransformerForwardMixin(TransformerContextSummaryMixin):
             ]
         float_blocks = [self._block_to_floats(block) for block in self.blocks]
         if self.config.num_layers == 1:
+            # Single block == layer 0 == whole model: the cache covers it fully.
             return self._finalize_hidden_floats(
-                self._forward_final_block_floats(x, float_blocks[0], context, positions)
+                self._forward_final_block_floats(
+                    x, float_blocks[0], context, positions, cache
+                )
             )
         else:
-            for block in float_blocks[:-1]:
-                x = self._forward_full_block_floats(x, block, positions)
+            # Layer 0 (float_blocks[0]) is cacheable; pass the cache ONLY to it. Upper
+            # layers and the final block recompute K/V every step (cache stays None) --
+            # write-once is a layer-0 property under the sliding window.
+            for layer_index, block in enumerate(float_blocks[:-1]):
+                x = self._forward_full_block_floats(
+                    x, block, positions, cache if layer_index == 0 else None
+                )
             return self._finalize_hidden_floats(
                 self._forward_final_block_floats(x, float_blocks[-1], context, positions)
             )

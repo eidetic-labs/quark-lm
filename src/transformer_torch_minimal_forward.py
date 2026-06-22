@@ -8,6 +8,7 @@ from typing import Any
 from neural_char_ops import make_context_positioned
 from transformer_model import GenerationConfig
 from transformer_sampling import generation_distribution
+from transformer_torch_attention import TorchLayer0KVCache
 from transformer_torch_minimal_block import torch_minimal_logits
 from transformer_torch_profile_support import minimal_forward_unsupported_reason
 from transformer_torch_tensor_ops import torch_to_list
@@ -102,6 +103,12 @@ def _generation_case(
     # Per-step runtime carries abs_positions; copy so the caller's runtime dict stays
     # pristine (the runtime-report parity check compares it by equality).
     step_runtime = dict(runtime)
+    # Phase-3 layer-0-only append-valid KV cache (torch mirror), threaded via the
+    # runtime; a fresh instance per generation, None when the path is disabled so the
+    # forward is byte-identical to cache-off. The block consults it for layer 0 only.
+    kv_cache = TorchLayer0KVCache() if cache_enabled else None
+    if kv_cache is not None:
+        step_runtime["kv_cache"] = kv_cache
     for _step in range(case["max_new_chars"]):
         # Single source of truth for the window + each slot's ABSOLUTE stream index
         # (shared with the scalar generation boundary; removes the duplicate window
@@ -143,6 +150,9 @@ def _generation_case(
             "enabled": cache_enabled,
             "mode": "rolling-context-kv-aware" if cache_enabled else "disabled",
             "events": cache_events,
+            "hits": kv_cache.hits if kv_cache is not None else 0,
+            "writes": kv_cache.writes if kv_cache is not None else 0,
+            "pad_skips": kv_cache.pad_skips if kv_cache is not None else 0,
         },
     }
 

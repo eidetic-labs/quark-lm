@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from transformer_torch_attention import torch_apply_rotary, torch_causal_attention
+from transformer_torch_attention import (
+    _apply_rotary_row,
+    torch_apply_rotary,
+    torch_causal_attention,
+)
 from transformer_torch_context_summary import torch_add_final_context_summaries
 from transformer_torch_feedforward import torch_feed_forward
 from transformer_torch_norms import torch_layer_norm, torch_rms_norm
@@ -36,8 +40,11 @@ def torch_minimal_logits(
             ]
         )
     blocks = _transformer_blocks(weights)
-    for block in blocks[:-1]:
-        x = _forward_full_block(x, block, config, torch, runtime)
+    for layer_index, block in enumerate(blocks[:-1]):
+        # Layer 0 (layer_index 0) is cacheable; upper layers recompute K/V every step.
+        x = _forward_full_block(
+            x, block, config, torch, runtime, layer_index=layer_index
+        )
     final_hidden = _forward_final_block(
         x,
         context,
@@ -46,6 +53,9 @@ def torch_minimal_logits(
         config,
         torch,
         runtime,
+        # The final block is layer 0 ONLY when it is the sole block (1-layer model);
+        # otherwise it is an upper layer and must recompute.
+        layer_index=len(blocks) - 1,
     )
     final_hidden = _finalize_hidden(final_hidden, weights, config, torch, runtime)
     return torch_output_logits(final_hidden, weights, config, torch, runtime)
@@ -61,8 +71,11 @@ def _forward_full_block(
     config: dict[str, Any],
     torch: Any,
     runtime: dict[str, Any],
+    layer_index: int = 0,
 ) -> Any:
-    q, k, v = _attention_projections(x, block, config, torch, runtime)
+    q, k, v = _attention_projections(
+        x, block, config, torch, runtime, layer_index=layer_index
+    )
     return torch.stack(
         [
             torch_feed_forward(
@@ -95,8 +108,11 @@ def _forward_final_block(
     config: dict[str, Any],
     torch: Any,
     runtime: dict[str, Any],
+    layer_index: int = 0,
 ) -> Any:
-    q, k, v = _attention_projections(x, block, config, torch, runtime)
+    q, k, v = _attention_projections(
+        x, block, config, torch, runtime, layer_index=layer_index
+    )
     hidden = _attention_hidden_at_position(
         x,
         block,
@@ -126,11 +142,10 @@ def _attention_projections(
     config: dict[str, Any],
     torch: Any,
     runtime: dict[str, Any],
+    layer_index: int = 0,
 ) -> tuple[Any, Any, Any]:
     attention_input = _attention_input(x, block, config, torch, runtime)
     q = _project_rows(attention_input, block, "wq", "bq", torch, runtime)
-    k = _project_rows(attention_input, block, "wk", "bk", torch, runtime)
-    v = _project_rows(attention_input, block, "wv", "bv", torch, runtime)
     if config.get("use_rotary_positions"):
         # Consumption gated on use_absolute_rope: absent the flag, positions are
         # dropped -> slot-keyed (enumerate), byte-identical to the pre-absolute path.
@@ -149,8 +164,75 @@ def _attention_projections(
         else:
             positions = None
         q = torch_apply_rotary(q, config, torch, positions)
-        k = torch_apply_rotary(k, config, torch, positions)
+    else:
+        positions = None
+    k, v = _layer0_kv(
+        attention_input, block, config, torch, runtime, positions, layer_index
+    )
     return q, k, v
+
+
+def _layer0_kv(
+    attention_input: Any,
+    block: dict[str, Any],
+    config: dict[str, Any],
+    torch: Any,
+    runtime: dict[str, Any],
+    positions: list[int] | None,
+    layer_index: int,
+) -> tuple[Any, Any]:
+    """Torch mirror of TinyTransformerLM._layer0_kv_floats: K/V for the block.
+
+    REGIME GATE + LAYER-0-ONLY: the layer-0 append-valid KV cache (runtime['kv_cache'])
+    is consulted ONLY for layer 0 (layer_index == 0) AND only under the write-once
+    geometry (use_absolute_rope + use_rotary_positions). Otherwise -- upper layers, any
+    non-thesis geometry, or no cache -- K/V is fully recomputed, byte-identical to the
+    prior path. In-regime, only the newest token's rotated-K / raw-V is computed; the
+    historical rows are served from the cache in ascending-slot order so the value
+    aggregation order matches the recompute.
+    """
+
+    rope_on = bool(config.get("use_rotary_positions"))
+    write_once_regime = rope_on and bool(config.get("use_absolute_rope"))
+    cache = runtime.get("kv_cache") if (layer_index == 0 and write_once_regime) else None
+
+    def project_k(rows: Any) -> Any:
+        return _project_rows(rows, block, "wk", "bk", torch, runtime)
+
+    if cache is None:
+        k = project_k(attention_input)
+        v = _project_rows(attention_input, block, "wv", "bv", torch, runtime)
+        if rope_on:
+            k = torch_apply_rotary(k, config, torch, positions)
+        return k, v
+
+    context_size = config["context_size"]
+    last_position = context_size - 1
+    slot_positions = (
+        positions if positions is not None else list(range(context_size))
+    )
+
+    def compute_row(slot_index: int) -> tuple[Any, Any]:
+        row = attention_input[slot_index]
+        key_row = torch_linear(row, block["wk"], block["bk"], torch, runtime)
+        value_row = torch_linear(row, block["wv"], block["bv"], torch, runtime)
+        if rope_on:
+            angle_pos = (
+                positions[slot_index] if positions is not None else slot_index
+            )
+            key_row = _apply_rotary_row(key_row, angle_pos, config, torch)
+        return key_row, value_row
+
+    # Compute + store the newest token (the last slot); a pad position is skipped.
+    new_key, new_value = compute_row(last_position)
+    cache.store(slot_positions[last_position], new_key, new_value)
+
+    def assemble_row(slot_index: int) -> tuple[Any, Any]:
+        if slot_index == last_position:
+            return new_key, new_value
+        return compute_row(slot_index)
+
+    return cache.assemble(slot_positions, assemble_row, torch)
 
 
 def _attention_hidden_at_position(
