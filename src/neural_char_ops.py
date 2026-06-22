@@ -25,10 +25,36 @@ def sample_from_probs(probs: list[float], temperature: float, rng: random.Random
     return len(probs) - 1
 
 
+# Sentinel absolute position for a left-pad slot. A future absolute-RoPE consumer
+# maps it to the identity rotation; it must never be read as a real sequence index.
+POSITION_PAD_SENTINEL = -1
+
+
 def make_context(ids: list[int], context_size: int, pad_id: int) -> list[int]:
     if len(ids) >= context_size:
         return ids[-context_size:]
     return [pad_id] * (context_size - len(ids)) + ids
+
+
+def make_context_positioned(
+    ids: list[int], context_size: int, pad_id: int
+) -> tuple[list[int], list[int]]:
+    """Right-anchored window plus each slot's ABSOLUTE sequence index.
+
+    A pure superset of ``make_context``: the returned window content is byte-identical
+    (the existing right-anchored geometry is unchanged), and ``positions[i]`` is the
+    true 0-based index of ``context[i]`` in the full id stream. Left-pad slots carry
+    ``POSITION_PAD_SENTINEL``. Because real positions are absolute -- they grow with
+    the stream and never re-index as the window slides -- the key/value at a position
+    is write-once, which is the precondition an append-valid KV cache needs (Phase 1+).
+    """
+
+    context = make_context(ids, context_size, pad_id)
+    if len(ids) >= context_size:
+        start = len(ids) - context_size
+        return context, list(range(start, start + context_size))
+    pad = context_size - len(ids)
+    return context, [POSITION_PAD_SENTINEL] * pad + list(range(len(ids)))
 
 
 def context_before(

@@ -10,6 +10,7 @@ from transformer_backend_policy import (
     SCALAR_BACKEND,
     transformer_backend_metadata,
 )
+from transformer_kv_cache_contract import kv_cache_contract_violation
 from transformer_profiles import apply_optimizer_profile, apply_transformer_profile
 
 
@@ -41,6 +42,13 @@ class TransformerConfig:
     use_prompt_position_projection: bool = False
     prompt_position_projection_scale: float = 1.0
     use_prompt_attention_summary: bool = False
+    # Unbounded RoPE + append-valid KV-cache architecture (phased; all default-off so
+    # the validated recipe is byte-identical). Enabling an unbuilt one fails closed via
+    # kv_cache_contract_violation -- see transformer_kv_cache_contract.
+    use_absolute_rope: bool = False
+    sliding_window_size: int | None = None
+    use_all_positions_causal: bool = False
+    kv_cache_stores_summary_state: bool = False
     transformer_profile: str = "default"
 
 
@@ -85,6 +93,9 @@ def validate_transformer_config(config: TransformerConfig) -> None:
         raise ValueError("embedding_dim must be divisible by attention_heads")
     if config.layer_norm_epsilon <= 0.0:
         raise ValueError("layer_norm_epsilon must be positive")
+    violation = kv_cache_contract_violation(asdict(config))
+    if violation is not None:
+        raise ValueError(violation)
 
 
 def validate_optimization_config(config: OptimizationConfig) -> None:

@@ -15,6 +15,14 @@ TORCH_RUNTIME_KIND_TEST_DOUBLE = "test_double"
 TORCH_RUNTIME_KIND_UNAVAILABLE = "unavailable"
 ALLOWED_DTYPES = frozenset({"float64", "float32", "bfloat16", "float16"})
 
+# Device/dtype combinations that silently misbehave and so must fail loud. MPS (Apple
+# GPUs) has no float64: requesting it downcasts to float32 silently, voiding the
+# float64 1e-6 parity guarantee. CUDA supports float64 (slower) and float32; the
+# practical CUDA path is float32 under the validated 3e-3 band with TF32 disabled.
+_DEVICE_UNSUPPORTED_DTYPES: dict[str, frozenset[str]] = {
+    "mps": frozenset({"float64"}),
+}
+
 
 def torch_runtime_status(
     *,
@@ -66,6 +74,10 @@ def configure_torch_runtime(
     under unseeded torch randomness. This is a no-op for the current float64/CPU
     path -- today's training draws no torch randomness -- so it preserves bit-exact
     scalar parity while establishing the floor for the float32/on-device backend.
+
+    Also enforces the device/dtype policy: a combination that would silently
+    downcast (notably MPS + float64) fails loud rather than quietly voiding the
+    parity guarantee -- see ``_DEVICE_UNSUPPORTED_DTYPES``.
     """
 
     dtype = runtime.get("dtype")
@@ -76,6 +88,12 @@ def configure_torch_runtime(
         torch.device(device)
     except (RuntimeError, TypeError, ValueError) as exc:
         raise ValueError(f"unsupported runtime device: {device!r}") from exc
+    canonical = str(device).split(":")[0].strip().lower()
+    if dtype in _DEVICE_UNSUPPORTED_DTYPES.get(canonical, frozenset()):
+        raise ValueError(
+            f"device {device!r} does not support dtype {dtype!r}: it would silently "
+            "downcast and void the parity guarantee -- use float32 on this device"
+        )
     _disable_tf32(torch)
     if seed is not None:
         torch.manual_seed(seed)
