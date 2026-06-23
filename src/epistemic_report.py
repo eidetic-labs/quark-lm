@@ -20,6 +20,8 @@ from epistemic_calibration import expected_calibration_error
 from epistemic_nll_vs_random import nll_vs_random
 from epistemic_oracle_benchmark import oracle_benchmark
 
+ABSTAIN_TARGET = " unknown."
+
 
 def epistemic_report(
     evals: dict[str, Any],
@@ -43,6 +45,26 @@ def epistemic_report(
     total_count = sum(int(summary.get("count", 0)) for summary in evals.values())
     total_exact = sum(int(summary.get("exact", 0)) for summary in evals.values())
     generation_exact_rate = (total_exact / total_count) if total_count else None
+    # Concrete-only generation anchor: the SAME exact-match metric, but counted
+    # ONLY over probes whose gold target is a concrete admitted fact (target !=
+    # " unknown."). The aggregate above blends concrete-fact recall with correct
+    # abstention emission, because heldout/unknown probes target " unknown." and a
+    # correctly-abstained probe scores as an exact "generation" hit -- so the
+    # "generate" axis is not independent of the "abstain" axis. This separates
+    # them: an over-abstaining model that emits " unknown." everywhere scores 0
+    # here even while the aggregate stays high. Decision rules read THIS metric
+    # for the generate axis, never the contaminated aggregate.
+    concrete_records = [
+        record
+        for records in scored_by_set.values()
+        for record in records
+        if record.get("target") != ABSTAIN_TARGET
+    ]
+    concrete_count = len(concrete_records)
+    concrete_exact = sum(1 for record in concrete_records if record.get("exact_match"))
+    concrete_generation_exact_rate = (
+        (concrete_exact / concrete_count) if concrete_count else None
+    )
 
     report: dict[str, Any] = {
         "nll_vs_random": learning,
@@ -62,6 +84,7 @@ def epistemic_report(
         "learned_any": overall.get("learned_any"),
         "mean_nll_reduction": overall.get("mean_reduction"),
         "generation_exact_rate": generation_exact_rate,
+        "concrete_generation_exact_rate": concrete_generation_exact_rate,
         "abstention_f1": abstention.get("f1"),
         "abstention_precision": abstention.get("precision"),
         "abstention_recall": abstention.get("recall"),

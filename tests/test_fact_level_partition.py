@@ -90,6 +90,56 @@ class FactLevelPartitionTest(unittest.TestCase):
                         mismatches.append((path.name, record["id"], record["target"], expected))
         self.assertEqual(mismatches, [], f"withheld probes inconsistent with the oracle: {mismatches[:8]}")
 
+    def test_owner_axis_abstains_for_withheld_and_unknown_objects(self) -> None:
+        # Owner-axis closed-world abstention (NOT just oracle-consistency).
+        #
+        # The object-keyed owner oracle answers the FIRST admitted owner of an
+        # object string. If any admitted and withheld fact ever shared an object,
+        # "who has the <withheld object>?" would resolve to that admitted owner --
+        # the withheld fact's owner would genuinely live in the training corpus
+        # (partition broken on the owner axis), and the consistency-only guard above
+        # would still pass because target == oracle == " admittedowner.". This guard
+        # asserts the stronger property the experiment actually needs: every withheld
+        # fact's object AND every declared unknown_owner_object must abstain on the
+        # owner axis -- BOTH the oracle answer AND the eval target are " unknown.".
+        # It is GREEN only when admitted/withheld object sets are disjoint (and the
+        # unknown_owner_objects are owned by no one); it goes RED the moment an
+        # admitted fact owns a withheld (or supposedly-unknown) object.
+        responder = CorpusResponder.train_from_text(build_curriculum(seed=3).train_text)
+
+        owner_targets: dict[str, str] = {}
+        owner_path = EVAL_DIR / "owner.jsonl"
+        if owner_path.exists():
+            for line in owner_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                match = OWNER_QUESTION_RE.search(record["prompt"])
+                if match:
+                    owner_targets[match["object"]] = record["target"]
+
+        abstain_objects = set(self.objects) | set(
+            self.grammar.get("unknown_owner_objects", [])
+        )
+        self.assertTrue(
+            abstain_objects,
+            "withheld objects + unknown_owner_objects must define a non-empty owner-axis partition",
+        )
+
+        leaks: list[tuple[str, str, str]] = []
+        for obj in sorted(abstain_objects):
+            oracle = responder.answer_prompt(f"question: who has the {obj}?")
+            if oracle != " unknown.":
+                leaks.append((obj, "oracle", oracle))
+            if obj in owner_targets and owner_targets[obj] != " unknown.":
+                leaks.append((obj, "eval_target", owner_targets[obj]))
+        self.assertEqual(
+            leaks,
+            [],
+            "owner-axis leak: a withheld/unknown object resolves to a concrete owner "
+            f"(admitted/withheld object sets are not disjoint): {leaks[:8]}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
