@@ -16,17 +16,17 @@ def minimal_forward_unsupported_reason(config: dict[str, Any]) -> str | None:
 # Profiles the Tier-2 batched (B,C,D) forward does NOT yet reproduce in parity.
 # use_prompt_position_projection is position-indexed (a distinct W[position] per
 # kept prompt position); a position-collapsing batched reduction would lose that
-# indexing and miscompute. Until the per-position vectorization lands and is
-# parity-verified, fail closed to the per-position Tier-1 path.
+# indexing and miscompute. The slot-keyed projection still cannot vectorize, so the
+# thesis (projection-on) model must stay on the per-position Tier-1 path -- fail it
+# closed.
 #
-# use_absolute_rope (Phase 1): the batched _apply_rotary_batched keys RoPE by
-# torch.arange (slot-keyed) and _attention never reads runtime['abs_positions'], so
-# running it under the flag would silently rotate by slot while the scalar/Tier-1
-# path rotates by absolute position -- a parity break on any padded window. Phase 1
-# does NOT wire the batched absolute path; fail it closed to Tier-1 instead.
+# use_absolute_rope was LIFTED here: the batched _apply_rotary_batched now keys RoPE
+# absolutely from runtime['abs_positions'] (threaded by the batched training/loss
+# path, fail-closed RAISE if missing), parity-verified against Tier-1 over padded and
+# odd-head_dim probes. The general-LM (projection-off) absolute-RoPE forward runs
+# vectorized on Tier-2.
 BATCHED_FORWARD_UNSUPPORTED_FLAGS: tuple[str, ...] = (
     "use_prompt_position_projection",
-    "use_absolute_rope",
 )
 
 

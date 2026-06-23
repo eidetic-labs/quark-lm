@@ -367,11 +367,16 @@ class AbsoluteRopeScalarTest(unittest.TestCase):
         # First step: short prompt -> leading pad sentinels then absolute indices.
         self.assertEqual(seen[0][1], [POSITION_PAD_SENTINEL] * 3 + [0, 1, 2])
 
-    def test_batched_fails_closed_under_absolute_rope(self) -> None:
-        # verdict-3 guard: the Tier-2 batched forward must route to Tier-1 whenever the
-        # flag is on, so it can never silently run slot-keyed while scalar runs absolute.
-        reason = batched_forward_unsupported_reason({"use_absolute_rope": True})
-        self.assertIsNotNone(reason)
+    def test_batched_absolute_rope_now_supported_posproj_still_closed(self) -> None:
+        # The vectorized absolute-RoPE forward (this change) lifted use_absolute_rope from
+        # the batched fail-closed set: the (B,C,D) RoPE now keys absolutely from
+        # runtime['abs_positions'] (with a fail-closed RAISE if unthreaded), parity-verified
+        # against Tier-1. The slot-keyed prompt-position projection STILL cannot vectorize,
+        # so it must stay fail-closed to Tier-1.
+        self.assertIsNone(batched_forward_unsupported_reason({"use_absolute_rope": True}))
+        self.assertIsNotNone(
+            batched_forward_unsupported_reason({"use_prompt_position_projection": True})
+        )
         self.assertIsNone(batched_forward_unsupported_reason({}))
 
 

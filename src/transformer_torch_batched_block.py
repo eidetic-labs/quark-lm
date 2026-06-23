@@ -30,11 +30,11 @@ def torch_batched_logits(
     position_embeddings = torch_tensor(torch, weights["position_embeddings"], runtime)
     context_size = config["context_size"]
     idx = torch.tensor(contexts, dtype=torch.long, device=runtime["device"])
-    # Phase 2: drop the learned pos-embed addend under use_absolute_rope for
-    # self-consistency with the Tier-1/scalar engines. This batched path is
-    # UNREACHABLE under the flag (batched_forward_unsupported_reason returns non-None,
-    # and test_batched_fails_closed_under_absolute_rope is the tripwire), so this branch
-    # is defense-in-depth only -- abs_positions are NOT wired into the (B,C,D) RoPE here.
+    # Drop the learned pos-embed addend under use_absolute_rope for self-consistency
+    # with the Tier-1/scalar engines (RoPE is the sole positional source). The (B,C,D)
+    # RoPE is now keyed absolutely via runtime['abs_positions'] threaded through
+    # _attention -> _rotary_positions (which RAISES if the flag is set but positions
+    # are unthreaded -- no silent slot-key fallback).
     if config.get("use_absolute_rope"):
         x = token_embeddings[idx]
     else:
@@ -93,8 +93,9 @@ def _attention(x, block, config, torch, runtime):
     v = torch_linear(attention_input, block["wv"], block["bv"], torch, runtime)
     head_dim = config["embedding_dim"] // config["attention_heads"]
     if config.get("use_rotary_positions"):
-        q = _apply_rotary_batched(q, config, head_dim, torch, runtime)
-        k = _apply_rotary_batched(k, config, head_dim, torch, runtime)
+        positions = _rotary_positions(q, config, torch, runtime)
+        q = _apply_rotary_batched(q, positions, config, head_dim, torch, runtime)
+        k = _apply_rotary_batched(k, positions, config, head_dim, torch, runtime)
     attended = _sdpa(q, k, v, config, head_dim, torch)
     projected = torch_linear(attended, block["wo"], block["bo"], torch, runtime)
     return x + projected
@@ -113,24 +114,90 @@ def _sdpa(q, k, v, config, head_dim, torch):
     return attended.transpose(1, 2).reshape(batch, context_size, heads * head_dim)
 
 
-def _apply_rotary_batched(rows, config, head_dim, torch, runtime):
+def _rotary_positions(rows, config, torch, runtime):
+    """Resolve the per-row angle positions for the batched RoPE as a (B, C) float64.
+
+    The returned tensor is float64 on CPU (host precision, device-INDEPENDENT) -- the
+    angle is computed here in float64 and only cos/sin are later cast to the row dtype
+    and device (see _apply_rotary_batched), matching the Phase 1 scalar/Tier-1 path
+    (host ``math.cos``/``math.sin`` of a host-float64 angle). float64 is kept on CPU
+    deliberately: MPS forbids float64 tensors, so an on-device float64 positions tensor
+    would crash; host float64 + cast preserves the same precision discipline everywhere.
+
+    Default (use_absolute_rope off): slot-keyed ``arange`` -- byte-identical to the
+    pre-absolute path (RoPE keyed by window slot). Under use_absolute_rope: the true
+    absolute positions threaded via ``runtime['abs_positions']`` (a (B, C) or (C,)
+    tensor, a per-row list, or a list-of-lists). A left-pad slot carries
+    POSITION_PAD_SENTINEL (< 0) and rotates by the IDENTITY (see _apply_rotary_batched).
+
+    FAIL-CLOSED (R-1): under use_absolute_rope the learned pos-embed addend is dropped,
+    so RoPE is the SOLE positional signal -- a missing abs_positions must CRASH rather
+    than silently fall back to ``arange`` (which would slot-key while the scalar/Tier-1
+    path keys absolutely, a quietly-wrong model). Same discipline as the Tier-1 guard
+    in transformer_torch_minimal_block._attention_projections.
+    """
+
+    batch, context_size = rows.shape[0], rows.shape[1]
+    if not config.get("use_absolute_rope"):
+        # Flag-off is BYTE-EXACT with the pre-change path: arange in the ROW dtype on the
+        # ROW device, angle/cos/sin computed in that dtype (NOT float64-then-cast, which
+        # diverges at the last ULP on f32). The pad-where in _apply_rotary_batched is a
+        # no-op here (arange >= 0), so this matches the prior slot-keyed RoPE bit-for-bit.
+        positions = torch.arange(
+            context_size, dtype=rows.dtype, device=rows.device
+        )
+        return positions.unsqueeze(0).expand(batch, context_size)
+    abs_positions = runtime.get("abs_positions")
+    if abs_positions is None:
+        raise ValueError(
+            "use_absolute_rope set but runtime['abs_positions'] missing -> would "
+            "silently slot-key (arange); batched forward/training site failed to "
+            "thread positions"
+        )
+    # abs_positions may arrive as a (B,C) or (C,) tensor, a Python list (one context,
+    # e.g. the B=1 / contrast next-token term), or a list-of-lists (a batch). Land it as
+    # a host-CPU float64 tensor (positions are small integers; never on MPS).
+    if hasattr(abs_positions, "to"):
+        positions = abs_positions.to(dtype=torch.float64, device="cpu")
+    else:
+        positions = torch.tensor(abs_positions, dtype=torch.float64, device="cpu")
+    if positions.dim() == 1:
+        positions = positions.unsqueeze(0).expand(batch, context_size)
+    return positions
+
+
+def _apply_rotary_batched(rows, positions, config, head_dim, torch, runtime):
     """RoPE reproducing the exact head*head_dim+offset addressing of Tier-1.
 
     Pairs (index, index+1) WITHIN each head block via ``range(0, head_dim - 1, 2)``;
     the odd-head_dim tail dim is left untouched (matches ``_apply_rotary_row``). NOT a
     naive ::2/1::2 split, which would cross head boundaries and mishandle odd head_dim.
+
+    ``positions`` is the (B, C) angle index from ``_rotary_positions``. Under
+    use_absolute_rope it is host-CPU float64 (angle computed in float64, then cos/sin
+    cast to ``rows.dtype``/device -- the Phase 1 host-float64 -> device-row discipline,
+    MPS-safe). Flag-off it is already ``rows.dtype``/device, so the cast is a no-op and
+    the result is byte-exact with the pre-change in-dtype computation.
+
+    The pad sentinel (< 0) is zeroed on the ANGLE before cos/sin via ``torch.where`` so
+    the pad row gets cos=1.0 / sin=0.0 -> the IDENTITY rotation, passing through
+    bit-exactly even on f32/MPS (matches the scalar/Tier-1 hard-coded cos=1.0/sin=0.0
+    pad branch). Flag-off positions are >= 0, so the where is a no-op there.
     """
 
-    context_size = rows.shape[1]
-    positions = torch.arange(context_size, dtype=rows.dtype, device=runtime["device"])
+    is_pad = positions < 0  # (B, C); POSITION_PAD_SENTINEL == -1
     output = rows.clone()
     for head in range(config["attention_heads"]):
         start = head * head_dim
         for offset in range(0, head_dim - 1, 2):
             index = start + offset
             angle = positions / (10000.0 ** (offset / max(head_dim, 1)))
-            cos = angle.cos().unsqueeze(0).unsqueeze(-1)
-            sin = angle.sin().unsqueeze(0).unsqueeze(-1)
+            # Pad slot -> angle 0 -> cos 1.0 / sin 0.0 (identity) BEFORE trig.
+            angle = torch.where(is_pad, torch.zeros_like(angle), angle)
+            # cos/sin in the angle dtype (float64 when absolute), then cast to the row
+            # dtype and device. Flag-off: angle is already row dtype/device -> no-op.
+            cos = angle.cos().to(dtype=rows.dtype, device=rows.device).unsqueeze(-1)
+            sin = angle.sin().to(dtype=rows.dtype, device=rows.device).unsqueeze(-1)
             left = rows[:, :, index : index + 1]
             right = rows[:, :, index + 1 : index + 2]
             output[:, :, index : index + 1] = left * cos - right * sin

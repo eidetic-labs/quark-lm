@@ -124,6 +124,17 @@ def add_optimizer_options(
                 "abstention jointly with fact learning."
             ),
         )
+        parser.add_argument(
+            "--batched-forward",
+            action="store_true",
+            help=(
+                "Opt into the Tier-2 tensorized (B,C,D) batched forward on the pytorch "
+                "backend (default off; flag-off is byte-exact with the per-position "
+                "Tier-1 path). Routes general-LM profiles -- including absolute-RoPE -- "
+                "through the fast vectorized path. The slot-keyed prompt-position "
+                "projection still fails closed to Tier-1."
+            ),
+        )
 
 
 def add_tokenizer_options(parser: argparse.ArgumentParser) -> None:

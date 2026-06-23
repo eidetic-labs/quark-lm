@@ -61,6 +61,14 @@ def train_core_answer_stage_torch(
 
     import torch  # lazy: torch is an optional performance dependency
 
+    # Opt-in (--batched-forward, default off) Tier-2 batched forward. A per-run dict
+    # COPY of the module RUNTIME -- never mutate the shared constant. Default off keeps
+    # the per-position Tier-1 path byte-exact; on, the general-LM (projection-off)
+    # absolute-RoPE forward runs vectorized. Risk #2: without this no speedup engages.
+    runtime = dict(RUNTIME)
+    if getattr(args, "batched_forward", False):
+        runtime["use_batched_forward"] = True
+
     pairs = build_torch_answer_training_pairs(
         training_pool, tokenizer, model.config.context_size, tokenizer.pad_id
     )
@@ -95,7 +103,7 @@ def train_core_answer_stage_torch(
             learning_rate=args.learning_rate,
             contrast_weight=contrast_weight,
             torch=torch,
-            runtime=RUNTIME,
+            runtime=runtime,
             seed=getattr(args, "seed", None),
         )
     else:
@@ -105,7 +113,7 @@ def train_core_answer_stage_torch(
             steps=args.steps,
             learning_rate=args.learning_rate,
             torch=torch,
-            runtime=RUNTIME,
+            runtime=runtime,
             seed=getattr(args, "seed", None),
         )
     objective = "next-token+contrast" if contrast_weight > 0.0 else "next-token"

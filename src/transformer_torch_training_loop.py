@@ -47,10 +47,12 @@ def _batch_loss(
 ) -> Any:
     """Mean next-token loss over a batch.
 
-    Phase 2: batch items may be (context, target) or (context, abs_positions, target);
-    this contrast-OFF path slot-keys by design and ignores abs_positions. Under
-    use_absolute_rope the fail-closed guard at the consumption site crashes any
-    unthreaded call rather than silently slot-keying.
+    Batch items may be (context, target) or (context, abs_positions, target). The
+    carried abs_positions, when present, are threaded via a per-call dict(runtime) COPY
+    so the absolute-RoPE forward (Tier-1 or the vectorized Tier-2 batched path) keys RoPE
+    absolutely; a legacy 2-tuple carries none and slot-keys. Under use_absolute_rope a
+    missing-positions call is CRASHED by the fail-closed guard at the consumption site
+    rather than silently slot-keyed. The shared runtime is never mutated.
 
     A 1-example batch returns the raw loss with no stack/divide, so batch_size=1
     is bit-exact with the unbatched loop. For B>1 the batch-mean reorders the sum
@@ -58,9 +60,18 @@ def _batch_loss(
     """
 
     if len(batch) == 1:
-        context, target = _context_target(batch[0])
+        context, abs_positions, target = _context_positions_target(batch[0])
+        # Thread the carried abs_positions for the batched absolute-RoPE path via a
+        # per-call dict(runtime) COPY -- never mutate the shared runtime (it is
+        # equality-checked by the runtime-report parity). Absent positions (legacy
+        # 2-tuple), nothing is set and the path slot-keys; under use_absolute_rope the
+        # consumption-site guard in _rotary_positions RAISES rather than slot-key.
+        step_runtime = runtime
+        if abs_positions is not None:
+            step_runtime = dict(runtime)
+            step_runtime["abs_positions"] = abs_positions
         return build_torch_training_loss_tensor(
-            fixture=fixture, state=state, torch=torch, runtime=runtime, context=context, target=target
+            fixture=fixture, state=state, torch=torch, runtime=step_runtime, context=context, target=target
         )
     # Opt-in single-pass batched loss for B>1: only when use_batched_forward is set
     # AND the profile is batched-supported. Flag-off (default) and batch_size==1 keep
@@ -68,10 +79,21 @@ def _batch_loss(
     if runtime.get("use_batched_forward") and (
         batched_forward_unsupported_reason(fixture["model_config"]) is None
     ):
-        contexts = [_context_target(example)[0] for example in batch]
-        targets = [_context_target(example)[1] for example in batch]
+        triples = [_context_positions_target(example) for example in batch]
+        contexts = [triple[0] for triple in triples]
+        targets = [triple[2] for triple in triples]
+        # Stack the per-row absolute positions to (B, C). Under use_absolute_rope every
+        # batch row MUST carry positions (the Phase-2 triple); a missing row would
+        # slot-key the whole batch silently. Thread them via a per-call dict(runtime)
+        # COPY; if any row lacks positions, leave abs_positions unset so the batched
+        # _rotary_positions guard RAISES under the flag (no silent slot-key).
+        batch_positions = [triple[1] for triple in triples]
+        step_runtime = runtime
+        if all(positions is not None for positions in batch_positions):
+            step_runtime = dict(runtime)
+            step_runtime["abs_positions"] = batch_positions
         return build_torch_batched_loss_tensor(
-            fixture=fixture, state=state, torch=torch, runtime=runtime,
+            fixture=fixture, state=state, torch=torch, runtime=step_runtime,
             contexts=contexts, targets=targets,
         )
     per_example = [
@@ -99,6 +121,21 @@ def _context_target(example: tuple) -> tuple[list[int], int]:
         return context, target
     context, target = example
     return context, target
+
+
+def _context_positions_target(example: tuple) -> tuple[list[int], list[int] | None, int]:
+    """Unpack (context, abs_positions, target) or (context, target).
+
+    Unlike ``_context_target`` (which drops positions for the contrast-OFF slot-keyed
+    loop), this keeps the carried abs_positions so the batched absolute-RoPE path can
+    key RoPE absolutely. A legacy 2-tuple carries no positions -> abs_positions None.
+    """
+
+    if len(example) == 3:
+        context, abs_positions, target = example
+        return context, abs_positions, target
+    context, target = example
+    return context, None, target
 
 
 def train_torch_lm(
