@@ -104,6 +104,16 @@ def add_optimizer_options(
     parser.add_argument("--decay-steps", type=int, default=0)
     parser.add_argument("--min-learning-rate", type=float, default=0.0)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
+    parser.add_argument(
+        "--lr-schedule",
+        choices=["linear", "cosine", "wsd"],
+        default="linear",
+        help=(
+            "Post-warmup LR decay shape. 'linear' (default) is byte-identical to the "
+            "prior schedule; 'cosine' is a half-cosine tail to min-learning-rate; "
+            "'wsd' holds the peak then cosine-decays."
+        ),
+    )
     if include_backend:
         parser.add_argument(
             "--backend",

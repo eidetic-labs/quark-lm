@@ -20,11 +20,15 @@ def scheduled_learning_rate(
     warmup_steps: int,
     decay_steps: int,
     min_learning_rate: float,
+    schedule: str = "linear",
 ) -> float:
-    """Warmup-then-linear-decay LR schedule shared by the scalar and torch trainers.
+    """Warmup-then-decay LR schedule shared by the scalar and torch trainers.
 
-    Extracted so the torch loops honor the exact same schedule as the canonical
-    ScalarOptimizer (parity holds at every step, not just for constant-LR runs).
+    The default schedule="linear" reproduces the prior warmup-then-linear-decay
+    values byte-for-byte (parity holds at every step, not just for constant-LR
+    runs). "cosine" replaces the post-warmup linear tail with a half-cosine decay
+    from peak to min over decay_steps; "wsd" holds the peak for a stable fraction
+    of the tail, then cosine-decays the remainder to min.
     """
 
     learning_rate = base_learning_rate
@@ -33,8 +37,34 @@ def scheduled_learning_rate(
     if decay_steps > 0 and step > warmup_steps:
         decay_step = min(step - warmup_steps, decay_steps)
         decay_fraction = decay_step / decay_steps
-        learning_rate = learning_rate - (learning_rate - min_learning_rate) * decay_fraction
+        if schedule == "cosine":
+            learning_rate = _cosine_tail(learning_rate, decay_fraction, min_learning_rate)
+        elif schedule == "wsd":
+            learning_rate = _wsd_tail(learning_rate, decay_fraction, min_learning_rate)
+        else:
+            learning_rate = learning_rate - (learning_rate - min_learning_rate) * decay_fraction
     return max(learning_rate, min_learning_rate)
+
+
+# Fraction of the decay window wsd holds the peak (stable phase) before cosine-decaying.
+_WSD_STABLE_FRACTION = 0.5
+
+
+def _cosine_tail(peak: float, decay_fraction: float, min_learning_rate: float) -> float:
+    """Half-cosine from peak (decay_fraction=0) to min_learning_rate (=1)."""
+
+    return min_learning_rate + 0.5 * (peak - min_learning_rate) * (
+        1.0 + math.cos(math.pi * decay_fraction)
+    )
+
+
+def _wsd_tail(peak: float, decay_fraction: float, min_learning_rate: float) -> float:
+    """Hold peak for the stable fraction, then cosine-decay the remainder to min."""
+
+    if decay_fraction <= _WSD_STABLE_FRACTION:
+        return peak
+    tail_fraction = (decay_fraction - _WSD_STABLE_FRACTION) / (1.0 - _WSD_STABLE_FRACTION)
+    return _cosine_tail(peak, tail_fraction, min_learning_rate)
 
 
 class ScalarOptimizer:

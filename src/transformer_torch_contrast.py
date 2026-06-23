@@ -17,8 +17,10 @@ from __future__ import annotations
 from typing import Any
 
 from neural_char_ops import make_context_positioned
+from transformer_best_checkpoint import CombinedBestCheckpointTracker
 from transformer_no_decay_mask import build_two_group_adamw
 from transformer_optimizer import scheduled_learning_rate
+from transformer_torch_combined_eval import evaluate_combined_does_both
 from transformer_torch_runtime import (
     configure_torch_runtime,
     epoch_shuffle_order,
@@ -186,6 +188,13 @@ def train_torch_answer_mixed(
     runtime: dict[str, Any] | None = None,
     seed: int | None = None,
     shuffle_each_epoch: bool = False,
+    validation_probe_paths: list[Any] | None = None,
+    eval_every: int = 0,
+    eval_responder: Any | None = None,
+    f1_floor: float = 0.85,
+    gen_floor: float = 0.05,
+    eval_max_new_chars: int = 12,
+    _eval_report_fn: Any | None = None,
 ) -> tuple[dict[str, Any], list[float]]:
     """Joint next-token + entity-paired contrast objective on shared weights.
 
@@ -195,6 +204,15 @@ def train_torch_answer_mixed(
     facts and acquires entity-conditioned abstention. NaN/Inf-guarded: the contrast
     term is a difference of sequence NLLs, where float underflow could silently flip
     a sign -- fail loud rather than train on garbage.
+
+    When validation_probe_paths and eval_every>0 are supplied, the loop scores the
+    live state every eval_every steps and retains the checkpoint with the best gated
+    does-both score (CombinedBestCheckpointTracker), restoring it at the end and
+    stashing best_combined_score/best_step/best_abstention_f1/best_concrete_gen into
+    the returned state. If no step clears both floors it FAILS CLOSED -- prints a
+    notice and sets best_combined_score=None, never masquerading as success on the
+    last-step weights. All of this is default-OFF: with eval_every=0 the loop and the
+    returned state are byte-for-byte identical to the prior behavior.
     """
 
     if not examples:
@@ -214,6 +232,15 @@ def train_torch_answer_mixed(
         device=runtime["device"],
     )
     clip = config.get("gradient_clip", 0.0)
+
+    # Default-OFF combined does-both checkpoint selection. tracker stays None unless a
+    # validation slice + eval cadence are supplied, so the parity-validated path is byte
+    # identical. _eval_report_fn is a test-only seam injecting a deterministic report.
+    tracker = (
+        CombinedBestCheckpointTracker(f1_floor, gen_floor)
+        if validation_probe_paths and eval_every > 0
+        else None
+    )
 
     order = list(range(len(examples)))
     losses: list[float] = []
@@ -264,11 +291,52 @@ def train_torch_answer_mixed(
             warmup_steps=config.get("warmup_steps", 0),
             decay_steps=config.get("decay_steps", 0),
             min_learning_rate=config.get("min_learning_rate", 0.0),
+            schedule=config.get("lr_schedule", "linear"),
         )
         for group in optimizer.param_groups:
             group["lr"] = learning_rate_now
         optimizer.step()
         losses.append(float(total.detach().cpu()))
+        if tracker is not None and (step + 1) % eval_every == 0:
+            if _eval_report_fn is not None:
+                abstention_f1, concrete_gen = _read_seam_report(_eval_report_fn(step + 1))
+            else:
+                abstention_f1, concrete_gen = evaluate_combined_does_both(
+                    fixture=fixture, state=state, tokenizer=tokenizer, torch=torch,
+                    validation_probe_paths=validation_probe_paths,
+                    eval_responder=eval_responder, max_new_chars=eval_max_new_chars,
+                )
+            tracker.consider(
+                step + 1, abstention_f1=abstention_f1, concrete_gen=concrete_gen, params=params
+            )
     state["grad_norms"] = grad_norms
+    if tracker is not None:
+        _finalize_combined_best(state, tracker, params)
     return state, losses
+
+
+def _read_seam_report(report: dict[str, Any]) -> tuple[float, float]:
+    """Validate an injected (test-seam) report the same way the real eval bridge does."""
+
+    from transformer_torch_combined_eval import _read_does_both
+
+    return _read_does_both(report)
+
+
+def _finalize_combined_best(state: dict[str, Any], tracker: Any, params: list[Any]) -> None:
+    """Restore the best does-both checkpoint and stash its metrics; fail closed otherwise."""
+
+    if tracker.restore(params):
+        state["best_combined_score"] = tracker.best_score
+        state["best_step"] = tracker.best_step
+        state["best_abstention_f1"] = tracker.best_f1
+        state["best_concrete_gen"] = tracker.best_gen
+    else:
+        # FAIL CLOSED: no checkpoint cleared both floors. Do NOT pass off the last-step
+        # weights as a does-both success -- signal absence explicitly.
+        state["best_combined_score"] = None
+        state["best_step"] = None
+        state["best_abstention_f1"] = None
+        state["best_concrete_gen"] = None
+        print("no does-both checkpoint found")
 

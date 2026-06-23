@@ -64,6 +64,7 @@ class OptimizationConfig:
     decay_steps: int = 0
     min_learning_rate: float = 0.0
     gradient_accumulation_steps: int = 1
+    lr_schedule: str = "linear"
 
 
 @dataclass
@@ -117,6 +118,8 @@ def validate_optimization_config(config: OptimizationConfig) -> None:
         raise ValueError("min_learning_rate must be non-negative")
     if config.gradient_accumulation_steps <= 0:
         raise ValueError("gradient_accumulation_steps must be positive")
+    if config.lr_schedule not in {"linear", "cosine", "wsd"}:
+        raise ValueError("lr_schedule must be 'linear', 'cosine', or 'wsd'")
 
 
 def validate_generation_config(config: GenerationConfig) -> None:
@@ -174,6 +177,7 @@ def optimization_config_from_args(args: Any) -> OptimizationConfig:
         decay_steps=args.decay_steps,
         min_learning_rate=args.min_learning_rate,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
+        lr_schedule=getattr(args, "lr_schedule", "linear"),
     )
     return apply_optimizer_profile(config, profile)
 

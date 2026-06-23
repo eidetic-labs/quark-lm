@@ -220,6 +220,7 @@ def train_torch_lm(
                 warmup_steps=config.get("warmup_steps", 0),
                 decay_steps=config.get("decay_steps", 0),
                 min_learning_rate=config.get("min_learning_rate", 0.0),
+                schedule=config.get("lr_schedule", "linear"),
             )
             for group in optimizer.param_groups:
                 group["lr"] = learning_rate_now

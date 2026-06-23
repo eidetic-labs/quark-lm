@@ -13,10 +13,12 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from pathlib import Path
 from typing import Any
 
 from answer_contrast_pairs import build_contrast_pairs
 from answer_model import AnswerExample
+from corpus_responder import DEFAULT_TRAIN_TEXT, CorpusResponder
 from neural_char_ops import make_context_positioned
 from tokenizer import CharTokenizer
 from transformer_tiny_lm import TinyTransformerLM
@@ -25,6 +27,28 @@ from transformer_torch_training_loop import torch_trained_weights, train_torch_l
 from transformer_training_parity_fixture import build_scalar_training_parity_fixture
 
 RUNTIME = {"dtype": "float64", "device": "cpu"}
+
+DEFAULT_COMBINED_PROBES = [
+    "evals/qa.jsonl",
+    "evals/unknowns.jsonl",
+    "evals/heldout.jsonl",
+    "evals/owner.jsonl",
+]
+
+
+def _combined_best_kwargs(args: argparse.Namespace, tokenizer: CharTokenizer) -> dict[str, Any]:
+    """Build the does-both eval machinery (CorpusResponder built ONCE) for the mixed loop."""
+
+    train_text = getattr(args, "train_text", None) or DEFAULT_TRAIN_TEXT
+    responder = CorpusResponder.train_from_text(Path(train_text).read_text(encoding="utf-8"))
+    probes = getattr(args, "combined_probes", None) or DEFAULT_COMBINED_PROBES
+    return {
+        "validation_probe_paths": [Path(probe) for probe in probes],
+        "eval_every": int(getattr(args, "eval_every_combined", 200)),
+        "eval_responder": responder,
+        "f1_floor": float(getattr(args, "f1_floor", 0.85)),
+        "gen_floor": float(getattr(args, "gen_floor", 0.05)),
+    }
 
 
 def build_torch_answer_training_pairs(
@@ -94,6 +118,11 @@ def train_core_answer_stage_torch(
     if contrast_weight > 0.0:
         grammar = json.loads((args.corpus_dir / "grammar.json").read_text(encoding="utf-8"))
         contrast_pairs = build_contrast_pairs(grammar)
+        # Default-OFF does-both checkpoint selection: only when --combined-best is set
+        # do we build the CorpusResponder (per-type menus) and pass the eval machinery.
+        # Without it the call carries no eval_every/eval_responder, so production
+        # answer-train is byte-identical.
+        combined_kwargs = _combined_best_kwargs(args, tokenizer) if getattr(args, "combined_best", False) else {}
         state, losses = train_torch_answer_mixed(
             fixture=fixture,
             tokenizer=tokenizer,
@@ -105,6 +134,7 @@ def train_core_answer_stage_torch(
             torch=torch,
             runtime=runtime,
             seed=getattr(args, "seed", None),
+            **combined_kwargs,
         )
     else:
         state, losses = train_torch_lm(

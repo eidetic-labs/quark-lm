@@ -76,7 +76,51 @@ def add_answer_train_arguments(answer_parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Generate free-form completions during answer snapshots. Slower, but records exact generation.",
     )
+    _add_combined_best_options(answer_parser)
     _add_experiment_options(answer_parser)
+
+
+def _add_combined_best_options(answer_parser: argparse.ArgumentParser) -> None:
+    """Default-OFF does-both checkpoint selection (pytorch mixed objective only)."""
+
+    answer_parser.add_argument(
+        "--combined-best",
+        action="store_true",
+        help=(
+            "Engage eval-driven does-both checkpoint selection during pytorch "
+            "mixed-objective training: retain the checkpoint that BOTH abstains "
+            "and generates concrete answers. Default off; requires --backend pytorch "
+            "with a positive --contrast-weight."
+        ),
+    )
+    answer_parser.add_argument(
+        "--eval-every-combined",
+        type=int,
+        default=200,
+        help="Steps between in-loop does-both evaluations when --combined-best is set.",
+    )
+    answer_parser.add_argument(
+        "--f1-floor",
+        type=float,
+        default=0.85,
+        help="Minimum abstention F1 a checkpoint must clear to be does-both eligible.",
+    )
+    answer_parser.add_argument(
+        "--gen-floor",
+        type=float,
+        default=0.05,
+        help="Minimum concrete-generation exact rate a checkpoint must clear to be eligible.",
+    )
+    answer_parser.add_argument(
+        "--combined-probe",
+        action="append",
+        dest="combined_probes",
+        default=None,
+        help=(
+            "Validation probe JSONL scored by the in-loop does-both eval. Repeat for "
+            "multiple slices; defaults to the standard qa/unknowns/heldout/owner probes."
+        ),
+    )
 
 
 def _add_selector_options(answer_parser: argparse.ArgumentParser) -> None:
